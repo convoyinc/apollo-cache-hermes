@@ -1,0 +1,23 @@
+{
+  "name": "apollo-cache-hermes",
+  "version": "0.1.0",
+  "description": "A cache implementation for Apollo Client, tuned for performance",
+  "license": "Apache-2.0",
+  "repository": "convoyinc/apollo-cache-hermes",
+  "homepage": "https://github.com/convoyinc/apollo-cache-hermes",
+  "bugs": "https://github.com/convoyinc/apollo-cache-hermes/issues",
+  "keywords": [
+    "apollo",
+    "apollo-client",
+    "apollo-cache",
+    "graphql"
+  ],
+  "files": [
+    "**/*.md",
+    "**/*.json",
+    "src/**/*.js",
+    "src/**/*.d.ts"
+  ],
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts"
+}
