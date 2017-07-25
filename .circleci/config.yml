@@ -30,6 +30,7 @@ jobs:
       - restore_cache:
           key: dependencies-{{ checksum "yarn.lock" }}
       - run: yarn
+      - run: yarn run greenkeeper:lockfile
       - save_cache:
           key: dependencies-{{ checksum "yarn.lock" }}
           paths:

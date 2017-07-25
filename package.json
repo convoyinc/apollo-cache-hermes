@@ -25,13 +25,14 @@
     "compile": "./scripts/compile.sh",
     "dev": "./scripts/dev.sh",
     "fix:style": "./scripts/fix:style.sh",
+    "greenkeeper:lockfile": "./scripts/greenkeeper:lockfile.sh",
     "postinstall": "./scripts/postinstall.sh",
     "release": "./scripts/release.sh",
+    "test": "./scripts/test.sh",
     "test:compile": "./scripts/test:compile.sh",
     "test:style": "./scripts/test:style.sh",
     "test:unit": "./scripts/test:unit.sh",
-    "test:unit:coverage": "./scripts/test:unit:coverage.sh",
-    "test": "./scripts/test.sh"
+    "test:unit:coverage": "./scripts/test:unit:coverage.sh"
   },
   "devDependencies": {
     "@types/chai": "^4.0.1",
@@ -44,6 +45,7 @@
     "eslint": "^4.2.0",
     "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
     "eslint-plugin-typescript": "^0.3.0",
+    "greenkeeper-lockfile": "^1.7.2",
     "jest": "^20.0.4",
     "jest-junit": "^2.1.0",
     "typescript": "^2.4.2",
