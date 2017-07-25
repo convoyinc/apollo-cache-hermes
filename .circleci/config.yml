@@ -3,50 +3,53 @@ version: 2
 base_image: &base_image
   image: circleci/node:6.11.1
 
+job_common: &job_common
+  docker:
+    - <<: *base_image
+  working_directory: ~/sandbox/code
+
+attach: &attach
+  attach_workspace:
+    at: ~/sandbox
+
 jobs:
   build:
-    docker:
-      - <<: *base_image
+    <<: *job_common
     steps:
-      - checkout
+      - checkout:
+          path: ~/sandbox/code
       - restore_cache:
-          key: dependencies-{{ checksum "package.json" }}
+          key: dependencies-{{ checksum "yarn.lock" }}
       - run: yarn
       - save_cache:
-          key: dependencies-{{ checksum "package.json" }}
-          paths: node_modules
+          key: dependencies-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/sandbox/code/node_modules
       - run: yarn run compile
       - persist_to_workspace:
-          root: .
-          paths:
-            - node_modules
-            - src
-
-  test:compile:
-    docker:
-      - <<: *base_image
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - run: yarn run test:compile
+          root: ~/sandbox
+          paths: code
 
   test:style:
-    docker:
-      - <<: *base_image
+    <<: *job_common
     steps:
       - checkout
-      - attach_workspace:
-          at: .
+      - <<: *attach
       - run: yarn run test:style
 
-  release:
-    docker:
-      - <<: *base_image
+  test:unit:
+    <<: *job_common
     steps:
       - checkout
-      - attach_workspace:
-          at: .
+      - <<: *attach
+      - run: ls -R src test
+      - run: yarn run test:unit
+
+  release:
+    <<: *job_common
+    steps:
+      - checkout
+      - <<: *attach
       - run: yarn config set registry https://registry.npmjs.org/
       - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - run: git config --global user.email "donvoy@convoy.com"
@@ -58,16 +61,16 @@ workflows:
   build-test-release:
     jobs:
       - build
-      - test:compile:
+      - test:style:
           requires:
             - build
-      - test:style:
+      - test:unit:
           requires:
             - build
       - release:
           requires:
-            - test:compile
             - test:style
+            - test:unit
           filters:
             branches:
               only: master
