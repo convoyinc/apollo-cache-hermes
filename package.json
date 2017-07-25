@@ -14,10 +14,16 @@
   ],
   "files": [
     "**/*.md",
-    "**/*.json",
-    "src/**/*.js",
-    "src/**/*.d.ts"
+    "src/"
   ],
   "main": "./src/index.js",
-  "typings": "./src/index.d.ts"
+  "typings": "./src/index.d.ts",
+  "scripts": {
+    "clean": "./scripts/clean.sh",
+    "compile": "./scripts/compile.sh",
+    "prepare": "./scripts/prepare.sh"
+  },
+  "dependencies": {
+    "typescript": "^2.4.2"
+  }
 }

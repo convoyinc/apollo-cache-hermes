@@ -1,0 +1,7 @@
+# Node
+node_modules/
+
+# TypeScript
+*.d.ts
+*.js
+*.js.map
