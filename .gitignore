@@ -1,8 +1,10 @@
 # Node
-node_modules/
+/node_modules/
 
-# TypeScript
+# Build Artifacts
+/output/
 *.d.ts
 *.js
-*.js.map
+
+# TypeScript
 !/typings/**/*.d.ts

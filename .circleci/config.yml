@@ -43,7 +43,7 @@ jobs:
       - checkout
       - <<: *attach
       - run: ls -R src test
-      - run: yarn run test:unit
+      - run: yarn run test:unit:coverage
 
   release:
     <<: *job_common
