@@ -12,6 +12,15 @@ attach: &attach
   attach_workspace:
     at: ~/sandbox
 
+store_artifacts: &store_artifacts
+  store_artifacts:
+    path: ~/sandbox/code/output
+    destination: /
+
+store_test_results: &store_test_results
+  store_test_results:
+    path: ~/sandbox/code/output
+
 jobs:
   build:
     <<: *job_common
@@ -36,6 +45,7 @@ jobs:
       - checkout
       - <<: *attach
       - run: yarn run test:style
+      - <<: *store_artifacts
 
   test:unit:
     <<: *job_common
@@ -44,6 +54,8 @@ jobs:
       - <<: *attach
       - run: ls -R src test
       - run: yarn run test:unit:coverage
+      - <<: *store_artifacts
+      - <<: *store_test_results
 
   release:
     <<: *job_common
@@ -55,6 +67,7 @@ jobs:
       - run: git config --global user.email "donvoy@convoy.com"
       - run: git config --global user.name "Don Voy"
       - run: yarn run release
+      - <<: *store_artifacts
 
 workflows:
   version: 2
