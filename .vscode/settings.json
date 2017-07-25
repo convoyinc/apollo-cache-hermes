@@ -9,6 +9,7 @@
     "**/.svn": true,
     "**/CVS": true,
     "{src,test}/**/*.d.ts": true,
-    "node_modules/": true
+    "node_modules/": true,
+    "output/": true
   }
 }

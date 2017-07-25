@@ -1,10 +1,10 @@
 # Node
 /node_modules/
 
-# TypeScript
+# Build Artifacts
+/output/
 *.d.ts
 *.js
-!/typings/**/*.d.ts
 
-# Tests
-/coverage/
+# TypeScript
+!/typings/**/*.d.ts

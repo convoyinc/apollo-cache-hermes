@@ -30,6 +30,7 @@
     "test:compile": "./scripts/test:compile.sh",
     "test:style": "./scripts/test:style.sh",
     "test:unit": "./scripts/test:unit.sh",
+    "test:unit:coverage": "./scripts/test:unit:coverage.sh",
     "test": "./scripts/test.sh"
   },
   "devDependencies": {
@@ -39,6 +40,7 @@
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
     "chai-jest-diff": "nevir/chai-jest-diff#built-member-assertions",
+    "codecov": "^2.2.0",
     "eslint": "^4.2.0",
     "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
     "eslint-plugin-typescript": "^0.3.0",

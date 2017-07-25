@@ -19,4 +19,4 @@ if [[ "${#FILES_TO_REMOVE[@]}" != "0" ]]; then
 fi
 
 # We also just drop some trees completely.
-rm -rf ./coverage
+rm -rf ./output
