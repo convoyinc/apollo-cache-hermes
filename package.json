@@ -23,8 +23,7 @@
   "scripts": {
     "clean": "./scripts/clean.sh",
     "compile": "./scripts/compile.sh",
-    "postinstall": "./scripts/postinstall.sh",
-    "prepare": "./scripts/prepare.sh",
+    "prepack": "./scripts/prepack.sh",
     "release": "./scripts/release.sh",
     "test:compile": "./scripts/test:compile.sh"
   },
