@@ -1,0 +1,183 @@
+extends:
+  - eslint:recommended
+
+parser: typescript-eslint-parser
+parserOptions:
+  ecmaVersion: 2017
+  sourceType: module
+  jsx: true
+  comment: true # Until https://github.com/benmosher/eslint-plugin-import/issues/842
+
+plugins:
+  - import
+  - typescript
+
+settings:
+  import/resolver:
+    node:
+      extensions:
+        - .js
+        - .jsx
+        - .ts
+        - .tsx
+  import/parsers:
+    typescript-eslint-parser:
+      - .ts
+      - .tsx
+
+rules:
+  # http://eslint.org/docs/rules/
+
+  # Possible Errors
+
+  for-direction: error
+  getter-return: error
+  no-prototype-builtins: error
+  # Until https://github.com/eslint/typescript-eslint-parser/issues/77
+  no-undef: off
+  no-unused-vars: off
+
+  # Best Practices
+
+  class-methods-use-this: error
+  consistent-return: error
+  curly: [error, multi-line]
+  dot-location: [error, property]
+  eqeqeq: [error, allow-null]
+  no-eval: error
+  no-extend-native: error
+  no-floating-decimal: error
+  no-implied-eval: error
+  no-labels: error
+  no-lone-blocks: error
+  no-new-func: error
+  no-new-wrappers: error
+  no-octal-escape: error
+  no-proto: error
+  no-return-await: error
+  no-self-compare: error
+  no-sequences: error
+  no-unmodified-loop-condition: error
+  no-unused-expressions: error
+  no-useless-call: error
+  no-useless-concat: error
+  no-useless-return: error
+  no-void: error
+  no-with: error
+  radix: [error, as-needed]
+  wrap-iife: [error, outside]
+  yoda: error
+
+  # Variables
+
+  no-catch-shadow: error
+  no-label-var: error
+  no-shadow: error
+  no-shadow-restricted-names: error
+  no-undef-init: error
+
+  # Node.js and CommonJS
+
+  handle-callback-err: [error, "^.*(e|E)rr(or)?"]
+  no-mixed-requires: error
+  no-new-require: error
+  no-path-concat: error
+
+  # Stylistic Issues
+
+  array-bracket-spacing: error
+  block-spacing: error
+  brace-style: [error, 1tbs]
+  camelcase: error
+  comma-dangle: [error, always-multiline]
+  comma-spacing: error
+  comma-style: error
+  computed-property-spacing: error
+  eol-last: error
+  func-call-spacing: error
+  func-names: [error, as-needed]
+  func-style: [error, declaration, { allowArrowFunctions: true }]
+  id-blacklist: [error, e, err, cb, fn]
+  indent: [error, 2]
+  jsx-quotes: [error, prefer-single]
+  key-spacing: [error, { mode: minimum }]
+  keyword-spacing: error
+  linebreak-style: error
+  max-len: [error, { code: 140, comments: 80, tabWidth: 2, ignoreUrls: true }]
+  new-cap: error
+  newline-per-chained-call: [error, { ignoreChainWithDepth: 3 }]
+  no-array-constructor: error
+  no-bitwise: error
+  no-lonely-if: error
+  no-mixed-operators: error
+  no-multiple-empty-lines: error
+  no-new-object: error
+  no-tabs: error
+  no-trailing-spaces: error
+  no-unneeded-ternary: error
+  no-whitespace-before-property: error
+  nonblock-statement-body-position: error
+  object-curly-newline: [error, { consistent: true }]
+  object-curly-spacing: [error, always]
+  operator-assignment: error
+  operator-linebreak: [error, before, { overrides: { '&&': after, '||': after } }]
+  quotes: [error, single, { allowTemplateLiterals: true }]
+  semi: error
+  semi-spacing: error
+  semi-style: error
+  space-before-blocks: [error, always]
+  space-before-function-paren: [error, never]
+  space-in-parens: error
+  # Until https://github.com/eslint/typescript-eslint-parser/issues/224#issuecomment-311744472
+  # space-infix-ops: [error, { int32Hint: true }]
+  space-unary-ops: [error, { words: true, nonwords: false }]
+  spaced-comment: error
+  switch-colon-spacing: error
+  template-tag-spacing: error
+  unicode-bom: error
+
+  # ES2015+
+
+  arrow-parens: [error, as-needed, { requireForBlockBody: true }]
+  arrow-spacing: error
+  generator-star-spacing: error
+  no-confusing-arrow: error
+  no-var: error
+  object-shorthand: error
+  prefer-arrow-callback: [error, { allowNamedFunctions: true }]
+  prefer-destructuring: error
+  prefer-numeric-literals: error
+  prefer-rest-params: error
+  prefer-spread: error
+  prefer-template: error
+  rest-spread-spacing: error
+  symbol-description: error
+  template-curly-spacing: error
+  yield-star-spacing: error
+
+  # https://github.com/benmosher/eslint-plugin-import#rules
+
+  # Static Analysis:
+  import/no-unresolved: [error, { caseSensitive: true, commonjs: true, amd: true }]
+  # Until https://github.com/eslint/typescript-eslint-parser/issues/77
+  # import/named: error
+  import/default: error
+  import/namespace: error
+  import/no-absolute-path: error
+
+  # Helpful Warnings
+  import/export: error
+  import/no-named-as-default: error
+  import/no-deprecated: error
+  import/no-extraneous-dependencies: [error, {
+    devDependencies: [test/**/*, typings/**/*],
+  }]
+
+  # Style Guide
+  import/no-duplicates: error
+  import/extensions: [error, never]
+  import/order: [error, {
+    groups: [[builtin, external], [internal], [parent], [sibling, index]],
+    newlines-between: always,
+    sort: alphabetical,
+  }]

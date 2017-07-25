@@ -31,6 +31,15 @@ jobs:
           at: .
       - run: yarn run test:compile
 
+  test:style:
+    docker:
+      - <<: *base_image
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: yarn run test:style
+
   release:
     docker:
       - <<: *base_image
@@ -52,9 +61,13 @@ workflows:
       - test:compile:
           requires:
             - build
+      - test:style:
+          requires:
+            - build
       - release:
           requires:
             - test:compile
+            - test:style
           filters:
             branches:
               only: master
