@@ -23,6 +23,7 @@
   "scripts": {
     "clean": "./scripts/clean.sh",
     "compile": "./scripts/compile.sh",
+    "fix:style": "./scripts/fix:style.sh",
     "postinstall": "./scripts/postinstall.sh",
     "release": "./scripts/release.sh",
     "test:compile": "./scripts/test:compile.sh",
