@@ -29,7 +29,8 @@
     "release": "./scripts/release.sh",
     "test:compile": "./scripts/test:compile.sh",
     "test:style": "./scripts/test:style.sh",
-    "test:unit": "./scripts/test:unit.sh"
+    "test:unit": "./scripts/test:unit.sh",
+    "test": "./scripts/test.sh"
   },
   "devDependencies": {
     "@types/chai": "^4.0.1",
