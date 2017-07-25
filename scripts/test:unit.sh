@@ -27,4 +27,8 @@ OPTIONS=(
   "${OPTIONS_FLAGS[@]}"
 )
 
+# For jest-junit
+export JEST_SUITE_NAME="test:unit"
+export JEST_JUNIT_OUTPUT=./output/test:unit/report.xml
+
 jest "${OPTIONS[@]}" "${FILES[@]}"
