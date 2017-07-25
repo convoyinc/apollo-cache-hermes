@@ -15,7 +15,7 @@ fi
 
 echo "Compiling TypeScript sources… "
 ${RUNNER} install
-run prepare # npm v3 and below don't support prepare.
+run compile
 
 rm -rf node_modules
 if [[ -d ./node_modules.temp ]]; then
