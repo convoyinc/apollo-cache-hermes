@@ -3,4 +3,4 @@ set -e
 
 source ./scripts/include/node.sh
 
-tsc
+tsc "${@}"

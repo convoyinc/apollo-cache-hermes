@@ -23,16 +23,25 @@
   "scripts": {
     "clean": "./scripts/clean.sh",
     "compile": "./scripts/compile.sh",
+    "dev": "./scripts/dev.sh",
     "fix:style": "./scripts/fix:style.sh",
     "postinstall": "./scripts/postinstall.sh",
     "release": "./scripts/release.sh",
     "test:compile": "./scripts/test:compile.sh",
-    "test:style": "./scripts/test:style.sh"
+    "test:style": "./scripts/test:style.sh",
+    "test:unit": "./scripts/test:unit.sh"
   },
   "devDependencies": {
+    "@types/chai": "^4.0.1",
+    "@types/chai-as-promised": "^0.0.31",
+    "@types/node": "^8.0.16",
+    "chai": "^4.1.0",
+    "chai-as-promised": "^7.1.1",
+    "chai-jest-diff": "nevir/chai-jest-diff#built-member-assertions",
     "eslint": "^4.2.0",
     "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
     "eslint-plugin-typescript": "^0.3.0",
+    "jest": "^20.0.4",
     "typescript": "^2.4.2",
     "typescript-eslint-parser": "eslint/typescript-eslint-parser#ts-2.4"
   }

@@ -1,0 +1,9 @@
+{
+  "automock": false,
+  "rootDir": "../..",
+  "setupTestFrameworkScriptFile": "./test/env/unit.js",
+  "testMatch": [
+    "<rootDir>/test/unit/**/*.js"
+  ],
+  "mapCoverage": true
+}

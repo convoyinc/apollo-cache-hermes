@@ -1,0 +1,10 @@
+{
+  "name": "@convoy/hermes-tests",
+  "version": "0.2.0",
+  "private": true,
+  "dependencies": {
+    "@convoy/hermes": "^0.2.0",
+    "@convoy/hermes-interfaces": "^0.1.3",
+    "@convoy/hermes-store": "^0.2.0"
+  }
+}
