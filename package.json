@@ -25,9 +25,14 @@
     "compile": "./scripts/compile.sh",
     "postinstall": "./scripts/postinstall.sh",
     "release": "./scripts/release.sh",
-    "test:compile": "./scripts/test:compile.sh"
+    "test:compile": "./scripts/test:compile.sh",
+    "test:style": "./scripts/test:style.sh"
   },
   "devDependencies": {
-    "typescript": "^2.4.2"
+    "eslint": "^4.2.0",
+    "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
+    "eslint-plugin-typescript": "^0.3.0",
+    "typescript": "^2.4.2",
+    "typescript-eslint-parser": "eslint/typescript-eslint-parser#ts-2.4"
   }
 }
