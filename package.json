@@ -1,6 +1,6 @@
 {
   "name": "apollo-cache-hermes",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha",
   "description": "A cache implementation for Apollo Client, tuned for performance",
   "license": "Apache-2.0",
   "repository": "convoyinc/apollo-cache-hermes",
@@ -23,8 +23,10 @@
   "scripts": {
     "clean": "./scripts/clean.sh",
     "compile": "./scripts/compile.sh",
+    "postinstall": "./scripts/postinstall.sh",
     "prepare": "./scripts/prepare.sh",
-    "postinstall": "./scripts/postinstall.sh"
+    "release": "./scripts/release.sh",
+    "test:compile": "./scripts/test:compile.sh"
   },
   "devDependencies": {
     "typescript": "^2.4.2"

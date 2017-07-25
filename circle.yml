@@ -1,0 +1,19 @@
+dependencies:
+  cache_directories:
+    - ~/.cache/yarn
+  override:
+    - yarn config set registry https://registry.npmjs.org/
+    - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+    - yarn
+
+test:
+  override:
+    - yarn run test:compile
+
+deployment:
+  deploy:
+    branch: master
+    commands:
+      - git config --global user.email "donvoy@convoy.com"
+      - git config --global user.name "Don Voy"
+      - yarn run release
