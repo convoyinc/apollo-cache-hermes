@@ -27,10 +27,11 @@ fi
 
 echo "Releasing ${NEW_VERSION}…"
 write_package_key version "${NEW_VERSION}"
+
+npm publish
+
 git add .
 git commit -m "${CIRCLE_BUILD_URL}"
 git tag v${NEW_VERSION}
-
 git push --tags
-npm publish
 git reset --hard HEAD\^

@@ -1,0 +1,60 @@
+version: 2
+
+base_image: &base_image
+  image: circleci/node:6.11.1
+
+jobs:
+  build:
+    docker:
+      - <<: *base_image
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependencies-{{ checksum "package.json" }}
+      - run: yarn
+      - save_cache:
+          key: dependencies-{{ checksum "package.json" }}
+          paths: node_modules
+      - run: yarn run compile
+      - persist_to_workspace:
+          root: .
+          paths:
+            - node_modules
+            - src
+
+  test:compile:
+    docker:
+      - <<: *base_image
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: yarn run test:compile
+
+  release:
+    docker:
+      - <<: *base_image
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: yarn config set registry https://registry.npmjs.org/
+      - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - run: git config --global user.email "donvoy@convoy.com"
+      - run: git config --global user.name "Don Voy"
+      - run: yarn run release
+
+workflows:
+  version: 2
+  build-test-release:
+    jobs:
+      - build
+      - test:compile:
+          requires:
+            - build
+      - release:
+          requires:
+            - test:compile
+          filters:
+            branches:
+              only: master
