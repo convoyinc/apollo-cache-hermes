@@ -1,9 +1,14 @@
 {
   "automock": false,
+  "collectCoverageFrom": [
+    "src/**/*.js"
+  ],
+  "coveragePathIgnorePatterns": [
+    "/node_modules/",
+    "<rootDir>/test/"
+  ],
+  "mapCoverage": true,
   "rootDir": "../..",
   "setupTestFrameworkScriptFile": "./test/env/unit.js",
-  "testMatch": [
-    "<rootDir>/test/unit/**/*.js"
-  ],
-  "mapCoverage": true
+  "testMatch": ["<rootDir>/test/unit/**/*.js"]
 }

@@ -3,6 +3,7 @@
     "declaration": true,
     "downlevelIteration": true,
     "importHelpers": true,
+    "inlineSourceMap": true,
     "lib": [
       "dom",
       "es2015",
@@ -16,7 +17,6 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "pretty": true,
-    "sourceMap": true,
     "stripInternal": true,
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,

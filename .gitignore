@@ -1,8 +1,10 @@
 # Node
-node_modules/
+/node_modules/
 
 # TypeScript
 *.d.ts
 *.js
-*.js.map
 !/typings/**/*.d.ts
+
+# Tests
+/coverage/
