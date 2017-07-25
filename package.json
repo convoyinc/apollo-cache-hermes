@@ -14,7 +14,9 @@
   ],
   "files": [
     "**/*.md",
-    "src/"
+    "scripts/",
+    "src/",
+    "tsconfig.json"
   ],
   "main": "./src/index.js",
   "typings": "./src/index.d.ts",
@@ -24,7 +26,7 @@
     "prepare": "./scripts/prepare.sh",
     "postinstall": "./scripts/postinstall.sh"
   },
-  "dependencies": {
+  "devDependencies": {
     "typescript": "^2.4.2"
   }
 }
