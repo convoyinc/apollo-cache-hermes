@@ -21,7 +21,8 @@
   "scripts": {
     "clean": "./scripts/clean.sh",
     "compile": "./scripts/compile.sh",
-    "prepare": "./scripts/prepare.sh"
+    "prepare": "./scripts/prepare.sh",
+    "postinstall": "./scripts/postinstall.sh"
   },
   "dependencies": {
     "typescript": "^2.4.2"
