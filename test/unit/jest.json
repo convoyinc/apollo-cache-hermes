@@ -12,5 +12,6 @@
   "mapCoverage": true,
   "rootDir": "../..",
   "setupTestFrameworkScriptFile": "./test/env/unit.js",
-  "testMatch": ["<rootDir>/test/unit/**/*.js"]
+  "testMatch": ["<rootDir>/test/unit/**/*.js"],
+  "testResultsProcessor": "./node_modules/jest-junit"
 }
