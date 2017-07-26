@@ -5,7 +5,7 @@ source ./scripts/include/node.sh
 
 # When installing directly from GitHub, we get the source, but none of the
 # compiled JavaScript.
-if [[ -f ./src/index.js || -d ./node_modules/typescript ]]; then exit 0; fi
+if [[ -d ./node_modules/typescript ]]; then exit 0; fi
 
 # Install our dev dependencies (aka TypeScript) into a sandbox, so that we can
 # compile our code.

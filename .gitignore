@@ -1,5 +1,8 @@
 # Node
 /node_modules/
+yarn.lock
+npm-shrinkwrap.json
+package-lock.json
 
 # Build Artifacts
 /output/
