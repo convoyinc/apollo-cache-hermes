@@ -3,7 +3,7 @@ Thanks for helping out!  To make sure your pull request goes smoothly, here's a 
 
 ✔ Write a summary
 
-Please summarize your change, and provide as much context as you can.  What's your motivation for the change?  Why'd you take this approach?  Links to related issues.  Etc.  Helps the reviewer give more thoughtful feedback.
+Please summarize your change, and provide as much context as you can.  What's your motivation for the change?  Why'd you take this approach?  Links to related issues?  Etc.  Helps the reviewer give more thoughtful feedback.
 
 ✔ Tests!
 
