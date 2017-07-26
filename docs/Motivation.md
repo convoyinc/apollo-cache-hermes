@@ -2,7 +2,7 @@
 
 The performance of existing (normalizing) GraphQL caches [isn't great](http://convoy-scrubbed-graphql-client-benchmarks.s3-website-us-west-2.amazonaws.com), particularly for queries that select a large number of objects.
 
-This document explores the reasons for the poor performance of existing implementations.  It also provides background for the [design decisions](./ARCHITECTURE.md) made by this new cache implementation.
+This document explores the reasons for the poor performance of existing implementations.  It also provides background for the [design decisions](./Architecture.md) made by this new cache implementation.
 
 
 ## Status Quo
