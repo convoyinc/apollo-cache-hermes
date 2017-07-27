@@ -10,6 +10,10 @@ This project is relatively dense, and juggles several concepts.  Here's a quick 
 
 **Edge**: A name used to reference the value of a node.
 
+**Parameterized Edge**: [An edge that includes parameters](http://facebook.github.io/graphql/#sec-Object-Field-Arguments) (that the values are a function of).
+
 **Selection Set**: [An expression of edges](http://facebook.github.io/graphql/#sec-Selection-Sets) - often nested - describing the paths to all values that should be retrieved by a query.
+
+**Identity Map**: A lookup table mapping identities to a value associated with it.  E.g. userId -> User, etc.
 
 **Observer**: A construct that watches the cache for a specific query, and emits callbacks whenever the values selected by that query have changed.
