@@ -1,4 +1,3 @@
-
 # A Different Sort Of GraphQL Cache
 
 This document explores an approach to a normalizing GraphQL cache that addresses some of the [performance problems](./Motivation.md) with existing implementations.
@@ -111,4 +110,4 @@ There are a few key design decisions we've determined:
 
 [Parameterized edges are layered on top of entities with prototypes](#dealing-with-parameterized-edges): This minimizes the cost (memory and CPU) of entities that have multiple (parameterized) values for the same property.
 
-A design is beginning to form!
+A design is beginning to form!  Up next: we solidify these ideas into an actual [architecture](./Architecture.md).
