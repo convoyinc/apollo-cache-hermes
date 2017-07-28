@@ -1,5 +1,5 @@
-import { EntityId } from './schema';
 import { EntitySnapshot } from './EntitySnapshot';
+import { EntityId } from './schema';
 
 /**
  * Maintains an identity map of all entity snapshots that reference into a
@@ -8,6 +8,14 @@ import { EntitySnapshot } from './EntitySnapshot';
  * Provides an immutable view into the graph at a point in time.
  */
 export class GraphSnapshot {
+
+  /**
+   * @internal
+   */
+  constructor(
+    // TODO(nevir): Profile Object.create(null) vs Map.
+    private _entities = new Map<string, EntitySnapshot>(),
+  ) {}
 
   /**
    * Retrieves the entity identified by `id`.
@@ -21,7 +29,7 @@ export class GraphSnapshot {
    * Returns whether `id` exists as an entity in the graph.
    */
   has(id: EntityId): boolean {
-    return false; // TODO(nevir): Port over.
+    return this._entities.has(id);
   }
 
   /**
@@ -30,7 +38,7 @@ export class GraphSnapshot {
    * @internal
    */
   getSnapshot(id: EntityId): EntitySnapshot | undefined {
-    return; // TODO(nevir): Port over.
+    return this._entities.get(id);
   }
 
 }

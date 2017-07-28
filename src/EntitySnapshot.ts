@@ -1,5 +1,5 @@
 import { PathPart } from './primitive';
-import { EntityId } from './schema';
+import { ChangeId, EntityId } from './schema';
 
 export namespace EntitySnapshot {
   /**
@@ -41,5 +41,15 @@ export class EntitySnapshot {
      * Other entities that point to this one.
      */
     public readonly inboundReferences?: EntitySnapshot.InboundReference[],
+
+    /**
+     * The change this snapshot is associated with.
+     */
+    public readonly changeId?: ChangeId,
+
+    /**
+     * All snapshots this one is based off of, with immediate parent first.
+     */
+    public readonly ancestors?: EntitySnapshot[],
   ) {}
 }

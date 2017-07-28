@@ -11,5 +11,9 @@
     "{src,test}/**/*.js": true,
     "node_modules/": true,
     "output/": true
-  }
+  },
+  "eslint.validate": [
+    "typescript",
+    "typescriptreact"
+  ]
 }
