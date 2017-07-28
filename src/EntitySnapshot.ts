@@ -22,12 +22,12 @@ export namespace EntitySnapshot {
 /**
  * Bookkeeping metadata and a reference to a unique entity in the cached graph.
  */
-export class EntitySnapshot<TEntity> {
+export class EntitySnapshot {
   constructor(
     /**
      * A reference to the entity this snapshot is about.
      */
-    public readonly entity: TEntity,
+    public readonly entity: object,
 
     /**
      * Whether this entity is considered a root of the graph.

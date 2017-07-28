@@ -29,6 +29,13 @@ export type DeepPartial<TType> = {
   [Key in keyof TType]?: DeepPartial<TType[Key]>
 };
 
+/**
+ * A readonly object, applied recursively.
+ */
+export type DeepReadonly<TType> = {
+  readonly [Key in keyof TType]: DeepReadonly<TType[Key]>
+};
+
 // JSON
 
 export type JsonScalar = null | boolean | number | string;

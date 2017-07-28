@@ -41,3 +41,7 @@ Of particular note, each entity snapshot maintains a list of all _inbound_ refer
 
 
 ### Graph Snapshots
+
+All entity snapshots referencing a particular version of the graph are collected into an identity map - a [`GraphSnapshot`](../src/GraphSnapshot.ts).  This becomes a readonly view of all the values, as well as the primary entrypoint into the cache.
+
+It contains entity snapshots for all of the domain entities for the application, as well as some specialized snapshots for queries and other roots.
