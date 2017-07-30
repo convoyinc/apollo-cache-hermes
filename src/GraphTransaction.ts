@@ -40,6 +40,12 @@ export class GraphTransaction {
    */
   private _editedNodeIds = new Set<NodeId>();
 
+  /**
+   * Tracks the nodes that have been rebuilt, and have had all their inbound
+   * references updated to point to the new value.
+   */
+  private _rebuiltNodeIds = new Set<NodeId>();
+
   constructor(
     /** The snapshot to base edits off of. */
     private _parent: GraphSnapshot,
@@ -67,7 +73,7 @@ export class GraphTransaction {
     // exists in _newNodes.  In order to preserve immutability, we need to walk
     // all nodes that transitively reference an edited node, and update their
     // references to point to the new version.
-    this._updateInboundReferences();
+    this._rebuildInboundReferences();
 
     // Remove (garbage collect) orphaned subgraphs.
     this._removeOrphanedNodes(orphanedNodeIds);
@@ -111,14 +117,14 @@ export class GraphTransaction {
     //
     //       * If the value is a scalar:
     //
-    //         * this._setValue
+    //         * _setValue
     //
     //       * If the value is an array:
     //
     //         * If the length of the payload and parent arrays disagree:
     //
     //           * Slice the parent's array to the same length as the payload,
-    //             and this._setValue it.  Arrays are *not* shallow-merged.
+    //             and _setValue it.  Arrays are *not* shallow-merged.
     //
     //       * If the value is an object:
     //
@@ -184,15 +190,39 @@ export class GraphTransaction {
    * Transitively walks the inbound references of all edited nodes, rewriting
    * those references to point to the newly edited versions.
    */
-  private _updateInboundReferences(): void {
-    // Random line to get ts/tslint to shut up.
-    this._updateInboundReferences();
+  private _rebuildInboundReferences(): void {
+    // The rough algorithm is as follows:
+    //
+    //   * Create a new queue of node ids from _editedNodeIds - _rebuiltNodeIds.
+    //
+    //   * Mark all those ids in _rebuiltNodeIds.
+    //
+    //   * While there are ids in the queue:
+    //
+    //     * Pop an id off the queue.
+    //
+    //     * For each inbound reference for that node:
+    //
+    //       * _setValue to the new version of the node that's referenced, with
+    //         isEdit = false.
+    //
+    //       * If the referenced node is not in _rebuiltNodeIds:
+    //
+    //         * Push that id on to the queue, and add it to _rebuiltNodeIds.
+    //
+
+    // Random lines to get ts/tslint to shut up.
+    this._rebuiltNodeIds.clear();
+    this._rebuildInboundReferences();
   }
 
   /**
    * Transitively removes all orphaned nodes from the graph.
    */
   private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
+
+
+    // Random line to get ts/tslint to shut up.
     this._removeOrphanedNodes(nodeIds);
   }
 
@@ -245,8 +275,10 @@ export class GraphTransaction {
    * This will not shallow clone objects/arrays along `path` if they were
    * previously cloned during this transaction.
    */
-  private _setValue(id: NodeId, path: PathPart[], newValue: any) {
-    this._editedNodeIds.add(id);
+  private _setValue(id: NodeId, path: PathPart[], newValue: any, isEdit = true) {
+    if (isEdit) {
+      this._editedNodeIds.add(id);
+    }
 
     // Random line to get ts/tslint to shut up.
     this._setValue(id, path, newValue);
