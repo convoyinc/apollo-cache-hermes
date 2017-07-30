@@ -13,13 +13,13 @@ Contracts that we must adhere to:
 
 Design points:
 
-3. [The cache indexes entities](./Design Exploration.md#entities)
+3. [The cache indexes entities](./Design%20Exploration.md#entities)
 
-4. [Cached entities directly (potentially circularly) reference other cached entities](./Design Exploration.md#normalized-graph-cache)
+4. Cached entities directly (potentially circularly) [reference other cached entities](./Design%20Exploration.md#normalized-graph-cache)
 
-5. [Values from parameterized edges are layered on top of entities via prototypes](./Design Exploration.md#dealing-with-parameterized-edges)
+5. Values from parameterized edges are [layered on top of entities via prototypes](./Design%20Exploration.md#dealing-with-parameterized-edges)
 
-6. [Entities from the cache are _directly_ returned](./Design Exploration.md#normalized-graph-cache) where possible (no parameterized edges).  _This minimizes the amount of work required when reading from the cache._
+6. [Entities from the cache are _directly_ returned](./Design%20Exploration.md#normalized-graph-cache) where possible (no parameterized edges).  _This minimizes the amount of work required when reading from the cache._
 
 7. The cache will garbage collect orphaned entities, as well as provide a mechanism to directly evict entities (and any orphaned by that eviction).
 
@@ -47,9 +47,9 @@ The cache maintains an [`EntitySnapshot`](../src/EntitySnapshot.ts) for each ent
 
 There are several types of entities tracked by entity snapshots, each with a specialized form of the snapshot:
 
-[**Entities**](../src/EntitySnapshot.ts#L40-66]: Tracks an object modeling one of the application's domains.
+[**Entities**](../src/EntitySnapshot.ts#L40-66): Tracks an object modeling one of the application's domains.
 
-[**Parameterized Values**](../src/EntitySnapshot.ts#L68-99]: Tracks the value of a parameterized edge, the entity it occurs within, and the path to the edge.  These are used at query time to layer the value of a parameterized edge on top of the underlying entity.
+[**Parameterized Values**](../src/EntitySnapshot.ts#L68-99): Tracks the value of a parameterized edge, the entity it occurs within, and the path to the edge.  These are used at query time to layer the value of a parameterized edge on top of the underlying entity.
 
 
 ### Graph Snapshots
@@ -83,6 +83,4 @@ See [`GraphTransaction#mergePayload`](../src/GraphTransaction.ts) for the specif
 
 #### Rolling Back Past Transactions
 
-In order to perform a
-
-In c`EntitySnapshot`s maintain
+TODO:
