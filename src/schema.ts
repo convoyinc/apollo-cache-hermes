@@ -4,6 +4,6 @@
 export type ChangeId = string;
 
 /**
- * Entity ids must be strings, for now.
+ * Value ids must be strings, for now.
  */
-export type EntityId = string;
+export type NodeId = string;
