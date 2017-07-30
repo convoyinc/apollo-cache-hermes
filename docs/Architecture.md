@@ -28,35 +28,38 @@ Design points:
 
 At its core, the cache maintains a normalized graph of entities, and indexes into that graph for efficient retrieval.  Additionally, due to requirement (2) and design decision (6), this normalized graph must be _immutable_.
 
-To maintain this, the cache tracks the current version of an entity (and the overall graph) via snapshots.  _Note: this is similar, but not identical, to [Relay Modern's concept of snapshots](https://github.com/facebook/relay/blob/master/packages/relay-runtime/ARCHITECTURE.md#example-data-flow-reading-and-observing-the-store)._
+To maintain this, the cache tracks the current version of a node (and the overall graph) via snapshots.  _Note: this is similar, but not identical, to [Relay Modern's concept of snapshots](https://github.com/facebook/relay/blob/master/packages/relay-runtime/ARCHITECTURE.md#example-data-flow-reading-and-observing-the-store)._
 
 
-### Entity Snapshots
+### Node Snapshots
 
-TODO: Rename entity to value!
+The cache maintains an [`NodeSnapshot`](../src/NodeSnapshot.ts) for _important_ nodes in the graph - unlike the existing implementations, it does not maintain metadata for a node, unless its necessary.  This snapshot maintains a reference to that node (in the normalized graph), and some metadata.
 
-The cache maintains an [`EntitySnapshot`](../src/EntitySnapshot.ts) for each entity in the graph.  This snapshot maintains a reference to that value (in the normalized graph), as well as additional metadata required to support the various features of the cache:
+
+#### Snapshot Metadata
+
+In addition to the node reference, all node snapshots maintain base metadata:
 
 **Root**: Some entities (such as the [query or mutation roots](http://facebook.github.io/graphql/#sec-Type-System)) are considered to be entry points to the graph.  They, and all the entities they transitively reference, are considered active and will not be garbage collected.
 
-**Inbound references**: Each entity snapshot maintains a list of all _inbound_ references to that entity.  This supports several behaviors:
+**Inbound references**: Each node snapshot maintains a list of all _inbound_ references to that node.  This allows us to only (shallow) copy the minimal set of nodes when making edits to the graph, due to the immutability constraint.
 
-* Minimal updates when generating a new (immutable) graph snapshot: for each modified entity, all entities that transitively reference it must also be re-created.  By tracking inbound references, we can scope to only those entities, not the entire graph.
+**Outbound references**: Similarly, each snapshot also maintains a list of all
+outbound references, in order to support reference-counted garbage collection.
 
-* Garbage collection: orphaned entities can be trivially detected (e.g. no inbound references) and removed.
 
-There are several types of entities tracked by entity snapshots, each with a specialized form of the snapshot:
+#### Snapshot Types
 
-[**Entities**](../src/EntitySnapshot.ts#L40-66): Tracks an object modeling one of the application's domains.
+There are several types of entities tracked by node snapshots, each with a specialized form of the snapshot:
 
-[**Parameterized Values**](../src/EntitySnapshot.ts#L68-99): Tracks the value of a parameterized edge, the entity it occurs within, and the path to the edge.  These are used at query time to layer the value of a parameterized edge on top of the underlying entity.
+[**Entities**](../src/NodeSnapshot.ts#L38-L69): Tracks an object modeling one of the application's domains.
+
+[**Parameterized Values**](../src/NodeSnapshot.ts#L71-L111): Tracks the value of a parameterized edge, the node it occurs within, and the path to the edge.  These are used at query time to layer the value of a parameterized edge on top of the underlying node.
 
 
 ### Graph Snapshots
 
-All entity snapshots referencing a particular version of the graph are collected into an identity map - a [`GraphSnapshot`](../src/GraphSnapshot.ts).  This becomes a readonly view of all the values, as well as the primary entry point into the cache.
-
-It contains entity snapshots for all of the domain entities for the application, as well as some specialized snapshots for queries and other roots.
+All node snapshots referencing a particular version of the graph are collected into an identity map - a [`GraphSnapshot`](../src/GraphSnapshot.ts).  This becomes a readonly view of all the nodes, as well as the primary entry point into the cache.
 
 
 ### Snapshot Transactions

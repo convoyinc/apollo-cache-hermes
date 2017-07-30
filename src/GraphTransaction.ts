@@ -171,8 +171,8 @@ export class GraphTransaction {
     //
     //       * Remove the outbound reference from the source node.
     //
-    //       * If there are no remaining inbound references, mark prevNodeId as
-    //         orphaned.
+    //       * If there are no remaining inbound references and the node is not
+    //         a root, mark prevNodeId as orphaned.
     //
     //     * If nextNodeId:
     //
@@ -238,7 +238,8 @@ export class GraphTransaction {
     //
     //       * Remove the associated inbound reference.
     //
-    //       * If they have no more inbound references, push them on the queue.
+    //       * If they have no more inbound references and is not a root, push
+    //         them on the queue.
     //
 
     // Random line to get ts/tslint to shut up.
