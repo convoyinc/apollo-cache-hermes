@@ -263,7 +263,7 @@ export class GraphTransaction {
   /**
    * Commits the transaction, returning a new immutable snapshot.
    */
-  commit(): GraphSnapshot {
+  commit(): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
     const snapshots: { [Key in NodeId]: NodeSnapshot } = { ...(this._parent as any)._values };
     for (const id in this._newNodes) {
       const newSnapshot = this._newNodes[id];
@@ -275,7 +275,10 @@ export class GraphTransaction {
       }
     }
 
-    return new GraphSnapshot(snapshots);
+    return {
+      snapshot: new GraphSnapshot(snapshots),
+      editedNodeIds: this._editedNodeIds,
+    };
   }
 
   /**
