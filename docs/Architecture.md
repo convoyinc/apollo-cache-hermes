@@ -75,7 +75,11 @@ Because the cache is built to store values in a format that can be directly retu
 4. Return the query root, or view on top of it via (3).
 
 
-### Snapshot Transactions
+### Optimistic Updates
+
+
+
+### Modifying The Cache
 
 As snapshots maintain a readonly immutable view into a version of the graph, we need a way to generate new versions.  A [`GraphTransaction`](../src/GraphTransaction.ts) encapsulates the logic for making edits to a snapshot in an immutable way (e.g. creating a new copy), following the builder pattern.
 
@@ -100,3 +104,4 @@ See [`GraphTransaction#mergePayload`](../src/GraphTransaction.ts) for the specif
 #### Rolling Back Past Transactions
 
 TODO:
+
