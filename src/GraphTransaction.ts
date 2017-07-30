@@ -3,7 +3,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import { GraphSnapshot } from './GraphSnapshot';
 import { NodeSnapshot } from './NodeSnapshot';
 import { PathPart } from './primitive';
-import { ChangeId, NodeId } from './schema';
+import { NodeId } from './schema';
 
 /**
  * Describes an edit to a reference contained within a node.
@@ -194,16 +194,6 @@ export class GraphTransaction {
    */
   private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
     this._removeOrphanedNodes(nodeIds);
-  }
-
-  /**
-   * Reverts all changes that were introduced by `changeId`.
-   */
-  revertChange(changeId: ChangeId): void {
-    // TODO: Figure this logic out.
-
-    // Random line to get ts/tslint to shut up.
-    this.revertChange(changeId);
   }
 
   /**
