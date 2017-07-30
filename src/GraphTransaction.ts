@@ -167,14 +167,18 @@ export class GraphTransaction {
     //
     //     * If prevNodeId:
     //
-    //       * Remove the inbound reference from _getOrCreateNew(prevNodeId)
+    //       * Remove the inbound reference from _getOrCreateNew(prevNodeId).
+    //
+    //       * Remove the outbound reference from the source node.
     //
     //       * If there are no remaining inbound references, mark prevNodeId as
     //         orphaned.
     //
     //     * If nextNodeId:
     //
-    //       * Insert the inbound reference to _getOrCreateNew(nextNodeId)
+    //       * Insert the inbound reference to _getOrCreateNew(nextNodeId).
+    //
+    //       * Insert the outbound reference to the source node.
     //
     //       * If nextNodeId is present in the orphaned ids, remove it.
     //
@@ -220,7 +224,22 @@ export class GraphTransaction {
    * Transitively removes all orphaned nodes from the graph.
    */
   private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
-
+    // The rough algorithm is as follows:
+    //
+    //   * Create a new set to track visited node ids.
+    //
+    //   * While there are ids in nodeIds:
+    //
+    //     * Pop an id off of nodeIds, and mark it visited.
+    //
+    //     * Set _newNodes[id] = undefined.
+    //
+    //     * For each of its outbound references:
+    //
+    //       * Remove the associated inbound reference.
+    //
+    //       * If they have no more inbound references, push them on the queue.
+    //
 
     // Random line to get ts/tslint to shut up.
     this._removeOrphanedNodes(nodeIds);

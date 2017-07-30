@@ -2,35 +2,33 @@ import { PathPart } from './primitive';
 import { NodeId } from './schema';
 
 /**
- * Bookkeeping metadata and a reference to a unique value in the cached graph.
+ * Bookkeeping metadata and a reference to a unique node in the cached graph.
  */
 export interface NodeSnapshot {
-  /**
-   * A reference to the value this snapshot is about.
-   */
+  /** A reference to the node this snapshot is about. */
   readonly node: any,
-
-  /**
-   * Other value snapshots that point to this one.
-   */
-  readonly inboundReferences?: ValueSnapshot.InboundReference[];
+  /** Other node snapshots that point to this one. */
+  readonly inbound?: ValueSnapshot.NodeReference[];
+  /** The node snapshots that this one points to. */
+  readonly outbound?: ValueSnapshot.NodeReference[];
 }
 
 export namespace ValueSnapshot {
 
   /**
-   * Each value maintains a list of references to it, and how to find them.
+   * Each node maintains a list of references to/from it, and how to find them.
    *
    * Used when updating the graph, as well as for garbage collection.
    */
-  export interface InboundReference {
+  export interface NodeReference {
     /**
-     * Id of the value that contains the reference.
+     * Id of the node that is either doing the referencing (inbound), or being
+     * referenced (outbound).
      */
-    source: NodeId,
+    id: NodeId,
 
     /**
-     * The path (object/array keys) within the value to the reference.
+     * The path (object/array keys) within the node to the reference.
      */
     path: PathPart[],
   }
@@ -38,41 +36,40 @@ export namespace ValueSnapshot {
   // Specializations.
 
   /**
-   * A value snapshot that tracks one of the application's domain (business)
+   * A node snapshot that tracks one of the application's domain (business)
    * objects.
    */
   export class Entity implements NodeSnapshot {
 
     constructor(
       /**
-       * A reference to the value this snapshot is about.
+       * A reference to the node this snapshot is about.
        */
       public readonly node: object,
 
       /**
-       * Whether this value is considered a root of the graph.
+       * Other node snapshots that point to this one.
+       */
+      public readonly inbound?: NodeReference[],
+
+      /**
+       * The node snapshots that this one points to.
+       */
+      readonly outbound?: ValueSnapshot.NodeReference[],
+
+      /**
+       * Whether this node is considered a root of the graph.
        *
-       * Roots, and the values they transitively reference, are not garbage
+       * Roots, and the nodes they transitively reference, are not garbage
        * collected.
        */
       public readonly root?: true,
-
-      /**
-       * Other value snapshots that point to this one.
-       */
-      public readonly inboundReferences?: InboundReference[],
-
-      /**
-       * Pointers to the parameterized values that are contained within this
-       * value.
-       */
-      public readonly parameterizedValueIds?: NodeId[],
     ) {}
 
   }
 
   /**
-   * A value snapshot that tracks the value of a parameterized edge, relative to
+   * A node snapshot that tracks the node of a parameterized edge, relative to
    * a domain object.
    *
    * It is expected that the
@@ -81,12 +78,14 @@ export namespace ValueSnapshot {
 
     constructor(
       /**
-       * The value of a parameterized edge within a domain object.
+       * The node of a parameterized edge within a domain object.
        */
       public readonly node: any,
 
       /**
-       * The specific arguments associated with the value.
+       * The specific arguments associated with the node.
+       *
+       * TODO: Do we need this?  If not, consider folding the types together.
        *
        * But let's call 'em "parameters", just to reduce the number of terms you
        * need to juggle…
@@ -94,14 +93,19 @@ export namespace ValueSnapshot {
       public readonly parameters: object,
 
       /**
-       * There is only ever one inbound edge for the parameterized value: the
+       * There is only ever one inbound edge for the parameterized node: the
        * domain object that contains it.
        *
-       * This reference is used to identify where in the domain object the value
+       * This reference is used to identify where in the domain object the node
        * is placed (when reading from the cache), as well as to inform the
        * reference counting algorithm when to clean this snapshot up.
        */
-      public readonly inboundReferences: [InboundReference],
+      public readonly inbound: [NodeReference],
+
+      /**
+       * The node snapshots that this one points to.
+       */
+      readonly outbound?: ValueSnapshot.NodeReference[],
     ) {}
 
   }
