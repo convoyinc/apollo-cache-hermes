@@ -62,6 +62,19 @@ There are several types of entities tracked by node snapshots, each with a speci
 All node snapshots referencing a particular version of the graph are collected into an identity map - a [`GraphSnapshot`](../src/GraphSnapshot.ts).  This becomes a readonly view of all the nodes, as well as the primary entry point into the cache.
 
 
+### Querying The Cache
+
+Because the cache is built to store values in a format that can be directly returned (for un-parameterized edges), most of the work to perform a query revolves around making sure that the cache can satisfy the query.  The high level approach to performing a query is roughly:
+
+1. Pre-process the query (if not already done), extracting paths to parameterized edges.
+
+2. Verify that the query is satisfied by the cache.  _The naive approach is to walk the selection set(s) expressed by the query (but there is plenty of opportunity for memoization)_.
+
+3. If there are parameterized edges in the query, fill in the object path up to them, taking advantage of object prototypes to point to the underlying nodes.
+
+4. Return the query root, or view on top of it via (3).
+
+
 ### Snapshot Transactions
 
 As snapshots maintain a readonly immutable view into a version of the graph, we need a way to generate new versions.  A [`GraphTransaction`](../src/GraphTransaction.ts) encapsulates the logic for making edits to a snapshot in an immutable way (e.g. creating a new copy), following the builder pattern.
