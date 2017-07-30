@@ -66,7 +66,7 @@ As snapshots maintain a readonly immutable view into a version of the graph, we 
 
 #### Merging New Values
 
-The logic for merging new values should be careful to apply the minimal set of edits to the parent snapshot in order to reach the new desired state.  This is in an effort to speed up cache writes, as well as ensuring that object identities only change when their values (or referenced values) have changed.
+The logic for merging new values should be careful to apply the minimal set of edits to the parent snapshot in order to reach the new desired state.  This is in an effort to speed up cache writes, as well as ensuring that object identities only change when their values (or referenced nodes) have changed.
 
 At a high level, this looks something like:
 
