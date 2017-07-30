@@ -6,10 +6,17 @@ import { PathPart } from './primitive';
 import { ChangeId, NodeId } from './schema';
 
 /**
- * See mergePayload for use.
+ * Describes an edit to a reference contained within a node.
  */
 interface ReferenceEdit {
-
+  /** The node that contains the reference. */
+  containerId: NodeId;
+  /** The path to the reference within the container. */
+  path: PathPart[];
+  /** The id of the node that was previously referenced. */
+  prevNodeId: NodeId | undefined;
+  /** The id of the node that should be referenced. */
+  nextNodeId: NodeId | undefined;
 }
 
 /**
@@ -148,6 +155,27 @@ export class GraphTransaction {
    * Returns the set of node ids that are newly orphaned by these edits.
    */
   private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]): Set<NodeId> {
+    // The rough algorithm is as follows:
+    //
+    //   * For each entry in referenceEdits:
+    //
+    //     * If prevNodeId:
+    //
+    //       * Remove the inbound reference from _getOrCreateNew(prevNodeId)
+    //
+    //       * If there are no remaining inbound references, mark prevNodeId as
+    //         orphaned.
+    //
+    //     * If nextNodeId:
+    //
+    //       * Insert the inbound reference to _getOrCreateNew(nextNodeId)
+    //
+    //       * If nextNodeId is present in the orphaned ids, remove it.
+    //
+    //     * Set the actual reference (to the next node) at path in containerId.
+    //
+    //   * Return the set of orphaned ids.
+
     // Random line to get ts/tslint to shut up.
     return this._mergeReferenceEdits(referenceEdits);
   }
@@ -237,7 +265,9 @@ export class GraphTransaction {
   /**
    *
    */
-  private _mergeParameterizedValue(id: NodeId, path: PathPart[], newValue: any) {
-    this._mergeParameterizedValue(id, path, newValue);
+  private _getOrCreateNew(id: NodeId): NodeSnapshot {
+    // Random line to get ts/tslint to shut up.
+    return this._getOrCreateNew(id);
   }
+
 }
