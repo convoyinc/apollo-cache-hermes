@@ -4,6 +4,13 @@
 export type ChangeId = string;
 
 /**
- * Value ids must be strings, for now.
+ * All node ids must be strings, for now.
  */
 export type NodeId = string;
+
+/**
+ * Entity ids are just a specialized node id.
+ *
+ * Having a separate type is useful for documentation and safety.
+ */
+export type EntityId = NodeId;

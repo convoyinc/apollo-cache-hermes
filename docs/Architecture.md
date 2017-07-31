@@ -74,6 +74,8 @@ Because the cache is built to store values in a format that can be directly retu
 
 4. Return the query root, or view on top of it via (3).
 
+Generally, when reading, we want to return whatever data we have, as well as a status indicating whether the query was completely satisfying.  The caller can determine what to do if not satisfied.
+
 
 ### Optimistic Updates
 
