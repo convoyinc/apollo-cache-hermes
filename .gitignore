@@ -8,6 +8,7 @@ package-lock.json
 /output/
 *.d.ts
 *.js
+!/scripts/*.js
 
 # TypeScript
 !/typings/**/*.d.ts

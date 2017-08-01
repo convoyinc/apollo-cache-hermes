@@ -26,7 +26,7 @@
     "dev": "./scripts/dev.sh",
     "fix:style": "./scripts/fix:style.sh",
     "greenkeeper:lockfile": "./scripts/greenkeeper:lockfile.sh",
-    "postinstall": "./scripts/postinstall.sh",
+    "postinstall": "node ./scripts/postinstall.js",
     "release": "./scripts/release.sh",
     "test": "./scripts/test.sh",
     "test:compile": "./scripts/test:compile.sh",
@@ -48,6 +48,7 @@
     "greenkeeper-lockfile": "^1.7.2",
     "jest": "^20.0.4",
     "jest-junit": "^2.1.0",
+    "rimraf": "^2.6.1",
     "typescript": "^2.4.2",
     "typescript-eslint-parser": "eslint/typescript-eslint-parser#ts-2.4"
   }

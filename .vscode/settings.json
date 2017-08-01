@@ -1,7 +1,6 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "files.exclude": {
-    "**/*.js": true,
     "**/*.js.map": true,
     "**/.DS_Store": true,
     "**/.git": true,
@@ -9,6 +8,7 @@
     "**/.svn": true,
     "**/CVS": true,
     "{src,test}/**/*.d.ts": true,
+    "{src,test}/**/*.js": true,
     "node_modules/": true,
     "output/": true
   }
