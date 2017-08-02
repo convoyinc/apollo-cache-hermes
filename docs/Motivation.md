@@ -18,30 +18,52 @@ For example:
 
 ```json
 {
-  "id": 1,
-  "title": "GraphQL Rocks!",
-  "author": {
-    "id": 2,
-    "name": "Gouda"
-  }
+  "posts": [
+    {
+      "id": 1,
+      "title": "GraphQL Rocks!",
+      "author": {
+        "id": 3,
+        "name": "Gouda"
+      }
+    },
+    {
+      "id": 2,
+      "title": "Caching Is Hard",
+      "author": {
+        "id": 3,
+        "name": "Gouda"
+      }
+    },
+  ]
 }
+
 ```
 
 Would be flattened into an identity map that looks roughly like:
 
-```json
+```js
 {
-  "1": {
-    "id": 1,
-    "title": "GraphQL Rocks!",
-    "author": {
-      "__ref": 2
-    }
+  ROOT: {
+    posts: [
+      { __ref: 1 },
+      { __ref: 2 },
+    ],
   },
-  "2": {
-    "id": 2,
-    "name": "Gouda"
-  }
+  1: {
+    id: 1,
+    title: 'GraphQL Rocks!',
+    author: { __ref: 3 },
+  },
+  2: {
+    id: 2,
+    title: 'GraphQL Rocks!',
+    author: { __ref: 3 },
+  },
+  3: {
+    id: 3,
+    name: 'Gouda',
+  },
 }
 ```
 
