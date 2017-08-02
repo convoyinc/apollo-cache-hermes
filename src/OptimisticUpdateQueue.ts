@@ -47,6 +47,13 @@ export class OptimisticUpdateQueue {
   }
 
   /**
+   * Whether there are any updates to apply.
+   */
+  hasUpdates(): boolean {
+    return this._updates.length > 0;
+  }
+
+  /**
    * Applies the current optimistic updates to a snapshot.
    */
   apply(config: Configuration, snapshot: GraphSnapshot): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
