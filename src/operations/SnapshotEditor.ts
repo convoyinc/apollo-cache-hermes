@@ -1,9 +1,10 @@
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
-import { GraphSnapshot } from './GraphSnapshot';
-import { NodeSnapshot } from './NodeSnapshot';
-import { PathPart } from './primitive';
-import { NodeId } from './schema';
+import { Configuration } from '../Configuration';
+import { GraphSnapshot } from '../GraphSnapshot';
+import { NodeSnapshot } from '../NodeSnapshot';
+import { PathPart } from '../primitive';
+import { NodeId } from '../schema';
 
 /**
  * Describes an edit to a reference contained within a node.
@@ -25,7 +26,7 @@ interface ReferenceEdit {
  * Performs the minimal set of edits to generate new immutable versions of each
  * node, while preserving immutability of the parent snapshot.
  */
-export class GraphTransaction {
+export class SnapshotEditor {
 
   /**
    * Tracks all node snapshots that have changed vs the parent snapshot.
@@ -47,6 +48,8 @@ export class GraphTransaction {
   private _rebuiltNodeIds = new Set<NodeId>();
 
   constructor(
+    /** The configuration to use when editing snapshots. */
+    private _config: Configuration,
     /** The snapshot to base edits off of. */
     private _parent: GraphSnapshot,
   ) {}
@@ -55,12 +58,12 @@ export class GraphTransaction {
    * Merge a GraphQL payload (query/fragment/etc) into the snapshot, rooted at
    * the node identified by `rootId`.
    */
-  mergePayload(rootId: NodeId, query: DocumentNode, payload: object): void {
+  mergePayload(rootId: NodeId, selection: SelectionSetNode, payload: object): void {
     // First, we walk the payload and apply all _scalar_ edits, while collecting
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
-    const referenceEdits = this._mergePayloadValues(rootId, query, payload);
+    const referenceEdits = this._mergePayloadValues(rootId, selection, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -90,11 +93,11 @@ export class GraphTransaction {
    * returned to be applied in a second pass (`_mergeReferenceEdits`), once we
    * can guarantee that all edited nodes have been built.
    */
-  private _mergePayloadValues(rootId: NodeId, query: DocumentNode, payload: object): ReferenceEdit[] {
+  private _mergePayloadValues(rootId: NodeId, selection: SelectionSetNode, payload: object): ReferenceEdit[] {
     // The rough algorithm is as follows:
     //
     //   * Initialize a work queue with one item containing this function's
-    //     arguments.  { nodeId, query, payload }
+    //     arguments.  { nodeId, selection, payload }
     //
     //   * While there are items in the queue:
     //
@@ -102,10 +105,10 @@ export class GraphTransaction {
     //
     //     * Fetch the parent's NodeSnapshot for nodeId as parent.
     //
-    //     * Walk payload (depth-first?), parent, and query in
+    //     * Walk payload (depth-first?), parent, and selection in
     //       parallel, visiting each property's value:
     //
-    //       * If the query node is parameterized:
+    //       * If the selection node is parameterized:
     //
     //         * Determine the id of the parameterized value node (probably just
     //           the keys JSON.stringified; maybe also sorted).
@@ -128,7 +131,7 @@ export class GraphTransaction {
     //
     //       * If the value is an object:
     //
-    //         * Determine the id of the node (e.g. dataIdForNode, or similar).
+    //         * Determine the id of the node (config.entityIdForNode).
     //
     //         * If there is an id, and it differs from the parent's id:
     //
@@ -150,8 +153,9 @@ export class GraphTransaction {
     // have access to it, see our private hermes repo, which takes this
     // approach)
 
-    // Random line to get ts/tslint to shut up.
-    return this._mergePayloadValues(rootId, query, payload);
+    // Random lines to get ts/tslint to shut up.
+    this._config.entityIdForNode(null);
+    return this._mergePayloadValues(rootId, selection, payload);
   }
 
   /**
@@ -247,21 +251,6 @@ export class GraphTransaction {
   }
 
   /**
-   * Retrieves the value identified by `id`.
-   */
-  get(id: NodeId): object | undefined {
-    const snapshot = this.getSnapshot(id);
-    return snapshot ? snapshot.node : undefined;
-  }
-
-  /**
-   * Returns whether `id` exists as an value in the graph.
-   */
-  has(id: NodeId): boolean {
-    return id in this._newNodes ? !!this._newNodes[id] : this._parent.has(id);
-  }
-
-  /**
    * Commits the transaction, returning a new immutable snapshot.
    */
   commit(): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
@@ -280,15 +269,6 @@ export class GraphTransaction {
       snapshot: new GraphSnapshot(snapshots),
       editedNodeIds: this._editedNodeIds,
     };
-  }
-
-  /**
-   * Retrieves the snapshot for the value identified by `id`.
-   *
-   * @internal
-   */
-  getSnapshot(id: NodeId): NodeSnapshot | undefined {
-    return id in this._newNodes ? this._newNodes[id] : this._parent.getSnapshot(id);
   }
 
   /**
