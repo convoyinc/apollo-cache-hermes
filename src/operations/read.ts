@@ -1,5 +1,6 @@
 import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
+import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, StaticNodeId } from '../schema';
 
@@ -7,6 +8,7 @@ import { NodeId, StaticNodeId } from '../schema';
  * Get you some datas.
  */
 export function read(
+  config: Configuration,
   snapshot: GraphSnapshot,
   selection: SelectionSetNode,
   rootId?: NodeId,
@@ -15,7 +17,7 @@ export function read(
 
   const parameterizedEdges = _parameterizedEdgesForSelection(selection);
   if (parameterizedEdges) {
-    result = _overlayParameterizedValues(result, snapshot, parameterizedEdges, selection);
+    result = _overlayParameterizedValues(result, config, snapshot, parameterizedEdges, selection);
   }
 
   const complete = _isSelectionSatisfied(selection, result);
@@ -63,6 +65,7 @@ export function _parameterizedEdgesForSelection(selection: SelectionSetNode): Pa
  */
 export function _overlayParameterizedValues<TResult>(
   result: TResult,
+  config: Configuration,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
   selection: SelectionSetNode,
@@ -71,8 +74,8 @@ export function _overlayParameterizedValues<TResult>(
   //
   //   * Visit each node of `edges`, along side `result`:
   //
-  //     * Determine the node id (if any), and track it along side the current
-  //       path.
+  //     * Determine the node id (if any) via config.entityIdForNode, and track
+  //       it along side the current path.
   //
   //     * If we've reached a value of `true` in the edge map:
   //
@@ -89,7 +92,7 @@ export function _overlayParameterizedValues<TResult>(
   //
 
   // Random line to get ts/tslint to shut up.
-  return _overlayParameterizedValues(result, snapshot, edges, selection);
+  return _overlayParameterizedValues(result, config, snapshot, edges, selection);
 }
 
 /**
