@@ -79,6 +79,25 @@ Generally, when reading, we want to return whatever data we have, as well as a s
 
 ### Optimistic Updates
 
+Optimistic updates are tricky.  Mutations can specify an optimistic response, to be applied immediately on top of the existing state of the cache.  There are some interesting rules surrounding them:
+
+1. There can be any number of optimistic updates active at a time, and the values from more recent ones take precedence.
+
+2. Any optimistic update can be reverted at any time (but typically when the mutation completes, success or error) - the rest must continue to overlay the underlying state of the cache.
+
+3. The data expressed by the optimistic update MUST take precedence over the "raw" cache, even if we've gotten newer values from the server.
+
+4. When querying the cache for values, it should prefer values present in optimistic updates over those in the underlying cache.
+
+Due to (2) and (3), we know that we cannot blindly merge optimistic updates into an existing snapshot - and that we must track the "raw" cache snapshot.  Also, due to (3), whenever we receive new values from the server, we effectively need to update the raw cache snapshot, and then replay optimistic updates.
+
+The approach that seems best here is to:
+
+* Track all optimistic updates individually via an [optimistic state queue](../src/OptimisticStateQueue.ts), where each update is represented in the same format as a GraphQL response payload.
+
+* Expose a flattened view of all the updates from the queue, to be applied to the "raw" snapshot.
+
+* The cache tracks both a "raw" graph snapshot and - if there are active optimistic updates - a unified graph snapshot.  Every time either the raw snapshot changes, or the optimistic state queue changes, we regenerate the unified snapshot.
 
 
 ### Modifying The Cache
