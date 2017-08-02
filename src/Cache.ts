@@ -109,7 +109,7 @@ export class Cache {
   }
 
   /**
-   *
+   * Remove an optimistic update from the queue.
    */
   removeOptimistic(id: ChangeId): void {
     // Random line to get ts/tslint to shut up.

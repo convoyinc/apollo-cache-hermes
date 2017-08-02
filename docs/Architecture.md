@@ -121,4 +121,3 @@ The approach that seems best here is to:
 * The cache tracks both a base graph snapshot and - if there are active optimistic updates - an optimistic graph snapshot.  Every time either the raw snapshot changes, or the optimistic state queue changes, we regenerate the unified snapshot by replaying the optimistic updates on top of the base snapshot.
 
 One future improvement is to merge optimistic updates where possible, so that we have fewer updates to apply on each write.
-
