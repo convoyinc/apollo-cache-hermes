@@ -33,14 +33,10 @@ export interface Transaction {
  */
 export class Cache {
 
-  /**
-   * Configuration used by various operations made against the cache.
-   */
+  /** Configuration used by various operations made against the cache. */
   private readonly _config: Configuration;
 
-  /**
-   * The current version of the cache.
-   */
+  /** The current version of the cache. */
   private _snapshot: CacheSnapshot;
 
   /**
