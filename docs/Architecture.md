@@ -62,19 +62,23 @@ There are several types of entities tracked by node snapshots, each with a speci
 All node snapshots referencing a particular version of the graph are collected into an identity map - a [`GraphSnapshot`](../src/GraphSnapshot.ts).  This becomes a readonly view of all the nodes, as well as the primary entry point into the cache.
 
 
-### Querying The Cache
+### Reading From The Cache
 
 Because the cache is built to store values in a format that can be directly returned (for un-parameterized edges), most of the work to perform a query revolves around making sure that the cache can satisfy the query.  The high level approach to performing a query is roughly:
 
 1. Pre-process the query (if not already done), extracting paths to parameterized edges.
 
-2. Verify that the query is satisfied by the cache.  _The naive approach is to walk the selection set(s) expressed by the query (but there is plenty of opportunity for memoization)_.
+2. If there are parameterized edges in the query, fill in the object path up to them, taking advantage of object prototypes to point to the underlying nodes.
 
-3. If there are parameterized edges in the query, fill in the object path up to them, taking advantage of object prototypes to point to the underlying nodes.
+3. Verify that the query is satisfied by the cache.  _The naive approach is to walk the selection set(s) expressed by the query; it's probably good enough for now_.
 
 4. Return the query root, or view on top of it via (3).
 
 Generally, when reading, we want to return whatever data we have, as well as a status indicating whether the query was completely satisfying.  The caller can determine what to do if not satisfied.
+
+See [`operations/read`](../src/operations/read.ts) for specific implementation details.
+
+Note: this is likely the area of the cache with the most room for improvement.  Step (3) has multiple opportunities for memoization and precomputation (per-query, per-fragment, per-node, etc).
 
 
 ### Optimistic Updates
