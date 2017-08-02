@@ -23,7 +23,7 @@ Given these requirements, we can begin to narrow in on a specific architecture f
 
 ### Entities
 
-One interesting observation of the existing implementations is that a fair bit of cost (both in CPU and memory) comes from having to represent object references as pointers in their normalized (flat) format.  Additionally, they perform this reference <-> pointer translation for _all_ nodes in the graph.
+One interesting observation of the existing implementations is that a fair bit of cost (both in CPU and memory) comes from having to represent object references as pointers in their [normalized (flat) format](./Motivation.md#flattening--normalization).  Additionally, they perform this reference <-> pointer translation for _all_ nodes in the graph.
 
 If that translation can be skipped for some or most of the nodes, there's potential for some large improvements in performance.  A pretty clear strategy for this is to only flatten the nodes that are directly referenced throughout the application.  E.g. anything with an `id` property, under Apollo's default configuration.
 
