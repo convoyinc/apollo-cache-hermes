@@ -36,6 +36,33 @@ Requirements (1) and (3) are interesting: if we _must_ have sub-millisecond read
 
 Let's say we go all the way: <u>the cache stores values as a literal graph of objects</u>, in the same structure as a GraphQL response.  In order to efficiently normalize that graph, we also ensure that each entity is only represented once.  E.g. entities can be pointed to multiple times, and there is the potential for a cyclic graph, depending on the schema.
 
+Using [the example]((./Motivation.md#flattening--normalization)) from the motivation doc, the normalized graph cache would look like:
+
+```js
+{
+  ROOT: {
+    posts: [
+      {…}, // Reference to <1>
+      {…}, // Reference to <2>
+    ],
+  },
+  1: {
+    id: 1,
+    title: "GraphQL Rocks!",
+    author: {…} // Reference to <3>
+  },
+  2: {
+    id: 2,
+    title: "GraphQL Rocks!",
+    author: {…} // Reference to <3>
+  },
+  3: {
+    id: 3,
+    name: 'Gouda',
+  },
+}
+```
+
 With a fully normalized graph, we could potentially return it _directly_ to satisfy simple queries ([parameterized edges are more complicated](#dealing-with-parameterized-edges)).  This would also have an added benefit that there is only ever one instance of a particular entity, even _across queries_.
 
 The downside is that we have to loosen Apollo's contract around query results: It would potentially return a superset of results, rather than those that exactly match a query's selection set.  The trade off is worth it - and likely could be mitigated by type checkers or development-mode runtime checks.
