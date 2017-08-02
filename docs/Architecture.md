@@ -89,24 +89,24 @@ Optimistic updates are tricky.  Mutations can specify an optimistic response, to
 
 2. Any optimistic update can be reverted at any time (but typically when the mutation completes, success or error) - the rest must continue to overlay the underlying state of the cache.
 
-3. The data expressed by the optimistic update MUST take precedence over the "raw" cache, even if we've gotten newer values from the server.
+3. The data expressed by the optimistic update MUST take precedence over the base cache, even if we've gotten newer values from the server.
 
 4. When querying the cache for values, it should prefer values present in optimistic updates over those in the underlying cache.
 
-Due to (2) and (3), we know that we cannot blindly merge optimistic updates into an existing snapshot - and that we must track the "raw" cache snapshot.  Also, due to (3), whenever we receive new values from the server, we effectively need to update the raw cache snapshot, and then replay optimistic updates.
+Due to (2) and (3), we know that we cannot blindly merge optimistic updates into an existing snapshot - and that we must track the base cache snapshot.  Also, due to (3), whenever we receive new values from the server, we effectively need to update the raw cache snapshot, and then replay optimistic updates.
 
 The approach that seems best here is to:
 
-* Track all optimistic updates individually via an [optimistic state queue](../src/OptimisticStateQueue.ts), where each update is represented in the same format as a GraphQL response payload.
+* Track all optimistic updates individually via an [optimistic state queue](../src/OptimisticUpdateQueue.ts), where each update is represented in the same format as a GraphQL response payload.
 
-* Expose a flattened view of all the updates from the queue, to be applied to the "raw" snapshot.
+* The cache tracks both a base graph snapshot and - if there are active optimistic updates - an optimistic graph snapshot.  Every time either the raw snapshot changes, or the optimistic state queue changes, we regenerate the unified snapshot by replaying the optimistic updates on top of the base snapshot.
 
-* The cache tracks both a "raw" graph snapshot and - if there are active optimistic updates - a unified graph snapshot.  Every time either the raw snapshot changes, or the optimistic state queue changes, we regenerate the unified snapshot.
+One future improvement is to merge optimistic updates where possible, so that we have fewer updates to apply on each write.
 
 
 ### Modifying The Cache
 
-As snapshots maintain a readonly immutable view into a version of the graph, we need a way to generate new versions.  A [`GraphTransaction`](../src/GraphTransaction.ts) encapsulates the logic for making edits to a snapshot in an immutable way (e.g. creating a new copy), following the builder pattern.
+As snapshots maintain a readonly immutable view into a version of the graph, we need a way to generate new versions.  A [`SnapshotEditor`](../src/operations/SnapshotEditor.ts) encapsulates the logic for making edits to a snapshot in an immutable way (e.g. creating a new copy), following the builder pattern.
 
 
 #### Merging New Values
@@ -123,7 +123,7 @@ At a high level, this looks something like:
 
 4. Garbage collect any newly orphaned subgraphs.
 
-See [`GraphTransaction#mergePayload`](../src/GraphTransaction.ts) for the specific implementation details.
+See [`SnapshotEditor#mergePayload`](../src/SnapshotEditor.ts) for the specific implementation details.
 
 
 #### Rolling Back Past Transactions
