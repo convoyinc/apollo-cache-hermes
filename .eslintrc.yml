@@ -145,7 +145,7 @@ rules:
   no-var: error
   object-shorthand: error
   prefer-arrow-callback: [error, { allowNamedFunctions: true }]
-  prefer-destructuring: error
+  prefer-destructuring: [error, { array: false }]
   prefer-numeric-literals: error
   prefer-rest-params: error
   prefer-spread: error
