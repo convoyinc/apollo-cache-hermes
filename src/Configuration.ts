@@ -1,4 +1,4 @@
-import { NodeId } from './schema';
+import { EntityId } from './schema';
 
 /**
  * Configuration used throughout the cache's operation.
@@ -13,6 +13,6 @@ export interface Configuration {
    * the application should be given an id.  All entities are normalized within
    * the cache; everything else is not.
    */
-  entityIdForNode(node: any): NodeId | undefined;
+  entityIdForNode(node: any): EntityId | undefined;
 
 }
