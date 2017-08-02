@@ -81,6 +81,25 @@ See [`operations/read`](../src/operations/read.ts) for specific implementation d
 Note: this is likely the area of the cache with the most room for improvement.  Step (3) has multiple opportunities for memoization and precomputation (per-query, per-fragment, per-node, etc).
 
 
+### Writing To The Cache
+
+As snapshots maintain a readonly immutable view into a version of the graph, we need a way to generate new versions.  A [`SnapshotEditor`](../src/operations/SnapshotEditor.ts) encapsulates the logic for making edits to a snapshot in an immutable way (e.g. creating a new copy), following the builder pattern.
+
+The logic for merging new values should be careful to apply the minimal set of edits to the parent snapshot in order to reach the new desired state.  This is in an effort to speed up cache writes, as well as ensuring that object identities only change when their values (or referenced nodes) have changed.
+
+At a high level, this looks something like:
+
+1. Merge all changed scalar values from the payload, generating new node snapshots along the way.
+
+2. Update any references that should now point to a new node (now that all nodes with changed values have been built).
+
+3. Update any nodes that _transitively_ reference edited nodes.
+
+4. Garbage collect any newly orphaned subgraphs.
+
+See [`SnapshotEditor#mergePayload`](../src/SnapshotEditor.ts) for the specific implementation details.
+
+
 ### Optimistic Updates
 
 Optimistic updates are tricky.  Mutations can specify an optimistic response, to be applied immediately on top of the existing state of the cache.  There are some interesting rules surrounding them:
@@ -102,31 +121,4 @@ The approach that seems best here is to:
 * The cache tracks both a base graph snapshot and - if there are active optimistic updates - an optimistic graph snapshot.  Every time either the raw snapshot changes, or the optimistic state queue changes, we regenerate the unified snapshot by replaying the optimistic updates on top of the base snapshot.
 
 One future improvement is to merge optimistic updates where possible, so that we have fewer updates to apply on each write.
-
-
-### Modifying The Cache
-
-As snapshots maintain a readonly immutable view into a version of the graph, we need a way to generate new versions.  A [`SnapshotEditor`](../src/operations/SnapshotEditor.ts) encapsulates the logic for making edits to a snapshot in an immutable way (e.g. creating a new copy), following the builder pattern.
-
-
-#### Merging New Values
-
-The logic for merging new values should be careful to apply the minimal set of edits to the parent snapshot in order to reach the new desired state.  This is in an effort to speed up cache writes, as well as ensuring that object identities only change when their values (or referenced nodes) have changed.
-
-At a high level, this looks something like:
-
-1. Merge all changed scalar values from the payload, generating new node snapshots along the way.
-
-2. Update any references that should now point to a new node (now that all nodes with changed values have been built).
-
-3. Update any nodes that _transitively_ reference edited nodes.
-
-4. Garbage collect any newly orphaned subgraphs.
-
-See [`SnapshotEditor#mergePayload`](../src/SnapshotEditor.ts) for the specific implementation details.
-
-
-#### Rolling Back Past Transactions
-
-TODO:
 
