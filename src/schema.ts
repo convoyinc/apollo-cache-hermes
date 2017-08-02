@@ -14,3 +14,12 @@ export type NodeId = string;
  * Having a separate type is useful for documentation and safety.
  */
 export type EntityId = NodeId;
+
+/**
+ * There are a few pre-defined nodes present in all schemas.
+ */
+export enum StaticNodeId {
+  QueryRoot = '☣QueryRoot',
+  MutationRoot = '☣MutationRoot',
+  SubscriptionRoot = '☣SubscriptionRoot',
+}
