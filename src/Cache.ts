@@ -60,7 +60,7 @@ export class Cache {
   watch(options: ApolloReadOptions, callback: () => void): Unsubscribe {
     if (!options.optimistic) {
       // Apollo Client doesn't ever call with `optimistic: false`, today.
-      throw new Error(`Cache#watch is not supported for non-optimistic queries`);
+      throw new Error(`Cache#watch does not support optimistic: false`);
     }
 
     const query = _queryForReadOptionsOrDie(options);
