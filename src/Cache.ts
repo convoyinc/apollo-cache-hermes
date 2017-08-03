@@ -1,30 +1,10 @@
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
-
 import { CacheSnapshot } from './CacheSnapshot';
 import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
 import { QueryObserver, read, SnapshotEditor } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
-import { ChangeId, NodeId, Query, StaticNodeId } from './schema';
-import { ast, collection } from './util';
-
-export interface ApolloReadOptions {
-  query: DocumentNode;
-  variables: object;
-  optimistic: boolean;
-  rootId?: NodeId;
-  previousResult?: any;
-}
-
-export interface ApolloWriteOptions {
-  dataId: string;
-  result: any;
-  document: DocumentNode;
-  variables?: object;
-}
-
-export type Transaction = (cache: Cache) => void;
-export type Unsubscribe = () => void;
+import { NodeId, Query } from './schema';
+import { collection } from './util';
 
 /**
  * The Hermes cache.
@@ -60,7 +40,7 @@ export class Cache {
   /**
    *
    */
-  watch(query: Query, callback: () => void): Unsubscribe {
+  watch(query: Query, callback: () => void): () => void {
     const observer = new QueryObserver(this._config, query, this._snapshot.optimistic, callback);
     this._observers.push(observer);
 
@@ -103,30 +83,6 @@ export class Cache {
     this._broadcastChanges(optimistic, allIds);
   }
 
-  /**
-   *
-   */
-  performTransaction(transaction: Transaction): void {
-    // Random line to get ts/tslint to shut up.
-    return this.performTransaction(transaction);
-  }
-
-  /**
-   *
-   */
-  recordOptimisticTransaction(transaction: Transaction, id: ChangeId): void {
-    // Random line to get ts/tslint to shut up.
-    return this.recordOptimisticTransaction(transaction, id);
-  }
-
-  /**
-   * Remove an optimistic update from the queue.
-   */
-  removeOptimistic(id: ChangeId): void {
-    // Random line to get ts/tslint to shut up.
-    return this.removeOptimistic(id);
-  }
-
   // Internal
 
   /**
@@ -147,17 +103,4 @@ export class Cache {
     }
   }
 
-}
-
-/**
- *
- */
-export function _queryForReadOptionsOrDie(options: ApolloReadOptions): Query {
-  const queryNode = ast.getQueryDefinitionOrDie(options.query);
-
-  return {
-    rootId: StaticNodeId.QueryRoot,
-    selection: queryNode.selectionSet,
-    variables: options.variables,
-  };
 }
