@@ -12,6 +12,10 @@
   version "4.0.1"
   resolved "https://registry.npmjs.org/@types/chai/-/chai-4.0.1.tgz#37fea779617cfec3fd2b19a0247e8bbdd5133bf6"
 
+"@types/graphql@^0.10.0":
+  version "0.10.1"
+  resolved "https://registry.npmjs.org/@types/graphql/-/graphql-0.10.1.tgz#3944e528bb3232e09cddb5364d75aba6342d068c"
+
 "@types/node@^8.0.16":
   version "8.0.16"
   resolved "https://registry.npmjs.org/@types/node/-/node-8.0.16.tgz#5aa51abd72621a0ce53fb86bccd76825ee1b4ca9"
@@ -2581,6 +2585,10 @@ trim-right@^1.0.1:
 tryit@^1.0.1:
   version "1.0.3"
   resolved "https://registry.npmjs.org/tryit/-/tryit-1.0.3.tgz#393be730a9446fd1ead6da59a014308f36c289cb"
+
+tslib@^1.7.0:
+  version "1.7.1"
+  resolved "https://registry.npmjs.org/tslib/-/tslib-1.7.1.tgz#bc8004164691923a79fe8378bbeb3da2017538ec"
 
 tunnel-agent@^0.6.0:
   version "0.6.0"
