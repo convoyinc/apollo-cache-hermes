@@ -2,7 +2,7 @@ import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-ext
 
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, StaticNodeId } from '../schema';
+import { NodeId } from '../schema';
 
 /**
  * Get you some datas.
@@ -11,18 +11,19 @@ export function read(
   config: Configuration,
   snapshot: GraphSnapshot,
   selection: SelectionSetNode,
-  rootId?: NodeId,
-): { result: any, complete: boolean } {
-  let result = snapshot.get(rootId || StaticNodeId.QueryRoot);
+  rootId: NodeId,
+  includeSelectedNodeIds?: true,
+): { result: any, complete: boolean, nodeIds?: Set<NodeId> } {
+  let result = snapshot.get(rootId);
 
   const parameterizedEdges = _parameterizedEdgesForSelection(selection);
   if (parameterizedEdges) {
     result = _overlayParameterizedValues(result, config, snapshot, parameterizedEdges, selection);
   }
 
-  const complete = _isSelectionSatisfied(selection, result);
+  const { complete, nodeIds } = _visitSelection(config, selection, result, includeSelectedNodeIds || false);
 
-  return { result, complete };
+  return { result, complete, nodeIds };
 }
 
 /**
@@ -98,7 +99,12 @@ export function _overlayParameterizedValues<TResult>(
 /**
  * Determines whether `result` satisfies the properties requested  `selection`.
  */
-export function _isSelectionSatisfied(selection: SelectionSetNode, result: any): boolean {
+export function _visitSelection(
+  config: Configuration,
+  selection: SelectionSetNode,
+  result: any,
+  includeNodeIds: boolean,
+): { complete: boolean, nodeIds?: Set<NodeId> } {
   //  Rough algorithm is as follows:
   //
   //   * Visit each node of `selection` and `result`:
@@ -107,11 +113,15 @@ export function _isSelectionSatisfied(selection: SelectionSetNode, result: any):
   //
   //       * If !(property in resultNode) return false
   //
+  //     * If `includeNodeIds` and this node contains at least one field:
+  //
+  //       * Determine the node id of the current node, and add it to `nodeIds`.
+  //
   //   * return true
   //
   //  This has a lot of room for improvement.  We can likely cache per-fragment,
   //  or per-node.
 
   // Random line to get ts/tslint to shut up.
-  return _isSelectionSatisfied(selection, result);
+  return _visitSelection(config, selection, result, includeNodeIds);
 }
