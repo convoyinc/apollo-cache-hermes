@@ -3,9 +3,9 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import { CacheSnapshot } from './CacheSnapshot';
 import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
-import { Query, QueryObserver, read, SnapshotEditor } from './operations';
+import { QueryObserver, read, SnapshotEditor } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
-import { ChangeId, NodeId, StaticNodeId } from './schema';
+import { ChangeId, NodeId, Query, StaticNodeId } from './schema';
 import { ast, collection } from './util';
 
 export interface ApolloReadOptions {
@@ -45,12 +45,14 @@ export class Cache {
 
   /**
    * Reads the selection expressed by a query from the cache.
+   *
+   * TODO: Can we drop non-optimistic reads?
+   * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(options: ApolloReadOptions): { result: any, complete: boolean } {
+  read(query: Query, optimistic?: boolean): { result: any, complete: boolean } {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
-    const snapshot = options.optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
-    const query = _queryForReadOptionsOrDie(options);
+    const snapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
 
     return read(this._config, query, snapshot);
   }
@@ -58,13 +60,7 @@ export class Cache {
   /**
    *
    */
-  watch(options: ApolloReadOptions, callback: () => void): Unsubscribe {
-    if (!options.optimistic) {
-      // Apollo Client doesn't ever call with `optimistic: false`, today.
-      throw new Error(`Cache#watch does not support optimistic: false`);
-    }
-
-    const query = _queryForReadOptionsOrDie(options);
+  watch(query: Query, callback: () => void): Unsubscribe {
     const observer = new QueryObserver(this._config, query, this._snapshot.optimistic, callback);
     this._observers.push(observer);
 
@@ -74,12 +70,11 @@ export class Cache {
   /**
    * Writes values for a selection to the cache.
    */
-  write(options: ApolloWriteOptions): void {
-    const selection = ast.getSelectionSetOrDie(options.document);
+  write(query: Query, payload: any): void {
     const currentSnapshot = this._snapshot;
 
     const editor = new SnapshotEditor(this._config, currentSnapshot.baseline);
-    editor.mergePayload(options.dataId, selection, options.result, options.variables);
+    editor.mergePayload(query, payload);
     const { snapshot: baseline, editedNodeIds } = editor.commit();
 
     let optimistic = baseline;
