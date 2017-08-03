@@ -1,0 +1,2 @@
+# Files that eslint can't parse (bugs in typescript-eslint-parser)
+src/operations/read.ts

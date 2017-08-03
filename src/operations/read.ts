@@ -5,23 +5,44 @@ import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId } from '../schema';
 
 /**
+ * All the information needed to describe a complete GraphQL query that can be
+ * made against the cache
+ */
+export interface Query {
+  /** The id of the node to begin the query at. */
+  rootId: NodeId;
+  /** The properties within the cache that the query is concerned with. */
+  selection: SelectionSetNode;
+  /** Any variables used by parameterized edges within the selection set. */
+  variables?: object;
+}
+
+export interface QueryResult {
+  /** The value of the root requested by a query. */
+  result: any;
+  /** Whether the query's selection set was satisfied. */
+  complete: boolean;
+}
+
+export interface QueryResultWithNodeIds extends QueryResult {
+  /** The ids of nodes selected by the query (if requested). */
+  nodeIds: Set<NodeId>;
+}
+
+/**
  * Get you some datas.
  */
-export function read(
-  config: Configuration,
-  snapshot: GraphSnapshot,
-  selection: SelectionSetNode,
-  rootId: NodeId,
-  includeSelectedNodeIds?: true,
-): { result: any, complete: boolean, nodeIds?: Set<NodeId> } {
-  let result = snapshot.get(rootId);
+export function read(config: Configuration, query: Query, snapshot: GraphSnapshot): QueryResult;
+export function read(config: Configuration, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
+export function read(config: Configuration, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
+  let result = snapshot.get(query.rootId);
 
-  const parameterizedEdges = _parameterizedEdgesForSelection(selection);
+  const parameterizedEdges = _parameterizedEdgesForSelection(query.selection);
   if (parameterizedEdges) {
-    result = _overlayParameterizedValues(result, config, snapshot, parameterizedEdges, selection);
+    result = _overlayParameterizedValues(query, config, snapshot, parameterizedEdges, result);
   }
 
-  const { complete, nodeIds } = _visitSelection(config, selection, result, includeSelectedNodeIds || false);
+  const { complete, nodeIds } = _visitSelection(query, config, result, false);
 
   return { result, complete, nodeIds };
 }
@@ -65,11 +86,11 @@ export function _parameterizedEdgesForSelection(selection: SelectionSetNode): Pa
  * contain them).
  */
 export function _overlayParameterizedValues<TResult>(
-  result: TResult,
+  query: Query,
   config: Configuration,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
-  selection: SelectionSetNode,
+  result: TResult,
 ): TResult {
   // Rough algorithm is as follows:
   //
@@ -93,15 +114,15 @@ export function _overlayParameterizedValues<TResult>(
   //
 
   // Random line to get ts/tslint to shut up.
-  return _overlayParameterizedValues(result, config, snapshot, edges, selection);
+  return _overlayParameterizedValues(query, config, snapshot, edges, result);
 }
 
 /**
  * Determines whether `result` satisfies the properties requested  `selection`.
  */
 export function _visitSelection(
+  query: Query,
   config: Configuration,
-  selection: SelectionSetNode,
   result: any,
   includeNodeIds: boolean,
 ): { complete: boolean, nodeIds?: Set<NodeId> } {
@@ -123,5 +144,5 @@ export function _visitSelection(
   //  or per-node.
 
   // Random line to get ts/tslint to shut up.
-  return _visitSelection(config, selection, result, includeNodeIds);
+  return _visitSelection(query, config, result, includeNodeIds);
 }
