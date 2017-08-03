@@ -1,2 +1,3 @@
 import * as ast from './ast';
-export { ast };
+import * as collection from './collection';
+export { ast, collection };

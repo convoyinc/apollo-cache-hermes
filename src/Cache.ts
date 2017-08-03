@@ -4,8 +4,9 @@ import { CacheSnapshot } from './CacheSnapshot';
 import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
 import { Query, QueryObserver, read, SnapshotEditor } from './operations';
+import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { ChangeId, NodeId, StaticNodeId } from './schema';
-import { ast } from './util';
+import { ast, collection } from './util';
 
 export interface ApolloReadOptions {
   query: DocumentNode;
@@ -82,25 +83,29 @@ export class Cache {
     const { snapshot: baseline, editedNodeIds } = editor.commit();
 
     let optimistic = baseline;
-    if (currentSnapshot.optimisticStateQueue.hasUpdates()) {
-      const result = currentSnapshot.optimisticStateQueue.apply(this._config, baseline);
+    if (currentSnapshot.optimisticQueue.hasUpdates()) {
+      const result = currentSnapshot.optimisticQueue.apply(this._config, baseline);
       optimistic = result.snapshot;
-      for (const nodeId of result.editedNodeIds) {
-        editedNodeIds.add(nodeId);
-      }
+      collection.addToSet(editedNodeIds, result.editedNodeIds);
     }
 
     this._broadcastChanges(optimistic, editedNodeIds);
 
-    this._snapshot = { baseline, optimistic, optimisticStateQueue: currentSnapshot.optimisticStateQueue };
+    this._snapshot = { baseline, optimistic, optimisticQueue: currentSnapshot.optimisticQueue };
   }
 
   /**
-   *
+   * Resets all data tracked by the cache.
    */
   async reset(): Promise<void> {
-    // Random line to get ts/tslint to shut up.
-    return this.reset();
+    const allIds = new Set(this._snapshot.optimistic.allNodeIds());
+
+    const baseline = new GraphSnapshot();
+    const optimistic = baseline;
+    const optimisticQueue = new OptimisticUpdateQueue();
+    this._snapshot = { baseline, optimistic, optimisticQueue };
+
+    this._broadcastChanges(optimistic, allIds);
   }
 
   /**
@@ -134,6 +139,7 @@ export class Cache {
    */
   private _removeObserver(observer: QueryObserver): void {
     const index = this._observers.findIndex(o => o === observer);
+    if (index < 0) return;
     this._observers.splice(index, 1);
   }
 

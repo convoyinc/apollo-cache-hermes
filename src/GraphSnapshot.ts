@@ -41,4 +41,13 @@ export class GraphSnapshot {
     return this._values[id];
   }
 
+  /**
+   * Returns the set of ids present in the snapshot.
+   *
+   * @internal
+   */
+  allNodeIds(): NodeId[] {
+    return Object.keys(this);
+  }
+
 }
