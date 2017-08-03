@@ -1,11 +1,11 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
-import { getQueryDefinitionOrDie, getSelectionSetOrDie } from './ast';
 import { CacheSnapshot } from './CacheSnapshot';
 import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
 import { Query, QueryObserver, read, SnapshotEditor } from './operations';
 import { ChangeId, NodeId, StaticNodeId } from './schema';
+import { ast } from './util';
 
 export interface ApolloReadOptions {
   query: DocumentNode;
@@ -74,7 +74,7 @@ export class Cache {
    * Writes values for a selection to the cache.
    */
   write(options: ApolloWriteOptions): void {
-    const selection = getSelectionSetOrDie(options.document);
+    const selection = ast.getSelectionSetOrDie(options.document);
     const currentSnapshot = this._snapshot;
 
     const editor = new SnapshotEditor(this._config, currentSnapshot.baseline);
@@ -152,7 +152,7 @@ export class Cache {
  *
  */
 export function _queryForReadOptionsOrDie(options: ApolloReadOptions): Query {
-  const queryNode = getQueryDefinitionOrDie(options.query);
+  const queryNode = ast.getQueryDefinitionOrDie(options.query);
 
   return {
     rootId: StaticNodeId.QueryRoot,
