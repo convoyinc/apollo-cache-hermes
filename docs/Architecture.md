@@ -72,9 +72,9 @@ Because the cache is built to store values in a format that can be directly retu
 
 3. Verify that the query is satisfied by the cache.  _The naive approach is to walk the selection set(s) expressed by the query; it's probably good enough for now_.
 
-4. Return the query root, or view on top of it via (3).
+4. Return the query root, or view on top of it via (2).
 
-Generally, when reading, we want to return whatever data we have, as well as a status indicating whether the query was completely satisfying.  The caller can determine what to do if not satisfied.
+Generally, when reading, we want to return whatever data we have, as well as a status indicating whether the query was completely satisfied.  The caller can determine what to do if not satisfied.
 
 See [`operations/read`](../src/operations/read.ts) for specific implementation details.
 
