@@ -11,6 +11,6 @@ export class CacheSnapshot {
     /** The optimistic view of this version of this cache (may be base). */
     public optimistic: GraphSnapshot,
     /** Individual optimistic updates for this version. */
-    public optimisticStateQueue: OptimisticUpdateQueue,
+    public optimisticQueue: OptimisticUpdateQueue,
   ) {}
 }

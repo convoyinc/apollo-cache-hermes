@@ -2,27 +2,49 @@ import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-ext
 
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, StaticNodeId } from '../schema';
+import { NodeId } from '../schema';
+
+/**
+ * All the information needed to describe a complete GraphQL query that can be
+ * made against the cache
+ */
+export interface Query {
+  /** The id of the node to begin the query at. */
+  rootId: NodeId;
+  /** The properties within the cache that the query is concerned with. */
+  selection: SelectionSetNode;
+  /** Any variables used by parameterized edges within the selection set. */
+  variables?: object;
+}
+
+export interface QueryResult {
+  /** The value of the root requested by a query. */
+  result: any;
+  /** Whether the query's selection set was satisfied. */
+  complete: boolean;
+}
+
+export interface QueryResultWithNodeIds extends QueryResult {
+  /** The ids of nodes selected by the query (if requested). */
+  nodeIds: Set<NodeId>;
+}
 
 /**
  * Get you some datas.
  */
-export function read(
-  config: Configuration,
-  snapshot: GraphSnapshot,
-  selection: SelectionSetNode,
-  rootId?: NodeId,
-): { result: any, complete: boolean } {
-  let result = snapshot.get(rootId || StaticNodeId.QueryRoot);
+export function read(config: Configuration, query: Query, snapshot: GraphSnapshot): QueryResult;
+export function read(config: Configuration, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
+export function read(config: Configuration, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
+  let result = snapshot.get(query.rootId);
 
-  const parameterizedEdges = _parameterizedEdgesForSelection(selection);
+  const parameterizedEdges = _parameterizedEdgesForSelection(query.selection);
   if (parameterizedEdges) {
-    result = _overlayParameterizedValues(result, config, snapshot, parameterizedEdges, selection);
+    result = _overlayParameterizedValues(query, config, snapshot, parameterizedEdges, result);
   }
 
-  const complete = _isSelectionSatisfied(selection, result);
+  const { complete, nodeIds } = _visitSelection(query, config, result, false);
 
-  return { result, complete };
+  return { result, complete, nodeIds };
 }
 
 /**
@@ -64,11 +86,11 @@ export function _parameterizedEdgesForSelection(selection: SelectionSetNode): Pa
  * contain them).
  */
 export function _overlayParameterizedValues<TResult>(
-  result: TResult,
+  query: Query,
   config: Configuration,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
-  selection: SelectionSetNode,
+  result: TResult,
 ): TResult {
   // Rough algorithm is as follows:
   //
@@ -92,13 +114,18 @@ export function _overlayParameterizedValues<TResult>(
   //
 
   // Random line to get ts/tslint to shut up.
-  return _overlayParameterizedValues(result, config, snapshot, edges, selection);
+  return _overlayParameterizedValues(query, config, snapshot, edges, result);
 }
 
 /**
  * Determines whether `result` satisfies the properties requested  `selection`.
  */
-export function _isSelectionSatisfied(selection: SelectionSetNode, result: any): boolean {
+export function _visitSelection(
+  query: Query,
+  config: Configuration,
+  result: any,
+  includeNodeIds: boolean,
+): { complete: boolean, nodeIds?: Set<NodeId> } {
   //  Rough algorithm is as follows:
   //
   //   * Visit each node of `selection` and `result`:
@@ -107,11 +134,15 @@ export function _isSelectionSatisfied(selection: SelectionSetNode, result: any):
   //
   //       * If !(property in resultNode) return false
   //
+  //     * If `includeNodeIds` and this node contains at least one field:
+  //
+  //       * Determine the node id of the current node, and add it to `nodeIds`.
+  //
   //   * return true
   //
   //  This has a lot of room for improvement.  We can likely cache per-fragment,
   //  or per-node.
 
   // Random line to get ts/tslint to shut up.
-  return _isSelectionSatisfied(selection, result);
+  return _visitSelection(query, config, result, includeNodeIds);
 }

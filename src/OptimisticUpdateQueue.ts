@@ -18,6 +18,8 @@ interface OptimisticUpdate {
 /**
  * Manages a queue of optimistic updates, and the values they express on top of
  * existing cache snapshots.
+ *
+ * TODO: Should we make this immutable, since it's included in CacheSnapshots?
  */
 export class OptimisticUpdateQueue {
 

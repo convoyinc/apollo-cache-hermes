@@ -12,6 +12,8 @@ export interface Configuration {
    * Generally, any node that is considered to be an entity (domain object) by
    * the application should be given an id.  All entities are normalized within
    * the cache; everything else is not.
+   *
+   * TODO: Consider memoizing this via a WeakMap.
    */
   entityIdForNode(node: any): EntityId | undefined;
 
