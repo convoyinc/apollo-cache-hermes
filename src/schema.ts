@@ -32,9 +32,9 @@ export enum StaticNodeId {
  */
 export interface Query {
   /** The id of the node to begin the query at. */
-  rootId: NodeId;
+  readonly rootId: NodeId;
   /** The properties within the cache that the query is concerned with. */
-  selection: SelectionSetNode;
+  readonly selection: SelectionSetNode;
   /** Any variables used by parameterized edges within the selection set. */
-  variables?: object;
+  readonly variables?: object;
 }
