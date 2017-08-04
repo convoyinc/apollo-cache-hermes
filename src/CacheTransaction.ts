@@ -1,5 +1,6 @@
 import { CacheSnapshot } from './CacheSnapshot';
 import { Configuration } from './Configuration';
+import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, Query, QuerySnapshot } from './schema';
@@ -49,6 +50,18 @@ export class CacheTransaction implements Queryable {
   }
 
   /**
+   * Roll back a previously enqueued optimistic update.
+   */
+  rollback(changeId: ChangeId): void {
+    const current = this._snapshot;
+
+    const optimisticQueue = current.optimisticQueue.remove(changeId);
+    const optimistic = this._buildOptimisticSnapshot(current.baseline);
+
+    this._snapshot = { ...current, optimistic, optimisticQueue };
+  }
+
+  /**
    * Complete the transaction, returning the new snapshot and the ids of any
    * nodes that were edited.
    */
@@ -73,14 +86,22 @@ export class CacheTransaction implements Queryable {
     const { snapshot: baseline, editedNodeIds } = write(this._config, current.baseline, query, payload);
     collection.addToSet(this._editedNodeIds, editedNodeIds);
 
-    let optimistic = baseline;
-    if (current.optimisticQueue.hasUpdates()) {
-      const result = current.optimisticQueue.apply(this._config, baseline);
-      optimistic = result.snapshot;
-      collection.addToSet(this._editedNodeIds, result.editedNodeIds);
-    }
+    const optimistic = this._buildOptimisticSnapshot(baseline);
 
     this._snapshot = { ...current, baseline, optimistic };
+  }
+
+  /**
+   * Given a baseline snapshot, build an optimistic one from it.
+   */
+  _buildOptimisticSnapshot(baseline: GraphSnapshot) {
+    const { optimisticQueue } = this._snapshot;
+    if (!optimisticQueue.hasUpdates()) return baseline;
+
+    const { snapshot, editedNodeIds } = optimisticQueue.apply(this._config, baseline);
+    collection.addToSet(this._editedNodeIds, editedNodeIds);
+
+    return snapshot;
   }
 
   /**

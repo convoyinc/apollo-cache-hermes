@@ -81,6 +81,13 @@ export class Cache implements Queryable {
   }
 
   /**
+   * Roll back a previously enqueued optimistic update.
+   */
+  rollback(changeId: ChangeId) {
+    this.transaction(t => t.rollback(changeId));
+  }
+
+  /**
    * Resets all data tracked by the cache.
    */
   async reset(): Promise<void> {

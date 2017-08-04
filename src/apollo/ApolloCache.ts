@@ -18,8 +18,7 @@ export class ApolloCache extends ApolloQueryable implements interfaces.Cache {
   }
 
   removeOptimistic(id: string): void {
-    // TODO: Complete Me
-    return this.removeOptimistic(id);
+    this._queryable.rollback(id);
   }
 
   performTransaction(transaction: interfaces.Cache.Transaction): void {
