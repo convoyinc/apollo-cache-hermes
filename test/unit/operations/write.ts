@@ -369,4 +369,49 @@ describe(`operations.write`, () => {
 
   });
 
+  describe(`when merging unidentifiable payloads with previously known nodes`, () => {
+
+    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
+      foo: { id: 1, name: 'Foo' },
+      bar: { id: 2, name: 'Bar' },
+    });
+    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
+      foo: { name: 'Foo Boo' },
+      bar: { extra: true },
+    });
+
+    it(`doesn't mutate the previous versions`, () => {
+      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
+      expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
+      expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
+      expect(baseline.get(QueryRootId)).to.deep.eq({
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
+      });
+    });
+
+    it(`updates existing values in referenced nodes`, () => {
+      expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo Boo' });
+    });
+
+    it(`inserts new values in referenced nodes`, () => {
+      expect(snapshot.get('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
+    });
+
+    it(`updates references to the newly edited nodes`, () => {
+      const root = snapshot.get(QueryRootId);
+      expect(root.foo).to.eq(snapshot.get('1'));
+      expect(root.bar).to.eq(snapshot.get('2'));
+    });
+
+    it(`doesn't mark regenerated nodes as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members(['1', '2']);
+    });
+
+    it(`contains the correct nodes`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
+    });
+
+  });
+
 });
