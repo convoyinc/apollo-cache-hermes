@@ -38,3 +38,11 @@ export interface Query {
   /** Any variables used by parameterized edges within the selection set. */
   readonly variables?: object;
 }
+
+/**
+ * Represents a single query and a set of values that match its selection.
+ */
+export interface QuerySnapshot {
+  query: Query;
+  payload: any;
+}
