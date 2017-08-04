@@ -5,7 +5,7 @@ source ./scripts/include/shell.sh
 source ./scripts/include/node.sh
 
 FILES=("${OPTIONS_ARGS[@]}")
-if [[ "${#FILES[@]}" = "0" ]]; then
+if [[ "${#FILES[@]}" == "0" ]]; then
   FILES+=($(
     find ./test/unit \
       \( -name "*.ts" -not -name "*.d.ts" \) \
@@ -22,13 +22,22 @@ for i in "${!FILES[@]}"; do
   fi
 done
 
+
 OPTIONS=(
   --config ./test/unit/jest.json
-  "${OPTIONS_FLAGS[@]}"
 )
+# Jest doesn't handle debugger flags directly.
+NODE_OPTIONS=()
+for option in "${OPTIONS_FLAGS[@]}"; do
+  if [[ "${option}" =~ ^--(inspect|debug-brk|nolazy) ]]; then
+    NODE_OPTIONS+=("${option}")
+  else
+    OPTIONS+=("${option}")
+  fi
+done
 
 # For jest-junit
 export JEST_SUITE_NAME="test:unit"
 export JEST_JUNIT_OUTPUT=./output/test:unit/report.xml
 
-jest "${OPTIONS[@]}" "${FILES[@]}"
+node "${NODE_OPTIONS[@]}" ./node_modules/.bin/jest "${OPTIONS[@]}" "${FILES[@]}"
