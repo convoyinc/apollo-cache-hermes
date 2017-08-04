@@ -4,7 +4,7 @@ import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, Query, QuerySnapshot } from './schema';
-import { collection } from './util';
+import { addToSet } from './util';
 
 /**
  * Collects a set of edits against a version of the cache, eventually committing
@@ -84,7 +84,7 @@ export class CacheTransaction implements Queryable {
     const current = this._snapshot;
 
     const { snapshot: baseline, editedNodeIds } = write(this._config, current.baseline, query, payload);
-    collection.addToSet(this._editedNodeIds, editedNodeIds);
+    addToSet(this._editedNodeIds, editedNodeIds);
 
     const optimistic = this._buildOptimisticSnapshot(baseline);
 
@@ -99,7 +99,7 @@ export class CacheTransaction implements Queryable {
     if (!optimisticQueue.hasUpdates()) return baseline;
 
     const { snapshot, editedNodeIds } = optimisticQueue.apply(this._config, baseline);
-    collection.addToSet(this._editedNodeIds, editedNodeIds);
+    addToSet(this._editedNodeIds, editedNodeIds);
 
     return snapshot;
   }
@@ -112,7 +112,7 @@ export class CacheTransaction implements Queryable {
     this._deltas.push({ query, payload });
 
     const { snapshot: optimistic, editedNodeIds } = write(this._config, current.baseline, query, payload);
-    collection.addToSet(this._editedNodeIds, editedNodeIds);
+    addToSet(this._editedNodeIds, editedNodeIds);
 
     this._snapshot = { ...current, optimistic };
   }

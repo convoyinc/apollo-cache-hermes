@@ -8,12 +8,12 @@ export interface NodeSnapshot {
   /** A reference to the node this snapshot is about. */
   readonly node: any,
   /** Other node snapshots that point to this one. */
-  readonly inbound?: ValueSnapshot.NodeReference[];
+  readonly inbound?: NodeSnapshot.NodeReference[];
   /** The node snapshots that this one points to. */
-  readonly outbound?: ValueSnapshot.NodeReference[];
+  readonly outbound?: NodeSnapshot.NodeReference[];
 }
 
-export namespace ValueSnapshot {
+export namespace NodeSnapshot {
 
   /**
    * Each node maintains a list of references to/from it, and how to find them.
@@ -55,7 +55,7 @@ export namespace ValueSnapshot {
       /**
        * The node snapshots that this one points to.
        */
-      readonly outbound?: ValueSnapshot.NodeReference[],
+      readonly outbound?: NodeSnapshot.NodeReference[],
 
       /**
        * Whether this node is considered a root of the graph.
@@ -105,7 +105,7 @@ export namespace ValueSnapshot {
       /**
        * The node snapshots that this one points to.
        */
-      readonly outbound?: ValueSnapshot.NodeReference[],
+      readonly outbound?: NodeSnapshot.NodeReference[],
     ) {}
 
   }
