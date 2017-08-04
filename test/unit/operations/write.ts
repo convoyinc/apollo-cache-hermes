@@ -1,5 +1,6 @@
 import { Configuration } from '../../../src/Configuration';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
+import { NodeSnapshot } from '../../../src/NodeSnapshot';
 import { write } from '../../../src/operations/write';
 import { StaticNodeId } from '../../../src/schema';
 import { query } from '../../helpers/graphql';
@@ -69,6 +70,18 @@ describe(`operations.write`, () => {
       const queryRoot = snapshot.get(QueryRootId);
       const viewer = snapshot.get('123');
       expect(queryRoot.viewer).to.eq(viewer);
+    });
+
+    it(`records the outbound reference from the query root`, () => {
+      const queryRoot = snapshot.getSnapshot(QueryRootId) as NodeSnapshot;
+      expect(queryRoot.outbound).to.deep.eq([{ id: '123', path: ['viewer'] }]);
+      expect(queryRoot.inbound).to.eq(undefined);
+    });
+
+    it(`records the inbound reference from referenced entity`, () => {
+      const queryRoot = snapshot.getSnapshot('123') as NodeSnapshot;
+      expect(queryRoot.inbound).to.deep.eq([{ id: QueryRootId, path: ['viewer'] }]);
+      expect(queryRoot.outbound).to.eq(undefined);
     });
 
     it(`marks the entity and root as edited`, () => {

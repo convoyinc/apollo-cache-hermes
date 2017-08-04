@@ -1,9 +1,10 @@
+import { addNodeReference } from '../util/references';
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';
 import { NodeId, Query } from '../schema';
-import { isObject, isScalar, lazyImmutableDeepSet, walkPayload } from '../util';
+import { isObject, isScalar, lazyImmutableDeepSet, removeNodeReference, walkPayload } from '../util';
 
 /**
  * A newly modified snapshot.
@@ -258,9 +259,22 @@ export class SnapshotEditor {
     //     * Set the actual reference (to the next node) at path in containerId.
     //
     //   * Return the set of orphaned ids.
-    for (const { containerId, path, nextNodeId } of referenceEdits) {
+    for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
       const target = nextNodeId ? this.get(nextNodeId) : null;
       this._setValue(containerId, path, target);
+      const container = this._ensureNewSnapshot(containerId);
+
+      if (prevNodeId) {
+        removeNodeReference('outbound', container, prevNodeId, path);
+        const prevTarget = this._ensureNewSnapshot(prevNodeId);
+        removeNodeReference('inbound', prevTarget, containerId, path);
+      }
+
+      if (nextNodeId) {
+        addNodeReference('outbound', container, nextNodeId, path);
+        const nextTarget = this._ensureNewSnapshot(nextNodeId);
+        addNodeReference('inbound', nextTarget, containerId, path);
+      }
     }
 
     return new Set();
