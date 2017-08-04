@@ -274,11 +274,9 @@ describe(`operations.write`, () => {
       foo: { id: 1, name: 'Foo' },
       bar: { id: 2, name: 'Bar' },
     });
-    console.log('before: ===============================');
     const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
       bar: null,
     });
-    console.log('after: ===============================');
 
     it(`doesn't mutate the previous versions`, () => {
       expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
@@ -290,8 +288,79 @@ describe(`operations.write`, () => {
       });
     });
 
+    it(`replaces the reference with null`, () => {
+      expect(snapshot.get(QueryRootId)).to.deep.eq({
+        foo: { id: 1, name: 'Foo' },
+        bar: null,
+      });
+    });
+
+    it(`updates outbound references`, () => {
+      const queryRoot = snapshot.getSnapshot(QueryRootId) as NodeSnapshot;
+      expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
+    });
+
     it(`marks the container and orphaned node as edited`, () => {
       expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '2']);
+    });
+
+    it(`contains the correct nodes`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1']);
+    });
+
+  });
+
+  describe(`when orphaning a subgraph`, () => {
+
+    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
+      foo: { id: 1, name: 'Foo' },
+      bar: {
+        id: 2,
+        one: { id: 111 },
+        two: { id: 222 },
+        three: {
+          id: 333,
+          foo: { id: 1 },
+        },
+      },
+    });
+    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
+      bar: null,
+    });
+
+    it(`doesn't mutate the previous versions`, () => {
+      expect(baseline.get(QueryRootId)).to.deep.eq({
+        foo: { id: 1, name: 'Foo' },
+        bar: {
+          id: 2,
+          one: { id: 111 },
+          two: { id: 222 },
+          three: {
+            id: 333,
+            foo: { id: 1, name: 'Foo' },
+          },
+        },
+      });
+    });
+
+    it(`replaces the reference with null`, () => {
+      expect(snapshot.get(QueryRootId)).to.deep.eq({
+        foo: { id: 1, name: 'Foo' },
+        bar: null,
+      });
+    });
+
+    it(`preserves nodes that only lost some of their inbound references`, () => {
+      expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo' });
+    });
+
+    it(`updates outbound references`, () => {
+      const queryRoot = snapshot.getSnapshot(QueryRootId) as NodeSnapshot;
+      expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
+    });
+
+    it(`marks the container and all orphaned nodes as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '2', '111', '222', '333']);
     });
 
     it(`contains the correct nodes`, () => {

@@ -299,29 +299,19 @@ export class SnapshotEditor {
     const queue = Array.from(nodeIds);
     while (queue.length) {
       const nodeId = queue.pop() as NodeId;
+      const node = this.getSnapshot(nodeId);
+      if (!node) continue;
+
       this._newNodes[nodeId] = undefined;
       this._editedNodeIds.add(nodeId);
-    }
 
-    // The rough algorithm is as follows:
-    //
-    //   * Create a new set to track visited node ids.
-    //
-    //   * While there are ids in nodeIds:
-    //
-    //     * Pop an id off of nodeIds, and mark it visited.
-    //
-    //     * Set _newNodes[id] = undefined.
-    //
-    //     * For each of its outbound references:
-    //
-    //       * Remove the associated inbound reference.
-    //
-    //       * If they have no more inbound references and is not a root, push
-    //         them on the queue.
-    //
-    for (const nodeId of nodeIds) {
-      this._config.entityIdForNode(nodeId);
+      if (!node.outbound) continue;
+      for (const { id, path } of node.outbound) {
+        const reference = this._ensureNewSnapshot(id);
+        if (removeNodeReference('inbound', reference, nodeId, path)) {
+          queue.push(id);
+        }
+      }
     }
   }
 
