@@ -4,12 +4,21 @@ import { write } from '../../../src/operations/write';
 import { StaticNodeId } from '../../../src/schema';
 import { query } from '../../helpers/graphql';
 
+const { QueryRoot: QueryRootId } = StaticNodeId;
+
 // These are really more like integration tests, given the underlying machinery.
+//
+// It just isn't very fruitful to unit test the individual steps of the write
+// workflow.
 describe(`operations.write`, () => {
 
   const config: Configuration = {
-    entityIdForNode: (node: any) => node && String(node.id),
+    entityIdForNode: (node: any) => {
+      return (node && node.id) ? String(node.id) : undefined;
+    },
   };
+
+  const rootValuesQuery = query(`{ foo bar }`);
 
   const viewerQuery = query(`{
     viewer {
@@ -20,37 +29,176 @@ describe(`operations.write`, () => {
 
   const empty = new GraphSnapshot();
 
-  describe(`end-to-end`, () => {
+  describe(`when only values (to a root)`, () => {
 
-    describe(`when writing a single root entity`, () => {
+    const { snapshot, editedNodeIds } = write(config, empty, rootValuesQuery, { foo: 123, bar: 'asdf' });
 
-      const { snapshot, editedNodeIds } = write(config, empty, viewerQuery, {
+    it(`creates the query root, with the values`, () => {
+      expect(snapshot.get(QueryRootId)).to.deep.eq({ foo: 123, bar: 'asdf' });
+    });
+
+    it(`marks the root as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+    });
+
+    it(`only contains the root node`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+    });
+
+  });
+
+  describe(`when writing a (new) single entity hanging off of a root`, () => {
+
+    const { snapshot, editedNodeIds } = write(config, empty, viewerQuery, {
+      viewer: { id: 123, name: 'Gouda' },
+    });
+
+    it(`creates the query root, referencing the entity`, () => {
+      expect(snapshot.get(QueryRootId)).to.deep.eq({
         viewer: { id: 123, name: 'Gouda' },
       });
-      console.log(JSON.stringify(snapshot, null, 2));
+    });
 
-      it(`creates the query root, referencing the entity`, () => {
-        expect(snapshot.get(StaticNodeId.QueryRoot)).to.deep.eq({
-          viewer: { id: 123, name: 'Gouda' },
-        });
+    it(`indexes the entity`, () => {
+      expect(snapshot.get('123')).to.deep.eq({
+        id: 123, name: 'Gouda',
       });
+    });
 
-      it(`indexes the entity`, () => {
-        expect(snapshot.get('123')).to.deep.eq({
-          id: 123, name: 'Gouda',
-        });
+    it(`directly references viewer from the query root`, () => {
+      const queryRoot = snapshot.get(QueryRootId);
+      const viewer = snapshot.get('123');
+      expect(queryRoot.viewer).to.eq(viewer);
+    });
+
+    it(`marks the entity and root as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '123']);
+    });
+
+    it(`only contains the two nodes`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '123']);
+    });
+
+  });
+
+  describe(`when editing leaf values of a root`, () => {
+
+    const { snapshot: baseline } = write(config, empty, rootValuesQuery, { foo: 123, bar: { baz: 'asdf' } });
+    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, { foo: 321 });
+
+    it(`doesn't mutate the previous version`, () => {
+      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
+      expect(baseline.get(QueryRootId)).to.deep.eq({ foo: 123, bar: { baz: 'asdf' } });
+    });
+
+    it(`updates the value, and its container`, () => {
+      expect(snapshot.get(QueryRootId)).to.deep.eq({ foo: 321, bar: { baz: 'asdf' } });
+    });
+
+    it(`doesn't mutate other values`, () => {
+      expect(snapshot.get(QueryRootId).bar).to.eq(baseline.get(QueryRootId).bar);
+    });
+
+    it(`marks the root as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+    });
+
+    it(`only contains the root node`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+    });
+
+  });
+
+
+  describe(`when editing nested values of a root`, () => {
+
+    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
+      foo: [{ value: 1 }, { value: 2 }, { value: 3 }],
+      bar: { baz: 'asdf' },
+    });
+    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
+      foo: [{ value: -1 }, { extra: true }],
+      bar: {
+        baz: 'fdsa',
+        fizz: 'buzz',
+      },
+    });
+
+    it(`doesn't mutate the previous version`, () => {
+      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
+      expect(baseline.get(QueryRootId)).to.deep.eq({
+        foo: [{ value: 1 }, { value: 2 }, { value: 3 }],
+        bar: { baz: 'asdf' },
       });
+    });
 
-      it(`directly references viewer from the query root`, () => {
-        const queryRoot = snapshot.get(StaticNodeId.QueryRoot);
-        const viewer = snapshot.get('123');
-        expect(queryRoot.viewer).to.eq(viewer);
+    it(`merges new properties with existing objects`, () => {
+      expect(snapshot.get(QueryRootId).bar).to.deep.eq({ baz: 'fdsa', fizz: 'buzz' });
+    });
+
+    it(`honors array lengths`, () => {
+      expect(snapshot.get(QueryRootId).foo.length).to.eq(2);
+    });
+
+    it(`overwrites previous values in array elements`, () => {
+      expect(snapshot.get(QueryRootId).foo[0]).to.deep.eq({ value: -1 });
+    });
+
+    it(`merges new values in array elements`, () => {
+      expect(snapshot.get(QueryRootId).foo[1]).to.deep.eq({ value: 2, extra: true });
+    });
+
+    it(`marks the root as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+    });
+
+    it(`only contains the root node`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+    });
+
+  });
+
+  describe(`when updating values in referenced nodes`, () => {
+
+    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
+      foo: { id: 1, name: 'Foo' },
+      bar: { id: 2, name: 'Bar' },
+    });
+    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
+      foo: { id: 1, name: 'Foo Boo' },
+      bar: { id: 2, extra: true },
+    });
+
+    it(`doesn't mutate the previous versions`, () => {
+      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
+      expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
+      expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
+      expect(baseline.get(QueryRootId)).to.deep.eq({
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
       });
+    });
 
-      it(`marks the entity as edited`, () => {
-        expect(Array.from(editedNodeIds)).to.have.members([StaticNodeId.QueryRoot, '123']);
-      });
+    it(`updates existing values in referenced nodes`, () => {
+      expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo Boo' });
+    });
 
+    it(`inserts new values in referenced nodes`, () => {
+      expect(snapshot.get('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
+    });
+
+    it(`updates references to the newly edited nodes`, () => {
+      const root = snapshot.get(QueryRootId);
+      expect(root.foo).to.eq(snapshot.get('1'));
+      expect(root.bar).to.eq(snapshot.get('2'));
+    });
+
+    it(`doesn't mark regenerated nodes as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members(['1', '2']);
+    });
+
+    it(`contains the correct nodes`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
     });
 
   });
