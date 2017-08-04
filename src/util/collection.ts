@@ -1,7 +1,7 @@
 import { JsonScalar, PathPart } from '../primitive';
 
 /**
- *
+ * Adds values to a set, mutating it.
  */
 export function addToSet<T>(target: Set<T>, source: Iterable<T>): void {
   for (const value of source) {
