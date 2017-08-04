@@ -1,9 +1,8 @@
-import gql from 'graphql-tag';
-
 import { Configuration } from '../../../src/Configuration';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { write } from '../../../src/operations/write';
 import { StaticNodeId } from '../../../src/schema';
+import { query } from '../../helpers/graphql';
 
 // These are really more like integration tests, given the underlying machinery.
 describe(`operations.write`, () => {
@@ -12,12 +11,12 @@ describe(`operations.write`, () => {
     entityIdForNode: (node: any) => node && node.id,
   };
 
-  const viewerQuery = gql`{
+  const viewerQuery = query(`{
     viewer {
       id
       name
     }
-  }`;
+  }`);
 
   const empty = new GraphSnapshot();
 

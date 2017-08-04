@@ -3,6 +3,7 @@ import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';
 import { NodeId, Query } from '../schema';
+import { isObject, walkPayload } from '../util';
 
 /**
  * A newly modified snapshot.
@@ -99,7 +100,56 @@ export class SnapshotEditor {
    * returned to be applied in a second pass (`_mergeReferenceEdits`), once we
    * can guarantee that all edited nodes have been built.
    */
-  private _mergePayloadValues(query: Query, payload: object): ReferenceEdit[] {
+  private _mergePayloadValues(query: Query, fullPayload: object): ReferenceEdit[] {
+    const { entityIdForNode } = this._config;
+
+    const queue = [{ containerId: query.rootId, containerPayload: fullPayload }];
+    const referenceEdits = [] as ReferenceEdit[];
+
+    while (queue.length) {
+      const { containerId, containerPayload } = queue.pop() as { containerId: NodeId, containerPayload: any };
+      const container = this.get(containerId);
+
+      walkPayload(containerPayload, container, (path, payloadValue, nodeValue) => {
+        let nextNodeId = isObject(payloadValue) ? entityIdForNode(payloadValue) : undefined;
+        const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
+
+        // We've hit a reference.
+        if (prevNodeId || nextNodeId) {
+          // If we already know there is a node at this location, we can merge
+          // with it if no new identity was provided.
+          //
+          // TODO: Is this too forgiving?
+          if (!nextNodeId && payloadValue) {
+            nextNodeId = prevNodeId;
+          }
+
+          // The payload is now referencing a new entity.  We want to update it,
+          // but not until we've updated the values of our entities first.
+          if (prevNodeId !== nextNodeId) {
+            referenceEdits.push({ containerId, path, prevNodeId, nextNodeId });
+          }
+
+          // Either we have a new value to merge, or we're clearing a reference.
+          // In both cases, _mergeReferenceEdits will take care of setting the
+          // value at this path.
+          //
+          // So, walk if we have new values, otherwise we're done for this
+          // subgraph.
+          if (nextNodeId) {
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue });
+          }
+          // Stop the walk for this subgraph.
+          return true;
+        }
+
+        // TODO: Detect parameterized edges.
+        // if (payloadValue)
+
+        return false;
+      });
+    }
+
     // The rough algorithm is as follows:
     //
     //   * Initialize a work queue with one item containing this function's
@@ -159,9 +209,7 @@ export class SnapshotEditor {
     // have access to it, see our private hermes repo, which takes this
     // approach)
 
-    // Random lines to get ts/tslint to shut up.
-    this._config.entityIdForNode(null);
-    return this._mergePayloadValues(query, payload);
+    return referenceEdits;
   }
 
   /**
@@ -275,6 +323,21 @@ export class SnapshotEditor {
       snapshot: new GraphSnapshot(snapshots),
       editedNodeIds: this._editedNodeIds,
     };
+  }
+
+  /**
+   * Retrieve the _latest_ version of a node.
+   */
+  private get(id: NodeId) {
+    const snapshot = this.getSnapshot(id);
+    return snapshot ? snapshot.node : undefined;
+  }
+
+  /**
+   * Retrieve the _latest_ version of a node snapshot.
+   */
+  private getSnapshot(id: NodeId) {
+    return id in this._newNodes ? this._newNodes[id] : this._parent.getSnapshot(id);
   }
 
   /**
