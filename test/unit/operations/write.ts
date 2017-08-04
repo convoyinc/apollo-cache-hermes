@@ -10,7 +10,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // These are really more like integration tests, given the underlying machinery.
 //
 // It just isn't very fruitful to unit test the individual steps of the write
-// workflow.
+// workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
 
   const config: Configuration = {
@@ -264,6 +264,38 @@ describe(`operations.write`, () => {
 
     it(`contains the correct nodes`, () => {
       expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
+    });
+
+  });
+
+  describe(`when orphaning a node`, () => {
+
+    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
+      foo: { id: 1, name: 'Foo' },
+      bar: { id: 2, name: 'Bar' },
+    });
+    console.log('before: ===============================');
+    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
+      bar: null,
+    });
+    console.log('after: ===============================');
+
+    it(`doesn't mutate the previous versions`, () => {
+      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
+      expect(baseline.get('1')).to.eq(snapshot.get('1'));
+      expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
+      expect(baseline.get(QueryRootId)).to.deep.eq({
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
+      });
+    });
+
+    it(`marks the container and orphaned node as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '2']);
+    });
+
+    it(`contains the correct nodes`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1']);
     });
 
   });

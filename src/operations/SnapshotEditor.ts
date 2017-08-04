@@ -242,6 +242,8 @@ export class SnapshotEditor {
    * Returns the set of node ids that are newly orphaned by these edits.
    */
   private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]): Set<NodeId> {
+    const orphanedNodeIds = new Set() as Set<NodeId>;
+
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
       const target = nextNodeId ? this.get(nextNodeId) : null;
       this._setValue(containerId, path, target);
@@ -251,16 +253,20 @@ export class SnapshotEditor {
         removeNodeReference('outbound', container, prevNodeId, path);
         const prevTarget = this._ensureNewSnapshot(prevNodeId);
         removeNodeReference('inbound', prevTarget, containerId, path);
+        if (!prevTarget.inbound) {
+          orphanedNodeIds.add(prevNodeId);
+        }
       }
 
       if (nextNodeId) {
         addNodeReference('outbound', container, nextNodeId, path);
         const nextTarget = this._ensureNewSnapshot(nextNodeId);
         addNodeReference('inbound', nextTarget, containerId, path);
+        orphanedNodeIds.delete(nextNodeId);
       }
     }
 
-    return new Set();
+    return orphanedNodeIds;
   }
 
   /**
@@ -290,6 +296,13 @@ export class SnapshotEditor {
    * Transitively removes all orphaned nodes from the graph.
    */
   private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
+    const queue = Array.from(nodeIds);
+    while (queue.length) {
+      const nodeId = queue.pop() as NodeId;
+      this._newNodes[nodeId] = undefined;
+      this._editedNodeIds.add(nodeId);
+    }
+
     // The rough algorithm is as follows:
     //
     //   * Create a new set to track visited node ids.
