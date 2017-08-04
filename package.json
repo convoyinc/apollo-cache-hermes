@@ -45,6 +45,8 @@
     "eslint": "^4.2.0",
     "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
     "eslint-plugin-typescript": "^0.3.0",
+    "graphql": "^0.10.5",
+    "graphql-tag": "^2.4.2",
     "greenkeeper-lockfile": "^1.7.2",
     "jest": "^20.0.4",
     "jest-junit": "^2.1.0",
