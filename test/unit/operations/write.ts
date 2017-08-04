@@ -8,7 +8,7 @@ import { query } from '../../helpers/graphql';
 describe(`operations.write`, () => {
 
   const config: Configuration = {
-    entityIdForNode: (node: any) => node && node.id,
+    entityIdForNode: (node: any) => node && String(node.id),
   };
 
   const viewerQuery = query(`{
@@ -27,6 +27,7 @@ describe(`operations.write`, () => {
       const { snapshot, editedNodeIds } = write(config, empty, viewerQuery, {
         viewer: { id: 123, name: 'Gouda' },
       });
+      console.log(JSON.stringify(snapshot, null, 2));
 
       it(`creates the query root, referencing the entity`, () => {
         expect(snapshot.get(StaticNodeId.QueryRoot)).to.deep.eq({
@@ -47,7 +48,7 @@ describe(`operations.write`, () => {
       });
 
       it(`marks the entity as edited`, () => {
-        expect(editedNodeIds).to.have.members(['123']);
+        expect(Array.from(editedNodeIds)).to.have.members([StaticNodeId.QueryRoot, '123']);
       });
 
     });

@@ -3,7 +3,7 @@ import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';
 import { NodeId, Query } from '../schema';
-import { isObject, walkPayload } from '../util';
+import { isObject, isScalar, lazyImmutableDeepSet, walkPayload } from '../util';
 
 /**
  * A newly modified snapshot.
@@ -114,6 +114,8 @@ export class SnapshotEditor {
         let nextNodeId = isObject(payloadValue) ? entityIdForNode(payloadValue) : undefined;
         const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
 
+        // TODO: Detect parameterized edges.
+
         // We've hit a reference.
         if (prevNodeId || nextNodeId) {
           // If we already know there is a node at this location, we can merge
@@ -141,10 +143,23 @@ export class SnapshotEditor {
           }
           // Stop the walk for this subgraph.
           return true;
-        }
 
-        // TODO: Detect parameterized edges.
-        // if (payloadValue)
+        // Arrays are a little special.  When present, we assume that the values
+        // contained within the array are the _full_ set of values.
+        } else if (Array.isArray(payloadValue)) {
+          // We will walk to each value within the array, so we do not need to
+          // process them yet; but because we update them by path, we do need to
+          // ensure that the updated entity's array has the same number of
+          // values.
+          if (nodeValue && nodeValue.length === payloadValue.length) return false;
+
+          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadValue.length) : [];
+          this._setValue(containerId, path, newArray);
+
+        // All else we care about are updated scalar values.
+        } else if (isScalar(payloadValue) && payloadValue !== nodeValue) {
+          this._setValue(containerId, path, payloadValue);
+        }
 
         return false;
       });
@@ -243,9 +258,12 @@ export class SnapshotEditor {
     //     * Set the actual reference (to the next node) at path in containerId.
     //
     //   * Return the set of orphaned ids.
+    for (const { containerId, path, nextNodeId } of referenceEdits) {
+      const target = nextNodeId ? this.get(nextNodeId) : null;
+      this._setValue(containerId, path, target);
+    }
 
-    // Random line to get ts/tslint to shut up.
-    return this._mergeReferenceEdits(referenceEdits);
+    return new Set();
   }
 
   /**
@@ -273,9 +291,9 @@ export class SnapshotEditor {
     //         * Push that id on to the queue, and add it to _rebuiltNodeIds.
     //
 
-    // Random lines to get ts/tslint to shut up.
-    this._rebuiltNodeIds.clear();
-    this._rebuildInboundReferences();
+    for (const nodeId of this._rebuiltNodeIds) {
+      this._config.entityIdForNode(nodeId);
+    }
   }
 
   /**
@@ -299,9 +317,9 @@ export class SnapshotEditor {
     //       * If they have no more inbound references and is not a root, push
     //         them on the queue.
     //
-
-    // Random line to get ts/tslint to shut up.
-    this._removeOrphanedNodes(nodeIds);
+    for (const nodeId of nodeIds) {
+      this._config.entityIdForNode(nodeId);
+    }
   }
 
   /**
@@ -352,16 +370,33 @@ export class SnapshotEditor {
       this._editedNodeIds.add(id);
     }
 
-    // Random line to get ts/tslint to shut up.
-    this._setValue(id, path, newValue);
+    const parent = this._parent.getSnapshot(id);
+    const current = this._ensureNewSnapshot(id);
+    lazyImmutableDeepSet(current && current.node, parent && parent.node, path, newValue);
   }
 
   /**
-   *
+   * TODO: Support more than just entity snapshots.
    */
-  private _getOrCreateNew(id: NodeId): NodeSnapshot {
-    // Random line to get ts/tslint to shut up.
-    return this._getOrCreateNew(id);
+  private _ensureNewSnapshot(id: NodeId, initialValue?: object): NodeSnapshot {
+    let newSnapshot;
+    if (id in this._newNodes) {
+      const current = this._newNodes[id];
+      // We may have deleted the node.
+      if (current) return current;
+      // If so, we should start fresh.
+      newSnapshot = new NodeSnapshot.Entity({});
+    } else {
+      const parent = this._parent.getSnapshot(id);
+      const value = parent ? { ...parent.node } : {};
+      const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
+      const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
+
+      newSnapshot = new NodeSnapshot.Entity(value, inbound, outbound);
+    }
+
+    this._newNodes[id] = newSnapshot;
+    return newSnapshot;
   }
 
 }
