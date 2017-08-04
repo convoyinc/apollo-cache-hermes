@@ -129,7 +129,7 @@ export class SnapshotEditor {
           // The payload is now referencing a new entity.  We want to update it,
           // but not until we've updated the values of our entities first.
           if (prevNodeId !== nextNodeId) {
-            referenceEdits.push({ containerId, path, prevNodeId, nextNodeId });
+            referenceEdits.push({ containerId, path: [...path], prevNodeId, nextNodeId });
           }
 
           // Either we have a new value to merge, or we're clearing a reference.
