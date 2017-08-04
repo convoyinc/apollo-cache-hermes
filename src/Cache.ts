@@ -40,7 +40,8 @@ export class Cache implements Queryable {
   }
 
   /**
-   *
+   * Registers a callback that should be triggered any time the nodes selected
+   * by a particular query have changed.
    */
   watch(query: Query, callback: () => void): () => void {
     const observer = new QueryObserver(this._config, query, this._snapshot.optimistic, callback);
@@ -57,7 +58,11 @@ export class Cache implements Queryable {
   }
 
   /**
+   * Allows the caller to perform a set of changes to the cache in a
+   * transactional manner.
    *
+   * If a changeId is provided, the transaction will be recorded as an
+   * optimistic update.
    */
   transaction(callback: TransactionCallback): void;
   transaction(changeIdOrCallback: ChangeId, callback: TransactionCallback): void;
@@ -91,7 +96,7 @@ export class Cache implements Queryable {
   // Internal
 
   /**
-   *
+   * Unregister an observer.
    */
   private _removeObserver(observer: QueryObserver): void {
     const index = this._observers.findIndex(o => o === observer);
@@ -100,19 +105,13 @@ export class Cache implements Queryable {
   }
 
   /**
-   *
+   * Point the cache to a new snapshot, and let observers know of the change.
    */
   private _setSnapshot(snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>): void {
     this._snapshot = snapshot;
-    this._broadcastChanges(snapshot.optimistic, editedNodeIds);
-  }
 
-  /**
-   *
-   */
-  private _broadcastChanges(snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>): void {
     for (const observer of this._observers) {
-      observer.consumeChanges(snapshot, editedNodeIds);
+      observer.consumeChanges(snapshot.optimistic, editedNodeIds);
     }
   }
 

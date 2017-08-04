@@ -13,7 +13,7 @@ export interface Configuration {
    * the application should be given an id.  All entities are normalized within
    * the cache; everything else is not.
    *
-   * TODO: Consider memoizing this via a WeakMap.
+   * TODO: Consider memoizing this via a Map in each GraphSnapshot.
    */
   entityIdForNode(node: any): EntityId | undefined;
 

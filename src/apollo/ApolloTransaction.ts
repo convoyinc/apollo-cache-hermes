@@ -4,12 +4,12 @@ import { ApolloQueryable } from './ApolloQueryable';
 import * as interfaces from './interfaces';
 
 /**
- *
+ * Apollo-specific transaction interface.
  */
 export class ApolloTransaction extends ApolloQueryable implements interfaces.Cache {
 
   constructor(
-    /**  */
+    /** The underlying transaction. */
     protected _queryable: CacheTransaction,
   ) {
     super();
