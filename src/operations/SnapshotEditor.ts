@@ -235,30 +235,6 @@ export class SnapshotEditor {
    * Returns the set of node ids that are newly orphaned by these edits.
    */
   private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]): Set<NodeId> {
-    // The rough algorithm is as follows:
-    //
-    //   * For each entry in referenceEdits:
-    //
-    //     * If prevNodeId:
-    //
-    //       * Remove the inbound reference from _getOrCreateNew(prevNodeId).
-    //
-    //       * Remove the outbound reference from the source node.
-    //
-    //       * If there are no remaining inbound references and the node is not
-    //         a root, mark prevNodeId as orphaned.
-    //
-    //     * If nextNodeId:
-    //
-    //       * Insert the inbound reference to _getOrCreateNew(nextNodeId).
-    //
-    //       * Insert the outbound reference to the source node.
-    //
-    //       * If nextNodeId is present in the orphaned ids, remove it.
-    //
-    //     * Set the actual reference (to the next node) at path in containerId.
-    //
-    //   * Return the set of orphaned ids.
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
       const target = nextNodeId ? this.get(nextNodeId) : null;
       this._setValue(containerId, path, target);
