@@ -1,10 +1,17 @@
-import { addNodeReference } from '../util/references';
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';
 import { NodeId, Query } from '../schema';
-import { isObject, isScalar, lazyImmutableDeepSet, removeNodeReference, walkPayload } from '../util';
+import {
+  addNodeReference,
+  addToSet,
+  isObject,
+  isScalar,
+  lazyImmutableDeepSet,
+  removeNodeReference,
+  walkPayload,
+} from '../util';
 
 /**
  * A newly modified snapshot.
@@ -261,28 +268,21 @@ export class SnapshotEditor {
    * those references to point to the newly edited versions.
    */
   private _rebuildInboundReferences(): void {
-    // The rough algorithm is as follows:
-    //
-    //   * Create a new queue of node ids from _editedNodeIds - _rebuiltNodeIds.
-    //
-    //   * Mark all those ids in _rebuiltNodeIds.
-    //
-    //   * While there are ids in the queue:
-    //
-    //     * Pop an id off the queue.
-    //
-    //     * For each inbound reference for that node:
-    //
-    //       * _setValue to the new version of the node that's referenced, with
-    //         isEdit = false.
-    //
-    //       * If the referenced node is not in _rebuiltNodeIds:
-    //
-    //         * Push that id on to the queue, and add it to _rebuiltNodeIds.
-    //
+    const queue = Array.from(this._editedNodeIds);
+    addToSet(this._rebuiltNodeIds, queue);
 
-    for (const nodeId of this._rebuiltNodeIds) {
-      this._config.entityIdForNode(nodeId);
+    while (queue.length) {
+      const nodeId = queue.pop() as NodeId;
+      const snapshot = this.getSnapshot(nodeId);
+      if (!snapshot || !snapshot.inbound) continue;
+
+      for (const { id, path } of snapshot.inbound) {
+        this._setValue(id, path, snapshot.node, false);
+        if (this._rebuiltNodeIds.has(id)) continue;
+
+        this._rebuiltNodeIds.add(id);
+        queue.push(id);
+      }
     }
   }
 
