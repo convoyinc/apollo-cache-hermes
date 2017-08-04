@@ -47,7 +47,7 @@ export class GraphSnapshot {
    * @internal
    */
   allNodeIds(): NodeId[] {
-    return Object.keys(this);
+    return Object.keys(this._values);
   }
 
 }
