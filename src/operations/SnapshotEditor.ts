@@ -1,10 +1,8 @@
-import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
-
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';
-import { NodeId } from '../schema';
+import { NodeId, Query } from '../schema';
 
 /**
  * Describes an edit to a reference contained within a node.
@@ -58,12 +56,12 @@ export class SnapshotEditor {
    * Merge a GraphQL payload (query/fragment/etc) into the snapshot, rooted at
    * the node identified by `rootId`.
    */
-  mergePayload(rootId: NodeId, selection: SelectionSetNode, payload: object, variables?: object): void {
+  mergePayload(query: Query, payload: object): void {
     // First, we walk the payload and apply all _scalar_ edits, while collecting
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
-    const referenceEdits = this._mergePayloadValues(rootId, selection, payload, variables);
+    const referenceEdits = this._mergePayloadValues(query, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -93,7 +91,7 @@ export class SnapshotEditor {
    * returned to be applied in a second pass (`_mergeReferenceEdits`), once we
    * can guarantee that all edited nodes have been built.
    */
-  private _mergePayloadValues(rootId: NodeId, selection: SelectionSetNode, payload: object, variables?: object): ReferenceEdit[] {
+  private _mergePayloadValues(query: Query, payload: object): ReferenceEdit[] {
     // The rough algorithm is as follows:
     //
     //   * Initialize a work queue with one item containing this function's
@@ -155,7 +153,7 @@ export class SnapshotEditor {
 
     // Random lines to get ts/tslint to shut up.
     this._config.entityIdForNode(null);
-    return this._mergePayloadValues(rootId, selection, payload);
+    return this._mergePayloadValues(query, payload);
   }
 
   /**

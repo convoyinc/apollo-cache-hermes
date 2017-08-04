@@ -2,20 +2,7 @@ import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-ext
 
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId } from '../schema';
-
-/**
- * All the information needed to describe a complete GraphQL query that can be
- * made against the cache
- */
-export interface Query {
-  /** The id of the node to begin the query at. */
-  rootId: NodeId;
-  /** The properties within the cache that the query is concerned with. */
-  selection: SelectionSetNode;
-  /** Any variables used by parameterized edges within the selection set. */
-  variables?: object;
-}
+import { NodeId, Query } from '../schema';
 
 export interface QueryResult {
   /** The value of the root requested by a query. */

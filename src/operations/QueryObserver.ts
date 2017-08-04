@@ -1,8 +1,8 @@
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId } from '../schema';
+import { NodeId, Query } from '../schema';
 
-import { Query, QueryResult, QueryResultWithNodeIds, read } from './read';
+import { QueryResult, QueryResultWithNodeIds, read } from './read';
 
 export type Callback = (result: QueryResult) => void;
 

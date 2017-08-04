@@ -1,3 +1,5 @@
+import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+
 /**
  * Change ids track diffs to the store that may eventually be rolled back.
  */
@@ -22,4 +24,17 @@ export enum StaticNodeId {
   QueryRoot = '☣QueryRoot',
   MutationRoot = '☣MutationRoot',
   SubscriptionRoot = '☣SubscriptionRoot',
+}
+
+/**
+ * All the information needed to describe a complete GraphQL query that can be
+ * made against the cache (read or written).
+ */
+export interface Query {
+  /** The id of the node to begin the query at. */
+  rootId: NodeId;
+  /** The properties within the cache that the query is concerned with. */
+  selection: SelectionSetNode;
+  /** Any variables used by parameterized edges within the selection set. */
+  variables?: object;
 }

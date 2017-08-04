@@ -1,17 +1,14 @@
-import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
-
 import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
 import { SnapshotEditor } from './operations';
-import { ChangeId, NodeId } from './schema';
+import { ChangeId, NodeId, Query } from './schema';
 
 /**
  * Tracks an individual optimistic update.
  */
 interface OptimisticUpdate {
   id: ChangeId;
-  rootId: NodeId;
-  selection: SelectionSetNode;
+  query: Query;
   payload: any;
 }
 
@@ -32,9 +29,9 @@ export class OptimisticUpdateQueue {
   /**
    * Appends a new optimistic update to the queue.
    */
-  enqueue(id: ChangeId, rootId: NodeId, selection: SelectionSetNode, payload: any): void {
+  enqueue(id: ChangeId, query: Query, payload: any): void {
     // TODO: Assert unique change ids.
-    this._updates.push({ id, rootId, selection, payload });
+    this._updates.push({ id, query, payload });
   }
 
   /**
@@ -61,7 +58,7 @@ export class OptimisticUpdateQueue {
   apply(config: Configuration, snapshot: GraphSnapshot): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
     const editor = new SnapshotEditor(config, snapshot);
     for (const update of this._updates) {
-      editor.mergePayload(update.rootId, update.selection, update.payload);
+      editor.mergePayload(update.query, update.payload);
     }
 
     return editor.commit();
