@@ -29,7 +29,7 @@ OPTIONS=(
 # Jest doesn't handle debugger flags directly.
 NODE_OPTIONS=()
 for option in "${OPTIONS_FLAGS[@]}"; do
-  if [[ "${option}" =~ ^--(inspect|debug-brk) ]]; then
+  if [[ "${option}" =~ ^--(inspect|debug-brk|nolazy) ]]; then
     NODE_OPTIONS+=("${option}")
   else
     OPTIONS+=("${option}")
@@ -40,5 +40,4 @@ done
 export JEST_SUITE_NAME="test:unit"
 export JEST_JUNIT_OUTPUT=./output/test:unit/report.xml
 
-set -x
-node "${NODE_OPTIONS[@]}" jest "${OPTIONS[@]}" "${FILES[@]}"
+node "${NODE_OPTIONS[@]}" ./node_modules/.bin/jest "${OPTIONS[@]}" "${FILES[@]}"
