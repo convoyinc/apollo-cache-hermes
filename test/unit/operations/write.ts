@@ -313,7 +313,11 @@ describe(`operations.write`, () => {
   describe(`when orphaning a subgraph`, () => {
 
     const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
-      foo: { id: 1, name: 'Foo' },
+      foo: {
+        id: 1,
+        name: 'Foo',
+        two: { id: 222 },
+      },
       bar: {
         id: 2,
         one: { id: 111 },
@@ -325,19 +329,28 @@ describe(`operations.write`, () => {
       },
     });
     const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
+      foo: { two: null },
       bar: null,
     });
 
     it(`doesn't mutate the previous versions`, () => {
       expect(baseline.get(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo' },
+        foo: {
+          id: 1,
+          name: 'Foo',
+          two: { id: 222 },
+        },
         bar: {
           id: 2,
           one: { id: 111 },
           two: { id: 222 },
           three: {
             id: 333,
-            foo: { id: 1, name: 'Foo' },
+            foo: {
+              id: 1,
+              name: 'Foo',
+              two: { id: 222 },
+            },
           },
         },
       });
@@ -345,13 +358,13 @@ describe(`operations.write`, () => {
 
     it(`replaces the reference with null`, () => {
       expect(snapshot.get(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo' },
+        foo: { id: 1, name: 'Foo', two: null },
         bar: null,
       });
     });
 
     it(`preserves nodes that only lost some of their inbound references`, () => {
-      expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo' });
+      expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo', two: null });
     });
 
     it(`updates outbound references`, () => {
@@ -360,7 +373,7 @@ describe(`operations.write`, () => {
     });
 
     it(`marks the container and all orphaned nodes as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '2', '111', '222', '333']);
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '1', '2', '111', '222', '333']);
     });
 
     it(`contains the correct nodes`, () => {
