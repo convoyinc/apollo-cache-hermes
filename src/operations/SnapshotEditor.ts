@@ -5,6 +5,14 @@ import { PathPart } from '../primitive';
 import { NodeId, Query } from '../schema';
 
 /**
+ * A newly modified snapshot.
+ */
+export interface EditedSnapshot {
+  snapshot: GraphSnapshot,
+  editedNodeIds: Set<NodeId>
+}
+
+/**
  * Describes an edit to a reference contained within a node.
  */
 interface ReferenceEdit {

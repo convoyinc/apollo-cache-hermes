@@ -1,48 +1,43 @@
 import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
 import { SnapshotEditor } from './operations';
-import { ChangeId, NodeId, Query } from './schema';
+import { ChangeId, NodeId, QuerySnapshot } from './schema';
 
 /**
  * Tracks an individual optimistic update.
  */
-interface OptimisticUpdate {
+export interface OptimisticUpdate {
   id: ChangeId;
-  query: Query;
-  payload: any;
+  deltas: QuerySnapshot[];
 }
 
 /**
  * Manages a queue of optimistic updates, and the values they express on top of
  * existing cache snapshots.
- *
- * TODO: Should we make this immutable, since it's included in CacheSnapshots?
  */
 export class OptimisticUpdateQueue {
 
-  /**
-   * The queue of updates, in order of oldest (lowest precedence) to newest
-   * (highest precedence).
-   */
-  private _updates = [] as OptimisticUpdate[];
+  constructor(
+    /**
+     * The queue of updates, in order of oldest (lowest precedence) to newest
+     * (highest precedence).
+     */
+    private _updates = [] as OptimisticUpdate[],
+  ) {}
 
   /**
    * Appends a new optimistic update to the queue.
    */
-  enqueue(id: ChangeId, query: Query, payload: any): void {
+  enqueue(id: ChangeId, deltas: QuerySnapshot[]): OptimisticUpdateQueue {
     // TODO: Assert unique change ids.
-    this._updates.push({ id, query, payload });
+    return new OptimisticUpdateQueue([...this._updates, { id, deltas }]);
   }
 
   /**
    * Removes an update from the queue.
    */
-  remove(id: ChangeId): void {
-    const index = this._updates.findIndex(u => u.id === id);
-    if (index < 0) {
-      throw new Error(`Change ${id} not found in the optimistic update queue`);
-    }
-    this._updates.splice(index, 1);
+  remove(id: ChangeId): OptimisticUpdateQueue {
+    return new OptimisticUpdateQueue(this._updates.filter(u => u.id === id));
   }
 
   /**
@@ -58,7 +53,9 @@ export class OptimisticUpdateQueue {
   apply(config: Configuration, snapshot: GraphSnapshot): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
     const editor = new SnapshotEditor(config, snapshot);
     for (const update of this._updates) {
-      editor.mergePayload(update.query, update.payload);
+      for (const delta of update.deltas) {
+        editor.mergePayload(delta.query, delta.payload);
+      }
     }
 
     return editor.commit();

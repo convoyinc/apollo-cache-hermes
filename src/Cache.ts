@@ -1,10 +1,13 @@
+import { Queryable } from './Queryable';
+import { CacheTransaction } from './CacheTransaction';
 import { CacheSnapshot } from './CacheSnapshot';
 import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
-import { QueryObserver, read, SnapshotEditor } from './operations';
+import { QueryObserver, read } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
-import { NodeId, Query } from './schema';
-import { collection } from './util';
+import { ChangeId, NodeId, Query } from './schema';
+
+export type TransactionCallback = (transaction: CacheTransaction) => void;
 
 /**
  * The Hermes cache.
@@ -12,7 +15,7 @@ import { collection } from './util';
  * @see https://github.com/apollographql/apollo-client/issues/1971
  * @see https://github.com/apollographql/apollo-client/blob/2.0-alpha/src/data/cache.ts
  */
-export class Cache {
+export class Cache implements Queryable {
 
   /** Configuration used by various operations made against the cache. */
   private readonly _config: Configuration;
@@ -33,12 +36,12 @@ export class Cache {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     const snapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
-
     return read(this._config, query, snapshot);
   }
 
   /**
-   *
+   * Registers a callback that should be triggered any time the nodes selected
+   * by a particular query have changed.
    */
   watch(query: Query, callback: () => void): () => void {
     const observer = new QueryObserver(this._config, query, this._snapshot.optimistic, callback);
@@ -51,22 +54,37 @@ export class Cache {
    * Writes values for a selection to the cache.
    */
   write(query: Query, payload: any): void {
-    const currentSnapshot = this._snapshot;
+    this.transaction(t => t.write(query, payload));
+  }
 
-    const editor = new SnapshotEditor(this._config, currentSnapshot.baseline);
-    editor.mergePayload(query, payload);
-    const { snapshot: baseline, editedNodeIds } = editor.commit();
-
-    let optimistic = baseline;
-    if (currentSnapshot.optimisticQueue.hasUpdates()) {
-      const result = currentSnapshot.optimisticQueue.apply(this._config, baseline);
-      optimistic = result.snapshot;
-      collection.addToSet(editedNodeIds, result.editedNodeIds);
+  /**
+   * Allows the caller to perform a set of changes to the cache in a
+   * transactional manner.
+   *
+   * If a changeId is provided, the transaction will be recorded as an
+   * optimistic update.
+   */
+  transaction(callback: TransactionCallback): void;
+  transaction(changeIdOrCallback: ChangeId, callback: TransactionCallback): void;
+  transaction(changeIdOrCallback: ChangeId | TransactionCallback, callback?: TransactionCallback): void {
+    let changeId;
+    if (typeof callback !== 'function') {
+      callback = changeIdOrCallback as TransactionCallback;
+    } else {
+      changeId = changeIdOrCallback as ChangeId;
     }
 
-    this._broadcastChanges(optimistic, editedNodeIds);
+    const transaction = new CacheTransaction(this._config, this._snapshot, changeId);
+    callback(transaction);
+    const { snapshot, editedNodeIds } = transaction.commit();
+    this._setSnapshot(snapshot, editedNodeIds);
+  }
 
-    this._snapshot = { baseline, optimistic, optimisticQueue: currentSnapshot.optimisticQueue };
+  /**
+   * Roll back a previously enqueued optimistic update.
+   */
+  rollback(changeId: ChangeId) {
+    this.transaction(t => t.rollback(changeId));
   }
 
   /**
@@ -78,15 +96,14 @@ export class Cache {
     const baseline = new GraphSnapshot();
     const optimistic = baseline;
     const optimisticQueue = new OptimisticUpdateQueue();
-    this._snapshot = { baseline, optimistic, optimisticQueue };
 
-    this._broadcastChanges(optimistic, allIds);
+    this._setSnapshot({ baseline, optimistic, optimisticQueue }, allIds);
   }
 
   // Internal
 
   /**
-   *
+   * Unregister an observer.
    */
   private _removeObserver(observer: QueryObserver): void {
     const index = this._observers.findIndex(o => o === observer);
@@ -95,11 +112,13 @@ export class Cache {
   }
 
   /**
-   *
+   * Point the cache to a new snapshot, and let observers know of the change.
    */
-  private _broadcastChanges(snapshot: GraphSnapshot, changedNodeIds: Set<NodeId>): void {
+  private _setSnapshot(snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>): void {
+    this._snapshot = snapshot;
+
     for (const observer of this._observers) {
-      observer.consumeChanges(snapshot, changedNodeIds);
+      observer.consumeChanges(snapshot.optimistic, editedNodeIds);
     }
   }
 

@@ -29,6 +29,7 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
     result = _overlayParameterizedValues(query, config, snapshot, parameterizedEdges, result);
   }
 
+  // TODO: Only do this when necessary!
   const { complete, nodeIds } = _visitSelection(query, config, result, false);
 
   return { result, complete, nodeIds };
