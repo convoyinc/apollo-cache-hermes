@@ -318,7 +318,7 @@ export class SnapshotEditor {
   /**
    * Commits the transaction, returning a new immutable snapshot.
    */
-  commit(): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
+  commit(): EditedSnapshot {
     const snapshots: { [Key in NodeId]: NodeSnapshot } = { ...(this._parent as any)._values };
     for (const id in this._newNodes) {
       const newSnapshot = this._newNodes[id];
