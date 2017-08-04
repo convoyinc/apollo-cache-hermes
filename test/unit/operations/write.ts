@@ -216,4 +216,56 @@ describe(`operations.write`, () => {
 
   });
 
+  describe(`when swapping references`, () => {
+
+    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
+      foo: { id: 1, name: 'Foo' },
+      bar: { id: 2, name: 'Bar' },
+    });
+    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
+      foo: { id: 2 },
+      bar: { id: 1 },
+    });
+
+    it(`doesn't mutate the previous versions`, () => {
+      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
+      expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
+      expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
+      expect(baseline.get(QueryRootId)).to.deep.eq({
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
+      });
+    });
+
+    it(`preserves unedited nodes from the parent`, () => {
+      expect(baseline.get('1').node).to.eq(snapshot.get('1').node);
+      expect(baseline.get('2').node).to.eq(snapshot.get('2').node);
+    });
+
+    it(`updates outbound references`, () => {
+      const queryRoot = snapshot.getSnapshot(QueryRootId) as NodeSnapshot;
+      expect(queryRoot.outbound).to.have.deep.members([
+        { id: '2', path: ['foo'] },
+        { id: '1', path: ['bar'] },
+      ]);
+      expect(queryRoot.inbound).to.eq(undefined);
+    });
+
+    it(`updates inbound references`, () => {
+      const foo = snapshot.getSnapshot('1') as NodeSnapshot;
+      const bar = snapshot.getSnapshot('2') as NodeSnapshot;
+      expect(foo.inbound).to.have.deep.members([{ id: QueryRootId, path: ['bar'] }]);
+      expect(bar.inbound).to.have.deep.members([{ id: QueryRootId, path: ['foo'] }]);
+    });
+
+    it(`marks the container as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+    });
+
+    it(`contains the correct nodes`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
+    });
+
+  });
+
 });
