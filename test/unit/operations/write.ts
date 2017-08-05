@@ -427,4 +427,37 @@ describe(`operations.write`, () => {
 
   });
 
+  describe(`writing to inner nodes`, () => {
+
+    const innerNodeQuery = query(`{ name extra }`, undefined, '1');
+
+    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
+      foo: { id: 1, name: 'Foo' },
+      bar: { id: 2, name: 'Bar' },
+    });
+    const { snapshot, editedNodeIds } = write(config, baseline, innerNodeQuery, {
+      name: 'moo',
+      extra: true,
+    });
+
+    it(`doesn't mutate the previous versions`, () => {
+      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
+      expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
+      expect(baseline.get('2')).to.eq(snapshot.get('2'));
+      expect(baseline.get(QueryRootId)).to.deep.eq({
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
+      });
+    });
+
+    it(`edits the inner node`, () => {
+      expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'moo', extra: true });
+    });
+
+    it(`marks only the inner node as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members(['1']);
+    });
+
+  });
+
 });
