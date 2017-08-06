@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 
-import { ParameterizedEdge, parameterizedEdgesForOperation } from '../../../src/util';
+import { ParameterizedEdge, VariableArgument, parameterizedEdgesForOperation } from '../../../src/util';
 
 describe(`util.ast`, () => {
 
@@ -106,6 +106,35 @@ describe(`util.ast`, () => {
     });
 
     describe(`with variables`, () => {
+
+      it(`creates placeholder args for variables`, () => {
+        const map = parameterizedEdgesForOperation(gql`
+          query get($id: ID!) {
+            foo(id: $id) { a b c }
+          }
+        `);
+        expect(map).to.deep.eq({
+          foo: new ParameterizedEdge({
+            id: new VariableArgument('id'),
+          }),
+        });
+      });
+
+      it(`handles a mix of variables and static values`, () => {
+        const map = parameterizedEdgesForOperation(gql`
+          query get($id: ID!, $val: String) {
+            foo(id: $id, foo: "asdf", bar: $id, baz: $val) { a b c }
+          }
+        `);
+        expect(map).to.deep.eq({
+          foo: new ParameterizedEdge({
+            id: new VariableArgument('id'),
+            foo: 'asdf',
+            bar: new VariableArgument('id'),
+            baz: new VariableArgument('val'),
+          }),
+        });
+      });
 
     });
 

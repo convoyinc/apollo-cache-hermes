@@ -72,6 +72,7 @@ export interface ParameterizedEdgeMap {
  */
 export class VariableArgument {
   constructor(
+    /** The name of the variable. */
     public readonly name: string,
   ) {}
 }
@@ -102,7 +103,7 @@ export function parameterizedEdgesForOperation(document: DocumentNode): Paramete
 /**
  * Recursively builds an edge map.
  *
- * TODO: Support for directives.
+ * TODO: Support for directives (maybe?).
  */
 function _buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): ParameterizedEdgeMap | undefined {
   if (!selectionSet) return undefined;
