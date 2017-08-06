@@ -1,4 +1,4 @@
-import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
 /**
  * Change ids track diffs to the store that may eventually be rolled back.
@@ -33,8 +33,8 @@ export enum StaticNodeId {
 export interface Query {
   /** The id of the node to begin the query at. */
   readonly rootId: NodeId;
-  /** The properties within the cache that the query is concerned with. */
-  readonly selection: SelectionSetNode;
+  /** A parsed GraphQL document, declaring an operation to execute. */
+  readonly document: DocumentNode;
   /** Any variables used by parameterized edges within the selection set. */
   readonly variables?: object;
 }

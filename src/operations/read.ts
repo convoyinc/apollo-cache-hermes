@@ -1,5 +1,3 @@
-import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
-
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, Query } from '../schema';
@@ -24,7 +22,7 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
 export function read(config: Configuration, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
   let result = snapshot.get(query.rootId);
 
-  const parameterizedEdges = _parameterizedEdgesForSelection(query.selection);
+  const parameterizedEdges = _parameterizedEdgesForSelection(query.document);
   if (parameterizedEdges) {
     result = _overlayParameterizedValues(query, config, snapshot, parameterizedEdges, result);
   }
@@ -87,7 +85,7 @@ export function _overlayParameterizedValues<TResult>(
   //     * Determine the node id (if any) via config.entityIdForNode, and track
   //       it along side the current path.
   //
-  //     * If we've reached a value of `true` in the edge map:
+  //     * If we've reached a parameterized field node in the edge map:
   //
   //       * Determine the id of the parameterized edge (closest nodeId +
   //         parameters).

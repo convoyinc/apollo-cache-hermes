@@ -3,7 +3,7 @@ import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { NodeSnapshot } from '../../../src/NodeSnapshot';
 import { write } from '../../../src/operations/write';
 import { StaticNodeId } from '../../../src/schema';
-import { query } from '../../helpers/graphql';
+import { query } from '../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
