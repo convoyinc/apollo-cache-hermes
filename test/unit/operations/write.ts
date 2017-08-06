@@ -460,4 +460,38 @@ describe(`operations.write`, () => {
 
   });
 
+  describe(`parameterized edges`, () => {
+
+    describe(`new nodes with variables`, () => {
+
+      const parameterizedQuery = query(`query getAFoo($id: ID!) {
+        foo(id: $id, withExtra: true) {
+          id name extra
+        }
+      }`, { id: 1 });
+
+      const { snapshot, editedNodeIds } = write(config, empty, parameterizedQuery, {
+        foo: {
+          id: 1,
+          name: 'Foo',
+          extra: false,
+        },
+      });
+
+      it(`writes the referenced node`, () => {
+        expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
+      });
+
+      it(`does not expose the parameterized edge directly from its container`, () => {
+        expect(snapshot.get(QueryRootId)).to.deep.eq({});
+      });
+
+      it(`marks `, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '1']);
+      });
+
+    });
+
+  });
+
 });
