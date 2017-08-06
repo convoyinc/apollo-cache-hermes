@@ -37,6 +37,8 @@
   "devDependencies": {
     "@types/chai": "^4.0.1",
     "@types/chai-as-promised": "^0.0.31",
+    "@types/lodash": "^4.14.71",
+    "@types/lodash.isequal": "^4.5.1",
     "@types/node": "^8.0.16",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
@@ -45,6 +47,8 @@
     "eslint": "^4.2.0",
     "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
     "eslint-plugin-typescript": "^0.3.0",
+    "graphql": "^0.10.5",
+    "graphql-tag": "^2.4.2",
     "greenkeeper-lockfile": "^1.7.2",
     "jest": "^20.0.4",
     "jest-junit": "^2.1.0",
@@ -54,6 +58,7 @@
   },
   "dependencies": {
     "@types/graphql": "^0.10.0",
+    "lodash.isequal": "^4.5.0",
     "tslib": "^1.7.0"
   }
 }

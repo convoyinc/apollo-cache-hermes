@@ -3,6 +3,15 @@ import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';
 import { NodeId, Query } from '../schema';
+import {
+  addNodeReference,
+  addToSet,
+  isObject,
+  isScalar,
+  lazyImmutableDeepSet,
+  removeNodeReference,
+  walkPayload,
+} from '../util';
 
 /**
  * A newly modified snapshot.
@@ -99,7 +108,71 @@ export class SnapshotEditor {
    * returned to be applied in a second pass (`_mergeReferenceEdits`), once we
    * can guarantee that all edited nodes have been built.
    */
-  private _mergePayloadValues(query: Query, payload: object): ReferenceEdit[] {
+  private _mergePayloadValues(query: Query, fullPayload: object): ReferenceEdit[] {
+    const { entityIdForNode } = this._config;
+
+    const queue = [{ containerId: query.rootId, containerPayload: fullPayload }];
+    const referenceEdits = [] as ReferenceEdit[];
+
+    while (queue.length) {
+      const { containerId, containerPayload } = queue.pop() as { containerId: NodeId, containerPayload: any };
+      const container = this.get(containerId);
+
+      walkPayload(containerPayload, container, (path, payloadValue, nodeValue) => {
+        let nextNodeId = isObject(payloadValue) ? entityIdForNode(payloadValue) : undefined;
+        const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
+
+        // TODO: Detect parameterized edges.
+
+        // We've hit a reference.
+        if (prevNodeId || nextNodeId) {
+          // If we already know there is a node at this location, we can merge
+          // with it if no new identity was provided.
+          //
+          // TODO: Is this too forgiving?
+          if (!nextNodeId && payloadValue) {
+            nextNodeId = prevNodeId;
+          }
+
+          // The payload is now referencing a new entity.  We want to update it,
+          // but not until we've updated the values of our entities first.
+          if (prevNodeId !== nextNodeId) {
+            referenceEdits.push({ containerId, path: [...path], prevNodeId, nextNodeId });
+          }
+
+          // Either we have a new value to merge, or we're clearing a reference.
+          // In both cases, _mergeReferenceEdits will take care of setting the
+          // value at this path.
+          //
+          // So, walk if we have new values, otherwise we're done for this
+          // subgraph.
+          if (nextNodeId) {
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue });
+          }
+          // Stop the walk for this subgraph.
+          return true;
+
+        // Arrays are a little special.  When present, we assume that the values
+        // contained within the array are the _full_ set of values.
+        } else if (Array.isArray(payloadValue)) {
+          // We will walk to each value within the array, so we do not need to
+          // process them yet; but because we update them by path, we do need to
+          // ensure that the updated entity's array has the same number of
+          // values.
+          if (nodeValue && nodeValue.length === payloadValue.length) return false;
+
+          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadValue.length) : [];
+          this._setValue(containerId, path, newArray);
+
+        // All else we care about are updated scalar values.
+        } else if (isScalar(payloadValue) && payloadValue !== nodeValue) {
+          this._setValue(containerId, path, payloadValue);
+        }
+
+        return false;
+      });
+    }
+
     // The rough algorithm is as follows:
     //
     //   * Initialize a work queue with one item containing this function's
@@ -159,9 +232,7 @@ export class SnapshotEditor {
     // have access to it, see our private hermes repo, which takes this
     // approach)
 
-    // Random lines to get ts/tslint to shut up.
-    this._config.entityIdForNode(null);
-    return this._mergePayloadValues(query, payload);
+    return referenceEdits;
   }
 
   /**
@@ -171,33 +242,31 @@ export class SnapshotEditor {
    * Returns the set of node ids that are newly orphaned by these edits.
    */
   private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]): Set<NodeId> {
-    // The rough algorithm is as follows:
-    //
-    //   * For each entry in referenceEdits:
-    //
-    //     * If prevNodeId:
-    //
-    //       * Remove the inbound reference from _getOrCreateNew(prevNodeId).
-    //
-    //       * Remove the outbound reference from the source node.
-    //
-    //       * If there are no remaining inbound references and the node is not
-    //         a root, mark prevNodeId as orphaned.
-    //
-    //     * If nextNodeId:
-    //
-    //       * Insert the inbound reference to _getOrCreateNew(nextNodeId).
-    //
-    //       * Insert the outbound reference to the source node.
-    //
-    //       * If nextNodeId is present in the orphaned ids, remove it.
-    //
-    //     * Set the actual reference (to the next node) at path in containerId.
-    //
-    //   * Return the set of orphaned ids.
+    const orphanedNodeIds = new Set() as Set<NodeId>;
 
-    // Random line to get ts/tslint to shut up.
-    return this._mergeReferenceEdits(referenceEdits);
+    for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
+      const target = nextNodeId ? this.get(nextNodeId) : null;
+      this._setValue(containerId, path, target);
+      const container = this._ensureNewSnapshot(containerId);
+
+      if (prevNodeId) {
+        removeNodeReference('outbound', container, prevNodeId, path);
+        const prevTarget = this._ensureNewSnapshot(prevNodeId);
+        removeNodeReference('inbound', prevTarget, containerId, path);
+        if (!prevTarget.inbound) {
+          orphanedNodeIds.add(prevNodeId);
+        }
+      }
+
+      if (nextNodeId) {
+        addNodeReference('outbound', container, nextNodeId, path);
+        const nextTarget = this._ensureNewSnapshot(nextNodeId);
+        addNodeReference('inbound', nextTarget, containerId, path);
+        orphanedNodeIds.delete(nextNodeId);
+      }
+    }
+
+    return orphanedNodeIds;
   }
 
   /**
@@ -205,61 +274,51 @@ export class SnapshotEditor {
    * those references to point to the newly edited versions.
    */
   private _rebuildInboundReferences(): void {
-    // The rough algorithm is as follows:
-    //
-    //   * Create a new queue of node ids from _editedNodeIds - _rebuiltNodeIds.
-    //
-    //   * Mark all those ids in _rebuiltNodeIds.
-    //
-    //   * While there are ids in the queue:
-    //
-    //     * Pop an id off the queue.
-    //
-    //     * For each inbound reference for that node:
-    //
-    //       * _setValue to the new version of the node that's referenced, with
-    //         isEdit = false.
-    //
-    //       * If the referenced node is not in _rebuiltNodeIds:
-    //
-    //         * Push that id on to the queue, and add it to _rebuiltNodeIds.
-    //
+    const queue = Array.from(this._editedNodeIds);
+    addToSet(this._rebuiltNodeIds, queue);
 
-    // Random lines to get ts/tslint to shut up.
-    this._rebuiltNodeIds.clear();
-    this._rebuildInboundReferences();
+    while (queue.length) {
+      const nodeId = queue.pop() as NodeId;
+      const snapshot = this.getSnapshot(nodeId);
+      if (!snapshot || !snapshot.inbound) continue;
+
+      for (const { id, path } of snapshot.inbound) {
+        this._setValue(id, path, snapshot.node, false);
+        if (this._rebuiltNodeIds.has(id)) continue;
+
+        this._rebuiltNodeIds.add(id);
+        queue.push(id);
+      }
+    }
   }
 
   /**
    * Transitively removes all orphaned nodes from the graph.
    */
   private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
-    // The rough algorithm is as follows:
-    //
-    //   * Create a new set to track visited node ids.
-    //
-    //   * While there are ids in nodeIds:
-    //
-    //     * Pop an id off of nodeIds, and mark it visited.
-    //
-    //     * Set _newNodes[id] = undefined.
-    //
-    //     * For each of its outbound references:
-    //
-    //       * Remove the associated inbound reference.
-    //
-    //       * If they have no more inbound references and is not a root, push
-    //         them on the queue.
-    //
+    const queue = Array.from(nodeIds);
+    while (queue.length) {
+      const nodeId = queue.pop() as NodeId;
+      const node = this.getSnapshot(nodeId);
+      if (!node) continue;
 
-    // Random line to get ts/tslint to shut up.
-    this._removeOrphanedNodes(nodeIds);
+      this._newNodes[nodeId] = undefined;
+      this._editedNodeIds.add(nodeId);
+
+      if (!node.outbound) continue;
+      for (const { id, path } of node.outbound) {
+        const reference = this._ensureNewSnapshot(id);
+        if (removeNodeReference('inbound', reference, nodeId, path)) {
+          queue.push(id);
+        }
+      }
+    }
   }
 
   /**
    * Commits the transaction, returning a new immutable snapshot.
    */
-  commit(): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
+  commit(): EditedSnapshot {
     const snapshots: { [Key in NodeId]: NodeSnapshot } = { ...(this._parent as any)._values };
     for (const id in this._newNodes) {
       const newSnapshot = this._newNodes[id];
@@ -278,6 +337,21 @@ export class SnapshotEditor {
   }
 
   /**
+   * Retrieve the _latest_ version of a node.
+   */
+  private get(id: NodeId) {
+    const snapshot = this.getSnapshot(id);
+    return snapshot ? snapshot.node : undefined;
+  }
+
+  /**
+   * Retrieve the _latest_ version of a node snapshot.
+   */
+  private getSnapshot(id: NodeId) {
+    return id in this._newNodes ? this._newNodes[id] : this._parent.getSnapshot(id);
+  }
+
+  /**
    * Set `newValue` at `path` of the value snapshot identified by `id`, without
    * modifying the parent's copy of it.
    *
@@ -289,16 +363,33 @@ export class SnapshotEditor {
       this._editedNodeIds.add(id);
     }
 
-    // Random line to get ts/tslint to shut up.
-    this._setValue(id, path, newValue);
+    const parent = this._parent.getSnapshot(id);
+    const current = this._ensureNewSnapshot(id);
+    lazyImmutableDeepSet(current && current.node, parent && parent.node, path, newValue);
   }
 
   /**
-   *
+   * TODO: Support more than just entity snapshots.
    */
-  private _getOrCreateNew(id: NodeId): NodeSnapshot {
-    // Random line to get ts/tslint to shut up.
-    return this._getOrCreateNew(id);
+  private _ensureNewSnapshot(id: NodeId, initialValue?: object): NodeSnapshot {
+    let newSnapshot;
+    if (id in this._newNodes) {
+      const current = this._newNodes[id];
+      // We may have deleted the node.
+      if (current) return current;
+      // If so, we should start fresh.
+      newSnapshot = new NodeSnapshot.Entity({});
+    } else {
+      const parent = this._parent.getSnapshot(id);
+      const value = parent ? { ...parent.node } : {};
+      const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
+      const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
+
+      newSnapshot = new NodeSnapshot.Entity(value, inbound, outbound);
+    }
+
+    this._newNodes[id] = newSnapshot;
+    return newSnapshot;
   }
 
 }

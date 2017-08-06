@@ -16,6 +16,16 @@
   version "0.10.1"
   resolved "https://registry.npmjs.org/@types/graphql/-/graphql-0.10.1.tgz#3944e528bb3232e09cddb5364d75aba6342d068c"
 
+"@types/lodash.isequal@^4.5.1":
+  version "4.5.1"
+  resolved "https://registry.npmjs.org/@types/lodash.isequal/-/lodash.isequal-4.5.1.tgz#154e051996f64a4a6262db8f4fd51a4b2a347ab4"
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash@*", "@types/lodash@^4.14.71":
+  version "4.14.71"
+  resolved "https://registry.npmjs.org/@types/lodash/-/lodash-4.14.71.tgz#0dc383f78981216ac76e2f2c3afd998e0450e4c1"
+
 "@types/node@^8.0.16":
   version "8.0.16"
   resolved "https://registry.npmjs.org/@types/node/-/node-8.0.16.tgz#5aa51abd72621a0ce53fb86bccd76825ee1b4ca9"
@@ -1046,6 +1056,16 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2:
   version "4.1.11"
   resolved "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
 
+graphql-tag@^2.4.2:
+  version "2.4.2"
+  resolved "https://registry.npmjs.org/graphql-tag/-/graphql-tag-2.4.2.tgz#6a63297d8522d03a2b72d26f1b239aab343840cd"
+
+graphql@^0.10.5:
+  version "0.10.5"
+  resolved "https://registry.npmjs.org/graphql/-/graphql-0.10.5.tgz#c9be17ca2bdfdbd134077ffd9bbaa48b8becd298"
+  dependencies:
+    iterall "^1.1.0"
+
 greenkeeper-lockfile@^1.7.2:
   version "1.7.2"
   resolved "https://registry.npmjs.org/greenkeeper-lockfile/-/greenkeeper-lockfile-1.7.2.tgz#1a038a0b7c8f7d4a726a714d0a56f439caad4b99"
@@ -1409,6 +1429,10 @@ istanbul-reports@^1.1.1:
   resolved "https://registry.npmjs.org/istanbul-reports/-/istanbul-reports-1.1.1.tgz#042be5c89e175bc3f86523caab29c014e77fee4e"
   dependencies:
     handlebars "^4.0.3"
+
+iterall@^1.1.0:
+  version "1.1.1"
+  resolved "https://registry.npmjs.org/iterall/-/iterall-1.1.1.tgz#f7f0af11e9a04ec6426260f5019d9fcca4d50214"
 
 jest-changed-files@^20.0.3:
   version "20.0.3"
@@ -1777,6 +1801,10 @@ locate-path@^2.0.0:
 lodash.cond@^4.3.0:
   version "4.5.2"
   resolved "https://registry.npmjs.org/lodash.cond/-/lodash.cond-4.5.2.tgz#f471a1da486be60f6ab955d17115523dd1d255d5"
+
+lodash.isequal@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.npmjs.org/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
 
 lodash.unescape@4.0.1:
   version "4.0.1"
