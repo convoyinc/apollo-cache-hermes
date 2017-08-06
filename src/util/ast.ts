@@ -46,7 +46,7 @@ export interface FragmentMap {
 }
 
 /**
- *
+ * Extracts fragments from `document` by name.
  */
 export function fragmentMapForDocument(document: DocumentNode): FragmentMap {
   const map = {} as FragmentMap;
@@ -66,18 +66,24 @@ export interface ParameterizedEdgeMap {
   [Key: string]: ParameterizedEdgeMap | ParameterizedEdge;
 }
 
+/**
+ * Represents the location a variable should be used as an argument to a
+ * parameterized edge.
+ */
 export class VariableArgument {
   constructor(
-    /**  */
     public readonly name: string,
   ) {}
 }
 
+/**
+ * Represents a parameterized edge (within an edge map).
+ */
 export class ParameterizedEdge {
   constructor(
-    /**  */
+    /** The map of arguments and their static or variable values. */
     public readonly args: { [Key: string]: JsonValue | VariableArgument },
-    /**  */
+    /** Any child edge maps. */
     public readonly children?: ParameterizedEdgeMap,
   ) {}
 }
@@ -86,27 +92,17 @@ export class ParameterizedEdge {
  * Walks a selection set, identifying the path to all parameterized edges.
  */
 export function parameterizedEdgesForOperation(document: DocumentNode): ParameterizedEdgeMap | undefined {
+  // TODO: Memoize.
+
   const operation = getOperationOrDie(document);
   const fragments = fragmentMapForDocument(document);
   return _buildParameterizedEdgeMap(fragments, operation.selectionSet);
-  // Rough algorithm is as follows:
-  //
-  //   * Return memoized value for `selection`, if present.
-  //
-  //   * Visit each node of `selection`, keeping track of the current path:
-  //
-  //     * If a FieldNode with arguments is encountered, deep set the path taken
-  //       to it in the edge map with a value of true.
-  //
-  //   * Return the edge map, if any.
-  //
-  // This has some room for improvement.  We can likely cache per-fragment, or
-  // per-node (particularly with some knowledge of the underlying schema).
 }
 
-
 /**
+ * Recursively builds an edge map.
  *
+ * TODO: Support for directives.
  */
 function _buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): ParameterizedEdgeMap | undefined {
   if (!selectionSet) return undefined;
@@ -116,6 +112,7 @@ function _buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: Selec
   for (const selection of selectionSet.selections) {
     let key, value;
 
+    // Parameterized edge.
     if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
       const args = _buildParameterizedEdgeArgs(selection as any);
       const children = _buildParameterizedEdgeMap(fragments, selection.selectionSet);
@@ -123,12 +120,14 @@ function _buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: Selec
       key = selection.name.value;
       value = new ParameterizedEdge(args, children);
 
+    // We need to walk any simple fields that have selection sets of their own.
     } else if (selection.kind === 'Field' && selection.selectionSet) {
       value = _buildParameterizedEdgeMap(fragments, selection.selectionSet);
       if (value) {
         key = selection.name.value;
       }
 
+    // Fragments may include parameterized edges of their own; walk 'em.
     } else if (selection.kind === 'FragmentSpread') {
       const fragment = fragments[selection.name.value];
       if (!fragment) {
@@ -141,6 +140,8 @@ function _buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: Selec
       }
     }
 
+    // TODO: inline fragments.
+
     if (key) {
       edgeMap = edgeMap || {};
       edgeMap[key] = value;
@@ -151,7 +152,7 @@ function _buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: Selec
 }
 
 /**
- *
+ * Build the map of arguments to their natural JS values (or variables).
  */
 function _buildParameterizedEdgeArgs(field: FieldNode & { arguments: ArgumentNode[] }) {
   const args = {};
@@ -163,7 +164,7 @@ function _buildParameterizedEdgeArgs(field: FieldNode & { arguments: ArgumentNod
 }
 
 /**
- *
+ * Evaluate a ValueNode and yield its value in its natural JS form.
  */
 function _valueFromNode(node: ValueNode): any {
   if (node.kind === 'Variable') {
