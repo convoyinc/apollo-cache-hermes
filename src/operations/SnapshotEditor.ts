@@ -345,14 +345,14 @@ export class SnapshotEditor {
       // We may have deleted the node.
       if (current) return current;
       // If so, we should start fresh.
-      newSnapshot = new NodeSnapshot.Entity({});
+      newSnapshot = new NodeSnapshot({});
     } else {
       const parent = this._parent.getSnapshot(id);
       const value = parent ? { ...parent.node } : {};
       const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
       const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
 
-      newSnapshot = new NodeSnapshot.Entity(value, inbound, outbound);
+      newSnapshot = new NodeSnapshot(value, inbound, outbound);
     }
 
     this._newNodes[id] = newSnapshot;
