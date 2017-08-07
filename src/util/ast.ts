@@ -180,3 +180,25 @@ function _valueFromNode(node: ValueNode): any {
     return node.value;
   }
 }
+
+/**
+ * Sub values in for any variables required by an edge's args.
+ */
+export function expandEdgeArguments(edge: ParameterizedEdge, variables: object = {}): object {
+  const edgeArguments = {} as any;
+  // TODO: Recurse into objects/arrays.
+  for (const key in edge.args) {
+    let arg = edge.args[key];
+    if (arg instanceof VariableArgument) {
+      if (!(arg.name in variables)) {
+        // TODO: Detect optional variables?
+        throw new Error(`Expected variable $${arg.name} to exist for query`);
+      }
+      arg = variables[arg.name];
+    }
+
+    edgeArguments[key] = arg;
+  }
+
+  return edgeArguments;
+}
