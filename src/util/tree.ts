@@ -45,7 +45,7 @@ export type Visitor = (
  * (`EntityType`) is reached.  References skip over arrays, so that they apply
  * to the values inside the (homogeneous) array.
  */
-export function walkPayload(payload: any, node: any, edgeMap: ParameterizedEdgeMap | undefined, visitor: Visitor) {
+export function walkPayload(payload: any, node: any, edgeMap: ParameterizedEdgeMap | undefined, visitRoot: boolean, visitor: Visitor) {
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
   const stack = [new WalkNode(payload, node, edgeMap, 0)];
@@ -55,9 +55,12 @@ export function walkPayload(payload: any, node: any, edgeMap: ParameterizedEdgeM
     const walkNode = stack.pop() as WalkNode;
 
     // Don't visit the root.
-    if (walkNode.key !== undefined) {
+    if (walkNode.key !== undefined || visitRoot) {
       path.splice(walkNode.depth - 1);
-      path.push(walkNode.key);
+      if (walkNode.key !== undefined) {
+        path.push(walkNode.key);
+      }
+
       const parameterizedEdge = walkNode.edgeMap instanceof ParameterizedEdge ? walkNode.edgeMap : undefined;
       const skipChildren = visitor(path, walkNode.payload, walkNode.node, parameterizedEdge);
       if (skipChildren) continue;

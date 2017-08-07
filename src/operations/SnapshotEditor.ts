@@ -115,14 +115,14 @@ export class SnapshotEditor {
     const { entityIdForNode } = this._config;
     const edgeMap = parameterizedEdgesForOperation(query.document);
 
-    const queue = [{ containerId: query.rootId, containerPayload: fullPayload }];
+    const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false }];
     const referenceEdits = [] as ReferenceEdit[];
 
     while (queue.length) {
-      const { containerId, containerPayload } = queue.pop() as { containerId: NodeId, containerPayload: any };
+      const { containerId, containerPayload, visitRoot } = queue.pop() as { containerId: NodeId, containerPayload: any, visitRoot: boolean };
       const container = this.get(containerId);
 
-      walkPayload(containerPayload, container, edgeMap, (path, payloadValue, nodeValue, parameterizedEdge) => {
+      walkPayload(containerPayload, container, edgeMap, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
         let nextNodeId = isObject(payloadValue) ? entityIdForNode(payloadValue) : undefined;
         const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
 
@@ -161,7 +161,7 @@ export class SnapshotEditor {
             addNodeReference('inbound', edgeSnapshot, containerId);
           }
           // We walk the values of the parameterized edge like any other entity.
-          queue.push({ containerId: edgeId, containerPayload: payloadValue });
+          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true });
 
           // Stop the walk for this subgraph.
           return true;
@@ -189,7 +189,7 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue });
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -408,7 +408,7 @@ export class SnapshotEditor {
 
     const parent = this._parent.getSnapshot(id);
     const current = this._ensureNewSnapshot(id);
-    lazyImmutableDeepSet(current && current.node, parent && parent.node, path, newValue);
+    (current as any).node = lazyImmutableDeepSet(current && current.node, parent && parent.node, path, newValue);
   }
 
   /**
