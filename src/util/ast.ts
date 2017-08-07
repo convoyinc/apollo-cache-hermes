@@ -25,22 +25,6 @@ export function getOperationOrDie(document: DocumentNode): OperationDefinitionNo
   return operations[0];
 }
 
-/**
- * Extracts the selection set from `document`.
- */
-export function getSelectionSetOrDie(document: DocumentNode): SelectionSetNode {
-  if (document.definitions.length !== 1) {
-    throw new Error(`Ambiguous document: Expected a single definition`);
-  }
-  const definition = document.definitions[0];
-  if (!('selectionSet' in definition)) {
-    // TODO: Include the document or source with the error, as data.
-    throw new Error(`Expected to find a selection set within GQL document, but found none`);
-  }
-
-  return (definition as any).selectionSet as SelectionSetNode;
-}
-
 export interface FragmentMap {
   [Key: string]: FragmentDefinitionNode,
 }
