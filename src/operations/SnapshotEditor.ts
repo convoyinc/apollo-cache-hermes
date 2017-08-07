@@ -139,6 +139,11 @@ export class SnapshotEditor {
             addNodeReference('inbound', edgeSnapshot, containerId);
           }
           // We walk the values of the parameterized edge like any other entity.
+          //
+          // EXCEPT: We re-visit the payload, in case it might _directly_
+          // reference an entity.  This allows us to build a chain of references
+          // where the parameterized value points _directly_ to a particular
+          // entity node.
           queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true });
 
           // Stop the walk for this subgraph.
