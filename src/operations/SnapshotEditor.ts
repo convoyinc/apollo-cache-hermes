@@ -131,28 +131,6 @@ export class SnapshotEditor {
           const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
           const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
-          // TODO: Design
-          //
-          //  Option 1
-          //
-          //   * add a third `args` property to node references (optional)
-          //   * if the value of the edge points directly to an entity, use its
-          //     id for the reference.
-          //   * otherwise ensure that we have a new parameterized value node.
-          //   * Add an outbound reference to container (with `args`)
-          //   * Add an inbound reference to the new node (with `args`)
-          //
-          //  Option 2
-          //
-          //   * Always create a parameterized value node.
-          //   * If that value node directly references an entity, its `node`
-          //     becomes a direct pointer to it (+ bookkeeping metadata?)
-          //   * references w/o `path`?.
-          //
-          // Option 2 is weird for direct node references, but is more
-          // consistent when bookkeeping node snapshots/references.  Also, no
-          // O(n) issues for frequently hit edges (look up by serialized vars).
-
           // Parameterized edges are references, but maintain their own path.
           const containerSnapshot = this._ensureNewSnapshot(containerId);
           if (!hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
@@ -214,65 +192,6 @@ export class SnapshotEditor {
         return false;
       });
     }
-
-    // The rough algorithm is as follows:
-    //
-    //   * Initialize a work queue with one item containing this function's
-    //     arguments.  { nodeId, selection, payload }
-    //
-    //   * While there are items in the queue:
-    //
-    //     * Pop the last item from the queue.
-    //
-    //     * Fetch the parent's NodeSnapshot for nodeId as parent.
-    //
-    //     * Walk payload (depth-first?), parent, and selection in
-    //       parallel, visiting each property's value:
-    //
-    //       * If the selection node is parameterized:
-    //
-    //         * Determine the id of the parameterized value node (probably just
-    //           the keys JSON.stringified; maybe also sorted).
-    //
-    //         * Create a ParameterizedValue node for that id, if missing.
-    //
-    //         * push a new item into the queue for the newly reached node, and
-    //           stop the walk for child nodes.
-    //
-    //       * If the value is a scalar:
-    //
-    //         * _setValue
-    //
-    //       * If the value is an array:
-    //
-    //         * If the length of the payload and parent arrays disagree:
-    //
-    //           * Slice the parent's array to the same length as the payload,
-    //             and _setValue it.  Arrays are *not* shallow-merged.
-    //
-    //       * If the value is an object:
-    //
-    //         * Determine the id of the node (config.entityIdForNode).
-    //
-    //         * If there is an id, and it differs from the parent's id:
-    //
-    //           * Ensure that the node that contains the reference is present
-    //             in _newNodes (shallow clone the parent's copy it if not).
-    //
-    //           * Append a ReferenceEdit to be returned.
-    //
-    //         * In all cases, if there is an id:
-    //
-    //           * push a new item into the queue for the newly reached node,
-    //             and stop the walk for child nodes.
-    //
-    //   * Return any collected ReferenceEdits.
-    //
-    // Future improvement: If the cache were to be given (pre-compiled)
-    // knowledge of the schema and where entities lie in its hierarchy, we could
-    // be more efficient about determining whether a node is an entity.  (If you
-    // have access to it, see our private hermes repo, which takes this
-    // approach)
 
     return referenceEdits;
   }
