@@ -9,6 +9,7 @@ import {
   isObject,
   isScalar,
   lazyImmutableDeepSet,
+  parameterizedEdgesForOperation,
   removeNodeReference,
   walkPayload,
 } from '../util';
@@ -110,6 +111,7 @@ export class SnapshotEditor {
    */
   private _mergePayloadValues(query: Query, fullPayload: object): ReferenceEdit[] {
     const { entityIdForNode } = this._config;
+    const edgeMap = parameterizedEdgesForOperation(query.document);
 
     const queue = [{ containerId: query.rootId, containerPayload: fullPayload }];
     const referenceEdits = [] as ReferenceEdit[];
@@ -118,7 +120,7 @@ export class SnapshotEditor {
       const { containerId, containerPayload } = queue.pop() as { containerId: NodeId, containerPayload: any };
       const container = this.get(containerId);
 
-      walkPayload(containerPayload, container, (path, payloadValue, nodeValue) => {
+      walkPayload(containerPayload, container, edgeMap, (path, payloadValue, nodeValue, parameterizedEdge) => {
         let nextNodeId = isObject(payloadValue) ? entityIdForNode(payloadValue) : undefined;
         const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
 
