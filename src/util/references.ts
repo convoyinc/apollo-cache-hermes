@@ -11,7 +11,7 @@ export type ReferenceType = 'inbound' | 'outbound';
  *
  * Returns whether all references were removed.
  */
-export function removeNodeReference(type: ReferenceType, snapshot: NodeSnapshot, id: NodeId, path: PathPart[]): boolean {
+export function removeNodeReference(type: ReferenceType, snapshot: NodeSnapshot, id: NodeId, path?: PathPart[]): boolean {
   const references = snapshot[type];
   if (!references) {
     throw new Error(`Inconsistent GraphSnapshot: Expected snapshot to have ${type} references`);
@@ -32,7 +32,7 @@ export function removeNodeReference(type: ReferenceType, snapshot: NodeSnapshot,
 /**
  * Mutates a snapshot, adding a new reference to it.
  */
-export function addNodeReference(type: ReferenceType, snapshot: NodeSnapshot, id: NodeId, path: PathPart[]) {
+export function addNodeReference(type: ReferenceType, snapshot: NodeSnapshot, id: NodeId, path?: PathPart[]): void {
   let references = snapshot[type];
   if (!references) {
     references = (snapshot as any)[type] = [];

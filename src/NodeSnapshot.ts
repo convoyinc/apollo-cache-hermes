@@ -30,7 +30,7 @@ export namespace NodeSnapshot {
     /**
      * The path (object/array keys) within the node to the reference.
      */
-    path: PathPart[],
+    path?: PathPart[],
   }
 
   // Specializations.

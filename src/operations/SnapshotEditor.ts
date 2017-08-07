@@ -285,6 +285,7 @@ export class SnapshotEditor {
       if (!snapshot || !snapshot.inbound) continue;
 
       for (const { id, path } of snapshot.inbound) {
+        if (!path) continue;
         this._setValue(id, path, snapshot.node, false);
         if (this._rebuiltNodeIds.has(id)) continue;
 
