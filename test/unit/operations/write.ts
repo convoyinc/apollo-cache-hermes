@@ -2,7 +2,7 @@ import { Configuration } from '../../../src/Configuration';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { NodeSnapshot } from '../../../src/NodeSnapshot';
 import { write } from '../../../src/operations/write';
-import { StaticNodeId } from '../../../src/schema';
+import { NodeId, StaticNodeId } from '../../../src/schema';
 import { query } from '../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -32,7 +32,12 @@ describe(`operations.write`, () => {
 
   describe(`when only values (to a root)`, () => {
 
-    const { snapshot, editedNodeIds } = write(config, empty, rootValuesQuery, { foo: 123, bar: 'asdf' });
+    let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const result = write(config, empty, rootValuesQuery, { foo: 123, bar: 'asdf' });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
+    });
 
     it(`creates the query root, with the values`, () => {
       expect(snapshot.get(QueryRootId)).to.deep.eq({ foo: 123, bar: 'asdf' });
@@ -50,8 +55,13 @@ describe(`operations.write`, () => {
 
   describe(`when writing a (new) single entity hanging off of a root`, () => {
 
-    const { snapshot, editedNodeIds } = write(config, empty, viewerQuery, {
-      viewer: { id: 123, name: 'Gouda' },
+    let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const result = write(config, empty, viewerQuery, {
+        viewer: { id: 123, name: 'Gouda' },
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
     });
 
     it(`creates the query root, referencing the entity`, () => {
@@ -96,8 +106,15 @@ describe(`operations.write`, () => {
 
   describe(`when editing leaf values of a root`, () => {
 
-    const { snapshot: baseline } = write(config, empty, rootValuesQuery, { foo: 123, bar: { baz: 'asdf' } });
-    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, { foo: 321 });
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const baselineResult = write(config, empty, rootValuesQuery, { foo: 123, bar: { baz: 'asdf' } });
+      baseline = baselineResult.snapshot;
+
+      const result = write(config, baseline, rootValuesQuery, { foo: 321 });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
+    });
 
     it(`doesn't mutate the previous version`, () => {
       expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
@@ -125,16 +142,23 @@ describe(`operations.write`, () => {
 
   describe(`when editing nested values of a root`, () => {
 
-    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
-      foo: [{ value: 1 }, { value: 2 }, { value: 3 }],
-      bar: { baz: 'asdf' },
-    });
-    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
-      foo: [{ value: -1 }, { extra: true }],
-      bar: {
-        baz: 'fdsa',
-        fizz: 'buzz',
-      },
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const baselineResult = write(config, empty, rootValuesQuery, {
+        foo: [{ value: 1 }, { value: 2 }, { value: 3 }],
+        bar: { baz: 'asdf' },
+      });
+      baseline = baselineResult.snapshot;
+
+      const result = write(config, baseline, rootValuesQuery, {
+        foo: [{ value: -1 }, { extra: true }],
+        bar: {
+          baz: 'fdsa',
+          fizz: 'buzz',
+        },
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
     });
 
     it(`doesn't mutate the previous version`, () => {
@@ -173,13 +197,20 @@ describe(`operations.write`, () => {
 
   describe(`when updating values in referenced nodes`, () => {
 
-    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
-      foo: { id: 1, name: 'Foo' },
-      bar: { id: 2, name: 'Bar' },
-    });
-    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
-      foo: { id: 1, name: 'Foo Boo' },
-      bar: { id: 2, extra: true },
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const baselineResult = write(config, empty, rootValuesQuery, {
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
+      });
+      baseline = baselineResult.snapshot;
+
+      const result = write(config, baseline, rootValuesQuery, {
+        foo: { id: 1, name: 'Foo Boo' },
+        bar: { id: 2, extra: true },
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
     });
 
     it(`doesn't mutate the previous versions`, () => {
@@ -218,13 +249,20 @@ describe(`operations.write`, () => {
 
   describe(`when swapping references`, () => {
 
-    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
-      foo: { id: 1, name: 'Foo' },
-      bar: { id: 2, name: 'Bar' },
-    });
-    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
-      foo: { id: 2 },
-      bar: { id: 1 },
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const baselineResult = write(config, empty, rootValuesQuery, {
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
+      });
+      baseline = baselineResult.snapshot;
+
+      const result = write(config, baseline, rootValuesQuery, {
+        foo: { id: 2 },
+        bar: { id: 1 },
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
     });
 
     it(`doesn't mutate the previous versions`, () => {
@@ -270,12 +308,19 @@ describe(`operations.write`, () => {
 
   describe(`when orphaning a node`, () => {
 
-    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
-      foo: { id: 1, name: 'Foo' },
-      bar: { id: 2, name: 'Bar' },
-    });
-    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
-      bar: null,
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const baselineResult = write(config, empty, rootValuesQuery, {
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
+      });
+      baseline = baselineResult.snapshot;
+
+      const result = write(config, baseline, rootValuesQuery, {
+        bar: null,
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
     });
 
     it(`doesn't mutate the previous versions`, () => {
@@ -312,25 +357,32 @@ describe(`operations.write`, () => {
 
   describe(`when orphaning a subgraph`, () => {
 
-    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
-      foo: {
-        id: 1,
-        name: 'Foo',
-        two: { id: 222 },
-      },
-      bar: {
-        id: 2,
-        one: { id: 111 },
-        two: { id: 222 },
-        three: {
-          id: 333,
-          foo: { id: 1 },
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const baselineResult = write(config, empty, rootValuesQuery, {
+        foo: {
+          id: 1,
+          name: 'Foo',
+          two: { id: 222 },
         },
-      },
-    });
-    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
-      foo: { two: null },
-      bar: null,
+        bar: {
+          id: 2,
+          one: { id: 111 },
+          two: { id: 222 },
+          three: {
+            id: 333,
+            foo: { id: 1 },
+          },
+        },
+      });
+      baseline = baselineResult.snapshot;
+
+      const result = write(config, baseline, rootValuesQuery, {
+        foo: { two: null },
+        bar: null,
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
     });
 
     it(`doesn't mutate the previous versions`, () => {
@@ -384,13 +436,20 @@ describe(`operations.write`, () => {
 
   describe(`when merging unidentifiable payloads with previously known nodes`, () => {
 
-    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
-      foo: { id: 1, name: 'Foo' },
-      bar: { id: 2, name: 'Bar' },
-    });
-    const { snapshot, editedNodeIds } = write(config, baseline, rootValuesQuery, {
-      foo: { name: 'Foo Boo' },
-      bar: { extra: true },
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const baselineResult = write(config, empty, rootValuesQuery, {
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
+      });
+      baseline = baselineResult.snapshot;
+
+      const result = write(config, baseline, rootValuesQuery, {
+        foo: { name: 'Foo Boo' },
+        bar: { extra: true },
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
     });
 
     it(`doesn't mutate the previous versions`, () => {
@@ -429,15 +488,21 @@ describe(`operations.write`, () => {
 
   describe(`writing to inner nodes`, () => {
 
-    const innerNodeQuery = query(`{ name extra }`, undefined, '1');
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const baselineResult = write(config, empty, rootValuesQuery, {
+        foo: { id: 1, name: 'Foo' },
+        bar: { id: 2, name: 'Bar' },
+      });
+      baseline = baselineResult.snapshot;
 
-    const { snapshot: baseline } = write(config, empty, rootValuesQuery, {
-      foo: { id: 1, name: 'Foo' },
-      bar: { id: 2, name: 'Bar' },
-    });
-    const { snapshot, editedNodeIds } = write(config, baseline, innerNodeQuery, {
-      name: 'moo',
-      extra: true,
+      const innerNodeQuery = query(`{ name extra }`, undefined, '1');
+      const result = write(config, baseline, innerNodeQuery, {
+        name: 'moo',
+        extra: true,
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
     });
 
     it(`doesn't mutate the previous versions`, () => {
@@ -464,18 +529,23 @@ describe(`operations.write`, () => {
 
     describe(`new nodes with variables`, () => {
 
-      const parameterizedQuery = query(`query getAFoo($id: ID!) {
-        foo(id: $id, withExtra: true) {
-          id name extra
-        }
-      }`, { id: 1 });
+      let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($id: ID!) {
+          foo(id: $id, withExtra: true) {
+            id name extra
+          }
+        }`, { id: 1 });
 
-      const { snapshot, editedNodeIds } = write(config, empty, parameterizedQuery, {
-        foo: {
-          id: 1,
-          name: 'Foo',
-          extra: false,
-        },
+        const result = write(config, empty, parameterizedQuery, {
+          foo: {
+            id: 1,
+            name: 'Foo',
+            extra: false,
+          },
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
       });
 
       it(`writes the referenced node`, () => {
