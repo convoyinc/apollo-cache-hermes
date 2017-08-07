@@ -6,6 +6,8 @@ import { NodeId, Query } from '../schema';
 import {
   addNodeReference,
   addToSet,
+  expandEdgeArguments,
+  hasNodeReference,
   isObject,
   isScalar,
   lazyImmutableDeepSet,
@@ -124,10 +126,48 @@ export class SnapshotEditor {
         let nextNodeId = isObject(payloadValue) ? entityIdForNode(payloadValue) : undefined;
         const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
 
-        // TODO: Detect parameterized edges.
+        if (parameterizedEdge) {
+          // swap in any variables.
+          const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
+          const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
+
+          // TODO: Design
+          //
+          //  Option 1
+          //
+          //   * add a third `args` property to node references (optional)
+          //   * if the value of the edge points directly to an entity, use its
+          //     id for the reference.
+          //   * otherwise ensure that we have a new parameterized value node.
+          //   * Add an outbound reference to container (with `args`)
+          //   * Add an inbound reference to the new node (with `args`)
+          //
+          //  Option 2
+          //
+          //   * Always create a parameterized value node.
+          //   * If that value node directly references an entity, its `node`
+          //     becomes a direct pointer to it (+ bookkeeping metadata?)
+          //   * references w/o `path`?.
+          //
+          // Option 2 is weird for direct node references, but is more
+          // consistent when bookkeeping node snapshots/references.  Also, no
+          // O(n) issues for frequently hit edges (look up by serialized vars).
+
+          // Parameterized edges are references, but maintain their own path.
+          const containerSnapshot = this._ensureNewSnapshot(containerId);
+          if (!hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
+            addNodeReference('outbound', containerSnapshot, edgeId);
+            const edgeSnapshot = this._ensureNewSnapshot(edgeId);
+            addNodeReference('inbound', edgeSnapshot, containerId);
+          }
+          // We walk the values of the parameterized edge like any other entity.
+          queue.push({ containerId: edgeId, containerPayload: payloadValue });
+
+          // Stop the walk for this subgraph.
+          return true;
 
         // We've hit a reference.
-        if (prevNodeId || nextNodeId) {
+        } else if (prevNodeId || nextNodeId) {
           // If we already know there is a node at this location, we can merge
           // with it if no new identity was provided.
           //
@@ -395,4 +435,11 @@ export class SnapshotEditor {
     return newSnapshot;
   }
 
+}
+
+/**
+ * Generate a stable id for a parameterized value.
+ */
+export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object) {
+  return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
 }
