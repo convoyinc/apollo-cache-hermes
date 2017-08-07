@@ -1,8 +1,7 @@
-import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
-
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, Query } from '../schema';
+import { ParameterizedEdgeMap, parameterizedEdgesForOperation } from '../util';
 
 export interface QueryResult {
   /** The value of the root requested by a query. */
@@ -24,7 +23,7 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
 export function read(config: Configuration, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
   let result = snapshot.get(query.rootId);
 
-  const parameterizedEdges = _parameterizedEdgesForSelection(query.selection);
+  const parameterizedEdges = parameterizedEdgesForOperation(query.document);
   if (parameterizedEdges) {
     result = _overlayParameterizedValues(query, config, snapshot, parameterizedEdges, result);
   }
@@ -33,36 +32,6 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
   const { complete, nodeIds } = _visitSelection(query, config, result, false);
 
   return { result, complete, nodeIds };
-}
-
-/**
- * A recursive map where the keys indicate the path to any edge in a result set
- * that contain a parameterized edge.
- */
-export interface ParameterizedEdgeMap {
-  [Key: string]: ParameterizedEdgeMap | true;
-}
-
-/**
- * Walks a selection set, identifying the path to all parameterized edges.
- */
-export function _parameterizedEdgesForSelection(selection: SelectionSetNode): ParameterizedEdgeMap | undefined {
-  // Rough algorithm is as follows:
-  //
-  //   * Return memoized value for `selection`, if present.
-  //
-  //   * Visit each node of `selection`, keeping track of the current path:
-  //
-  //     * If a FieldNode with arguments is encountered, deep set the path taken
-  //       to it in the edge map with a value of true.
-  //
-  //   * Return the edge map, if any.
-  //
-  // This has some room for improvement.  We can likely cache per-fragment, or
-  // per-node (particularly with some knowledge of the underlying schema).
-
-  // Random line to get ts/tslint to shut up.
-  return _parameterizedEdgesForSelection(selection);
 }
 
 /**
@@ -87,7 +56,7 @@ export function _overlayParameterizedValues<TResult>(
   //     * Determine the node id (if any) via config.entityIdForNode, and track
   //       it along side the current path.
   //
-  //     * If we've reached a value of `true` in the edge map:
+  //     * If we've reached a parameterized field node in the edge map:
   //
   //       * Determine the id of the parameterized edge (closest nodeId +
   //         parameters).
