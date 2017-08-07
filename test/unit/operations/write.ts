@@ -567,7 +567,7 @@ describe(`operations.write`, () => {
       });
 
       it(`does not expose the parameterized edge directly from its container`, () => {
-        expect(snapshot.get(QueryRootId).foo).to.eq(undefined);
+        expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
       });
 
       it(`marks only the new edge as edited`, () => {
@@ -625,6 +625,51 @@ describe(`operations.write`, () => {
       });
 
       it(`marks only the new edge as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
+      });
+
+    });
+
+    describe(`updating an edge`, () => {
+
+      let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($id: ID!) {
+          foo(id: $id, withExtra: true) {
+            name extra
+          }
+        }`, { id: 1 });
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
+
+        const baselineResult = write(config, empty, parameterizedQuery, {
+          foo: {
+            name: 'Foo',
+            extra: false,
+          },
+        });
+        baseline = baselineResult.snapshot;
+
+        const result = write(config, baseline, parameterizedQuery, {
+          foo: {
+            name: 'Foo Bar',
+          },
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`doesn't edit the original snapshot`, () => {
+        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
+        expect(baseline.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
+        expect(baseline.get(parameterizedId)).to.not.eq(snapshot.get(parameterizedId));
+      });
+
+      it(`updates the node for the edge`, () => {
+        expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo Bar', extra: false });
+      });
+
+      it(`marks only the edge as edited`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
       });
 
