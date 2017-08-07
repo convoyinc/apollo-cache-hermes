@@ -345,7 +345,7 @@ export class SnapshotEditor {
       // We may have deleted the node.
       if (current) return current;
       // If so, we should start fresh.
-      newSnapshot = new NodeSnapshot({});
+      newSnapshot = new NodeSnapshot();
     } else {
       const parent = this._parent.getSnapshot(id);
       const value = parent ? { ...parent.node } : {};
