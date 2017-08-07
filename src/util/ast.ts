@@ -8,7 +8,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   ValueNode,
 } from 'graphql';
 
-import { JsonValue } from '../primitive';
+import { JsonScalar } from '../primitive';
 
 /**
  * Extracts the query operation from `document`.
@@ -62,12 +62,20 @@ export class VariableArgument {
 }
 
 /**
+ * A value that can be expressed as an argument of a parameterized edge.
+ */
+export type EdgeArgumentScalar = JsonScalar | VariableArgument;
+export interface EdgeArgumentArray extends Array<EdgeArgument> {}
+export interface EdgeArgumentObject { [Key: string]: EdgeArgument }
+export type EdgeArgument = EdgeArgumentScalar | EdgeArgumentArray | EdgeArgumentObject;
+
+/**
  * Represents a parameterized edge (within an edge map).
  */
 export class ParameterizedEdge {
   constructor(
     /** The map of arguments and their static or variable values. */
-    public readonly args: { [Key: string]: JsonValue | VariableArgument },
+    public readonly args: EdgeArgumentObject,
     /** Any child edge maps. */
     public readonly children?: ParameterizedEdgeMap,
   ) {}

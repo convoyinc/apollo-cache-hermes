@@ -103,6 +103,47 @@ describe(`util.ast`, () => {
         });
       });
 
+      it(`supports all types of variables`, () => {
+        const map = parameterizedEdgesForOperation(gql`
+          query typetastic($variable: Custom) {
+            foo(
+              variable: $variable,
+              null: null,
+              int: 123,
+              float: 1.23,
+              string: "foo",
+              list: [$variable, null, 123, 1.23, "foo", { a: "b" }],
+              object: {
+                variable: $variable,
+                null: null,
+                int: 123,
+                float: 1.23,
+                string: "foo",
+                list: [$variable, null, 123, 1.23, "foo", { a: "b" }],
+              },
+            ) { a }
+          }
+        `);
+        expect(map).to.deep.eq({
+          foo: new ParameterizedEdge({
+            variable: new VariableArgument('variable'),
+            null: null,
+            int: 123,
+            float: 1.23,
+            string: 'foo',
+            list: [new VariableArgument('variable'), null, 123, 1.23, 'foo', { a: 'b' }],
+            object: {
+              variable: new VariableArgument('variable'),
+              null: null,
+              int: 123,
+              float: 1.23,
+              string: 'foo',
+              list: [new VariableArgument('variable'), null, 123, 1.23, 'foo', { a: 'b' }],
+            },
+          }),
+        });
+      });
+
     });
 
     describe(`with variables`, () => {
