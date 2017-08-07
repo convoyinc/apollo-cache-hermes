@@ -40,4 +40,9 @@ done
 export JEST_SUITE_NAME="test:unit"
 export JEST_JUNIT_OUTPUT=./output/test:unit/report.xml
 
+# On remote test passes, we build once up front; and run/release based on that.
+if [[ "${CI}" == "" ]]; then
+  run compile
+fi
+
 node "${NODE_OPTIONS[@]}" ./node_modules/.bin/jest "${OPTIONS[@]}" "${FILES[@]}"
