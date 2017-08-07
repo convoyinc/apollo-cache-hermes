@@ -31,6 +31,9 @@ export namespace NodeSnapshot {
 
     /**
      * The path (object/array keys) within the node to the reference.
+     *
+     * If the path is omitted, this reference is used purely for garbage
+     * collection, but is not walked when regenerating node references.
      */
     path?: PathPart[],
   }
