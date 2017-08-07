@@ -25,6 +25,15 @@ export interface EditedSnapshot {
 }
 
 /**
+ * Used when walking payloads to merge.
+ */
+interface MergeQueueItem {
+  containerId: NodeId;
+  containerPayload: any;
+  visitRoot: boolean;
+}
+
+/**
  * Describes an edit to a reference contained within a node.
  */
 interface ReferenceEdit {
@@ -115,11 +124,11 @@ export class SnapshotEditor {
     const { entityIdForNode } = this._config;
     const edgeMap = parameterizedEdgesForOperation(query.document);
 
-    const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false }];
+    const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false }] as MergeQueueItem[];
     const referenceEdits = [] as ReferenceEdit[];
 
     while (queue.length) {
-      const { containerId, containerPayload, visitRoot } = queue.pop() as { containerId: NodeId, containerPayload: any, visitRoot: boolean };
+      const { containerId, containerPayload, visitRoot } = queue.pop() as MergeQueueItem;
       const container = this.get(containerId);
 
       walkPayload(containerPayload, container, edgeMap, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
