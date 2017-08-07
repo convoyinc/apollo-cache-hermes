@@ -40,3 +40,16 @@ export function addNodeReference(type: ReferenceType, snapshot: NodeSnapshot, id
 
   references.push({ id, path });
 }
+
+/**
+ * Whether a snapshot has a specific reference.
+ */
+export function hasNodeReference(snapshot: NodeSnapshot, type: ReferenceType, id: NodeId, path?: PathPart[]): boolean {
+  const references = snapshot[type];
+  if (!references) return false;
+  for (const reference of references) {
+    if (reference.id === id && lodashIsEqual(reference.path, path)) return true;
+  }
+
+  return false;
+}
