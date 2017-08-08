@@ -1,6 +1,9 @@
+import * as _ from 'lodash';
+
 import { Configuration } from '../../../src/Configuration';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { NodeSnapshot } from '../../../src/NodeSnapshot';
+import { nodeIdForParameterizedValue } from '../../../src/operations/SnapshotEditor';
 import { write } from '../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../src/schema';
 import { query } from '../../helpers';
@@ -525,17 +528,164 @@ describe(`operations.write`, () => {
 
   });
 
-  describe.skip(`parameterized edges`, () => {
+  describe(`parameterized edges`, () => {
 
-    describe(`new nodes with variables`, () => {
+    describe(`creating a new top level edge`, () => {
 
-      let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+      let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($id: ID!) {
+          foo(id: $id, withExtra: true) {
+            name extra
+          }
+        }`, { id: 1 });
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
+
+        const result = write(config, empty, parameterizedQuery, {
+          foo: {
+            name: 'Foo',
+            extra: false,
+          },
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`writes a node for the edge`, () => {
+        expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
+      });
+
+      it(`creates an outgoing reference from the edge's container`, () => {
+        const queryRoot = snapshot.getSnapshot(QueryRootId) as NodeSnapshot;
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+      });
+
+      it(`creates an inbound reference to the edge's container`, () => {
+        const values = snapshot.getSnapshot(parameterizedId) as NodeSnapshot;
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+      });
+
+      it(`does not expose the parameterized edge directly from its container`, () => {
+        expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
+      });
+
+      it(`marks only the new edge as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
+      });
+
+    });
+
+    describe(`creating a nested edge`, () => {
+
+      let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($id: ID!) {
+          foo {
+            bar {
+              baz(id: $id, withExtra: true) {
+                name extra
+              }
+            }
+          }
+        }`, { id: 1 });
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo', 'bar', 'baz'], { id: 1, withExtra: true });
+
+        const result = write(config, empty, parameterizedQuery, {
+          foo: {
+            bar: {
+              baz: {
+                name: 'Foo',
+                extra: false,
+              },
+            },
+          },
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`writes a node for the edge`, () => {
+        expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
+      });
+
+      it(`creates an outgoing reference from the edge's container`, () => {
+        const queryRoot = snapshot.getSnapshot(QueryRootId) as NodeSnapshot;
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+      });
+
+      it(`creates an inbound reference to the edge's container`, () => {
+        const values = snapshot.getSnapshot(parameterizedId) as NodeSnapshot;
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+      });
+
+      it(`does not expose the parameterized edge directly from its container`, () => {
+        expect(_.get(snapshot.get(QueryRootId), 'foo.bar.baz')).to.eq(undefined);
+      });
+
+      it(`marks only the new edge as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
+      });
+
+    });
+
+    describe(`updating an edge`, () => {
+
+      let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($id: ID!) {
+          foo(id: $id, withExtra: true) {
+            name extra
+          }
+        }`, { id: 1 });
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
+
+        const baselineResult = write(config, empty, parameterizedQuery, {
+          foo: {
+            name: 'Foo',
+            extra: false,
+          },
+        });
+        baseline = baselineResult.snapshot;
+
+        const result = write(config, baseline, parameterizedQuery, {
+          foo: {
+            name: 'Foo Bar',
+          },
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`doesn't edit the original snapshot`, () => {
+        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
+        expect(baseline.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
+        expect(baseline.get(parameterizedId)).to.not.eq(snapshot.get(parameterizedId));
+      });
+
+      it(`updates the node for the edge`, () => {
+        expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo Bar', extra: false });
+      });
+
+      it(`marks only the edge as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
+      });
+
+    });
+
+    describe(`new edges with a direct reference`, () => {
+
+      let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
         const parameterizedQuery = query(`query getAFoo($id: ID!) {
           foo(id: $id, withExtra: true) {
             id name extra
           }
         }`, { id: 1 });
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
 
         const result = write(config, empty, parameterizedQuery, {
           foo: {
@@ -548,15 +698,143 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`writes the referenced node`, () => {
+      it(`writes a node for the new entity`, () => {
         expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
       });
 
-      it(`does not expose the parameterized edge directly from its container`, () => {
-        expect(snapshot.get(QueryRootId)).to.deep.eq({});
+      it(`writes a node for the edge that points to the entity's value`, () => {
+        expect(snapshot.get(parameterizedId)).to.eq(snapshot.get('1'));
       });
 
-      it(`marks `, () => {
+      it(`creates an outgoing reference from the edge's container`, () => {
+        const queryRoot = snapshot.getSnapshot(QueryRootId) as NodeSnapshot;
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+      });
+
+      it(`creates an inbound reference to the edge's container`, () => {
+        const values = snapshot.getSnapshot(parameterizedId) as NodeSnapshot;
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+      });
+
+      it(`creates an outgoing reference from the parameterized edge to the referenced entity`, () => {
+        const values = snapshot.getSnapshot(parameterizedId) as NodeSnapshot;
+        expect(values.outbound).to.deep.eq([{ id: '1', path: [] }]);
+      });
+
+      it(`creates an incoming reference from the parameterized edge to the referenced entity`, () => {
+        const entity = snapshot.getSnapshot('1') as NodeSnapshot;
+        expect(entity.inbound).to.deep.eq([{ id: parameterizedId, path: [] }]);
+      });
+
+      it(`does not expose the parameterized edge directly from its container`, () => {
+        expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
+      });
+
+      it(`marks the new edge and entity as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([parameterizedId, '1']);
+      });
+
+    });
+
+    describe(`updating an edge with a direct reference`, () => {
+
+      let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($id: ID!) {
+          foo(id: $id, withExtra: true) {
+            id name extra
+          }
+        }`, { id: 1 });
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
+
+        const baselineResult = write(config, empty, parameterizedQuery, {
+          foo: {
+            id: 1,
+            name: 'Foo',
+            extra: false,
+          },
+        });
+        baseline = baselineResult.snapshot;
+
+        const result = write(config, baseline, parameterizedQuery, {
+          foo: {
+            id: 1,
+            name: 'Foo Bar',
+          },
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`doesn't edit the original snapshot`, () => {
+        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
+        expect(baseline.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
+        expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
+      });
+
+      it(`updates the node for the edge`, () => {
+        expect(snapshot.get(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
+      });
+
+      it(`writes a node for the edge that points to the entity's value`, () => {
+        expect(snapshot.get(parameterizedId)).to.eq(snapshot.get('1'));
+      });
+
+      it(`marks only the entity as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members(['1']);
+      });
+
+    });
+
+    describe(`indirectly updating an edge with a direct reference`, () => {
+
+      let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($id: ID!) {
+          foo(id: $id, withExtra: true) {
+            id name extra
+          }
+        }`, { id: 1 });
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
+
+        const baselineResult = write(config, empty, parameterizedQuery, {
+          foo: {
+            id: 1,
+            name: 'Foo',
+            extra: false,
+          },
+        });
+        baseline = baselineResult.snapshot;
+
+        const result = write(config, baseline, viewerQuery, {
+          viewer: {
+            id: 1,
+            name: 'Foo Bar',
+          },
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`doesn't edit the original snapshot`, () => {
+        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
+        expect(baseline.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
+        expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
+      });
+
+      it(`updates the node for the edge`, () => {
+        expect(snapshot.get(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
+      });
+
+      it(`ensures normalized references`, () => {
+        const entity = snapshot.get('1');
+        expect(snapshot.get(QueryRootId).viewer).to.eq(entity);
+        expect(snapshot.get(parameterizedId)).to.eq(entity);
+      });
+
+      it(`marks only the entity as edited`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '1']);
       });
 

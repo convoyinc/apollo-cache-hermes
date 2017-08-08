@@ -6,9 +6,12 @@ import { NodeId, Query } from '../schema';
 import {
   addNodeReference,
   addToSet,
+  expandEdgeArguments,
+  hasNodeReference,
   isObject,
   isScalar,
   lazyImmutableDeepSet,
+  parameterizedEdgesForOperation,
   removeNodeReference,
   walkPayload,
 } from '../util';
@@ -19,6 +22,15 @@ import {
 export interface EditedSnapshot {
   snapshot: GraphSnapshot,
   editedNodeIds: Set<NodeId>
+}
+
+/**
+ * Used when walking payloads to merge.
+ */
+interface MergeQueueItem {
+  containerId: NodeId;
+  containerPayload: any;
+  visitRoot: boolean;
 }
 
 /**
@@ -110,22 +122,44 @@ export class SnapshotEditor {
    */
   private _mergePayloadValues(query: Query, fullPayload: object): ReferenceEdit[] {
     const { entityIdForNode } = this._config;
+    const edgeMap = parameterizedEdgesForOperation(query.document);
 
-    const queue = [{ containerId: query.rootId, containerPayload: fullPayload }];
+    const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false }] as MergeQueueItem[];
     const referenceEdits = [] as ReferenceEdit[];
 
     while (queue.length) {
-      const { containerId, containerPayload } = queue.pop() as { containerId: NodeId, containerPayload: any };
+      const { containerId, containerPayload, visitRoot } = queue.pop() as MergeQueueItem;
       const container = this.get(containerId);
 
-      walkPayload(containerPayload, container, (path, payloadValue, nodeValue) => {
+      walkPayload(containerPayload, container, edgeMap, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
         let nextNodeId = isObject(payloadValue) ? entityIdForNode(payloadValue) : undefined;
         const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
 
-        // TODO: Detect parameterized edges.
+        if (parameterizedEdge) {
+          // swap in any variables.
+          const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
+          const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
+
+          // Parameterized edges are references, but maintain their own path.
+          const containerSnapshot = this._ensureNewSnapshot(containerId);
+          if (!hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
+            addNodeReference('outbound', containerSnapshot, edgeId);
+            const edgeSnapshot = this._ensureNewSnapshot(edgeId);
+            addNodeReference('inbound', edgeSnapshot, containerId);
+          }
+          // We walk the values of the parameterized edge like any other entity.
+          //
+          // EXCEPT: We re-visit the payload, in case it might _directly_
+          // reference an entity.  This allows us to build a chain of references
+          // where the parameterized value points _directly_ to a particular
+          // entity node.
+          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true });
+
+          // Stop the walk for this subgraph.
+          return true;
 
         // We've hit a reference.
-        if (prevNodeId || nextNodeId) {
+        } else if (prevNodeId || nextNodeId) {
           // If we already know there is a node at this location, we can merge
           // with it if no new identity was provided.
           //
@@ -147,7 +181,7 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue });
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -172,65 +206,6 @@ export class SnapshotEditor {
         return false;
       });
     }
-
-    // The rough algorithm is as follows:
-    //
-    //   * Initialize a work queue with one item containing this function's
-    //     arguments.  { nodeId, selection, payload }
-    //
-    //   * While there are items in the queue:
-    //
-    //     * Pop the last item from the queue.
-    //
-    //     * Fetch the parent's NodeSnapshot for nodeId as parent.
-    //
-    //     * Walk payload (depth-first?), parent, and selection in
-    //       parallel, visiting each property's value:
-    //
-    //       * If the selection node is parameterized:
-    //
-    //         * Determine the id of the parameterized value node (probably just
-    //           the keys JSON.stringified; maybe also sorted).
-    //
-    //         * Create a ParameterizedValue node for that id, if missing.
-    //
-    //         * push a new item into the queue for the newly reached node, and
-    //           stop the walk for child nodes.
-    //
-    //       * If the value is a scalar:
-    //
-    //         * _setValue
-    //
-    //       * If the value is an array:
-    //
-    //         * If the length of the payload and parent arrays disagree:
-    //
-    //           * Slice the parent's array to the same length as the payload,
-    //             and _setValue it.  Arrays are *not* shallow-merged.
-    //
-    //       * If the value is an object:
-    //
-    //         * Determine the id of the node (config.entityIdForNode).
-    //
-    //         * If there is an id, and it differs from the parent's id:
-    //
-    //           * Ensure that the node that contains the reference is present
-    //             in _newNodes (shallow clone the parent's copy it if not).
-    //
-    //           * Append a ReferenceEdit to be returned.
-    //
-    //         * In all cases, if there is an id:
-    //
-    //           * push a new item into the queue for the newly reached node,
-    //             and stop the walk for child nodes.
-    //
-    //   * Return any collected ReferenceEdits.
-    //
-    // Future improvement: If the cache were to be given (pre-compiled)
-    // knowledge of the schema and where entities lie in its hierarchy, we could
-    // be more efficient about determining whether a node is an entity.  (If you
-    // have access to it, see our private hermes repo, which takes this
-    // approach)
 
     return referenceEdits;
   }
@@ -283,6 +258,7 @@ export class SnapshotEditor {
       if (!snapshot || !snapshot.inbound) continue;
 
       for (const { id, path } of snapshot.inbound) {
+        if (!path) continue;
         this._setValue(id, path, snapshot.node, false);
         if (this._rebuiltNodeIds.has(id)) continue;
 
@@ -365,7 +341,7 @@ export class SnapshotEditor {
 
     const parent = this._parent.getSnapshot(id);
     const current = this._ensureNewSnapshot(id);
-    lazyImmutableDeepSet(current && current.node, parent && parent.node, path, newValue);
+    (current as any).node = lazyImmutableDeepSet(current && current.node, parent && parent.node, path, newValue);
   }
 
   /**
@@ -378,18 +354,25 @@ export class SnapshotEditor {
       // We may have deleted the node.
       if (current) return current;
       // If so, we should start fresh.
-      newSnapshot = new NodeSnapshot.Entity({});
+      newSnapshot = new NodeSnapshot();
     } else {
       const parent = this._parent.getSnapshot(id);
       const value = parent ? { ...parent.node } : {};
       const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
       const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
 
-      newSnapshot = new NodeSnapshot.Entity(value, inbound, outbound);
+      newSnapshot = new NodeSnapshot(value, inbound, outbound);
     }
 
     this._newNodes[id] = newSnapshot;
     return newSnapshot;
   }
 
+}
+
+/**
+ * Generate a stable id for a parameterized value.
+ */
+export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object) {
+  return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
 }

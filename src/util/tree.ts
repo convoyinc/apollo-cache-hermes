@@ -1,5 +1,7 @@
 import { PathPart } from '../primitive';
 
+import { ParameterizedEdge, ParameterizedEdgeMap } from './ast';
+
 /**
  * Represents a node (of all values at the same location in their trees), used
  * by the depth-first walk.
@@ -10,6 +12,8 @@ class WalkNode {
     public readonly payload: any,
     /** The value of the current node at this location in the walk. */
     public readonly node: any,
+    /** The value of the edge map at this location in the walk. */
+    public readonly edgeMap: ParameterizedEdgeMap | ParameterizedEdge | undefined,
     /** The depth of the node (allows us to set the path correctly). */
     public readonly depth: number,
     /** The key/index of this node, relative to its parent. */
@@ -25,7 +29,7 @@ export type Visitor = (
   path: PathPart[],
   payloadValue: any,
   nodeValue: any,
-  // TODO: Walk for parameterized edges.
+  parameterizedEdge?: ParameterizedEdge,
 ) => void | boolean;
 
 /**
@@ -37,24 +41,28 @@ export type Visitor = (
  * node, effectively treating it as a leaf.
  *
  * All values from the node are walked following the same path.  Similarly,
- * all values from `references` are walked, but they are only provided if a leaf
+ * all values from `edgeMap` are walked, but they are only provided if a leaf
  * (`EntityType`) is reached.  References skip over arrays, so that they apply
  * to the values inside the (homogeneous) array.
  */
-export function walkPayload(payload: any, node: any, visitor: Visitor) {
+export function walkPayload(payload: any, node: any, edgeMap: ParameterizedEdgeMap | undefined, visitRoot: boolean, visitor: Visitor) {
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
-  const stack = [new WalkNode(payload, node, 0)];
+  const stack = [new WalkNode(payload, node, edgeMap, 0)];
   const path = [] as PathPart[];
 
   while (stack.length) {
     const walkNode = stack.pop() as WalkNode;
 
     // Don't visit the root.
-    if (walkNode.key !== undefined) {
+    if (walkNode.key !== undefined || visitRoot) {
       path.splice(walkNode.depth - 1);
-      path.push(walkNode.key);
-      const skipChildren = visitor(path, walkNode.payload, walkNode.node);
+      if (walkNode.key !== undefined) {
+        path.push(walkNode.key);
+      }
+
+      const parameterizedEdge = walkNode.edgeMap instanceof ParameterizedEdge ? walkNode.edgeMap : undefined;
+      const skipChildren = visitor(path, walkNode.payload, walkNode.node, parameterizedEdge);
       if (skipChildren) continue;
     }
 
@@ -63,16 +71,16 @@ export function walkPayload(payload: any, node: any, visitor: Visitor) {
     const newDepth = walkNode.depth + 1;
     if (Array.isArray(walkNode.payload)) {
       for (let index = walkNode.payload.length - 1; index >= 0; index--) {
-        // Note that we DO NOT walk into `references` for array values; the
-        // references is blind to them, and continues to apply to all values
-        // contained within the array.
-        stack.push(new WalkNode(get(walkNode.payload, index), get(walkNode.node, index), newDepth, index));
+        // Note that we DO NOT walk into `edgeMap` for array values; the edge
+        // map is blind to them, and continues to apply to all values contained
+        // within the array.
+        stack.push(new WalkNode(get(walkNode.payload, index), get(walkNode.node, index), walkNode.edgeMap, newDepth, index));
       }
     } else if (walkNode.payload !== null && typeof walkNode.payload === 'object') {
       const keys = Object.getOwnPropertyNames(walkNode.payload);
       for (let index = keys.length - 1; index >= 0; index--) {
         const key = keys[index];
-        stack.push(new WalkNode(get(walkNode.payload, key), get(walkNode.node, key), newDepth, key));
+        stack.push(new WalkNode(get(walkNode.payload, key), get(walkNode.node, key), get(walkNode.edgeMap, key), newDepth, key));
       }
     }
 
