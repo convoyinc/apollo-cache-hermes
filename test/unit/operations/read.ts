@@ -14,6 +14,8 @@ describe(`operations.read`, () => {
     },
   };
 
+  const empty = new GraphSnapshot();
+
   const viewerQuery = query(`{
     viewer {
       id
@@ -21,23 +23,25 @@ describe(`operations.read`, () => {
     }
   }`);
 
+  const parameterizedQuery = query(`query getAFoo($id: ID!) {
+    user(id: $id, withExtra: true) {
+      id name extra
+    }
+    stuff
+  }`, { id: 1 });
+
   describe(`with an empty cache`, () => {
 
-    let snapshot: GraphSnapshot;
-    beforeAll(() => {
-      snapshot = new GraphSnapshot();
-    });
-
     it(`returns undefined when fetching anything.`, () => {
-      expect(read(config, viewerQuery, snapshot).result).to.eq(undefined);
+      expect(read(config, viewerQuery, empty).result).to.eq(undefined);
     });
 
     it(`is marked incomplete`, () => {
-      expect(read(config, viewerQuery, snapshot).complete).to.eq(false);
+      expect(read(config, viewerQuery, empty).complete).to.eq(false);
     });
 
     it(`includes no node ids if requested`, () => {
-      expect(Array.from(read(config, viewerQuery, snapshot, true).nodeIds)).to.have.members([]);
+      expect(Array.from(read(config, viewerQuery, empty, true).nodeIds)).to.have.members([]);
     });
 
   });
@@ -46,7 +50,7 @@ describe(`operations.read`, () => {
 
     let snapshot: GraphSnapshot;
     beforeAll(() => {
-      snapshot = write(config, new GraphSnapshot(), viewerQuery, {
+      snapshot = write(config, empty, viewerQuery, {
         viewer: {
           id: 123,
           name: 'Foo Bar',
@@ -80,7 +84,7 @@ describe(`operations.read`, () => {
 
     let snapshot: GraphSnapshot;
     beforeAll(() => {
-      snapshot = write(config, new GraphSnapshot(), viewerQuery, {
+      snapshot = write(config, empty, viewerQuery, {
         viewer: {
           id: 123,
         },
@@ -108,12 +112,11 @@ describe(`operations.read`, () => {
 
   });
 
-
   describe(`with arrays of complete values`, () => {
 
     let snapshot: GraphSnapshot;
     beforeAll(() => {
-      snapshot = write(config, new GraphSnapshot(), viewerQuery, {
+      snapshot = write(config, empty, viewerQuery, {
         viewer: [
           { id: 1, name: 'Foo' },
           { id: 2, name: 'Bar' },
@@ -146,6 +149,82 @@ describe(`operations.read`, () => {
   });
 
   describe(`parameterized edges`, () => {
+
+    describe(`with a complete cache`, () => {
+
+      let snapshot: GraphSnapshot;
+      beforeAll(() => {
+        snapshot = write(config, empty, parameterizedQuery, {
+          user: { id: 1, name: 'Foo', extra: true },
+          stuff: 123,
+        }).snapshot;
+      });
+
+      it(`returns the selected values, overlaid on the underlying data`, () => {
+        const { result } = read(config, parameterizedQuery, snapshot);
+        expect(result).to.deep.equal({
+          user: { id: 1, name: 'Foo', extra: true },
+          stuff: 123,
+        });
+      });
+
+    });
+
+    describe(`with nested edges`, () => {
+
+      const nestedQuery = query(`query nested($id: ID!) {
+        one {
+          two(id: $id) {
+            three {
+              four(extra: true) {
+                five
+              }
+            }
+          }
+        }
+      }`, { id: 1 });
+
+      let snapshot: GraphSnapshot;
+      beforeAll(() => {
+        snapshot = write(config, empty, nestedQuery, {
+          one: {
+            two: [
+              {
+                three: {
+                  four: { five: 1 },
+                },
+              },
+              {
+                three: {
+                  four: { five: 2 },
+                },
+              },
+            ],
+          },
+        }).snapshot;
+      });
+
+      it(`returns the selected values, overlaid on the underlying data`, () => {
+        const { result } = read(config, nestedQuery, snapshot);
+        expect(result).to.deep.equal({
+          one: {
+            two: [
+              {
+                three: {
+                  four: { five: 1 },
+                },
+              },
+              {
+                three: {
+                  four: { five: 2 },
+                },
+              },
+            ],
+          },
+        });
+      });
+
+    });
 
   });
 

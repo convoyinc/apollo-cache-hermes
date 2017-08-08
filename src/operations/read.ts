@@ -1,8 +1,16 @@
+import { PathPart } from '../primitive';
+import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util/tree';
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, Query } from '../schema';
-import { ParameterizedEdgeMap, isObject, parameterizedEdgesForOperation } from '../util';
+import {
+  expandEdgeArguments,
+  isObject,
+  ParameterizedEdge,
+  ParameterizedEdgeMap,
+  parameterizedEdgesForOperation,
+} from '../util';
 
 export interface QueryResult {
   /** The value of the root requested by a query. */
@@ -34,6 +42,19 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
   return { result, complete, nodeIds };
 }
 
+class OverlayWalkNode {
+  constructor(
+    /**  */
+    public readonly value: object,
+    /**  */
+    public readonly containerId: NodeId,
+    /**  */
+    public readonly edgeMap: ParameterizedEdgeMap,
+    /**  */
+    public readonly path: PathPart[],
+  ) {}
+}
+
 /**
  * Walks a parameterized edge map, overlaying values at those paths on top of
  * existing results.
@@ -42,36 +63,49 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
  * and new properties pointing to the parameterized values (or objects that
  * contain them).
  */
-export function _overlayParameterizedValues<TResult>(
+export function _overlayParameterizedValues(
   query: Query,
   config: Configuration,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
-  result: TResult,
-): TResult {
-  // Rough algorithm is as follows:
-  //
-  //   * Visit each node of `edges`, along side `result`:
-  //
-  //     * Determine the node id (if any) via config.entityIdForNode, and track
-  //       it along side the current path.
-  //
-  //     * If we've reached a parameterized field node in the edge map:
-  //
-  //       * Determine the id of the parameterized edge (closest nodeId +
-  //         parameters).
-  //
-  //       * Fetch the value of that node from the snapshot, and assign it to
-  //         the newly constructed parent (see the next step).
-  //
-  //     * Otherwise, construct a new object whose prototype is the value of the
-  //       results at this path.
-  //
-  // Return the new copy of the results with overlaid edges.
-  //
+  result: object,
+): object {
+  const newResult = result ? Object.create(result) : {};
+  // TODO: This logic sucks.  We'd do much better if we had knowledge of the
+  // schema.  Can we layer that on in such a way that we can support uses w/
+  // and w/o a schema compilation step?
+  const queue = [new OverlayWalkNode(newResult, query.rootId, edges, [])];
 
-  // Random line to get ts/tslint to shut up.
-  return _overlayParameterizedValues(query, config, snapshot, edges, result);
+  while (queue.length) {
+    const { value, containerId, edgeMap, path } = queue.pop() as OverlayWalkNode;
+
+    for (const key in edgeMap) {
+      let edge = edgeMap[key] as any;
+      let child;
+      if (edge instanceof ParameterizedEdge) {
+        const args = expandEdgeArguments(edge, query.variables);
+        const valueId = nodeIdForParameterizedValue(containerId, [...path, key], args);
+        child = snapshot.get(valueId);
+        edge = edge.children;
+      } else {
+        child = value[key]
+      }
+
+      // Make sure that we fill in the path if there are further edges.
+      if (edge && !child) {
+        child = {};
+      }
+
+      value[key] = child;
+
+      if (!edge) continue;
+      const childId = config.entityIdForNode(child);
+      const newPath = childId ? [] : [...path, key];
+      queue.push(new OverlayWalkNode(child, childId || containerId, edge, newPath))
+    }
+  }
+
+  return newResult;
 }
 
 /**
