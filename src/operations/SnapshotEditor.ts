@@ -348,7 +348,8 @@ export class SnapshotEditor {
   }
 
   /**
-   * TODO: Support more than just entity snapshots.
+   * Ensures that we have built a new version of a snapshot for node `id` (and
+   * that it is referenced by `_newNodes`).
    */
   private _ensureNewSnapshot(id: NodeId, initialValue?: object): NodeSnapshot {
     let newSnapshot;
