@@ -1,4 +1,4 @@
-import { JsonScalar, PathPart } from '../primitive';
+import { PathPart } from '../primitive';
 
 /**
  * Adds values to a set, mutating it.
@@ -18,8 +18,10 @@ export function lazyImmutableDeepSet<TEntity>(
   target: TEntity | undefined,
   original: TEntity | undefined,
   path: PathPart[],
-  value: JsonScalar,
+  value: any,
 ): TEntity {
+  if (!path.length) return value;
+
   let parentNode;
   let targetNode: any = target;
   let originalNode: any = original;
