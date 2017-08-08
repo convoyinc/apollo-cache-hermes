@@ -1,7 +1,8 @@
+import { walkOperation } from '../util/tree';
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, Query } from '../schema';
-import { ParameterizedEdgeMap, parameterizedEdgesForOperation } from '../util';
+import { ParameterizedEdgeMap, isObject, parameterizedEdgesForOperation } from '../util';
 
 export interface QueryResult {
   /** The value of the root requested by a query. */
@@ -28,8 +29,7 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
     result = _overlayParameterizedValues(query, config, snapshot, parameterizedEdges, result);
   }
 
-  // TODO: Only do this when necessary!
-  const { complete, nodeIds } = _visitSelection(query, config, result, false);
+  const { complete, nodeIds } = _visitSelection(query, config, result, includeNodeIds);
 
   return { result, complete, nodeIds };
 }
@@ -81,25 +81,43 @@ export function _visitSelection(
   query: Query,
   config: Configuration,
   result: any,
-  includeNodeIds: boolean,
+  includeNodeIds?: true,
 ): { complete: boolean, nodeIds?: Set<NodeId> } {
-  //  Rough algorithm is as follows:
-  //
-  //   * Visit each node of `selection` and `result`:
-  //
-  //     * For each property expressed by the current node of `selection`:
-  //
-  //       * If !(property in resultNode) return false
-  //
-  //     * If `includeNodeIds` and this node contains at least one field:
-  //
-  //       * Determine the node id of the current node, and add it to `nodeIds`.
-  //
-  //   * return true
-  //
-  //  This has a lot of room for improvement.  We can likely cache per-fragment,
-  //  or per-node.
+  let complete = true;
+  let nodeIds: Set<NodeId> | undefined;
+  if (includeNodeIds) {
+    nodeIds = new Set<NodeId>();
+    if (result !== undefined) {
+      nodeIds.add(query.rootId);
+    }
+  }
 
-  // Random line to get ts/tslint to shut up.
-  return _visitSelection(query, config, result, includeNodeIds);
+  // TODO: Memoize per query, and propagate through cache snapshots.
+  walkOperation(query.document, result, (value, fields) => {
+    // TODO: Stop the walk if we're not complete and not requesting node ids.
+    if (nodeIds && isObject(value)) {
+      const nodeId = config.entityIdForNode(value);
+      if (nodeId !== undefined) {
+        nodeIds.add(nodeId);
+      }
+    }
+
+    if (value === undefined) {
+      complete = false;
+    }
+
+    // If we're not including node ids, we can stop the walk right here.
+    if (!complete) return !includeNodeIds;
+
+    for (const field of fields) {
+      if (!(field.name.value in value)) {
+        complete = false;
+        break;
+      }
+    }
+
+    return false;
+  });
+
+  return { complete, nodeIds };
 }

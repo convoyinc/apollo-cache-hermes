@@ -1,12 +1,18 @@
+import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+  DocumentNode,
+  FieldNode,
+  SelectionSetNode,
+} from 'graphql';
+
 import { PathPart } from '../primitive';
 
-import { ParameterizedEdge, ParameterizedEdgeMap } from './ast';
+import { ParameterizedEdge, ParameterizedEdgeMap, fragmentMapForDocument, getOperationOrDie } from './ast';
 
 /**
  * Represents a node (of all values at the same location in their trees), used
  * by the depth-first walk.
  */
-class WalkNode {
+class PayloadWalkNode {
   constructor(
     /** The value of the payload at this location in the walk. */
     public readonly payload: any,
@@ -25,12 +31,12 @@ class WalkNode {
  * A function called when `walkPayload` visits a node in the payload, and any
  * associated values from the node and references.
  */
-export type Visitor = (
+export type PayloadVisitor = (
   path: PathPart[],
   payloadValue: any,
   nodeValue: any,
   parameterizedEdge: ParameterizedEdge | ParameterizedEdgeMap | undefined,
-) => void | boolean;
+) => boolean;
 
 /**
  * Walks a GraphQL payload that contains data to be merged into any existing
@@ -50,15 +56,15 @@ export function walkPayload(
   node: any,
   edgeMap: ParameterizedEdge | ParameterizedEdgeMap | undefined,
   visitRoot: boolean,
-  visitor: Visitor,
+  visitor: PayloadVisitor,
 ) {
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
-  const stack = [new WalkNode(payload, node, edgeMap, 0)];
+  const stack = [new PayloadWalkNode(payload, node, edgeMap, 0)];
   const path = [] as PathPart[];
 
   while (stack.length) {
-    const walkNode = stack.pop() as WalkNode;
+    const walkNode = stack.pop() as PayloadWalkNode;
 
     // Don't visit the root.
     if (walkNode.key !== undefined || visitRoot) {
@@ -79,16 +85,85 @@ export function walkPayload(
         // Note that we DO NOT walk into `edgeMap` for array values; the edge
         // map is blind to them, and continues to apply to all values contained
         // within the array.
-        stack.push(new WalkNode(get(walkNode.payload, index), get(walkNode.node, index), walkNode.edgeMap, newDepth, index));
+        stack.push(new PayloadWalkNode(get(walkNode.payload, index), get(walkNode.node, index), walkNode.edgeMap, newDepth, index));
       }
     } else if (walkNode.payload !== null && typeof walkNode.payload === 'object') {
       const keys = Object.getOwnPropertyNames(walkNode.payload);
       for (let index = keys.length - 1; index >= 0; index--) {
         const key = keys[index];
-        stack.push(new WalkNode(get(walkNode.payload, key), get(walkNode.node, key), get(walkNode.edgeMap, key), newDepth, key));
+        stack.push(new PayloadWalkNode(get(walkNode.payload, key), get(walkNode.node, key), get(walkNode.edgeMap, key), newDepth, key));
       }
     }
 
+  }
+}
+
+/**
+ *
+ */
+class OperationWalkNode {
+  constructor(
+    public readonly selectionSet: SelectionSetNode,
+    public readonly parent: any,
+  ) {}
+}
+
+/**
+ * Returning true indicates that the walk should STOP.
+ */
+export type OperationVisitor = (parent: any, fields: FieldNode[]) => boolean;
+
+/**
+ *
+ */
+export function walkOperation(document: DocumentNode, result: any, visitor: OperationVisitor) {
+  const operation = getOperationOrDie(document);
+  const fragmentMap = fragmentMapForDocument(document);
+
+  // Perform the walk as a depth-first traversal; and unlike the payload walk,
+  // we don't bother tracking the path.
+  const stack = [new OperationWalkNode(operation.selectionSet, result)];
+
+  while (stack.length) {
+    const { selectionSet, parent } = stack.pop() as OperationWalkNode;
+    // Fan-out for arrays.
+    if (Array.isArray(parent)) {
+      // Push in reverse purely for ergonomics: they'll be pulled off in order.
+      for (let i = parent.length - 1; i >= 0; i--) {
+        stack.push(new OperationWalkNode(selectionSet, parent[i]));
+      }
+      continue;
+    }
+
+    const fields = [] as FieldNode[];
+    // TODO: Directives?
+    for (const selection of selectionSet.selections) {
+      // A simple field.
+      if (selection.kind === 'Field') {
+        fields.push(selection);
+        if (selection.selectionSet) {
+          const child = get(parent, selection.name.value);
+          stack.push(new OperationWalkNode(selection.selectionSet, child));
+        }
+
+      // Fragments are applied to the current value.
+      } else if (selection.kind === 'FragmentSpread') {
+        const fragment = fragmentMap[selection.name.value];
+        if (!fragment) {
+          throw new Error(`Expected fragment ${selection.name.value} to be defined`);
+        }
+        stack.push(new OperationWalkNode(fragment.selectionSet, parent));
+
+      // TODO: Inline fragments.
+      } else {
+        throw new Error(`Unsupported GraphQL AST Node ${selection.kind}`);
+      }
+    }
+
+    if (fields.length) {
+      const shouldStop = visitor(parent, fields);
+      if (shouldStop) return;
+    }
   }
 }
 
