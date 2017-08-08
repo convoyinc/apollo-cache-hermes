@@ -97,7 +97,7 @@ At a high level, this looks something like:
 
 4. Garbage collect any newly orphaned subgraphs.
 
-See [`SnapshotEditor#mergePayload`](../src/SnapshotEditor.ts) for the specific implementation details.
+See [`SnapshotEditor#mergePayload`](../src/operations/SnapshotEditor.ts) for the specific implementation details.
 
 
 ### Optimistic Updates
