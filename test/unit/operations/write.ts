@@ -840,6 +840,72 @@ describe(`operations.write`, () => {
 
     });
 
+    describe(`writing nested indirect edges contained in an array`, () => {
+
+      let snapshot: GraphSnapshot, containerId: NodeId, entry1Id: NodeId, entry2Id: NodeId;
+      beforeAll(() => {
+        const nestedQuery = query(`query nested($id: ID!) {
+          one {
+            two(id: $id) {
+              three {
+                four(extra: true) {
+                  five
+                }
+              }
+            }
+          }
+        }`, { id: 1 });
+
+        containerId = nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 });
+        entry1Id = nodeIdForParameterizedValue(containerId, [0, 'three', 'four'], { extra: true });
+        entry2Id = nodeIdForParameterizedValue(containerId, [1, 'three', 'four'], { extra: true });
+
+        snapshot = write(config, empty, nestedQuery, {
+          one: {
+            two: [
+              {
+                three: {
+                  four: { five: 1 },
+                },
+              },
+              {
+                three: {
+                  four: { five: 2 },
+                },
+              },
+            ],
+          },
+        }).snapshot;
+      });
+
+      it(`writes a value snapshot for the containing edge`, () => {
+        expect(snapshot.getSnapshot(containerId)).to.exist;
+      });
+
+      it(`writes value snapshots for each array entry`, () => {
+        expect(snapshot.getSnapshot(entry1Id)).to.exist;
+        expect(snapshot.getSnapshot(entry2Id)).to.exist;
+      });
+
+      it(`references the parent snapshot from the children`, () => {
+        const entry1 = snapshot.getSnapshot(entry1Id) as NodeSnapshot;
+        const entry2 = snapshot.getSnapshot(entry2Id) as NodeSnapshot;
+
+        expect(entry1.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
+        expect(entry2.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
+      });
+
+      it(`references the children from the parent`, () => {
+        const container = snapshot.getSnapshot(containerId) as NodeSnapshot;
+
+        expect(container.outbound).to.have.deep.members([
+          { id: entry1Id, path: undefined },
+          { id: entry2Id, path: undefined },
+        ]);
+      });
+
+    });
+
   });
 
 });
