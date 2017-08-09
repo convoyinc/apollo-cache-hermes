@@ -92,26 +92,26 @@ export function _overlayParameterizedValues(
         childId = config.entityIdForNode(child);
       }
 
-      // Make sure that we fill in the path if there are further edges.
-      if (edge && !child) {
-        child = {};
-      }
-      value[key] = child;
+      if (edge) {
+        const newPath = childId ? [] : [...path, key];
+        const newContainerId = childId || containerId;
 
-      if (!edge) continue;
-      const newPath = childId ? [] : [...path, key];
-      const newContainerId = childId || containerId;
-
-      if (Array.isArray(child)) {
-        for (let i = child.length - 1; i >= 0; i--) {
-          if (child[i] === undefined) {
-            child[i] = {};
+        if (Array.isArray(child)) {
+          child = [...child];
+          for (let i = child.length - 1; i >= 0; i--) {
+            if (child[i] === undefined) {
+              child[i] = {};
+            }
+            queue.push(new OverlayWalkNode(child[i], newContainerId, edge, [...newPath, i]));
           }
-          queue.push(new OverlayWalkNode(child[i], newContainerId, edge, [...newPath, i]));
+
+        } else {
+          child = child ? Object.create(child) : {};
+          queue.push(new OverlayWalkNode(child, newContainerId, edge, newPath))
         }
-      } else {
-        queue.push(new OverlayWalkNode(child, newContainerId, edge, newPath))
       }
+
+      value[key] = child;
     }
   }
 
