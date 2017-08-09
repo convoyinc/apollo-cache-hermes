@@ -1,15 +1,14 @@
 import lodashCloneDeep = require('lodash.clonedeep');
-
-import {
-  // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
   ArgumentNode,
   DocumentNode,
+  DefinitionNode,
   FieldNode,
   FragmentDefinitionNode,
   OperationDefinitionNode,
   SelectionSetNode,
   ValueNode,
-} from "graphql";
+} from 'graphql';
 
 import { JsonScalar } from '../primitive';
 
@@ -206,7 +205,9 @@ export function expandEdgeArguments(edge: ParameterizedEdge, variables: object =
   return edgeArguments;
 }
 
-const TYPENAME_FIELD:FieldNode = {
+// The following are borrowed directly from apollo-client:
+
+const TYPENAME_FIELD: FieldNode = {
   kind: 'Field',
   name: {
     kind: 'Name',
@@ -214,22 +215,31 @@ const TYPENAME_FIELD:FieldNode = {
   },
 };
 
-function addTypenameToSelectionSet(selectionSet:SelectionSetNode, isRoot?:boolean) {
-  if (isRoot === void 0) {
-    isRoot = false;
-  }
+function addTypenameToSelectionSet(
+  selectionSet: SelectionSetNode,
+  isRoot = false,
+) {
   if (selectionSet.selections) {
     if (!isRoot) {
-      var alreadyHasThisField = selectionSet.selections.some(function(selection) {
-        return selection.kind === 'Field' && selection.name.value === '__typename';
+      const alreadyHasThisField = selectionSet.selections.some((selection) => {
+        return (
+          selection.kind === 'Field' &&
+          (selection as FieldNode).name.value === '__typename'
+        );
       });
+
       if (!alreadyHasThisField) {
         selectionSet.selections.push(TYPENAME_FIELD);
       }
     }
-    selectionSet.selections.forEach(function(selection) {
+
+    selectionSet.selections.forEach((selection) => {
+      // Must not add __typename if we're inside an introspection query
       if (selection.kind === 'Field') {
-        if (selection.name.value.lastIndexOf('__', 0) !== 0 && selection.selectionSet) {
+        if (
+          selection.name.value.lastIndexOf('__', 0) !== 0 &&
+          selection.selectionSet
+        ) {
           addTypenameToSelectionSet(selection.selectionSet);
         }
       } else if (selection.kind === 'InlineFragment') {
@@ -241,30 +251,36 @@ function addTypenameToSelectionSet(selectionSet:SelectionSetNode, isRoot?:boolea
   }
 }
 
-function removeConnectionDirectiveFromSelectionSet(selectionSet:SelectionSetNode) {
+function removeConnectionDirectiveFromSelectionSet(
+  selectionSet: SelectionSetNode,
+) {
   if (selectionSet.selections) {
     selectionSet.selections.forEach((selection) => {
-      if (selection.kind === 'Field' && selection && selection.directives) {
-        selection.directives = selection.directives.filter(function(directive) {
-          var willRemove = directive.name.value === 'connection';
+      if (
+        selection.kind === 'Field' &&
+        (selection as FieldNode) &&
+        selection.directives
+      ) {
+        selection.directives = selection.directives.filter((directive) => {
+          const willRemove = directive.name.value === 'connection';
           if (willRemove) {
             if (
               !directive.arguments ||
-              !directive.arguments.some(function(arg) {
-                return arg.name.value === 'key';
-              })
+              !directive.arguments.some(arg => arg.name.value === 'key')
             ) {
-              console.warn(
-                'Removing an @connection directive even though it does not have a key. ' +
-                  'You may want to use the key parameter to specify a store key.'
+              console.warn( // eslint-disable-line no-console
+                'Removing an @connection directive even though it does not have a key. '
+                + 'You may want to use the key parameter to specify a store key.',
               );
             }
           }
+
           return !willRemove;
         });
       }
     });
-    selectionSet.selections.forEach(function(selection) {
+
+    selectionSet.selections.forEach((selection) => {
       if (selection.kind === 'Field') {
         if (selection.selectionSet) {
           removeConnectionDirectiveFromSelectionSet(selection.selectionSet);
@@ -278,11 +294,28 @@ function removeConnectionDirectiveFromSelectionSet(selectionSet:SelectionSetNode
   }
 }
 
-export function addTypenameToDocument(doc:DocumentNode) {
-  var docClone = lodashCloneDeep(doc);
-  docClone.definitions.forEach((definition:OperationDefinitionNode) => {
+export function addTypenameToDocument(doc: DocumentNode) {
+  const docClone = lodashCloneDeep(doc);
+
+  docClone.definitions.forEach((definition: DefinitionNode) => {
     const isRoot = definition.kind === 'OperationDefinition';
-    addTypenameToSelectionSet(definition.selectionSet, isRoot);
+    addTypenameToSelectionSet(
+      (definition as OperationDefinitionNode).selectionSet,
+      isRoot,
+    );
   });
+
+  return docClone;
+}
+
+export function removeConnectionDirectiveFromDocument(doc: DocumentNode) {
+  const docClone = lodashCloneDeep(doc);
+
+  docClone.definitions.forEach((definition: DefinitionNode) => {
+    removeConnectionDirectiveFromSelectionSet(
+      (definition as OperationDefinitionNode).selectionSet,
+    );
+  });
+
   return docClone;
 }

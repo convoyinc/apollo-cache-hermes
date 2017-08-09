@@ -16,6 +16,12 @@
   version "0.10.1"
   resolved "https://registry.npmjs.org/@types/graphql/-/graphql-0.10.1.tgz#3944e528bb3232e09cddb5364d75aba6342d068c"
 
+"@types/lodash.clonedeep@^4.5.3":
+  version "4.5.3"
+  resolved "https://registry.npmjs.org/@types/lodash.clonedeep/-/lodash.clonedeep-4.5.3.tgz#d42cfba3d929a4e1177a775142ce2a9444e384cf"
+  dependencies:
+    "@types/lodash" "*"
+
 "@types/lodash.defaults@^4.2.3":
   version "4.2.3"
   resolved "https://registry.npmjs.org/@types/lodash.defaults/-/lodash.defaults-4.2.3.tgz#b4ce5afeafb8e55be6c771f77a55201ba696de5f"
@@ -1801,6 +1807,10 @@ locate-path@^2.0.0:
   dependencies:
     p-locate "^2.0.0"
     path-exists "^3.0.0"
+
+lodash.clonedeep@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.npmjs.org/lodash.clonedeep/-/lodash.clonedeep-4.5.0.tgz#e23f3f9c4f8fbdde872529c1071857a086e5ccef"
 
 lodash.cond@^4.3.0:
   version "4.5.2"
