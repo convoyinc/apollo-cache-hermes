@@ -147,7 +147,13 @@ export class SnapshotEditor {
           const containerSnapshot = this._ensureNewSnapshot(containerId);
           if (!hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
             addNodeReference('outbound', containerSnapshot, edgeId);
-            const edgeSnapshot = this._ensureNewSnapshot(edgeId);
+            // This is a bit arcane, but if we
+            let initialValue;
+            if (Array.isArray(payloadValue)) {
+              initialValue = [];
+              initialValue.length = payloadValue.length;
+            }
+            const edgeSnapshot = this._ensureNewSnapshot(edgeId, initialValue);
             addNodeReference('inbound', edgeSnapshot, containerId);
           }
           // We walk the values of the parameterized edge like any other entity.
@@ -361,7 +367,7 @@ export class SnapshotEditor {
       newSnapshot = new NodeSnapshot();
     } else {
       const parent = this._parent.getSnapshot(id);
-      const value = parent ? { ...parent.node } : undefined;
+      const value = parent ? { ...parent.node } : initialValue;
       const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
       const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
 

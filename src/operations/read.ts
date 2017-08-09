@@ -45,7 +45,7 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
 class OverlayWalkNode {
   constructor(
     /**  */
-    public readonly value: object,
+    public readonly value: any,
     /**  */
     public readonly containerId: NodeId,
     /**  */
@@ -68,7 +68,7 @@ export function _overlayParameterizedValues(
   config: Configuration,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
-  result: object,
+  result: any,
 ): object {
   const newResult = result ? Object.create(result) : {};
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
@@ -96,12 +96,22 @@ export function _overlayParameterizedValues(
       if (edge && !child) {
         child = {};
       }
-
       value[key] = child;
 
       if (!edge) continue;
       const newPath = childId ? [] : [...path, key];
-      queue.push(new OverlayWalkNode(child, childId || containerId, edge, newPath))
+      const newContainerId = childId || containerId;
+
+      if (Array.isArray(child)) {
+        for (let i = child.length - 1; i >= 0; i--) {
+          if (child[i] === undefined) {
+            child[i] = {};
+          }
+          queue.push(new OverlayWalkNode(child[i], newContainerId, edge, [...newPath, i]));
+        }
+      } else {
+        queue.push(new OverlayWalkNode(child, newContainerId, edge, newPath))
+      }
     }
   }
 
