@@ -7,7 +7,7 @@ import { CacheSnapshot } from './CacheSnapshot';
 import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
 import { QueryObserver, read } from './operations';
-import { OptimisticUpdate, OptimisticUpdateQueue } from './OptimisticUpdateQueue';
+import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { ChangeId, NodeId, Query } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
