@@ -1,7 +1,7 @@
 import { Configuration } from '../../../src/Configuration';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { read, write } from '../../../src/operations';
-import { StaticNodeId } from '../../../src/schema';
+import { Query, StaticNodeId } from '../../../src/schema';
 import { query } from '../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -226,6 +226,123 @@ describe(`operations.read`, () => {
 
     });
 
+  });
+
+  describe(`cyclic references`, () => {
+
+    describe(`in a complete cache`, () => {
+
+      let cyclicQuery: Query, snapshot: GraphSnapshot;
+      beforeAll(() => {
+        cyclicQuery = query(`{
+          foo {
+            id
+            name
+            bar {
+              id
+              name
+              fizz { id }
+              buzz { id }
+            }
+          }
+        }`);
+
+        snapshot = write(config, empty, cyclicQuery, {
+          foo: {
+            id: 1,
+            name: 'Foo',
+            bar: {
+              id: 2,
+              name: 'Bar',
+              fizz: { id: 1 },
+              buzz: { id: 2 },
+            },
+          },
+        }).snapshot;
+      });
+
+      it(`can be read`, () => {
+        const { result } = read(config, cyclicQuery, snapshot);
+        const foo = result.foo;
+        const bar = foo.bar;
+
+        expect(foo.id).to.eq(1);
+        expect(foo.name).to.eq('Foo');
+        expect(foo.bar).to.eq(bar);
+
+        expect(bar.id).to.eq(2);
+        expect(bar.name).to.eq('Bar');
+        expect(bar.fizz).to.eq(foo);
+        expect(bar.buzz).to.eq(bar);
+      });
+
+      it(`is marked complete`, () => {
+        const { complete } = read(config, cyclicQuery, snapshot);
+        expect(complete).to.eq(true);
+      });
+
+      it(`includes all related node ids, if requested`, () => {
+        const { nodeIds } = read(config, cyclicQuery, snapshot, true);
+        expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2']);
+      });
+
+    });
+
+    describe(`in a partial cache`, () => {
+
+      let cyclicQuery: Query, snapshot: GraphSnapshot;
+      beforeAll(() => {
+        cyclicQuery = query(`{
+          foo {
+            id
+            name
+            bar {
+              id
+              name
+              fizz { id }
+              buzz { id }
+            }
+          }
+        }`);
+
+        snapshot = write(config, empty, cyclicQuery, {
+          foo: {
+            id: 1,
+            name: 'Foo',
+            bar: {
+              id: 2,
+              fizz: { id: 1 },
+              buzz: { id: 2 },
+            },
+          },
+        }).snapshot;
+      });
+
+      it(`can be read`, () => {
+        const { result } = read(config, cyclicQuery, snapshot);
+        const foo = result.foo;
+        const bar = foo.bar;
+
+        expect(foo.id).to.eq(1);
+        expect(foo.name).to.eq('Foo');
+        expect(foo.bar).to.eq(bar);
+
+        expect(bar.id).to.eq(2);
+        expect(bar.fizz).to.eq(foo);
+        expect(bar.buzz).to.eq(bar);
+      });
+
+      it(`is marked complete`, () => {
+        const { complete } = read(config, cyclicQuery, snapshot);
+        expect(complete).to.eq(false);
+      });
+
+      it(`includes all related node ids, if requested`, () => {
+        const { nodeIds } = read(config, cyclicQuery, snapshot, true);
+        expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2']);
+      });
+
+    });
   });
 
 });

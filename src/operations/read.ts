@@ -44,13 +44,9 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
 
 class OverlayWalkNode {
   constructor(
-    /**  */
     public readonly value: any,
-    /**  */
     public readonly containerId: NodeId,
-    /**  */
     public readonly edgeMap: ParameterizedEdgeMap,
-    /**  */
     public readonly path: PathPart[],
   ) {}
 }
@@ -72,8 +68,8 @@ export function _overlayParameterizedValues(
 ): object {
   const newResult = result ? Object.create(result) : {};
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
-  // schema.  Can we layer that on in such a way that we can support uses w/
-  // and w/o a schema compilation step?
+  // schema.  Can we layer that on in such a way that we can support uses w/ and
+  // w/o a schema compilation step?
   const queue = [new OverlayWalkNode(newResult, query.rootId, edges, [])];
 
   while (queue.length) {
