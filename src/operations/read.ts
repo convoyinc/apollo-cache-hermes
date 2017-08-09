@@ -81,14 +81,15 @@ export function _overlayParameterizedValues(
 
     for (const key in edgeMap) {
       let edge = edgeMap[key] as any;
-      let child;
+      let child, childId;
       if (edge instanceof ParameterizedEdge) {
         const args = expandEdgeArguments(edge, query.variables);
-        const valueId = nodeIdForParameterizedValue(containerId, [...path, key], args);
-        child = snapshot.get(valueId);
+        childId = nodeIdForParameterizedValue(containerId, [...path, key], args);
+        child = snapshot.get(childId);
         edge = edge.children;
       } else {
-        child = value[key]
+        child = value[key];
+        childId = config.entityIdForNode(child);
       }
 
       // Make sure that we fill in the path if there are further edges.
@@ -99,7 +100,6 @@ export function _overlayParameterizedValues(
       value[key] = child;
 
       if (!edge) continue;
-      const childId = config.entityIdForNode(child);
       const newPath = childId ? [] : [...path, key];
       queue.push(new OverlayWalkNode(child, childId || containerId, edge, newPath))
     }
