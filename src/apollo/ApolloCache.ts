@@ -10,10 +10,11 @@ import { toQuery } from './util';
  * Apollo-specific interface to the cache.
  */
 export class ApolloCache extends ApolloQueryable implements interfaces.Cache {
+
   /** The underlying Hermes cache. */
   protected _queryable: Cache;
 
-  constructor(configuration: Configuration) {
+  constructor(configuration?: Configuration) {
     super();
     this._queryable = new Cache(configuration);
   }

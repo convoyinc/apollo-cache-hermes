@@ -26,17 +26,20 @@ export const defaultConfiguration:Configuration = {
  */
 export class Cache implements Queryable {
 
+  /** The cache-wide configuration. */
+  private _config: Configuration;
+
   /** The current version of the cache. */
   private _snapshot: CacheSnapshot;
 
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
-  constructor(private readonly _config: Configuration) {
+  constructor(config?: Configuration) {
     const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
 
-    this._config = lodashDefaults(_config, defaultConfiguration);
+    this._config = lodashDefaults(config, defaultConfiguration);
   }
 
   /**
