@@ -230,9 +230,9 @@ describe(`operations.read`, () => {
 
       describe(`and an empty store`, () => {
 
-        it.skip(`doesn't recurse to nested edges if there are no values for their parent`, () => {
+        it(`doesn't recurse to nested edges if there are no values for their parent`, () => {
           const { result } = read(config, nestedQuery, empty);
-          expect(result).to.deep.equal({});
+          expect(result).to.deep.equal(undefined);
         });
 
         it(`is marked incomplete`, () => {

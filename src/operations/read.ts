@@ -65,7 +65,21 @@ export function _overlayParameterizedValues(
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
   result: any,
-): object {
+): any {
+  // Corner case: We stop walking once we reach a parameterized edge with no
+  // snapshot, but we should also pre-emptively stop walking if there are no
+  // parameterized edges at all for the selection.
+  const rootSnapshot = snapshot.getSnapshot(query.rootId);
+  if (!rootSnapshot || !rootSnapshot.outbound) {
+    // For now, what's probably good enough is to just stop the walk if we have
+    // no root snapshot making outbound references to any other edges.
+    return undefined;
+  }
+
+  // TODO: A better approach here might be to walk the outbound references from
+  // each node, rather than walking the result set.  We'd have to store the path
+  // on parameterized value nodes to make that happen.
+
   const newResult = result ? Object.create(result) : {};
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
   // schema.  Can we layer that on in such a way that we can support uses w/ and
@@ -81,8 +95,14 @@ export function _overlayParameterizedValues(
       if (edge instanceof ParameterizedEdge) {
         const args = expandEdgeArguments(edge, query.variables);
         childId = nodeIdForParameterizedValue(containerId, [...path, key], args);
-        child = snapshot.get(childId);
-        edge = edge.children;
+        const childSnapshot = snapshot.getSnapshot(childId);
+        if (childSnapshot) {
+          edge = edge.children;
+          child = childSnapshot.node;
+        } else {
+          // Stop walking any further down.
+          edge = undefined;
+        }
       } else {
         child = value[key];
         childId = config.entityIdForNode(child);
