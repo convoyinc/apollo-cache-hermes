@@ -184,44 +184,62 @@ describe(`operations.read`, () => {
         }
       }`, { id: 1 });
 
-      let snapshot: GraphSnapshot;
-      beforeAll(() => {
-        snapshot = write(config, empty, nestedQuery, {
-          one: {
-            two: [
-              {
-                three: {
-                  four: { five: 1 },
+      describe(`and a full store`, () => {
+
+        let snapshot: GraphSnapshot;
+        beforeAll(() => {
+          snapshot = write(config, empty, nestedQuery, {
+            one: {
+              two: [
+                {
+                  three: {
+                    four: { five: 1 },
+                  },
                 },
-              },
-              {
-                three: {
-                  four: { five: 2 },
+                {
+                  three: {
+                    four: { five: 2 },
+                  },
                 },
-              },
-            ],
-          },
-        }).snapshot;
+              ],
+            },
+          }).snapshot;
+        });
+
+        it(`returns the selected values, overlaid on the underlying data`, () => {
+          const { result } = read(config, nestedQuery, snapshot);
+          expect(result).to.deep.equal({
+            one: {
+              two: [
+                {
+                  three: {
+                    four: { five: 1 },
+                  },
+                },
+                {
+                  three: {
+                    four: { five: 2 },
+                  },
+                },
+              ],
+            },
+          });
+        });
+
       });
 
-      it(`returns the selected values, overlaid on the underlying data`, () => {
-        const { result } = read(config, nestedQuery, snapshot);
-        expect(result).to.deep.equal({
-          one: {
-            two: [
-              {
-                three: {
-                  four: { five: 1 },
-                },
-              },
-              {
-                three: {
-                  four: { five: 2 },
-                },
-              },
-            ],
-          },
+      describe(`and an empty store`, () => {
+
+        it.skip(`doesn't recurse to nested edges if there are no values for their parent`, () => {
+          const { result } = read(config, nestedQuery, empty);
+          expect(result).to.deep.equal({});
         });
+
+        it(`is marked incomplete`, () => {
+          const { complete } = read(config, nestedQuery, empty);
+          expect(complete).to.eq(false);
+        });
+
       });
 
     });
