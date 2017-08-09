@@ -5,7 +5,7 @@ import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { NodeSnapshot } from '../../../src/NodeSnapshot';
 import { nodeIdForParameterizedValue } from '../../../src/operations/SnapshotEditor';
 import { write } from '../../../src/operations/write';
-import { NodeId, StaticNodeId } from '../../../src/schema';
+import { NodeId, Query, StaticNodeId } from '../../../src/schema';
 import { query } from '../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -142,6 +142,22 @@ describe(`operations.write`, () => {
 
   });
 
+  describe(`when writing falsy values`, () => {
+
+    let falsyValuesQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      falsyValuesQuery = query(`{ null, false, zero, string }`);
+
+      const result = write(config, empty, rootValuesQuery, { null: null, false: false, zero: 0, string: '' });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
+    });
+
+    it(`persists all falsy values`, () => {
+      expect(snapshot.get(QueryRootId)).to.deep.eq({ null: null, false: false, zero: 0, string: '' });
+    });
+
+  });
 
   describe(`when editing nested values of a root`, () => {
 
