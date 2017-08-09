@@ -7,7 +7,7 @@ import { CacheSnapshot } from './CacheSnapshot';
 import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
 import { QueryObserver, read } from './operations';
-import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
+import { OptimisticUpdate, OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { ChangeId, NodeId, Query } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
@@ -27,16 +27,15 @@ export const defaultConfiguration:Configuration = {
 export class Cache implements Queryable {
 
   /** The current version of the cache. */
-  private _snapshot: CacheSnapshot = new CacheSnapshot(
-    new GraphSnapshot,
-    new GraphSnapshot,
-    new OptimisticUpdateQueue,
-  );
+  private _snapshot: CacheSnapshot;
 
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
   constructor(private readonly _config: Configuration) {
+    const initialGraphSnapshot = new GraphSnapshot();
+    this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
+
     this._config = lodashDefaults(_config, defaultConfiguration);
   }
 
