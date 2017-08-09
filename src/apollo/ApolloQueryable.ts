@@ -13,7 +13,7 @@ export abstract class ApolloQueryable {
   diffQuery(options: interfaces.Cache.DiffQueryOptions): interfaces.Cache.DiffResult {
     const query = toQuery(options.query, options.variables);
     const { result, complete } = this._queryable.read(query, options.optimistic);
-    if (!options.returnPartialData) {
+    if (!options.returnPartialData && !complete) {
       // TODO: Include more detail with this error.
       throw new Error(`diffQuery not satisfied by the cache.`);
     }
