@@ -7,7 +7,6 @@ import { toQuery } from './util';
  * Apollo-specific interface to the cache.
  */
 export abstract class ApolloQueryable {
-
   /** The underlying Hermes cache. */
   protected abstract _queryable: Queryable;
 
@@ -59,5 +58,4 @@ export abstract class ApolloQueryable {
     const query = toQuery(options.fragment, options.variables, options.id);
     this._queryable.write(query, options.data);
   }
-
 }

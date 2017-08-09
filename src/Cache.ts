@@ -1,3 +1,6 @@
+import lodashDefaults = require('lodash.defaults');
+import lodashGet = require('lodash.get');
+
 import { Queryable } from './Queryable';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheSnapshot } from './CacheSnapshot';
@@ -9,6 +12,12 @@ import { ChangeId, NodeId, Query } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
 
+export const defaultConfiguration:Configuration = {
+  entityIdForNode(node) {
+    return lodashGet(node, 'id');
+  },
+}
+
 /**
  * The Hermes cache.
  *
@@ -17,14 +26,21 @@ export type TransactionCallback = (transaction: CacheTransaction) => void;
  */
 export class Cache implements Queryable {
 
-  /** Configuration used by various operations made against the cache. */
-  private readonly _config: Configuration;
+  /** The cache-wide configuration. */
+  private _config: Configuration;
 
   /** The current version of the cache. */
   private _snapshot: CacheSnapshot;
 
   /** All active query observers. */
-  private _observers: QueryObserver[];
+  private _observers: QueryObserver[] = [];
+
+  constructor(config?: Configuration) {
+    const initialGraphSnapshot = new GraphSnapshot();
+    this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
+
+    this._config = lodashDefaults(config, defaultConfiguration);
+  }
 
   /**
    * Reads the selection expressed by a query from the cache.

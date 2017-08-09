@@ -1,1 +1,2 @@
-export const hello = `It's aliiiive`;
+export { ApolloCache } from './apollo';
+export { Cache } from './Cache';

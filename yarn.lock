@@ -16,6 +16,18 @@
   version "0.10.1"
   resolved "https://registry.npmjs.org/@types/graphql/-/graphql-0.10.1.tgz#3944e528bb3232e09cddb5364d75aba6342d068c"
 
+"@types/lodash.defaults@^4.2.3":
+  version "4.2.3"
+  resolved "https://registry.npmjs.org/@types/lodash.defaults/-/lodash.defaults-4.2.3.tgz#b4ce5afeafb8e55be6c771f77a55201ba696de5f"
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash.get@^4.4.3":
+  version "4.4.3"
+  resolved "https://registry.npmjs.org/@types/lodash.get/-/lodash.get-4.4.3.tgz#ac823d175a9593c10555b5097b72281effd544b5"
+  dependencies:
+    "@types/lodash" "*"
+
 "@types/lodash.isequal@^4.5.1":
   version "4.5.1"
   resolved "https://registry.npmjs.org/@types/lodash.isequal/-/lodash.isequal-4.5.1.tgz#154e051996f64a4a6262db8f4fd51a4b2a347ab4"
@@ -1801,6 +1813,14 @@ locate-path@^2.0.0:
 lodash.cond@^4.3.0:
   version "4.5.2"
   resolved "https://registry.npmjs.org/lodash.cond/-/lodash.cond-4.5.2.tgz#f471a1da486be60f6ab955d17115523dd1d255d5"
+
+lodash.defaults@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.npmjs.org/lodash.defaults/-/lodash.defaults-4.2.0.tgz#d09178716ffea4dde9e5fb7b37f6f0802274580c"
+
+lodash.get@^4.4.2:
+  version "4.4.2"
+  resolved "https://registry.npmjs.org/lodash.get/-/lodash.get-4.4.2.tgz#2d177f652fa31e939b4438d5341499dfa3825e99"
 
 lodash.isequal@^4.5.0:
   version "4.5.0"
