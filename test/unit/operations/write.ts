@@ -904,6 +904,13 @@ describe(`operations.write`, () => {
         ]);
       });
 
+      it(`writes an array with the correct length`, () => {
+        // This is a bit arcane, but it ensures that _overlayParameterizedValues
+        // behaves properly when iterating arrays that contain _only_
+        // parameterized edges.
+        expect(snapshot.get(containerId)).to.deep.eq([undefined, undefined]);
+      });
+
     });
 
   });

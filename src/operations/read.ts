@@ -1,7 +1,16 @@
+import { PathPart } from '../primitive';
+import { nodeIdForParameterizedValue } from './SnapshotEditor';
+import { walkOperation } from '../util/tree';
 import { Configuration } from '../Configuration';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, Query } from '../schema';
-import { ParameterizedEdgeMap, parameterizedEdgesForOperation } from '../util';
+import {
+  expandEdgeArguments,
+  isObject,
+  ParameterizedEdge,
+  ParameterizedEdgeMap,
+  parameterizedEdgesForOperation,
+} from '../util';
 
 export interface QueryResult {
   /** The value of the root requested by a query. */
@@ -28,10 +37,22 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
     result = _overlayParameterizedValues(query, config, snapshot, parameterizedEdges, result);
   }
 
-  // TODO: Only do this when necessary!
-  const { complete, nodeIds } = _visitSelection(query, config, result, false);
+  const { complete, nodeIds } = _visitSelection(query, config, result, includeNodeIds);
 
   return { result, complete, nodeIds };
+}
+
+class OverlayWalkNode {
+  constructor(
+    /**  */
+    public readonly value: any,
+    /**  */
+    public readonly containerId: NodeId,
+    /**  */
+    public readonly edgeMap: ParameterizedEdgeMap,
+    /**  */
+    public readonly path: PathPart[],
+  ) {}
 }
 
 /**
@@ -42,36 +63,59 @@ export function read(config: Configuration, query: Query, snapshot: GraphSnapsho
  * and new properties pointing to the parameterized values (or objects that
  * contain them).
  */
-export function _overlayParameterizedValues<TResult>(
+export function _overlayParameterizedValues(
   query: Query,
   config: Configuration,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
-  result: TResult,
-): TResult {
-  // Rough algorithm is as follows:
-  //
-  //   * Visit each node of `edges`, along side `result`:
-  //
-  //     * Determine the node id (if any) via config.entityIdForNode, and track
-  //       it along side the current path.
-  //
-  //     * If we've reached a parameterized field node in the edge map:
-  //
-  //       * Determine the id of the parameterized edge (closest nodeId +
-  //         parameters).
-  //
-  //       * Fetch the value of that node from the snapshot, and assign it to
-  //         the newly constructed parent (see the next step).
-  //
-  //     * Otherwise, construct a new object whose prototype is the value of the
-  //       results at this path.
-  //
-  // Return the new copy of the results with overlaid edges.
-  //
+  result: any,
+): object {
+  const newResult = result ? Object.create(result) : {};
+  // TODO: This logic sucks.  We'd do much better if we had knowledge of the
+  // schema.  Can we layer that on in such a way that we can support uses w/
+  // and w/o a schema compilation step?
+  const queue = [new OverlayWalkNode(newResult, query.rootId, edges, [])];
 
-  // Random line to get ts/tslint to shut up.
-  return _overlayParameterizedValues(query, config, snapshot, edges, result);
+  while (queue.length) {
+    const { value, containerId, edgeMap, path } = queue.pop() as OverlayWalkNode;
+
+    for (const key in edgeMap) {
+      let edge = edgeMap[key] as any;
+      let child, childId;
+      if (edge instanceof ParameterizedEdge) {
+        const args = expandEdgeArguments(edge, query.variables);
+        childId = nodeIdForParameterizedValue(containerId, [...path, key], args);
+        child = snapshot.get(childId);
+        edge = edge.children;
+      } else {
+        child = value[key];
+        childId = config.entityIdForNode(child);
+      }
+
+      if (edge) {
+        const newPath = childId ? [] : [...path, key];
+        const newContainerId = childId || containerId;
+
+        if (Array.isArray(child)) {
+          child = [...child];
+          for (let i = child.length - 1; i >= 0; i--) {
+            if (child[i] === undefined) {
+              child[i] = {};
+            }
+            queue.push(new OverlayWalkNode(child[i], newContainerId, edge, [...newPath, i]));
+          }
+
+        } else {
+          child = child ? Object.create(child) : {};
+          queue.push(new OverlayWalkNode(child, newContainerId, edge, newPath))
+        }
+      }
+
+      value[key] = child;
+    }
+  }
+
+  return newResult;
 }
 
 /**
@@ -81,25 +125,43 @@ export function _visitSelection(
   query: Query,
   config: Configuration,
   result: any,
-  includeNodeIds: boolean,
+  includeNodeIds?: true,
 ): { complete: boolean, nodeIds?: Set<NodeId> } {
-  //  Rough algorithm is as follows:
-  //
-  //   * Visit each node of `selection` and `result`:
-  //
-  //     * For each property expressed by the current node of `selection`:
-  //
-  //       * If !(property in resultNode) return false
-  //
-  //     * If `includeNodeIds` and this node contains at least one field:
-  //
-  //       * Determine the node id of the current node, and add it to `nodeIds`.
-  //
-  //   * return true
-  //
-  //  This has a lot of room for improvement.  We can likely cache per-fragment,
-  //  or per-node.
+  let complete = true;
+  let nodeIds: Set<NodeId> | undefined;
+  if (includeNodeIds) {
+    nodeIds = new Set<NodeId>();
+    if (result !== undefined) {
+      nodeIds.add(query.rootId);
+    }
+  }
 
-  // Random line to get ts/tslint to shut up.
-  return _visitSelection(query, config, result, includeNodeIds);
+  // TODO: Memoize per query, and propagate through cache snapshots.
+  walkOperation(query.document, result, (value, fields) => {
+    // TODO: Stop the walk if we're not complete and not requesting node ids.
+    if (nodeIds && isObject(value)) {
+      const nodeId = config.entityIdForNode(value);
+      if (nodeId !== undefined) {
+        nodeIds.add(nodeId);
+      }
+    }
+
+    if (value === undefined) {
+      complete = false;
+    }
+
+    // If we're not including node ids, we can stop the walk right here.
+    if (!complete) return !includeNodeIds;
+
+    for (const field of fields) {
+      if (!(field.name.value in value)) {
+        complete = false;
+        break;
+      }
+    }
+
+    return false;
+  });
+
+  return { complete, nodeIds };
 }
