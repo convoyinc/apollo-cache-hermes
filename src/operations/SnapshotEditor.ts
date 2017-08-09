@@ -11,6 +11,8 @@ import {
   isObject,
   isScalar,
   lazyImmutableDeepSet,
+  ParameterizedEdge,
+  ParameterizedEdgeMap,
   parameterizedEdgesForOperation,
   removeNodeReference,
   walkPayload,
@@ -31,6 +33,7 @@ interface MergeQueueItem {
   containerId: NodeId;
   containerPayload: any;
   visitRoot: boolean;
+  edges: ParameterizedEdge | ParameterizedEdgeMap | undefined;
 }
 
 /**
@@ -124,18 +127,18 @@ export class SnapshotEditor {
     const { entityIdForNode } = this._config;
     const edgeMap = parameterizedEdgesForOperation(query.document);
 
-    const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false }] as MergeQueueItem[];
+    const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false, edges: edgeMap }] as MergeQueueItem[];
     const referenceEdits = [] as ReferenceEdit[];
 
     while (queue.length) {
-      const { containerId, containerPayload, visitRoot } = queue.pop() as MergeQueueItem;
+      const { containerId, containerPayload, visitRoot, edges } = queue.pop() as MergeQueueItem;
       const container = this.get(containerId);
 
-      walkPayload(containerPayload, container, edgeMap, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
+      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
         let nextNodeId = isObject(payloadValue) ? entityIdForNode(payloadValue) : undefined;
         const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
 
-        if (parameterizedEdge) {
+        if (parameterizedEdge instanceof ParameterizedEdge) {
           // swap in any variables.
           const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
           const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
@@ -153,7 +156,7 @@ export class SnapshotEditor {
           // reference an entity.  This allows us to build a chain of references
           // where the parameterized value points _directly_ to a particular
           // entity node.
-          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true });
+          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: parameterizedEdge.children });
 
           // Stop the walk for this subgraph.
           return true;
@@ -181,7 +184,7 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false });
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: parameterizedEdge });
           }
           // Stop the walk for this subgraph.
           return true;
