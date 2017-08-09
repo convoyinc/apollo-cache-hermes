@@ -1,9 +1,9 @@
 import { Cache } from '../Cache';
+import { Configuration } from '../Configuration';
 
-import * as interfaces from './interfaces';
 import { ApolloQueryable } from './ApolloQueryable';
 import { ApolloTransaction } from './ApolloTransaction';
-import { Configuration } from './../Configuration';
+import * as interfaces from './interfaces';
 import { toQuery } from './util';
 
 /**
