@@ -159,8 +159,7 @@ rules:
 
   # Static Analysis:
   import/no-unresolved: [error, { caseSensitive: true, commonjs: true, amd: true }]
-  # Until https://github.com/eslint/typescript-eslint-parser/issues/77
-  # import/named: error
+  import/named: error
   import/default: error
   import/namespace: error
   import/no-absolute-path: error
