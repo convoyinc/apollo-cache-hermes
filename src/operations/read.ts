@@ -154,20 +154,21 @@ export function _visitSelection(
 
   // TODO: Memoize per query, and propagate through cache snapshots.
   walkOperation(query.document, result, (value, fields) => {
-    // TODO: Stop the walk if we're not complete and not requesting node ids.
-    if (nodeIds && isObject(value)) {
-      const nodeId = config.entityIdForNode(value);
-      if (nodeId !== undefined) {
-        nodeIds.add(nodeId);
-      }
-    }
-
     if (value === undefined) {
       complete = false;
     }
 
     // If we're not including node ids, we can stop the walk right here.
     if (!complete) return !includeNodeIds;
+
+    if (!isObject(value)) return false;
+
+    if (nodeIds && isObject(value)) {
+      const nodeId = config.entityIdForNode(value);
+      if (nodeId !== undefined) {
+        nodeIds.add(nodeId);
+      }
+    }
 
     for (const field of fields) {
       if (!(field.name.value in value)) {

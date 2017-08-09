@@ -5,5 +5,5 @@ export function isScalar(value: any): value is scalar {
 }
 
 export function isObject(value: any): value is object {
-  return typeof value === 'object' && !Array.isArray(value);
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
