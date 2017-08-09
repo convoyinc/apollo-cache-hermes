@@ -80,7 +80,8 @@ export function _overlayParameterizedValues(
   // each node, rather than walking the result set.  We'd have to store the path
   // on parameterized value nodes to make that happen.
 
-  const newResult = result ? Object.create(result) : {};
+  // TODO: Switch back to Object.create() once we fix shit
+  const newResult = result ? { ...result } : {};
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
   // schema.  Can we layer that on in such a way that we can support uses w/ and
   // w/o a schema compilation step?
@@ -122,7 +123,8 @@ export function _overlayParameterizedValues(
           }
 
         } else {
-          child = child ? Object.create(child) : {};
+          // TODO: Switch back to Object.create() once we fix shit
+          child = child ? { ...child } : {};
           queue.push(new OverlayWalkNode(child, newContainerId, edge, newPath))
         }
       }
