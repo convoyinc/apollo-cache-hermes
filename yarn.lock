@@ -16,6 +16,18 @@
   version "0.10.1"
   resolved "https://registry.npmjs.org/@types/graphql/-/graphql-0.10.1.tgz#3944e528bb3232e09cddb5364d75aba6342d068c"
 
+"@types/lodash.defaults@^4.2.3":
+  version "4.2.3"
+  resolved "https://registry.npmjs.org/@types/lodash.defaults/-/lodash.defaults-4.2.3.tgz#b4ce5afeafb8e55be6c771f77a55201ba696de5f"
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash.get@^4.4.3":
+  version "4.4.3"
+  resolved "https://registry.npmjs.org/@types/lodash.get/-/lodash.get-4.4.3.tgz#ac823d175a9593c10555b5097b72281effd544b5"
+  dependencies:
+    "@types/lodash" "*"
+
 "@types/lodash.isequal@^4.5.1":
   version "4.5.1"
   resolved "https://registry.npmjs.org/@types/lodash.isequal/-/lodash.isequal-4.5.1.tgz#154e051996f64a4a6262db8f4fd51a4b2a347ab4"

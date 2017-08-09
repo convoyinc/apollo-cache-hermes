@@ -1,4 +1,4 @@
-import lodashIsEqual = require('lodash/isequal');
+import lodashIsEqual = require('lodash.isequal');
 
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';

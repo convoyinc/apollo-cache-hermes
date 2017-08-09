@@ -1,4 +1,5 @@
-import { defaults, get } from 'lodash';
+import lodashDefaults = require('lodash.defaults');
+import lodashGet = require('lodash.get');
 
 import { Queryable } from './Queryable';
 import { CacheTransaction } from './CacheTransaction';
@@ -13,7 +14,7 @@ export type TransactionCallback = (transaction: CacheTransaction) => void;
 
 export const defaultConfiguration:Configuration = {
   entityIdForNode(node) {
-    return get(node, 'id', undefined);
+    return lodashGet(node, 'id');
   },
 }
 
@@ -36,7 +37,7 @@ export class Cache implements Queryable {
   private _observers: QueryObserver[] = [];
 
   constructor(private readonly _config: Configuration) {
-    this._config = defaults(_config, defaultConfiguration);
+    this._config = lodashDefaults(_config, defaultConfiguration);
   }
 
   /**
