@@ -1050,6 +1050,150 @@ describe(`operations.write`, () => {
 
     });
 
+    describe(`when removing some inbound references`, () => {
+
+      let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+      beforeAll(() => {
+        const cyclicQuery = query(`{
+          foo {
+            id
+            name
+            bar {
+              id
+              name
+              fizz { id }
+              buzz { id }
+            }
+          }
+        }`);
+
+        const baselineResult = write(config, empty, cyclicQuery, {
+          foo: {
+            id: 1,
+            name: 'Foo',
+            bar: {
+              id: 2,
+              name: 'Bar',
+              fizz: { id: 1 },
+              buzz: { id: 2 },
+            },
+          },
+        });
+        baseline = baselineResult.snapshot;
+
+        const result = write(config, baseline, cyclicQuery, {
+          foo: {
+            bar: {
+              fizz: null,
+              buzz: null,
+            },
+          },
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`doesn't mutate the previous version`, () => {
+        const foo = baseline.get('1');
+        const bar = baseline.get('2');
+
+        expect(foo.id).to.eq(1);
+        expect(foo.name).to.eq('Foo');
+        expect(foo.bar).to.eq(bar);
+
+        expect(bar.id).to.eq(2);
+        expect(bar.name).to.eq('Bar');
+        expect(bar.fizz).to.eq(foo);
+        expect(bar.buzz).to.eq(bar);
+      });
+
+      it(`fixes all references to the edited node`, () => {
+        const foo = snapshot.get('1');
+        const bar = snapshot.get('2');
+
+        expect(foo.id).to.eq(1);
+        expect(foo.name).to.eq('Foo');
+        expect(foo.bar).to.eq(bar);
+
+        expect(bar.id).to.eq(2);
+        expect(bar.name).to.eq('Bar');
+        expect(bar.fizz).to.eq(null);
+        expect(bar.buzz).to.eq(null);
+      });
+
+      it(`only marks the edited node`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members(['2']);
+      });
+
+    });
+
+    describe(`when orphaning a cyclic subgraph`, () => {
+
+      let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+      beforeAll(() => {
+        const cyclicQuery = query(`{
+          foo {
+            id
+            name
+            bar {
+              id
+              name
+              fizz { id }
+              buzz { id }
+            }
+          }
+        }`);
+
+        const baselineResult = write(config, empty, cyclicQuery, {
+          foo: {
+            id: 1,
+            name: 'Foo',
+            bar: {
+              id: 2,
+              name: 'Bar',
+              fizz: { id: 1 },
+              buzz: { id: 2 },
+            },
+          },
+        });
+        baseline = baselineResult.snapshot;
+
+        const result = write(config, baseline, cyclicQuery, {
+          foo: null,
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`doesn't mutate the previous version`, () => {
+        const foo = baseline.get('1');
+        const bar = baseline.get('2');
+
+        expect(foo.id).to.eq(1);
+        expect(foo.name).to.eq('Foo');
+        expect(foo.bar).to.eq(bar);
+
+        expect(bar.id).to.eq(2);
+        expect(bar.name).to.eq('Bar');
+        expect(bar.fizz).to.eq(foo);
+        expect(bar.buzz).to.eq(bar);
+      });
+
+      it(`removes the reference to the subgraph`, () => {
+        expect(snapshot.get(QueryRootId).foo).to.eq(null);
+      });
+
+      // TODO: Detect this case, and actually make it work.  Mark & sweep? :(
+      it.skip(`garbage collects the orphaned subgraph`, () => {
+        expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+      });
+
+      it.skip(`marks all nodes as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '1', '2']);
+      });
+
+    });
+
   });
 
 });
