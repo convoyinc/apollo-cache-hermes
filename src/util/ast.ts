@@ -1,4 +1,7 @@
-import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import lodashCloneDeep = require('lodash.clonedeep');
+
+import {
+  // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
   ArgumentNode,
   DocumentNode,
   FieldNode,
@@ -6,7 +9,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   OperationDefinitionNode,
   SelectionSetNode,
   ValueNode,
-} from 'graphql';
+} from "graphql";
 
 import { JsonScalar } from '../primitive';
 
@@ -201,4 +204,85 @@ export function expandEdgeArguments(edge: ParameterizedEdge, variables: object =
   }
 
   return edgeArguments;
+}
+
+const TYPENAME_FIELD:FieldNode = {
+  kind: 'Field',
+  name: {
+    kind: 'Name',
+    value: '__typename',
+  },
+};
+
+function addTypenameToSelectionSet(selectionSet:SelectionSetNode, isRoot?:boolean) {
+  if (isRoot === void 0) {
+    isRoot = false;
+  }
+  if (selectionSet.selections) {
+    if (!isRoot) {
+      var alreadyHasThisField = selectionSet.selections.some(function(selection) {
+        return selection.kind === 'Field' && selection.name.value === '__typename';
+      });
+      if (!alreadyHasThisField) {
+        selectionSet.selections.push(TYPENAME_FIELD);
+      }
+    }
+    selectionSet.selections.forEach(function(selection) {
+      if (selection.kind === 'Field') {
+        if (selection.name.value.lastIndexOf('__', 0) !== 0 && selection.selectionSet) {
+          addTypenameToSelectionSet(selection.selectionSet);
+        }
+      } else if (selection.kind === 'InlineFragment') {
+        if (selection.selectionSet) {
+          addTypenameToSelectionSet(selection.selectionSet);
+        }
+      }
+    });
+  }
+}
+
+function removeConnectionDirectiveFromSelectionSet(selectionSet:SelectionSetNode) {
+  if (selectionSet.selections) {
+    selectionSet.selections.forEach((selection) => {
+      if (selection.kind === 'Field' && selection && selection.directives) {
+        selection.directives = selection.directives.filter(function(directive) {
+          var willRemove = directive.name.value === 'connection';
+          if (willRemove) {
+            if (
+              !directive.arguments ||
+              !directive.arguments.some(function(arg) {
+                return arg.name.value === 'key';
+              })
+            ) {
+              console.warn(
+                'Removing an @connection directive even though it does not have a key. ' +
+                  'You may want to use the key parameter to specify a store key.'
+              );
+            }
+          }
+          return !willRemove;
+        });
+      }
+    });
+    selectionSet.selections.forEach(function(selection) {
+      if (selection.kind === 'Field') {
+        if (selection.selectionSet) {
+          removeConnectionDirectiveFromSelectionSet(selection.selectionSet);
+        }
+      } else if (selection.kind === 'InlineFragment') {
+        if (selection.selectionSet) {
+          removeConnectionDirectiveFromSelectionSet(selection.selectionSet);
+        }
+      }
+    });
+  }
+}
+
+export function addTypenameToDocument(doc:DocumentNode) {
+  var docClone = lodashCloneDeep(doc);
+  docClone.definitions.forEach((definition:OperationDefinitionNode) => {
+    const isRoot = definition.kind === 'OperationDefinition';
+    addTypenameToSelectionSet(definition.selectionSet, isRoot);
+  });
+  return docClone;
 }
