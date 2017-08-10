@@ -1,7 +1,7 @@
 import { PathPart } from '../primitive';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util/tree';
-import { Configuration } from '../Configuration';
+import { CacheContext } from '../CacheContext';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, Query } from '../schema';
 import {
@@ -27,9 +27,9 @@ export interface QueryResultWithNodeIds extends QueryResult {
 /**
  * Get you some datas.
  */
-export function read(config: Configuration, query: Query, snapshot: GraphSnapshot): QueryResult;
-export function read(config: Configuration, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
-export function read(config: Configuration, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
+export function read(config: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
+export function read(config: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
+export function read(config: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
   let result = snapshot.get(query.rootId);
 
   const parameterizedEdges = parameterizedEdgesForOperation(query.document);
@@ -61,7 +61,7 @@ class OverlayWalkNode {
  */
 export function _overlayParameterizedValues(
   query: Query,
-  config: Configuration,
+  config: CacheContext,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
   result: any,
@@ -147,7 +147,7 @@ function _wrapValue(value: any): any {
  */
 export function _visitSelection(
   query: Query,
-  config: Configuration,
+  config: CacheContext,
   result: any,
   includeNodeIds?: true,
 ): { complete: boolean, nodeIds?: Set<NodeId> } {

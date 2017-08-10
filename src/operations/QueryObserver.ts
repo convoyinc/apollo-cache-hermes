@@ -1,4 +1,4 @@
-import { Configuration } from '../Configuration';
+import { CacheContext } from '../CacheContext';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, Query } from '../schema';
 
@@ -14,7 +14,7 @@ export type Callback = (result: QueryResult) => void;
 export class QueryObserver {
 
   /** Cache configuration to use when executing queries. */
-  private _config: Configuration;
+  private _config: CacheContext;
   /** The query being observed. */
   private _query: Query;
   /** The most recent result */
@@ -22,7 +22,7 @@ export class QueryObserver {
   /** The callback to trigger when observed nodes have changed. */
   private _callback: Callback;
 
-  constructor(config: Configuration, query: Query, snapshot: GraphSnapshot, callback: Callback) {
+  constructor(config: CacheContext, query: Query, snapshot: GraphSnapshot, callback: Callback) {
     this._config = config;
     this._query = query;
     this._callback = callback;

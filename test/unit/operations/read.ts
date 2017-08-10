@@ -1,4 +1,4 @@
-import { Configuration } from '../../../src/Configuration';
+import { CacheContext } from '../../../src/CacheContext';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { read, write } from '../../../src/operations';
 import { Query, StaticNodeId } from '../../../src/schema';
@@ -8,7 +8,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.read`, () => {
 
-  const config: Configuration = {
+  const config: CacheContext = {
     entityIdForNode: (node: any) => {
       return (node && node.id) ? String(node.id) : undefined;
     },

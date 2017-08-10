@@ -1,4 +1,4 @@
-import { Configuration } from './Configuration';
+import { CacheContext } from './CacheContext';
 import { GraphSnapshot } from './GraphSnapshot';
 import { SnapshotEditor } from './operations';
 import { ChangeId, NodeId, QuerySnapshot } from './schema';
@@ -50,7 +50,7 @@ export class OptimisticUpdateQueue {
   /**
    * Applies the current optimistic updates to a snapshot.
    */
-  apply(config: Configuration, snapshot: GraphSnapshot): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
+  apply(config: CacheContext, snapshot: GraphSnapshot): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
     const editor = new SnapshotEditor(config, snapshot);
     for (const update of this._updates) {
       for (const delta of update.deltas) {

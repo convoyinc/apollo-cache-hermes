@@ -1,5 +1,5 @@
 import { CacheSnapshot } from './CacheSnapshot';
-import { Configuration } from './Configuration';
+import { CacheContext } from './CacheContext';
 import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { Queryable } from './Queryable';
@@ -22,7 +22,7 @@ export class CacheTransaction implements Queryable {
   private _deltas = [] as QuerySnapshot[];
 
   constructor(
-    private _config: Configuration,
+    private _config: CacheContext,
     private _snapshot: CacheSnapshot,
     private _optimisticChangeId?: ChangeId,
   ) {}

@@ -1,9 +1,9 @@
 import { EntityId } from './schema';
 
 /**
- * Configuration used throughout the cache's operation.
+ * Configuration and shared state used throughout the cache's operation.
  */
-export interface Configuration {
+export interface CacheContext {
 
   /**
    * Given a node, determines a _globally unique_ identifier for it to be used

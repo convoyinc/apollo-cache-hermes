@@ -1,4 +1,4 @@
-import { Configuration } from '../Configuration';
+import { CacheContext } from '../CacheContext';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';
@@ -79,7 +79,7 @@ export class SnapshotEditor {
 
   constructor(
     /** The configuration to use when editing snapshots. */
-    private _config: Configuration,
+    private _config: CacheContext,
     /** The snapshot to base edits off of. */
     private _parent: GraphSnapshot,
   ) {}

@@ -1,5 +1,5 @@
 import { Cache } from '../Cache';
-import { Configuration } from '../Configuration';
+import { CacheContext } from '../CacheContext';
 
 import { ApolloQueryable } from './ApolloQueryable';
 import { ApolloTransaction } from './ApolloTransaction';
@@ -14,14 +14,14 @@ export class ApolloCache extends ApolloQueryable implements interfaces.Cache {
   /** The underlying Hermes cache. */
   protected _queryable: Cache;
 
-  constructor(configuration?: Configuration) {
+  constructor(configuration?: CacheContext) {
     super();
     this._queryable = new Cache(configuration);
   }
 
   reset(): Promise<void> {
     return this._queryable.reset();
-  }
+  }ÍÍ
 
   removeOptimistic(id: string): void {
     this._queryable.rollback(id);

@@ -4,7 +4,7 @@ import lodashGet = require('lodash.get');
 import { Queryable } from './Queryable';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheSnapshot } from './CacheSnapshot';
-import { Configuration } from './Configuration';
+import { CacheContext } from './CacheContext';
 import { GraphSnapshot } from './GraphSnapshot';
 import { QueryObserver, read } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
@@ -12,7 +12,7 @@ import { ChangeId, NodeId, Query } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
 
-export const defaultConfiguration:Configuration = {
+export const defaultConfiguration:CacheContext = {
   entityIdForNode(node) {
     return lodashGet(node, 'id');
   },
@@ -27,7 +27,7 @@ export const defaultConfiguration:Configuration = {
 export class Cache implements Queryable {
 
   /** The cache-wide configuration. */
-  private _config: Configuration;
+  private _config: CacheContext;
 
   /** The current version of the cache. */
   private _snapshot: CacheSnapshot;
@@ -35,7 +35,7 @@ export class Cache implements Queryable {
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
-  constructor(config?: Configuration) {
+  constructor(config?: CacheContext) {
     const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
 
