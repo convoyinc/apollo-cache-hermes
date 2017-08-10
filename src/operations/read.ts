@@ -73,7 +73,7 @@ export function _overlayParameterizedValues(
   if (!rootSnapshot || !rootSnapshot.outbound) {
     // For now, what's probably good enough is to just stop the walk if we have
     // no root snapshot making outbound references to any other edges.
-    return undefined;
+    return result;
   }
 
   // TODO: A better approach here might be to walk the outbound references from
