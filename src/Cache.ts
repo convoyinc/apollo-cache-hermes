@@ -27,7 +27,7 @@ export const defaultConfiguration:CacheContext = {
 export class Cache implements Queryable {
 
   /** The cache-wide configuration. */
-  private _config: CacheContext;
+  private _context: CacheContext;
 
   /** The current version of the cache. */
   private _snapshot: CacheSnapshot;
@@ -35,11 +35,10 @@ export class Cache implements Queryable {
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
-  constructor(config?: CacheContext) {
+  constructor(config?: CacheContext.Configuration) {
     const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
-
-    this._config = lodashDefaults(config, defaultConfiguration);
+    this._context = new CacheContext(lodashDefaults(config, defaultConfiguration));
   }
 
   /**
@@ -52,7 +51,7 @@ export class Cache implements Queryable {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     const snapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
-    return read(this._config, query, snapshot);
+    return read(this._context, query, snapshot);
   }
 
   /**
@@ -60,7 +59,7 @@ export class Cache implements Queryable {
    * by a particular query have changed.
    */
   watch(query: Query, callback: () => void): () => void {
-    const observer = new QueryObserver(this._config, query, this._snapshot.optimistic, callback);
+    const observer = new QueryObserver(this._context, query, this._snapshot.optimistic, callback);
     this._observers.push(observer);
 
     return () => this._removeObserver(observer);
@@ -90,7 +89,7 @@ export class Cache implements Queryable {
       changeId = changeIdOrCallback as ChangeId;
     }
 
-    const transaction = new CacheTransaction(this._config, this._snapshot, changeId);
+    const transaction = new CacheTransaction(this._context, this._snapshot, changeId);
     callback(transaction);
     const { snapshot, editedNodeIds } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);

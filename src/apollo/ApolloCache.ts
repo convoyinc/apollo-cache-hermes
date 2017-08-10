@@ -21,7 +21,7 @@ export class ApolloCache extends ApolloQueryable implements interfaces.Cache {
 
   reset(): Promise<void> {
     return this._queryable.reset();
-  }ÍÍ
+  }
 
   removeOptimistic(id: string): void {
     this._queryable.rollback(id);
