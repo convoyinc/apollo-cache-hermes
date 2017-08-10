@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { Configuration } from '../../../src/Configuration';
+import { CacheContext } from '../../../src/CacheContext';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { NodeSnapshot } from '../../../src/NodeSnapshot';
 import { nodeIdForParameterizedValue } from '../../../src/operations/SnapshotEditor';
@@ -16,11 +16,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
 
-  const config: Configuration = {
-    entityIdForNode: (node: any) => {
-      return (node && node.id) ? String(node.id) : undefined;
-    },
-  };
+  const config = new CacheContext();
 
   const rootValuesQuery = query(`{ foo bar }`);
 

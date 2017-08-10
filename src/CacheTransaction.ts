@@ -1,5 +1,5 @@
+import { CacheContext } from './CacheContext';
 import { CacheSnapshot } from './CacheSnapshot';
-import { Configuration } from './Configuration';
 import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { Queryable } from './Queryable';
@@ -22,7 +22,7 @@ export class CacheTransaction implements Queryable {
   private _deltas = [] as QuerySnapshot[];
 
   constructor(
-    private _config: Configuration,
+    private _context: CacheContext,
     private _snapshot: CacheSnapshot,
     private _optimisticChangeId?: ChangeId,
   ) {}
@@ -31,7 +31,7 @@ export class CacheTransaction implements Queryable {
    * Executes reads against the current values in the transaction.
    */
   read(query: Query): { result: any, complete: boolean } {
-    return read(this._config, query, this._snapshot.optimistic);
+    return read(this._context, query, this._snapshot.optimistic);
   }
 
   /**
@@ -83,7 +83,7 @@ export class CacheTransaction implements Queryable {
   private _writeBaseline(query: Query, payload: any) {
     const current = this._snapshot;
 
-    const { snapshot: baseline, editedNodeIds } = write(this._config, current.baseline, query, payload);
+    const { snapshot: baseline, editedNodeIds } = write(this._context, current.baseline, query, payload);
     addToSet(this._editedNodeIds, editedNodeIds);
 
     const optimistic = this._buildOptimisticSnapshot(baseline);
@@ -98,7 +98,7 @@ export class CacheTransaction implements Queryable {
     const { optimisticQueue } = this._snapshot;
     if (!optimisticQueue.hasUpdates()) return baseline;
 
-    const { snapshot, editedNodeIds } = optimisticQueue.apply(this._config, baseline);
+    const { snapshot, editedNodeIds } = optimisticQueue.apply(this._context, baseline);
     addToSet(this._editedNodeIds, editedNodeIds);
 
     return snapshot;
@@ -111,7 +111,7 @@ export class CacheTransaction implements Queryable {
     const current = this._snapshot;
     this._deltas.push({ query, payload });
 
-    const { snapshot: optimistic, editedNodeIds } = write(this._config, current.baseline, query, payload);
+    const { snapshot: optimistic, editedNodeIds } = write(this._context, current.baseline, query, payload);
     addToSet(this._editedNodeIds, editedNodeIds);
 
     this._snapshot = { ...current, optimistic };
