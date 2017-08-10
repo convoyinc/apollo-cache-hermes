@@ -175,6 +175,7 @@ describe(`operations.read`, () => {
       const nestedQuery = query(`query nested($id: ID!) {
         one {
           two(id: $id) {
+            id
             three {
               four(extra: true) {
                 five
@@ -192,11 +193,13 @@ describe(`operations.read`, () => {
             one: {
               two: [
                 {
+                  id: 1,
                   three: {
                     four: { five: 1 },
                   },
                 },
                 {
+                  id: 2,
                   three: {
                     four: { five: 2 },
                   },
@@ -212,11 +215,13 @@ describe(`operations.read`, () => {
             one: {
               two: [
                 {
+                  id: 1,
                   three: {
                     four: { five: 1 },
                   },
                 },
                 {
+                  id: 2,
                   three: {
                     four: { five: 2 },
                   },
@@ -240,6 +245,24 @@ describe(`operations.read`, () => {
           expect(complete).to.eq(false);
         });
 
+      });
+
+    describe(`with a value of []`, () => {
+
+      let snapshot: GraphSnapshot;
+      beforeAll(() => {
+        snapshot = write(config, empty, parameterizedQuery, {
+          user: [],
+          stuff: 123,
+        }).snapshot;
+      });
+
+      it(`returns the selected values, overlaid on the underlying data`, () => {
+        const { result } = read(config, parameterizedQuery, snapshot);
+        expect(result).to.deep.equal({
+          user: [],
+          stuff: 123,
+        });
       });
 
     });
