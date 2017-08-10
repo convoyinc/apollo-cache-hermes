@@ -112,6 +112,48 @@ describe(`operations.read`, () => {
 
   });
 
+  describe(`with a null subgraphs`, () => {
+
+    let nestedQuery: Query, snapshot: GraphSnapshot;
+    beforeAll(() => {
+      nestedQuery = query(`{
+        one {
+          two {
+            three { four }
+          }
+          five
+        }
+      }`);
+      snapshot = write(config, empty, nestedQuery, {
+        one: {
+          two: null,
+          five: 'hi',
+        },
+      }).snapshot;
+    });
+
+    it(`returns the selected values.`, () => {
+      const { result } = read(config, nestedQuery, snapshot);
+      expect(result).to.deep.eq({
+        one: {
+          two: null,
+          five: 'hi',
+        },
+      });
+    });
+
+    it(`is marked complete`, () => {
+      const { complete } = read(config, nestedQuery, snapshot);
+      expect(complete).to.eq(true);
+    });
+
+    it(`includes all related node ids, if requested`, () => {
+      const { nodeIds } = read(config, nestedQuery, snapshot, true);
+      expect(Array.from(nodeIds)).to.have.members([QueryRootId]);
+    });
+
+  });
+
   describe(`with arrays of complete values`, () => {
 
     let snapshot: GraphSnapshot;
