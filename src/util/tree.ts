@@ -132,6 +132,9 @@ export function walkOperation(document: DocumentNode, result: any, visitor: Oper
 
   while (stack.length) {
     const { selectionSet, parent } = stack.pop() as OperationWalkNode;
+    // We consider null nodes to be skippable (and satisfy the walk).
+    if (parent === null) continue;
+
     // Fan-out for arrays.
     if (Array.isArray(parent)) {
       // Push in reverse purely for ergonomics: they'll be pulled off in order.
