@@ -119,9 +119,9 @@ export function _overlayParameterizedValues(
             }
 
             // Give our array children a chance to start a new path.
-            childId = config.entityIdForNode(child[i]) || childId;
-            const newPath = childId ? [] : [...path, key, i];
-            queue.push(new OverlayWalkNode(child[i], childId || containerId, edge, newPath));
+            const arrayChildId = config.entityIdForNode(child[i]) || childId;
+            const newPath = arrayChildId ? [] : [...path, key, i];
+            queue.push(new OverlayWalkNode(child[i], arrayChildId || containerId, edge, newPath));
           }
 
         } else {

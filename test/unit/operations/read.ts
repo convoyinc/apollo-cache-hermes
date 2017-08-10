@@ -247,6 +247,44 @@ describe(`operations.read`, () => {
 
       });
 
+      describe(`and an empty value`, () => {
+
+        let snapshot: GraphSnapshot;
+        beforeAll(() => {
+          snapshot = write(config, empty, nestedQuery, {
+            one: {
+              two: [
+                {
+                  id: 1,
+                  three: {
+                    four: [],
+                  },
+                },
+              ],
+            },
+          }).snapshot;
+        });
+
+        it(`returns the selected values, overlaid on the underlying data`, () => {
+          const { result } = read(config, nestedQuery, snapshot);
+          expect(result).to.deep.equal({
+            one: {
+              two: [
+                {
+                  id: 1,
+                  three: {
+                    four: [],
+                  },
+                },
+              ],
+            },
+          });
+        });
+
+      });
+
+    });
+
     describe(`with a value of []`, () => {
 
       let snapshot: GraphSnapshot;
