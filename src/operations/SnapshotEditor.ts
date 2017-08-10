@@ -13,7 +13,6 @@ import {
   lazyImmutableDeepSet,
   ParameterizedEdge,
   ParameterizedEdgeMap,
-  parameterizedEdgesForOperation,
   removeNodeReference,
   walkPayload,
 } from '../util';
@@ -127,9 +126,9 @@ export class SnapshotEditor {
    */
   private _mergePayloadValues(query: ParsedQuery, fullPayload: object): ReferenceEdit[] {
     const { entityIdForNode } = this._context;
-    const edgeMap = parameterizedEdgesForOperation(query.info.document);
+    const { parameterizedEdgeMap } = query.info;
 
-    const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false, edges: edgeMap }] as MergeQueueItem[];
+    const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false, edges: parameterizedEdgeMap }] as MergeQueueItem[];
     const referenceEdits = [] as ReferenceEdit[];
 
     while (queue.length) {

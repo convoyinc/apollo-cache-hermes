@@ -9,7 +9,6 @@ import {
   isObject,
   ParameterizedEdge,
   ParameterizedEdgeMap,
-  parameterizedEdgesForOperation,
 } from '../util';
 
 export interface QueryResult {
@@ -34,9 +33,9 @@ export function read(context: CacheContext, query: Query, snapshot: GraphSnapsho
 
   let result = snapshot.get(parsed.rootId);
 
-  const parameterizedEdges = parameterizedEdgesForOperation(parsed.info.document);
-  if (parameterizedEdges) {
-    result = _overlayParameterizedValues(parsed, context, snapshot, parameterizedEdges, result);
+  const { parameterizedEdgeMap } = parsed.info;
+  if (parameterizedEdgeMap) {
+    result = _overlayParameterizedValues(parsed, context, snapshot, parameterizedEdgeMap, result);
   }
 
   const { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
