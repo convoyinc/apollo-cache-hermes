@@ -1,5 +1,5 @@
-import { CacheContext } from './CacheContext';
 import { CacheSnapshot } from './CacheSnapshot';
+import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { Queryable } from './Queryable';

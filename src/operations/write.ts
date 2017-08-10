@@ -1,4 +1,4 @@
-import { CacheContext } from '../CacheContext';
+import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { Query } from '../schema';
 

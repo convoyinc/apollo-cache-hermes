@@ -1,15 +1,14 @@
 import { PathPart } from '../primitive';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
-import { walkOperation } from '../util/tree';
-import { CacheContext } from '../CacheContext';
+import { walkOperation } from '../util';
+import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, Query } from '../schema';
+import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   expandEdgeArguments,
   isObject,
   ParameterizedEdge,
   ParameterizedEdgeMap,
-  parameterizedEdgesForOperation,
 } from '../util';
 
 export interface QueryResult {
@@ -30,14 +29,16 @@ export interface QueryResultWithNodeIds extends QueryResult {
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
-  let result = snapshot.get(query.rootId);
+  const parsed = context.parseQuery(query);
 
-  const parameterizedEdges = parameterizedEdgesForOperation(query.document);
-  if (parameterizedEdges) {
-    result = _overlayParameterizedValues(query, context, snapshot, parameterizedEdges, result);
+  let result = snapshot.get(parsed.rootId);
+
+  const { parameterizedEdgeMap } = parsed.info;
+  if (parameterizedEdgeMap) {
+    result = _overlayParameterizedValues(parsed, context, snapshot, parameterizedEdgeMap, result);
   }
 
-  const { complete, nodeIds } = _visitSelection(query, context, result, includeNodeIds);
+  const { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
 
   return { result, complete, nodeIds };
 }
@@ -60,7 +61,7 @@ class OverlayWalkNode {
  * contain them).
  */
 export function _overlayParameterizedValues(
-  query: Query,
+  query: ParsedQuery,
   context: CacheContext,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
@@ -146,7 +147,7 @@ function _wrapValue(value: any): any {
  * Determines whether `result` satisfies the properties requested by `selection`.
  */
 export function _visitSelection(
-  query: Query,
+  query: ParsedQuery,
   context: CacheContext,
   result: any,
   includeNodeIds?: true,
@@ -161,7 +162,7 @@ export function _visitSelection(
   }
 
   // TODO: Memoize per query, and propagate through cache snapshots.
-  walkOperation(query.document, result, (value, fields) => {
+  walkOperation(query.info.document, result, (value, fields) => {
     if (value === undefined) {
       complete = false;
     }

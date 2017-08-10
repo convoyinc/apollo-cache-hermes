@@ -1,7 +1,7 @@
 import { Queryable } from './Queryable';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheSnapshot } from './CacheSnapshot';
-import { CacheContext } from './CacheContext';
+import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { QueryObserver, read } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
