@@ -16,11 +16,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
 
-  const config: CacheContext = {
-    entityIdForNode: (node: any) => {
-      return (node && node.id) ? String(node.id) : undefined;
-    },
-  };
+  const config = new CacheContext();
 
   const rootValuesQuery = query(`{ foo bar }`);
 

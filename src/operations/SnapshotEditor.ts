@@ -78,8 +78,8 @@ export class SnapshotEditor {
   private _rebuiltNodeIds = new Set<NodeId>();
 
   constructor(
-    /** The configuration to use when editing snapshots. */
-    private _config: CacheContext,
+    /** The configuration/context to use when editing snapshots. */
+    private _context: CacheContext,
     /** The snapshot to base edits off of. */
     private _parent: GraphSnapshot,
   ) {}
@@ -124,7 +124,7 @@ export class SnapshotEditor {
    * can guarantee that all edited nodes have been built.
    */
   private _mergePayloadValues(query: Query, fullPayload: object): ReferenceEdit[] {
-    const { entityIdForNode } = this._config;
+    const { entityIdForNode } = this._context;
     const edgeMap = parameterizedEdgesForOperation(query.document);
 
     const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false, edges: edgeMap }] as MergeQueueItem[];

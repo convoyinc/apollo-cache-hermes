@@ -8,11 +8,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.read`, () => {
 
-  const config: CacheContext = {
-    entityIdForNode: (node: any) => {
-      return (node && node.id) ? String(node.id) : undefined;
-    },
-  };
+  const context = new CacheContext();
 
   const empty = new GraphSnapshot();
 
@@ -33,15 +29,15 @@ describe(`operations.read`, () => {
   describe(`with an empty cache`, () => {
 
     it(`returns undefined when fetching anything.`, () => {
-      expect(read(config, viewerQuery, empty).result).to.eq(undefined);
+      expect(read(context, viewerQuery, empty).result).to.eq(undefined);
     });
 
     it(`is marked incomplete`, () => {
-      expect(read(config, viewerQuery, empty).complete).to.eq(false);
+      expect(read(context, viewerQuery, empty).complete).to.eq(false);
     });
 
     it(`includes no node ids if requested`, () => {
-      expect(Array.from(read(config, viewerQuery, empty, true).nodeIds)).to.have.members([]);
+      expect(Array.from(read(context, viewerQuery, empty, true).nodeIds)).to.have.members([]);
     });
 
   });
@@ -50,7 +46,7 @@ describe(`operations.read`, () => {
 
     let snapshot: GraphSnapshot;
     beforeAll(() => {
-      snapshot = write(config, empty, viewerQuery, {
+      snapshot = write(context, empty, viewerQuery, {
         viewer: {
           id: 123,
           name: 'Foo Bar',
@@ -59,7 +55,7 @@ describe(`operations.read`, () => {
     });
 
     it(`returns the selected values.`, () => {
-      const { result } = read(config, viewerQuery, snapshot);
+      const { result } = read(context, viewerQuery, snapshot);
       expect(result).to.deep.eq({
         viewer: {
           id: 123,
@@ -69,12 +65,12 @@ describe(`operations.read`, () => {
     });
 
     it(`is marked complete`, () => {
-      const { complete } = read(config, viewerQuery, snapshot);
+      const { complete } = read(context, viewerQuery, snapshot);
       expect(complete).to.eq(true);
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(config, viewerQuery, snapshot, true);
+      const { nodeIds } = read(context, viewerQuery, snapshot, true);
       expect(Array.from(nodeIds)).to.have.members([QueryRootId, '123']);
     });
 
@@ -84,7 +80,7 @@ describe(`operations.read`, () => {
 
     let snapshot: GraphSnapshot;
     beforeAll(() => {
-      snapshot = write(config, empty, viewerQuery, {
+      snapshot = write(context, empty, viewerQuery, {
         viewer: {
           id: 123,
         },
@@ -92,7 +88,7 @@ describe(`operations.read`, () => {
     });
 
     it(`returns the selected values.`, () => {
-      const { result } = read(config, viewerQuery, snapshot);
+      const { result } = read(context, viewerQuery, snapshot);
       expect(result).to.deep.eq({
         viewer: {
           id: 123,
@@ -101,12 +97,12 @@ describe(`operations.read`, () => {
     });
 
     it(`is marked incomplete`, () => {
-      const { complete } = read(config, viewerQuery, snapshot);
+      const { complete } = read(context, viewerQuery, snapshot);
       expect(complete).to.eq(false);
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(config, viewerQuery, snapshot, true);
+      const { nodeIds } = read(context, viewerQuery, snapshot, true);
       expect(Array.from(nodeIds)).to.have.members([QueryRootId, '123']);
     });
 
@@ -124,7 +120,7 @@ describe(`operations.read`, () => {
           five
         }
       }`);
-      snapshot = write(config, empty, nestedQuery, {
+      snapshot = write(context, empty, nestedQuery, {
         one: {
           two: null,
           five: 'hi',
@@ -133,7 +129,7 @@ describe(`operations.read`, () => {
     });
 
     it(`returns the selected values.`, () => {
-      const { result } = read(config, nestedQuery, snapshot);
+      const { result } = read(context, nestedQuery, snapshot);
       expect(result).to.deep.eq({
         one: {
           two: null,
@@ -143,12 +139,12 @@ describe(`operations.read`, () => {
     });
 
     it(`is marked complete`, () => {
-      const { complete } = read(config, nestedQuery, snapshot);
+      const { complete } = read(context, nestedQuery, snapshot);
       expect(complete).to.eq(true);
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(config, nestedQuery, snapshot, true);
+      const { nodeIds } = read(context, nestedQuery, snapshot, true);
       expect(Array.from(nodeIds)).to.have.members([QueryRootId]);
     });
 
@@ -158,7 +154,7 @@ describe(`operations.read`, () => {
 
     let snapshot: GraphSnapshot;
     beforeAll(() => {
-      snapshot = write(config, empty, viewerQuery, {
+      snapshot = write(context, empty, viewerQuery, {
         viewer: [
           { id: 1, name: 'Foo' },
           { id: 2, name: 'Bar' },
@@ -168,7 +164,7 @@ describe(`operations.read`, () => {
     });
 
     it(`returns the selected values.`, () => {
-      const { result } = read(config, viewerQuery, snapshot);
+      const { result } = read(context, viewerQuery, snapshot);
       expect(result).to.deep.eq({
         viewer: [
           { id: 1, name: 'Foo' },
@@ -179,12 +175,12 @@ describe(`operations.read`, () => {
     });
 
     it(`is marked complete`, () => {
-      const { complete } = read(config, viewerQuery, snapshot);
+      const { complete } = read(context, viewerQuery, snapshot);
       expect(complete).to.eq(true);
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(config, viewerQuery, snapshot, true);
+      const { nodeIds } = read(context, viewerQuery, snapshot, true);
       expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2', '3']);
     });
 
@@ -196,14 +192,14 @@ describe(`operations.read`, () => {
 
       let snapshot: GraphSnapshot;
       beforeAll(() => {
-        snapshot = write(config, empty, parameterizedQuery, {
+        snapshot = write(context, empty, parameterizedQuery, {
           user: { id: 1, name: 'Foo', extra: true },
           stuff: 123,
         }).snapshot;
       });
 
       it(`returns the selected values, overlaid on the underlying data`, () => {
-        const { result } = read(config, parameterizedQuery, snapshot);
+        const { result } = read(context, parameterizedQuery, snapshot);
         expect(result).to.deep.equal({
           user: { id: 1, name: 'Foo', extra: true },
           stuff: 123,
@@ -231,7 +227,7 @@ describe(`operations.read`, () => {
 
         let snapshot: GraphSnapshot;
         beforeAll(() => {
-          snapshot = write(config, empty, nestedQuery, {
+          snapshot = write(context, empty, nestedQuery, {
             one: {
               two: [
                 {
@@ -252,7 +248,7 @@ describe(`operations.read`, () => {
         });
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
-          const { result } = read(config, nestedQuery, snapshot);
+          const { result } = read(context, nestedQuery, snapshot);
           expect(result).to.deep.equal({
             one: {
               two: [
@@ -278,12 +274,12 @@ describe(`operations.read`, () => {
       describe(`and an empty store`, () => {
 
         it(`doesn't recurse to nested edges if there are no values for their parent`, () => {
-          const { result } = read(config, nestedQuery, empty);
+          const { result } = read(context, nestedQuery, empty);
           expect(result).to.deep.equal(undefined);
         });
 
         it(`is marked incomplete`, () => {
-          const { complete } = read(config, nestedQuery, empty);
+          const { complete } = read(context, nestedQuery, empty);
           expect(complete).to.eq(false);
         });
 
@@ -293,7 +289,7 @@ describe(`operations.read`, () => {
 
         let snapshot: GraphSnapshot;
         beforeAll(() => {
-          snapshot = write(config, empty, nestedQuery, {
+          snapshot = write(context, empty, nestedQuery, {
             one: {
               two: [
                 {
@@ -308,7 +304,7 @@ describe(`operations.read`, () => {
         });
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
-          const { result } = read(config, nestedQuery, snapshot);
+          const { result } = read(context, nestedQuery, snapshot);
           expect(result).to.deep.equal({
             one: {
               two: [
@@ -329,16 +325,16 @@ describe(`operations.read`, () => {
 
         let snapshot: GraphSnapshot;
         beforeAll(() => {
-          snapshot = write(config, empty, nestedQuery, { one: null }).snapshot;
+          snapshot = write(context, empty, nestedQuery, { one: null }).snapshot;
         });
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
-          const { result } = read(config, nestedQuery, snapshot);
+          const { result } = read(context, nestedQuery, snapshot);
           expect(result).to.deep.equal({ one: null });
         });
 
         it(`is marked complete`, () => {
-          const { complete } = read(config, nestedQuery, snapshot);
+          const { complete } = read(context, nestedQuery, snapshot);
           expect(complete).to.eq(true);
         });
 
@@ -348,7 +344,7 @@ describe(`operations.read`, () => {
 
         let snapshot: GraphSnapshot;
         beforeAll(() => {
-          snapshot = write(config, empty, nestedQuery, {
+          snapshot = write(context, empty, nestedQuery, {
             one: {
               two: null,
             },
@@ -356,7 +352,7 @@ describe(`operations.read`, () => {
         });
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
-          const { result } = read(config, nestedQuery, snapshot);
+          const { result } = read(context, nestedQuery, snapshot);
           expect(result).to.deep.equal({
             one: {
               two: null,
@@ -365,7 +361,7 @@ describe(`operations.read`, () => {
         });
 
         it(`is marked complete`, () => {
-          const { complete } = read(config, nestedQuery, snapshot);
+          const { complete } = read(context, nestedQuery, snapshot);
           expect(complete).to.eq(true);
         });
 
@@ -375,7 +371,7 @@ describe(`operations.read`, () => {
 
         let snapshot: GraphSnapshot;
         beforeAll(() => {
-          snapshot = write(config, empty, nestedQuery, {
+          snapshot = write(context, empty, nestedQuery, {
             one: {
               two: {
                 id: 1,
@@ -386,7 +382,7 @@ describe(`operations.read`, () => {
         });
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
-          const { result } = read(config, nestedQuery, snapshot);
+          const { result } = read(context, nestedQuery, snapshot);
           expect(result).to.deep.equal({
             one: {
               two: {
@@ -398,7 +394,7 @@ describe(`operations.read`, () => {
         });
 
         it(`is marked complete`, () => {
-          const { complete } = read(config, nestedQuery, snapshot);
+          const { complete } = read(context, nestedQuery, snapshot);
           expect(complete).to.eq(true);
         });
 
@@ -410,14 +406,14 @@ describe(`operations.read`, () => {
 
       let snapshot: GraphSnapshot;
       beforeAll(() => {
-        snapshot = write(config, empty, parameterizedQuery, {
+        snapshot = write(context, empty, parameterizedQuery, {
           user: [],
           stuff: 123,
         }).snapshot;
       });
 
       it(`returns the selected values, overlaid on the underlying data`, () => {
-        const { result } = read(config, parameterizedQuery, snapshot);
+        const { result } = read(context, parameterizedQuery, snapshot);
         expect(result).to.deep.equal({
           user: [],
           stuff: 123,
@@ -447,7 +443,7 @@ describe(`operations.read`, () => {
           }
         }`);
 
-        snapshot = write(config, empty, cyclicQuery, {
+        snapshot = write(context, empty, cyclicQuery, {
           foo: {
             id: 1,
             name: 'Foo',
@@ -462,7 +458,7 @@ describe(`operations.read`, () => {
       });
 
       it(`can be read`, () => {
-        const { result } = read(config, cyclicQuery, snapshot);
+        const { result } = read(context, cyclicQuery, snapshot);
         const foo = result.foo;
         const bar = foo.bar;
 
@@ -477,12 +473,12 @@ describe(`operations.read`, () => {
       });
 
       it(`is marked complete`, () => {
-        const { complete } = read(config, cyclicQuery, snapshot);
+        const { complete } = read(context, cyclicQuery, snapshot);
         expect(complete).to.eq(true);
       });
 
       it(`includes all related node ids, if requested`, () => {
-        const { nodeIds } = read(config, cyclicQuery, snapshot, true);
+        const { nodeIds } = read(context, cyclicQuery, snapshot, true);
         expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2']);
       });
 
@@ -505,7 +501,7 @@ describe(`operations.read`, () => {
           }
         }`);
 
-        snapshot = write(config, empty, cyclicQuery, {
+        snapshot = write(context, empty, cyclicQuery, {
           foo: {
             id: 1,
             name: 'Foo',
@@ -519,7 +515,7 @@ describe(`operations.read`, () => {
       });
 
       it(`can be read`, () => {
-        const { result } = read(config, cyclicQuery, snapshot);
+        const { result } = read(context, cyclicQuery, snapshot);
         const foo = result.foo;
         const bar = foo.bar;
 
@@ -533,12 +529,12 @@ describe(`operations.read`, () => {
       });
 
       it(`is marked complete`, () => {
-        const { complete } = read(config, cyclicQuery, snapshot);
+        const { complete } = read(context, cyclicQuery, snapshot);
         expect(complete).to.eq(false);
       });
 
       it(`includes all related node ids, if requested`, () => {
-        const { nodeIds } = read(config, cyclicQuery, snapshot, true);
+        const { nodeIds } = read(context, cyclicQuery, snapshot, true);
         expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2']);
       });
 

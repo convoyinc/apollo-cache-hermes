@@ -27,17 +27,17 @@ export interface QueryResultWithNodeIds extends QueryResult {
 /**
  * Get you some datas.
  */
-export function read(config: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
-export function read(config: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
-export function read(config: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
+export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
+export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
+export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
   let result = snapshot.get(query.rootId);
 
   const parameterizedEdges = parameterizedEdgesForOperation(query.document);
   if (parameterizedEdges) {
-    result = _overlayParameterizedValues(query, config, snapshot, parameterizedEdges, result);
+    result = _overlayParameterizedValues(query, context, snapshot, parameterizedEdges, result);
   }
 
-  const { complete, nodeIds } = _visitSelection(query, config, result, includeNodeIds);
+  const { complete, nodeIds } = _visitSelection(query, context, result, includeNodeIds);
 
   return { result, complete, nodeIds };
 }
@@ -61,7 +61,7 @@ class OverlayWalkNode {
  */
 export function _overlayParameterizedValues(
   query: Query,
-  config: CacheContext,
+  context: CacheContext,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
   result: any,
@@ -105,7 +105,7 @@ export function _overlayParameterizedValues(
         }
       } else {
         child = value[key];
-        childId = config.entityIdForNode(child);
+        childId = context.entityIdForNode(child);
       }
 
       // Should we continue the walk?
@@ -115,7 +115,7 @@ export function _overlayParameterizedValues(
           for (let i = child.length - 1; i >= 0; i--) {
             child[i] = _wrapValue(child[i]);
             // Give our array children a chance to start a new path.
-            const arrayChildId = config.entityIdForNode(child[i]) || childId;
+            const arrayChildId = context.entityIdForNode(child[i]) || childId;
             const newPath = arrayChildId ? [] : [...path, key, i];
             queue.push(new OverlayWalkNode(child[i], arrayChildId || containerId, edge, newPath));
           }
@@ -147,7 +147,7 @@ function _wrapValue(value: any): any {
  */
 export function _visitSelection(
   query: Query,
-  config: CacheContext,
+  context: CacheContext,
   result: any,
   includeNodeIds?: true,
 ): { complete: boolean, nodeIds?: Set<NodeId> } {
@@ -172,7 +172,7 @@ export function _visitSelection(
     if (!isObject(value)) return false;
 
     if (nodeIds && isObject(value)) {
-      const nodeId = config.entityIdForNode(value);
+      const nodeId = context.entityIdForNode(value);
       if (nodeId !== undefined) {
         nodeIds.add(nodeId);
       }
