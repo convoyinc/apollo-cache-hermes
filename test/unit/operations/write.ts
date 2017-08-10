@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { CacheContext } from '../../../src/CacheContext';
+import { CacheContext } from '../../../src/context';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { NodeSnapshot } from '../../../src/NodeSnapshot';
 import { nodeIdForParameterizedValue } from '../../../src/operations/SnapshotEditor';

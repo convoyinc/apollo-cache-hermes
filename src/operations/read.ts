@@ -1,7 +1,7 @@
 import { PathPart } from '../primitive';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
-import { walkOperation } from '../util/tree';
-import { CacheContext } from '../CacheContext';
+import { walkOperation } from '../util';
+import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, Query } from '../schema';
 import {

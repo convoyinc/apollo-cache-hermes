@@ -1,4 +1,4 @@
-import { CacheContext } from '../CacheContext';
+import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';

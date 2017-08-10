@@ -1,5 +1,5 @@
 import { Cache } from '../Cache';
-import { CacheContext } from '../CacheContext';
+import { CacheContext } from '../context';
 
 import { ApolloQueryable } from './ApolloQueryable';
 import { ApolloTransaction } from './ApolloTransaction';

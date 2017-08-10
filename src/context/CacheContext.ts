@@ -1,8 +1,9 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
-import { QueryInfo } from './context';
-import { EntityId } from './schema';
-import { isObject } from './util';
+import { EntityId } from '../schema';
+import { isObject } from '../util';
+
+import { QueryInfo } from './QueryInfo';
 
 export namespace CacheContext {
 

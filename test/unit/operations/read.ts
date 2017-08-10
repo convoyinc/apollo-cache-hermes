@@ -1,4 +1,4 @@
-import { CacheContext } from '../../../src/CacheContext';
+import { CacheContext } from '../../../src/context';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
 import { read, write } from '../../../src/operations';
 import { Query, StaticNodeId } from '../../../src/schema';
