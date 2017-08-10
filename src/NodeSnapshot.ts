@@ -9,9 +9,9 @@ export class NodeSnapshot {
     /** A reference to the node this snapshot is about. */
     readonly node?: any,
     /** Other node snapshots that point to this one. */
-    readonly inbound?: NodeSnapshot.NodeReference[],
+    readonly inbound?: NodeSnapshot.Reference[],
     /** The node snapshots that this one points to. */
-    readonly outbound?: NodeSnapshot.NodeReference[],
+    readonly outbound?: NodeSnapshot.Reference[],
   ) {}
 }
 
@@ -22,7 +22,7 @@ export namespace NodeSnapshot {
    *
    * Used when updating the graph, as well as for garbage collection.
    */
-  export interface NodeReference {
+  export interface Reference {
     /**
      * Id of the node that is either doing the referencing (inbound), or being
      * referenced (outbound).

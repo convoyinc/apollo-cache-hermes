@@ -73,7 +73,7 @@ export function _overlayParameterizedValues(
   if (!rootSnapshot || !rootSnapshot.outbound) {
     // For now, what's probably good enough is to just stop the walk if we have
     // no root snapshot making outbound references to any other edges.
-    return undefined;
+    return result;
   }
 
   // TODO: A better approach here might be to walk the outbound references from
@@ -110,7 +110,7 @@ export function _overlayParameterizedValues(
       }
 
       // Should we continue the walk?
-      if (edge) {
+      if (edge && child !== null) {
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
