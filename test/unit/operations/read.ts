@@ -325,6 +325,27 @@ describe(`operations.read`, () => {
 
       });
 
+      describe(`and a null container`, () => {
+
+        let snapshot: GraphSnapshot;
+        beforeAll(() => {
+          snapshot = write(config, empty, nestedQuery, {
+            one: {
+              two: null,
+            },
+          }).snapshot;
+        });
+
+        it(`returns the selected values, overlaid on the underlying data`, () => {
+          const { result } = read(config, nestedQuery, snapshot);
+          expect(result).to.deep.equal({
+            one: {
+              two: null,
+            },
+          });
+        });
+
+      });
     });
 
     describe(`with a value of []`, () => {
