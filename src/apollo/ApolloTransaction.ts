@@ -23,8 +23,8 @@ export class ApolloTransaction extends ApolloQueryable implements interfaces.Cac
     throw new Error(`removeOptimistic() is not allowed within a transaction`);
   }
 
-  performTransaction(transaction: interfaces.Cache.Transaction): void { // eslint-disable-line class-methods-use-this
-    throw new Error(`performTransaction() is not allowed within a transaction`);
+  performTransaction(transaction: interfaces.Cache.Transaction): void {
+    transaction(this);
   }
 
   recordOptimisticTransaction(transaction: interfaces.Cache.Transaction, id: string): void { // eslint-disable-line class-methods-use-this
