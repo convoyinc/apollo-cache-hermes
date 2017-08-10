@@ -140,7 +140,8 @@ export function _overlayParameterizedValues(
 }
 
 /**
- * Determines whether `result` satisfies the properties requested  `selection`.
+ * Determines whether `result` satisfies the properties requested by
+ * `selection`.
  */
 export function _visitSelection(
   query: Query,
