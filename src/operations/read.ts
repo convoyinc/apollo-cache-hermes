@@ -80,8 +80,7 @@ export function _overlayParameterizedValues(
   // each node, rather than walking the result set.  We'd have to store the path
   // on parameterized value nodes to make that happen.
 
-  // TODO: Switch back to Object.create() once we fix shit
-  const newResult = result ? { ...result } : {};
+  const newResult = _wrapValue(result);
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
   // schema.  Can we layer that on in such a way that we can support uses w/ and
   // w/o a schema compilation step?
@@ -114,10 +113,7 @@ export function _overlayParameterizedValues(
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
-            if (child[i] === undefined) {
-              child[i] = {};
-            }
-
+            child[i] = _wrapValue(child[i]);
             // Give our array children a chance to start a new path.
             const arrayChildId = config.entityIdForNode(child[i]) || childId;
             const newPath = arrayChildId ? [] : [...path, key, i];
@@ -125,8 +121,7 @@ export function _overlayParameterizedValues(
           }
 
         } else {
-          // TODO: Switch back to Object.create() once we fix shit
-          child = child ? { ...child } : {};
+          child = _wrapValue(child);
           const newPath = childId ? [] : [...path, key];
           queue.push(new OverlayWalkNode(child, childId || containerId, edge, newPath))
         }
@@ -139,9 +134,16 @@ export function _overlayParameterizedValues(
   return newResult;
 }
 
+function _wrapValue(value: any): any {
+  if (value === undefined) return {};
+  if (Array.isArray(value)) return [...value];
+  // TODO: Switch back to Object.create() once we fix shit
+  if (isObject(value)) return { ...value };
+  return value;
+}
+
 /**
- * Determines whether `result` satisfies the properties requested by
- * `selection`.
+ * Determines whether `result` satisfies the properties requested by `selection`.
  */
 export function _visitSelection(
   query: Query,
