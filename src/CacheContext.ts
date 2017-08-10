@@ -1,3 +1,6 @@
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+
+import { QueryInfo } from './context';
 import { EntityId } from './schema';
 import { isObject } from './util';
 
@@ -28,10 +31,23 @@ export namespace CacheContext {
  */
 export class CacheContext {
 
+  /** Retrieve the EntityId for a given node, if any. */
   readonly entityIdForNode: CacheContext.EntityIdForNode;
+  /** All currently known & processed GraphQL documents. */
+  private readonly _queryInfoMap = new Map<DocumentNode, QueryInfo>();
 
   constructor(context: CacheContext.Configuration = {}) {
     this.entityIdForNode = _makeEntityIdMapper(context.entityIdForNode);
+  }
+
+  /**
+   * Retrieves a memoized QueryInfo for a given GraphQL document.
+   */
+  queryInfo(document: DocumentNode): QueryInfo {
+    if (!this._queryInfoMap.has(document)) {
+      this._queryInfoMap.set(document, new QueryInfo(document));
+    }
+    return this._queryInfoMap.get(document) as QueryInfo;
   }
 
 }

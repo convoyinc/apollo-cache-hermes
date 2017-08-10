@@ -1,0 +1,1 @@
+export { QueryInfo } from './QueryInfo';
