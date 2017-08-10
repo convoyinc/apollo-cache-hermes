@@ -2,7 +2,7 @@ import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeSnapshot } from '../NodeSnapshot';
 import { PathPart } from '../primitive';
-import { NodeId, Query } from '../schema';
+import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   addNodeReference,
   addToSet,
@@ -89,11 +89,13 @@ export class SnapshotEditor {
    * the node identified by `rootId`.
    */
   mergePayload(query: Query, payload: object): void {
+    const parsed = this._context.parseQuery(query);
+
     // First, we walk the payload and apply all _scalar_ edits, while collecting
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
-    const referenceEdits = this._mergePayloadValues(query, payload);
+    const referenceEdits = this._mergePayloadValues(parsed, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -123,9 +125,9 @@ export class SnapshotEditor {
    * returned to be applied in a second pass (`_mergeReferenceEdits`), once we
    * can guarantee that all edited nodes have been built.
    */
-  private _mergePayloadValues(query: Query, fullPayload: object): ReferenceEdit[] {
+  private _mergePayloadValues(query: ParsedQuery, fullPayload: object): ReferenceEdit[] {
     const { entityIdForNode } = this._context;
-    const edgeMap = parameterizedEdgesForOperation(query.document);
+    const edgeMap = parameterizedEdgesForOperation(query.info.document);
 
     const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false, edges: edgeMap }] as MergeQueueItem[];
     const referenceEdits = [] as ReferenceEdit[];

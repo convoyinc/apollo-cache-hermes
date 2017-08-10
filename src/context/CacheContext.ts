@@ -1,6 +1,6 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
-import { EntityId } from '../schema';
+import { EntityId, ParsedQuery, Query } from '../schema';
 import { addTypenameToDocument, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
@@ -46,6 +46,17 @@ export class CacheContext {
   constructor(config: CacheContext.Configuration = {}) {
     this._addTypename = config.addTypename || false;
     this.entityIdForNode = _makeEntityIdMapper(config.entityIdForNode);
+  }
+
+  /**
+   * Parses a GraphQL query.
+   */
+  parseQuery(query: Query): ParsedQuery {
+    return {
+      rootId: query.rootId,
+      info: this.queryInfo(query.document),
+      variables: query.variables,
+    };
   }
 
   /**

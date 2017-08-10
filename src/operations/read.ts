@@ -30,11 +30,7 @@ export interface QueryResultWithNodeIds extends QueryResult {
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
-  const parsed: ParsedQuery = {
-    rootId: query.rootId,
-    info: context.queryInfo(query.document),
-    variables: query.variables,
-  };
+  const parsed = context.parseQuery(query);
 
   let result = snapshot.get(parsed.rootId);
 
