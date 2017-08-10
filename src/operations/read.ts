@@ -3,7 +3,7 @@ import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, Query } from '../schema';
+import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   expandEdgeArguments,
   isObject,
@@ -30,14 +30,20 @@ export interface QueryResultWithNodeIds extends QueryResult {
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
-  let result = snapshot.get(query.rootId);
+  const parsed: ParsedQuery = {
+    rootId: query.rootId,
+    info: context.queryInfo(query.document),
+    variables: query.variables,
+  };
 
-  const parameterizedEdges = parameterizedEdgesForOperation(query.document);
+  let result = snapshot.get(parsed.rootId);
+
+  const parameterizedEdges = parameterizedEdgesForOperation(parsed.info.document);
   if (parameterizedEdges) {
-    result = _overlayParameterizedValues(query, context, snapshot, parameterizedEdges, result);
+    result = _overlayParameterizedValues(parsed, context, snapshot, parameterizedEdges, result);
   }
 
-  const { complete, nodeIds } = _visitSelection(query, context, result, includeNodeIds);
+  const { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
 
   return { result, complete, nodeIds };
 }
@@ -60,7 +66,7 @@ class OverlayWalkNode {
  * contain them).
  */
 export function _overlayParameterizedValues(
-  query: Query,
+  query: ParsedQuery,
   context: CacheContext,
   snapshot: GraphSnapshot,
   edges: ParameterizedEdgeMap,
@@ -146,7 +152,7 @@ function _wrapValue(value: any): any {
  * Determines whether `result` satisfies the properties requested by `selection`.
  */
 export function _visitSelection(
-  query: Query,
+  query: ParsedQuery,
   context: CacheContext,
   result: any,
   includeNodeIds?: true,
@@ -161,7 +167,7 @@ export function _visitSelection(
   }
 
   // TODO: Memoize per query, and propagate through cache snapshots.
-  walkOperation(query.document, result, (value, fields) => {
+  walkOperation(query.info.document, result, (value, fields) => {
     if (value === undefined) {
       complete = false;
     }
