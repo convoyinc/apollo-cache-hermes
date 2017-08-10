@@ -1,7 +1,5 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
-import { addTypenameToDocument } from '../util';
-
 /**
  * Metadata about a GraphQL document (query/mutation/fragment/etc).
  *
@@ -14,7 +12,7 @@ export class QueryInfo {
   public readonly document: DocumentNode;
 
   constructor(document: DocumentNode) {
-    this.document = addTypenameToDocument(document);
+    this.document = document;
   }
 
 }

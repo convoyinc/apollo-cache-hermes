@@ -1,7 +1,7 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
 import { EntityId } from '../schema';
-import { isObject } from '../util';
+import { addTypenameToDocument, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
 
@@ -14,7 +14,10 @@ export namespace CacheContext {
    * Configuration for a Hermes cache.
    */
   export interface Configuration {
-     /**
+    /** Whether __typename should be injected into nodes in queries. */
+    addTypename?: true;
+
+    /**
      * Given a node, determines a _globally unique_ identifier for it to be used
      * by the cache.
      *
@@ -34,11 +37,15 @@ export class CacheContext {
 
   /** Retrieve the EntityId for a given node, if any. */
   readonly entityIdForNode: CacheContext.EntityIdForNode;
+
+  /** Whether __typename should be injected into nodes in queries. */
+  private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
   private readonly _queryInfoMap = new Map<DocumentNode, QueryInfo>();
 
-  constructor(context: CacheContext.Configuration = {}) {
-    this.entityIdForNode = _makeEntityIdMapper(context.entityIdForNode);
+  constructor(config: CacheContext.Configuration = {}) {
+    this._addTypename = config.addTypename || false;
+    this.entityIdForNode = _makeEntityIdMapper(config.entityIdForNode);
   }
 
   /**
@@ -46,6 +53,9 @@ export class CacheContext {
    */
   queryInfo(document: DocumentNode): QueryInfo {
     if (!this._queryInfoMap.has(document)) {
+      if (this._addTypename) {
+        document = addTypenameToDocument(document);
+      }
       this._queryInfoMap.set(document, new QueryInfo(document));
     }
     return this._queryInfoMap.get(document) as QueryInfo;
