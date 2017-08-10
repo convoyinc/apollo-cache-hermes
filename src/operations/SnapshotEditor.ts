@@ -128,7 +128,12 @@ export class SnapshotEditor {
     const { entityIdForNode } = this._context;
     const { parameterizedEdgeMap } = query.info;
 
-    const queue = [{ containerId: query.rootId, containerPayload: fullPayload, visitRoot: false, edges: parameterizedEdgeMap }] as MergeQueueItem[];
+    const queue = [{
+      containerId: query.rootId,
+      containerPayload: fullPayload,
+      visitRoot: false,
+      edges: parameterizedEdgeMap,
+    }] as MergeQueueItem[];
     const referenceEdits = [] as ReferenceEdit[];
 
     while (queue.length) {
