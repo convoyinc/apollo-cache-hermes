@@ -110,7 +110,7 @@ export function _overlayParameterizedValues(
       }
 
       // Should we continue the walk?
-      if (edge) {
+      if (edge && child !== null) {
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {

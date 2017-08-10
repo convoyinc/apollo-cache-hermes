@@ -329,6 +329,25 @@ describe(`operations.read`, () => {
 
         let snapshot: GraphSnapshot;
         beforeAll(() => {
+          snapshot = write(config, empty, nestedQuery, { one: null }).snapshot;
+        });
+
+        it(`returns the selected values, overlaid on the underlying data`, () => {
+          const { result } = read(config, nestedQuery, snapshot);
+          expect(result).to.deep.equal({ one: null });
+        });
+
+        it(`is marked complete`, () => {
+          const { complete } = read(config, nestedQuery, snapshot);
+          expect(complete).to.eq(true);
+        });
+
+      });
+
+      describe(`and a null root snapshot`, () => {
+
+        let snapshot: GraphSnapshot;
+        beforeAll(() => {
           snapshot = write(config, empty, nestedQuery, {
             one: {
               two: null,
@@ -345,7 +364,46 @@ describe(`operations.read`, () => {
           });
         });
 
+        it(`is marked complete`, () => {
+          const { complete } = read(config, nestedQuery, snapshot);
+          expect(complete).to.eq(true);
+        });
+
       });
+
+      describe(`and a null intermediate node`, () => {
+
+        let snapshot: GraphSnapshot;
+        beforeAll(() => {
+          snapshot = write(config, empty, nestedQuery, {
+            one: {
+              two: {
+                id: 1,
+                three: null,
+              },
+            },
+          }).snapshot;
+        });
+
+        it(`returns the selected values, overlaid on the underlying data`, () => {
+          const { result } = read(config, nestedQuery, snapshot);
+          expect(result).to.deep.equal({
+            one: {
+              two: {
+                id: 1,
+                three: null,
+              },
+            },
+          });
+        });
+
+        it(`is marked complete`, () => {
+          const { complete } = read(config, nestedQuery, snapshot);
+          expect(complete).to.eq(true);
+        });
+
+      });
+
     });
 
     describe(`with a value of []`, () => {
