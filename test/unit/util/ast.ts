@@ -1,10 +1,23 @@
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { ParameterizedEdge, VariableArgument, parameterizedEdgesForOperation } from '../../../src/util';
+import {
+  buildParameterizedEdgeMap,
+  fragmentMapForDocument,
+  getOperationOrDie,
+  ParameterizedEdge,
+  VariableArgument,
+} from '../../../src/util';
 
 describe(`util.ast`, () => {
 
-  describe(`parameterizedEdgesForSelection`, () => {
+  describe(`buildParameterizedEdgeMap`, () => {
+
+    function parameterizedEdgesForOperation(document: DocumentNode) {
+      const operation = getOperationOrDie(document);
+      const fragmentMap = fragmentMapForDocument(document);
+      return buildParameterizedEdgeMap(fragmentMap, operation.selectionSet);
+    }
 
     describe(`with no parameterized edges`, () => {
 

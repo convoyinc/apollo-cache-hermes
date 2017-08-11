@@ -1,6 +1,15 @@
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import {// eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+  DocumentNode,
+  OperationDefinitionNode,
+} from 'graphql';
 
-import { ParameterizedEdgeMap, parameterizedEdgesForOperation } from '../util';
+import {
+  FragmentMap,
+  ParameterizedEdgeMap,
+  buildParameterizedEdgeMap,
+  fragmentMapForDocument,
+  getOperationOrDie,
+} from '../util';
 
 /**
  * Metadata about a GraphQL document (query/mutation/fragment/etc).
@@ -12,12 +21,21 @@ export class QueryInfo {
 
   /** The original document (after __typename fields are injected). */
   public readonly document: DocumentNode;
+  /** The primary operation in the document. */
+  public readonly operation: OperationDefinitionNode;
+  /** The name of the operation. */
+  public readonly operationName?: string;
+  /** All fragments in the document, indexed by name. */
+  public readonly fragmentMap: FragmentMap;
   /** The edge map for the document, if there are any parameterized edges. */
   public readonly parameterizedEdgeMap?: ParameterizedEdgeMap;
 
   constructor(document: DocumentNode) {
     this.document = document;
-    this.parameterizedEdgeMap = parameterizedEdgesForOperation(document);
+    this.operation = getOperationOrDie(document);
+    this.operationName = this.operation.name && this.operation.name.value;
+    this.fragmentMap = fragmentMapForDocument(document);
+    this.parameterizedEdgeMap = buildParameterizedEdgeMap(this.fragmentMap, this.operation.selectionSet);
   }
 
 }
