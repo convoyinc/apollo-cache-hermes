@@ -748,6 +748,54 @@ describe(`operations.write`, () => {
 
     });
 
+    describe(`updating edges with an array of direct references`, () => {
+
+      let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($id: ID!) {
+          foo(id: $id, withExtra: true) {
+            id name extra
+          }
+        }`, { id: 1 });
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
+
+        const baselineResult = write(config, empty, parameterizedQuery, {
+          foo: [
+            { id: 1, name: 'Foo', extra: false },
+            { id: 2, name: 'Bar', extra: true },
+            { id: 3, name: 'Baz', extra: false },
+          ],
+        });
+        baseline = baselineResult.snapshot;
+
+        const result = write(config, baseline, parameterizedQuery, {
+          foo: [
+            { extra: true },
+            { extra: false },
+            { extra: true },
+          ],
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`writes nodes for each entity`, () => {
+        expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: true });
+        expect(snapshot.get('2')).to.deep.eq({ id: 2, name: 'Bar', extra: false });
+        expect(snapshot.get('3')).to.deep.eq({ id: 3, name: 'Baz', extra: true });
+      });
+
+      it(`writes an array for the parameterized node`, () => {
+        expect(snapshot.get(parameterizedId)).to.deep.eq([
+          { id: 1, name: 'Foo', extra: true },
+          { id: 2, name: 'Bar', extra: false },
+          { id: 3, name: 'Baz', extra: true },
+        ]);
+      });
+
+    });
+
     describe(`updating an edge with a direct reference`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
