@@ -30,17 +30,31 @@ export function read(context: CacheContext, query: Query, snapshot: GraphSnapsho
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
   const parsed = context.parseQuery(query);
+  let queryResult = snapshot.readCache.get(parsed) as Partial<QueryResultWithNodeIds>;
+  if (!queryResult) {
+    let result = snapshot.get(parsed.rootId);
 
-  let result = snapshot.get(parsed.rootId);
+    const { parameterizedEdgeMap } = parsed.info;
+    if (parameterizedEdgeMap) {
+      result = _overlayParameterizedValues(parsed, context, snapshot, parameterizedEdgeMap, result);
+    }
 
-  const { parameterizedEdgeMap } = parsed.info;
-  if (parameterizedEdgeMap) {
-    result = _overlayParameterizedValues(parsed, context, snapshot, parameterizedEdgeMap, result);
+    const { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
+
+    queryResult = { result, complete, nodeIds };
+    snapshot.readCache.set(parsed, queryResult as QueryResult);
   }
 
-  const { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
+  // We can potentially ask for results without node ids first, and then follow
+  // up with an ask for them.  In that case, we need to fill in the cache a bit
+  // more.
+  if (includeNodeIds && !queryResult.nodeIds) {
+    const { complete, nodeIds } = _visitSelection(parsed, context, queryResult.result, includeNodeIds);
+    queryResult.complete = complete;
+    queryResult.nodeIds = nodeIds;
+  }
 
-  return { result, complete, nodeIds };
+  return queryResult;
 }
 
 class OverlayWalkNode {

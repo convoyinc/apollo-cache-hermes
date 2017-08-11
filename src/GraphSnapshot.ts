@@ -1,13 +1,19 @@
 import { NodeSnapshot } from './NodeSnapshot';
-import { NodeId } from './schema';
+import { QueryResult, QueryResultWithNodeIds } from './operations/read';
+import { NodeId, ParsedQuery } from './schema';
 
 /**
  * Maintains an identity map of all value snapshots that reference into a
  * particular version of the graph.
  *
  * Provides an immutable view into the graph at a point in time.
+ *
+ * Also provides a place to hang per-snapshot caches off of.
  */
 export class GraphSnapshot {
+
+  /** Cached results for queries. */
+  public readonly readCache = new Map<ParsedQuery, QueryResult | QueryResultWithNodeIds>();
 
   /**
    * @internal
