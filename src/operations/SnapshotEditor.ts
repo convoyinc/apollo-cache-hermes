@@ -373,7 +373,9 @@ export class SnapshotEditor {
       newSnapshot = new NodeSnapshot();
     } else {
       const parent = this._parent.getSnapshot(id);
-      const value = parent ? { ...parent.node } : initialValue;
+      const value = parent
+        ? Array.isArray(parent.node) ? [...parent.node] : { ...parent.node }
+        : initialValue;
       const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
       const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
 
