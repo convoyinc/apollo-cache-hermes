@@ -14,7 +14,6 @@
   ],
   "files": [
     "**/*.md",
-    "scripts/",
     "src/",
     "tsconfig.json"
   ],
@@ -26,7 +25,6 @@
     "dev": "./scripts/dev.sh",
     "fix:style": "./scripts/fix:style.sh",
     "greenkeeper:lockfile": "./scripts/greenkeeper:lockfile.sh",
-    "postinstall": "node ./scripts/postinstall.js",
     "release": "./scripts/release.sh",
     "test": "./scripts/test.sh",
     "test:compile": "./scripts/test:compile.sh",
