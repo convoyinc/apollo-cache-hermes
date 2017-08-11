@@ -1,4 +1,5 @@
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { DocumentNode, Location } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import lodashIsEqual = require('lodash.isequal');
 
 import { EntityId, ParsedQuery, Query } from '../schema';
 import { addTypenameToDocument, isObject } from '../util';
@@ -41,7 +42,9 @@ export class CacheContext {
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
-  private readonly _queryInfoMap = new Map<DocumentNode, QueryInfo>();
+  private readonly _queryInfoMap = new Map<string, QueryInfo>();
+  /** All currently known & parsed queries, for identity mapping. */
+  private readonly _parsedQueriesMap = new Map<string, ParsedQuery[]>();
 
   constructor(config: CacheContext.Configuration = {}) {
     this._addTypename = config.addTypename || false;
@@ -49,27 +52,52 @@ export class CacheContext {
   }
 
   /**
-   * Parses a GraphQL query.
+   * Returns a memoized & parsed query.
+   *
+   * To aid in various cache lookups, the result is memoized by all of its
+   * values, and can be used as an identity for a specific query.
    */
   parseQuery(query: Query): ParsedQuery {
-    return {
+    // It appears like Apollo or someone upstream is cloning or otherwise
+    // modifying the queries that are passed down.  Thus, the query source is a
+    // more reliable cache key…
+    const cacheKey = queryCacheKey(query.document);
+    let parsedQueries = this._parsedQueriesMap.get(cacheKey);
+    if (!parsedQueries) {
+      parsedQueries = [];
+      this._parsedQueriesMap.set(cacheKey, []);
+    }
+
+    // Do we already have a copy of this guy?
+    for (const parsedQuery of parsedQueries) {
+      if (parsedQuery.rootId !== query.rootId) continue;
+      if (!lodashIsEqual(parsedQuery.variables, query.variables)) continue;
+      return parsedQuery;
+    }
+
+    // New query.
+    const parsedQuery = {
       rootId: query.rootId,
       info: this.queryInfo(query.document),
       variables: query.variables,
     };
+    parsedQueries.push(parsedQuery);
+
+    return parsedQuery;
   }
 
   /**
    * Retrieves a memoized QueryInfo for a given GraphQL document.
    */
   queryInfo(document: DocumentNode): QueryInfo {
-    if (!this._queryInfoMap.has(document)) {
+    const cacheKey = queryCacheKey(document);
+    if (!this._queryInfoMap.has(cacheKey)) {
       if (this._addTypename) {
         document = addTypenameToDocument(document);
       }
-      this._queryInfoMap.set(document, new QueryInfo(document));
+      this._queryInfoMap.set(cacheKey, new QueryInfo(document));
     }
-    return this._queryInfoMap.get(document) as QueryInfo;
+    return this._queryInfoMap.get(cacheKey) as QueryInfo;
   }
 
 }
@@ -95,4 +123,8 @@ export function _makeEntityIdMapper(
 
 export function defaultEntityIdMapper(node: any) {
   return node.id;
+}
+
+export function queryCacheKey(document: DocumentNode) {
+  return (document.loc as Location).source.body;
 }
