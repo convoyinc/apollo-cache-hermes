@@ -85,21 +85,10 @@ export class ParameterizedEdge {
 
 /**
  * Walks a selection set, identifying the path to all parameterized edges.
- */
-export function parameterizedEdgesForOperation(document: DocumentNode): ParameterizedEdgeMap | undefined {
-  // TODO: Memoize.
-
-  const operation = getOperationOrDie(document);
-  const fragments = fragmentMapForDocument(document);
-  return _buildParameterizedEdgeMap(fragments, operation.selectionSet);
-}
-
-/**
- * Recursively builds an edge map.
  *
  * TODO: Support for directives (maybe?).
  */
-function _buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): ParameterizedEdgeMap | undefined {
+export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): ParameterizedEdgeMap | undefined {
   if (!selectionSet) return undefined;
 
   let edgeMap;
@@ -110,14 +99,14 @@ function _buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: Selec
     // Parameterized edge.
     if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
       const args = _buildParameterizedEdgeArgs(selection as any);
-      const children = _buildParameterizedEdgeMap(fragments, selection.selectionSet);
+      const children = buildParameterizedEdgeMap(fragments, selection.selectionSet);
 
       key = selection.name.value;
       value = new ParameterizedEdge(args, children);
 
     // We need to walk any simple fields that have selection sets of their own.
     } else if (selection.kind === 'Field' && selection.selectionSet) {
-      value = _buildParameterizedEdgeMap(fragments, selection.selectionSet);
+      value = buildParameterizedEdgeMap(fragments, selection.selectionSet);
       if (value) {
         key = selection.name.value;
       }
@@ -129,7 +118,7 @@ function _buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: Selec
         throw new Error(`Expected fragment ${selection.name.value} to exist in GraphQL document`);
       }
       // TODO: Memoize.
-      const fragmentEdges = _buildParameterizedEdgeMap(fragments, fragment.selectionSet);
+      const fragmentEdges = buildParameterizedEdgeMap(fragments, fragment.selectionSet);
       if (fragmentEdges) {
         edgeMap = { ...edgeMap, ...fragmentEdges };
       }
