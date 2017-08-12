@@ -1,8 +1,8 @@
-import { ParameterizedEdge, VariableArgument } from '../../../src/util';
 import { DocumentNode, NameNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
 import { QueryInfo } from '../../../src/context/QueryInfo';
+import { ParameterizedEdge, VariableArgument } from '../../../src/util';
 
 describe(`context.QueryInfo`, () => {
 

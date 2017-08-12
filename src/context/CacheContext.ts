@@ -108,8 +108,6 @@ export class CacheContext {
 export function _makeEntityIdMapper(
   mapper: CacheContext.EntityIdMapper = defaultEntityIdMapper,
 ): CacheContext.EntityIdForNode {
-  if (!mapper) return defaultEntityIdMapper;
-
   return function entityIdForNode(node: any) {
     if (!isObject(node)) return undefined;
 
