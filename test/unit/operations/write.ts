@@ -1254,6 +1254,102 @@ describe(`operations.write`, () => {
 
     });
 
+    describe(`cyclic references in payloads`, () => {
+
+      let cyclicQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+      beforeAll(() => {
+        cyclicQuery = query(`{
+          foo {
+            id
+            name
+            bar {
+              id
+              name
+              foo { id }
+            }
+          }
+          baz
+        }`);
+
+        const foo = { id: 1, name: 'Foo', bar: null as any };
+        const bar = { id: 2, name: 'Bar', foo };
+        foo.bar = bar;
+
+        const result = write(config, empty, cyclicQuery, { foo, baz: null });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`can construct a graph from a cyclic payload`, () => {
+        const root = snapshot.get(QueryRootId);
+        const foo = snapshot.get('1');
+        const bar = snapshot.get('2');
+        expect(root.foo).to.eq(foo);
+        expect(foo.bar).to.eq(bar);
+        expect(bar.foo).to.eq(foo);
+      });
+
+      it(`can update cyclic graphs with payloads built from the graph`, () => {
+        // A common case is to update an existing graph by shallow cloning it.
+        const root = snapshot.get(QueryRootId);
+
+        const result = write(config, snapshot, cyclicQuery, { ...root, baz: 'hello' });
+        expect(result.snapshot.get(QueryRootId).baz).to.eq('hello');
+      });
+
+    });
+
+    describe.skip(`cyclic values in payloads`, () => {
+
+      let cyclicQuery: Query, snapshot: GraphSnapshot;
+      // Jest ALWAYS runs beforeAll…
+      /*
+      beforeAll(() => {
+        cyclicQuery = query(`{
+          foo {
+            name
+            bar {
+              name
+              foo { name }
+            }
+          }
+          baz
+        }`);
+
+        const foo = { name: 'Foo', bar: null as any };
+        const bar = { name: 'Bar', foo };
+        foo.bar = bar;
+
+        const result = write(config, empty, cyclicQuery, { foo, baz: null });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+      */
+
+      it(`can construct a graph from a cyclic payload`, () => {
+        // Note that we explicitly DO NOT construct graph cycles for
+        // non-references!
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          foo: {
+            name: 'Foo',
+            bar: {
+              name: 'Bar',
+              foo: { name: 'Foo' },
+            },
+          },
+        });
+      });
+
+      it(`can update cyclic graphs with payloads built from the graph`, () => {
+        // A common case is to update an existing graph by shallow cloning it.
+        const root = snapshot.get(QueryRootId);
+
+        const result = write(config, snapshot, cyclicQuery, { ...root, baz: 'hello' });
+        expect(result.snapshot.get(QueryRootId).baz).to.eq('hello');
+      });
+
+    });
+
   });
 
 });

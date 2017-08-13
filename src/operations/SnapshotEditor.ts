@@ -135,14 +135,36 @@ export class SnapshotEditor {
       edges: parameterizedEdgeMap,
     }] as MergeQueueItem[];
     const referenceEdits = [] as ReferenceEdit[];
+    // We have to be careful to break cycles; it's ok for a caller to give us a
+    // cyclic payload.
+    const visitedNodes = new Set<any>();
 
     while (queue.length) {
       const { containerId, containerPayload, visitRoot, edges } = queue.pop() as MergeQueueItem;
       const container = this.get(containerId);
+      // Break cycles in referenced nodes from the payload.
+      if (!visitRoot) {
+        if (visitedNodes.has(containerPayload)) continue;
+        visitedNodes.add(containerPayload);
+      }
+      // Similarly, we need to be careful to break cycles _within_ a node.
+      const visitedPayloadValues = new Set<any>();
 
       walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
-        let nextNodeId = isObject(payloadValue) ? entityIdForNode(payloadValue) : undefined;
+        const payloadIsObject = isObject(payloadValue);
+        let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
         const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
+        const isReference = nextNodeId || prevNodeId;
+        // TODO: Rather than failing on cycles in payload values, we should
+        // follow the query's selection set to know how deep to walk.
+        if (payloadIsObject && !isReference) {
+          // Don't re-visit payload values (e.g. cycles).
+          if (visitedPayloadValues.has(payloadValue)) {
+            const metadata = `Cycle encountered at ${JSON.stringify(path)} of node ${containerId}`;
+            throw new Error(`Cycles within non-entity values are not supported.  ${metadata}`);
+          }
+          visitedPayloadValues.add(payloadValue);
+        }
 
         if (parameterizedEdge instanceof ParameterizedEdge) {
           // swap in any variables.
