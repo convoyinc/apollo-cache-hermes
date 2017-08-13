@@ -12,9 +12,9 @@
   version "4.0.1"
   resolved "https://registry.npmjs.org/@types/chai/-/chai-4.0.1.tgz#37fea779617cfec3fd2b19a0247e8bbdd5133bf6"
 
-"@types/graphql@^0.10.0":
-  version "0.10.1"
-  resolved "https://registry.npmjs.org/@types/graphql/-/graphql-0.10.1.tgz#3944e528bb3232e09cddb5364d75aba6342d068c"
+"@types/graphql@^0.10.2":
+  version "0.10.2"
+  resolved "https://registry.npmjs.org/@types/graphql/-/graphql-0.10.2.tgz#d7c79acbaa17453b6681c80c34b38fcb10c4c08c"
 
 "@types/lodash.clonedeep@^4.5.3":
   version "4.5.3"
