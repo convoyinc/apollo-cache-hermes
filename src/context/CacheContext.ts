@@ -65,7 +65,7 @@ export class CacheContext {
     let parsedQueries = this._parsedQueriesMap.get(cacheKey);
     if (!parsedQueries) {
       parsedQueries = [];
-      this._parsedQueriesMap.set(cacheKey, []);
+      this._parsedQueriesMap.set(cacheKey, parsedQueries);
     }
 
     // Do we already have a copy of this guy?
