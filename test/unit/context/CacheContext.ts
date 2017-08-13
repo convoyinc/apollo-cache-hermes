@@ -151,7 +151,10 @@ describe(`context.CacheContext`, () => {
         rootId: 'abc',
         document: gql`
           query stuff {
-            foo { ...fullFoo }
+            foo {
+              __typename
+              ...fullFoo
+            }
           }
 
           fragment fullFoo on Foo {
