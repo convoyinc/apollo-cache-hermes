@@ -753,9 +753,9 @@ eslint-plugin-import@nevir/eslint-plugin-import#randallreedjr-import-sort-order:
     minimatch "^3.0.3"
     read-pkg-up "^2.0.0"
 
-eslint-plugin-typescript@0.5.0:
+eslint-plugin-typescript@^0.5.0:
   version "0.5.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-typescript/-/eslint-plugin-typescript-0.5.0.tgz#d6c5b35e748d2901e89aebf21731974d652f166e"
+  resolved "https://registry.npmjs.org/eslint-plugin-typescript/-/eslint-plugin-typescript-0.5.0.tgz#d6c5b35e748d2901e89aebf21731974d652f166e"
   dependencies:
     requireindex "~1.1.0"
 

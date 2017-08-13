@@ -33,9 +33,9 @@ rules:
   for-direction: error
   getter-return: error
   no-prototype-builtins: error
+  no-unused-vars: off # Superceded by typescript/no-unused-vars
   # Until https://github.com/eslint/typescript-eslint-parser/issues/77
   no-undef: off
-  no-unused-vars: off
 
   # Best Practices
 
@@ -180,3 +180,13 @@ rules:
     newlines-between: always,
     sort: alphabetical,
   }]
+
+  # https://github.com/nzakas/eslint-plugin-typescript#supported-rules
+
+  # TODO: It throws for us.  Build a repro case.
+  # typescript/adjacent-overload-signatures: error
+  typescript/no-angle-bracket-type-assertion: error
+  typescript/no-triple-slash-reference: error
+  typescript/no-unused-vars: error
+  # Until https://github.com/nzakas/eslint-plugin-typescript/issues/42
+  # typescript/type-annotation-spacing: error
