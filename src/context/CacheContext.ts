@@ -65,7 +65,7 @@ export class CacheContext {
     let parsedQueries = this._parsedQueriesMap.get(cacheKey);
     if (!parsedQueries) {
       parsedQueries = [];
-      this._parsedQueriesMap.set(cacheKey, []);
+      this._parsedQueriesMap.set(cacheKey, parsedQueries);
     }
 
     // Do we already have a copy of this guy?
@@ -78,7 +78,7 @@ export class CacheContext {
     // New query.
     const parsedQuery = {
       rootId: query.rootId,
-      info: this.queryInfo(query.document),
+      info: this._queryInfo(query.document),
       variables: query.variables,
     };
     parsedQueries.push(parsedQuery);
@@ -89,7 +89,7 @@ export class CacheContext {
   /**
    * Retrieves a memoized QueryInfo for a given GraphQL document.
    */
-  queryInfo(document: DocumentNode): QueryInfo {
+  private _queryInfo(document: DocumentNode): QueryInfo {
     const cacheKey = queryCacheKey(document);
     if (!this._queryInfoMap.has(cacheKey)) {
       if (this._addTypename) {
@@ -108,8 +108,6 @@ export class CacheContext {
 export function _makeEntityIdMapper(
   mapper: CacheContext.EntityIdMapper = defaultEntityIdMapper,
 ): CacheContext.EntityIdForNode {
-  if (!mapper) return defaultEntityIdMapper;
-
   return function entityIdForNode(node: any) {
     if (!isObject(node)) return undefined;
 

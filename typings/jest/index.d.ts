@@ -58,6 +58,8 @@ declare namespace jest {
   /** Creates a mock function. Optionally takes a mock implementation. */
   function callback<T extends {}>(implementation: (...args: any[]) => T): Mock<T>;
   function callback<T>(implementation?: Function): Mock<T>;
+  /** Generate a mock function. */
+  function fn<T = any>(): Mock<T>;
   /** Use the automatic mocking system to generate a mocked version of the given module. */
   function genMockFromModule<T>(moduleName: string): T;
   /** Returns whether the given function is a mock function. */
