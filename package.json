@@ -57,7 +57,7 @@
     "typescript-eslint-parser": "^5.0.1"
   },
   "dependencies": {
-    "@types/graphql": "^0.10.0",
+    "@types/graphql": "^0.10.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.get": "^4.4.2",
     "lodash.isequal": "^4.5.0",
