@@ -1352,4 +1352,68 @@ describe(`operations.write`, () => {
 
   });
 
+  describe(`custom types with object values`, () => {
+
+    describe(`an empty object value`, () => {
+
+      let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+      beforeAll(() => {
+        const result = write(config, empty, rootValuesQuery, {
+          foo: {},
+          bar: [],
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`stores the values`, () => {
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          foo: {},
+          bar: [],
+        });
+      });
+
+      it(`marks the container as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+      });
+
+    });
+
+    describe(`custom value with id fields in it`, () => {
+
+      let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+      beforeAll(() => {
+        const result = write(config, empty, rootValuesQuery, {
+          foo: { id: 1 },
+          bar: {
+            baz: { id: 1 },
+          },
+        });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`stores the values`, () => {
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          foo: { id: 1 },
+          bar: {
+            baz: { id: 1 },
+          },
+        });
+      });
+
+      // TODO: We need to walk the selection set when writing, too!
+      it.skip(`does not normalize the values of the custom type`, () => {
+        expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+      });
+
+      // TODO: We need to walk the selection set when writing, too!
+      it.skip(`marks the container as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+      });
+
+    });
+
+  });
+
 });
