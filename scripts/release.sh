@@ -26,8 +26,6 @@ VERSION_TEMPLATE=$(node -p "JSON.parse(fs.readFileSync('package.json')).version"
 CLOSEST_VERSION=$(git describe --abbrev=0 --tags)
 TEMPLATE_PARTS=($(parse_version "${VERSION_TEMPLATE}"))
 CLOSEST_PARTS=($(parse_version "${CLOSEST_VERSION}"))
-echo "template: ${TEMPLATE_PARTS[@]}"
-echo "closest: ${CLOSEST_PARTS[@]}"
 
 X="${TEMPLATE_PARTS[0]}"
 Y="${TEMPLATE_PARTS[1]}"
