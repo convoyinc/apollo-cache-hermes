@@ -152,8 +152,9 @@ export class SnapshotEditor {
 
       walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
         const payloadIsObject = isObject(payloadValue);
+        const nodeIsObject = isObject(nodeValue);
         let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
-        const prevNodeId = isObject(nodeValue) ? entityIdForNode(nodeValue) : undefined;
+        const prevNodeId = nodeIsObject ? entityIdForNode(nodeValue) : undefined;
         const isReference = nextNodeId || prevNodeId;
         // TODO: Rather than failing on cycles in payload values, we should
         // follow the query's selection set to know how deep to walk.
@@ -237,6 +238,12 @@ export class SnapshotEditor {
 
         // All else we care about are updated scalar values.
         } else if (isScalar(payloadValue) && payloadValue !== nodeValue) {
+          this._setValue(containerId, path, payloadValue);
+
+        // TODO: Rather than detecting empty objects directly (which should
+        // never occur for GraphQL results, and only for custom types), we
+        // should be walking the selection set of the query.
+        } else if (payloadIsObject && !Object.keys(payloadValue).length && (!nodeIsObject || Object.keys(payloadValue).length)) {
           this._setValue(containerId, path, payloadValue);
         }
 
