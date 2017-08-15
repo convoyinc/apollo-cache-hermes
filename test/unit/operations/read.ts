@@ -402,6 +402,39 @@ describe(`operations.read`, () => {
 
     });
 
+    describe(`directly nested reference edges`, () => {
+
+      const nestedQuery = query(`query nested($id: ID!) {
+        one(id: $id) {
+          id
+          two(extra: true) {
+            id
+          }
+        }
+      }`, { id: 1 });
+
+      let snapshot: GraphSnapshot;
+      beforeAll(() => {
+        snapshot = write(context, empty, nestedQuery, {
+          one: {
+            id: 1,
+            two: { id: 2 },
+          },
+        }).snapshot;
+      });
+
+      it(`returns the selected values, overlaid on the underlying data`, () => {
+        const { result } = read(context, nestedQuery, snapshot);
+        expect(result).to.deep.equal({
+          one: {
+            id: 1,
+            two: { id: 2 },
+          },
+        });
+      });
+
+    });
+
     describe(`with a value of []`, () => {
 
       let snapshot: GraphSnapshot;

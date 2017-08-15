@@ -102,7 +102,14 @@ export function _overlayParameterizedValues(
   const queue = [new OverlayWalkNode(newResult, query.rootId, edges, [])];
 
   while (queue.length) {
-    const { value, containerId, edgeMap, path } = queue.pop() as OverlayWalkNode;
+    const walkNode = queue.pop() as OverlayWalkNode;
+    const { value, edgeMap } = walkNode;
+    let { containerId, path } = walkNode;
+    const valueId = context.entityIdForNode(value);
+    if (valueId) {
+      containerId = valueId;
+      path = [];
+    }
 
     for (const key in edgeMap) {
       let edge = edgeMap[key] as any;
@@ -120,7 +127,6 @@ export function _overlayParameterizedValues(
         }
       } else {
         child = value[key];
-        childId = context.entityIdForNode(child);
       }
 
       // Should we continue the walk?
@@ -129,16 +135,12 @@ export function _overlayParameterizedValues(
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
             child[i] = _wrapValue(child[i]);
-            // Give our array children a chance to start a new path.
-            const arrayChildId = context.entityIdForNode(child[i]) || childId;
-            const newPath = arrayChildId ? [] : [...path, key, i];
-            queue.push(new OverlayWalkNode(child[i], arrayChildId || containerId, edge, newPath));
+            queue.push(new OverlayWalkNode(child[i], containerId, edge, [...path, key, i]));
           }
 
         } else {
           child = _wrapValue(child);
-          const newPath = childId ? [] : [...path, key];
-          queue.push(new OverlayWalkNode(child, childId || containerId, edge, newPath))
+          queue.push(new OverlayWalkNode(child, containerId, edge, [...path, key]))
         }
       }
 
