@@ -20,7 +20,7 @@ export class GraphSnapshot {
    */
   constructor(
     // TODO: Profile Object.create(null) vs Map.
-    private _values = Object.create(null) as { [Key in NodeId]: NodeSnapshot },
+    public _values: { [Key in NodeId]: NodeSnapshot; } = Object.create(null),
   ) {}
 
   /**
