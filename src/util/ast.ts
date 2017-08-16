@@ -141,6 +141,7 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
 function _buildParameterizedEdgeArgs(field: FieldNode & { arguments: ArgumentNode[] }) {
   const args = {};
   for (const arg of field.arguments) {
+    // Mapped name of argument to it JS value
     args[arg.name.value] = _valueFromNode(arg.value);
   }
 
@@ -181,7 +182,7 @@ export function expandEdgeArguments(edge: ParameterizedEdge, variables: object =
   for (const key in edge.args) {
     let arg = edge.args[key];
     if (arg instanceof VariableArgument) {
-      if (!(arg.name in variables)) {
+      if (!(variables.hasOwnProperty(arg.name))) {
         // TODO: Detect optional variables?
         throw new Error(`Expected variable $${arg.name} to exist for query`);
       }
