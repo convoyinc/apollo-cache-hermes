@@ -12,7 +12,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 
 import { PathPart } from '../primitive';
 
-import { ParameterizedEdge, ParameterizedEdgeMap, fragmentMapForDocument, getOperationOrDie } from './ast';
+import { Edge, EdgeMap, fragmentMapForDocument, getOperationOrDie } from './ast';
 
 /**
  * Represents a node (of all values at the same location in their trees), used
@@ -25,7 +25,7 @@ class PayloadWalkNode {
     /** The value of the current node at this location in the walk. */
     public readonly node: any,
     /** The value of the edge map at this location in the walk. */
-    public readonly edgeMap: ParameterizedEdgeMap | ParameterizedEdge | undefined,
+    public readonly edgeMap: EdgeMap | Edge | undefined,
     /** The depth of the node (allows us to set the path correctly). */
     public readonly depth: number,
     /** The key/index of this node, relative to its parent. */
@@ -41,7 +41,7 @@ export type PayloadVisitor = (
   path: PathPart[],
   payloadValue: any,
   nodeValue: any,
-  parameterizedEdge: ParameterizedEdge | ParameterizedEdgeMap | undefined,
+  parameterizedEdge: Edge | EdgeMap | undefined
 ) => boolean;
 
 /**
@@ -60,7 +60,7 @@ export type PayloadVisitor = (
 export function walkPayload(
   payload: any,
   node: any,
-  edgeMap: ParameterizedEdge | ParameterizedEdgeMap | undefined,
+  edgeMap: Edge | EdgeMap | undefined,
   visitRoot: boolean,
   visitor: PayloadVisitor,
 ) {

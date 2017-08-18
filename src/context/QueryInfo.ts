@@ -5,8 +5,8 @@ import {// eslint-disable-line import/no-extraneous-dependencies, import/no-unre
 
 import {
   FragmentMap,
-  ParameterizedEdgeMap,
-  buildParameterizedEdgeMap,
+  EdgeMap,
+  buildEdgeMap,
   fragmentMapForDocument,
   getOperationOrDie,
 } from '../util';
@@ -28,14 +28,14 @@ export class QueryInfo {
   /** All fragments in the document, indexed by name. */
   public readonly fragmentMap: FragmentMap;
   /** The edge map for the document, if there are any parameterized edges. */
-  public readonly parameterizedEdgeMap?: ParameterizedEdgeMap;
+  public readonly parameterizedEdgeMap?: EdgeMap;
 
   constructor(document: DocumentNode) {
     this.document = document;
     this.operation = getOperationOrDie(document);
     this.operationName = this.operation.name && this.operation.name.value;
     this.fragmentMap = fragmentMapForDocument(document);
-    this.parameterizedEdgeMap = buildParameterizedEdgeMap(this.fragmentMap, this.operation.selectionSet);
+    this.parameterizedEdgeMap = buildEdgeMap(this.fragmentMap, this.operation.selectionSet);
   }
 
 }

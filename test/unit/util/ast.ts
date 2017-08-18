@@ -2,32 +2,32 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import gql from 'graphql-tag';
 
 import {
-  buildParameterizedEdgeMap,
+  buildEdgeMap,
   fragmentMapForDocument,
   getOperationOrDie,
-  ParameterizedEdge,
+  Edge,
   VariableArgument,
 } from '../../../src/util';
 
 describe(`util.ast`, () => {
 
-  describe(`buildParameterizedEdgeMap`, () => {
+  describe(`buildEdgeMap`, () => {
 
-    function parameterizedEdgesForOperation(document: DocumentNode) {
+    function buildEdgeMapForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
       const fragmentMap = fragmentMapForDocument(document);
-      return buildParameterizedEdgeMap(fragmentMap, operation.selectionSet);
+      return buildEdgeMap(fragmentMap, operation.selectionSet);
     }
 
     describe(`with no parameterized edges`, () => {
 
       it(`returns undefined for selections sets with no parameterized edges`, () => {
-        const map = parameterizedEdgesForOperation(gql`{ foo bar }`);
+        const map = buildEdgeMapForOperation(gql`{ foo bar }`);
         expect(map).to.eq(undefined);
       });
 
       it(`handles fragments without parameterized edges`, () => {
-        const map = parameterizedEdgesForOperation(gql`
+        const map = buildEdgeMapForOperation(gql`
           query foo { ...bar }
 
           fragment bar on Foo {
@@ -44,22 +44,33 @@ describe(`util.ast`, () => {
     describe(`with static arguments`, () => {
 
       it(`parses top level edges`, () => {
-        const map = parameterizedEdgesForOperation(gql`{ foo(id:123) { a b } }`);
+        const map = buildEdgeMapForOperation(gql`{ 
+            foo(id:123) {
+              a b
+            }
+          }`);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({ id: 123 }),
+          foo: new Edge({ id: 123 }),
         });
       });
 
       it(`parses queries with sibling edges`, () => {
-        const map = parameterizedEdgesForOperation(gql`{ foo(id: 123) { a b } bar(id: "asdf") { a b } }`);
+        const map = buildEdgeMapForOperation(gql`{
+          foo(id: 123) {
+            a b
+          }
+          bar(id: "asdf") {
+            a b
+          }
+        }`);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({ id: 123 }),
-          bar: new ParameterizedEdge({ id: 'asdf' }),
+          foo: new Edge({ id: 123 }),
+          bar: new Edge({ id: 'asdf' }),
         });
       });
 
       it(`handles nested edges`, () => {
-        const map = parameterizedEdgesForOperation(gql`{
+        const map = buildEdgeMapForOperation(gql`{
           foo(id: 123) {
             bar(asdf: "fdsa") {
               baz(one: true, two: null) { a b c }
@@ -67,16 +78,16 @@ describe(`util.ast`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({ id: 123 }, {
-            bar: new ParameterizedEdge({ asdf: 'fdsa' }, {
-              baz: new ParameterizedEdge({ one: true, two: null }),
+          foo: new Edge({ id: 123 }, {
+            bar: new Edge({ asdf: 'fdsa' }, {
+              baz: new Edge({ one: true, two: null }),
             }),
           }),
         });
       });
 
       it(`properly constructs deeply nested paths`, () => {
-        const map = parameterizedEdgesForOperation(gql`{
+        const map = buildEdgeMapForOperation(gql`{
           foo {
             fizz {
               buzz {
@@ -89,7 +100,7 @@ describe(`util.ast`, () => {
           foo: {
             fizz: {
               buzz: {
-                moo: new ParameterizedEdge({ val: 1.234 }),
+                moo: new Edge({ val: 1.234 }),
               },
             },
           },
@@ -97,7 +108,7 @@ describe(`util.ast`, () => {
       });
 
       it(`handles edges declared via fragment spreads`, () => {
-        const map = parameterizedEdgesForOperation(gql`
+        const map = buildEdgeMapForOperation(gql`
           fragment bar on Foo {
             stuff { ...things }
           }
@@ -111,13 +122,13 @@ describe(`util.ast`, () => {
 
         expect(map).to.deep.eq({
           stuff: {
-            things: new ParameterizedEdge({ count: 5 }),
+            things: new Edge({ count: 5 }),
           },
         });
       });
 
       it(`supports all types of variables`, () => {
-        const map = parameterizedEdgesForOperation(gql`
+        const map = buildEdgeMapForOperation(gql`
           query typetastic($variable: Custom) {
             foo(
               variable: $variable,
@@ -138,7 +149,7 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({
+          foo: new Edge({
             variable: new VariableArgument('variable'),
             null: null,
             int: 123,
@@ -162,26 +173,26 @@ describe(`util.ast`, () => {
     describe(`with variables`, () => {
 
       it(`creates placeholder args for variables`, () => {
-        const map = parameterizedEdgesForOperation(gql`
+        const map = buildEdgeMapForOperation(gql`
           query get($id: ID!) {
             foo(id: $id) { a b c }
           }
         `);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({
+          foo: new Edge({
             id: new VariableArgument('id'),
           }),
         });
       });
 
       it(`handles a mix of variables and static values`, () => {
-        const map = parameterizedEdgesForOperation(gql`
+        const map = buildEdgeMapForOperation(gql`
           query get($id: ID!, $val: String) {
             foo(id: $id, foo: "asdf", bar: $id, baz: $val) { a b c }
           }
         `);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({
+          foo: new Edge({
             id: new VariableArgument('id'),
             foo: 'asdf',
             bar: new VariableArgument('id'),

@@ -7,8 +7,8 @@ import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   expandEdgeArguments,
   isObject,
-  ParameterizedEdge,
-  ParameterizedEdgeMap,
+  Edge,
+  EdgeMap,
 } from '../util';
 
 export interface QueryResult {
@@ -61,7 +61,7 @@ class OverlayWalkNode {
   constructor(
     public readonly value: any,
     public readonly containerId: NodeId,
-    public readonly edgeMap: ParameterizedEdgeMap,
+    public readonly edgeMap: EdgeMap,
     public readonly path: PathPart[],
   ) {}
 }
@@ -78,7 +78,7 @@ export function _overlayParameterizedValues(
   query: ParsedQuery,
   context: CacheContext,
   snapshot: GraphSnapshot,
-  edges: ParameterizedEdgeMap,
+  edges: EdgeMap,
   result: any,
 ): any {
   // Corner case: We stop walking once we reach a parameterized edge with no
@@ -114,8 +114,9 @@ export function _overlayParameterizedValues(
     for (const key in edgeMap) {
       let edge = edgeMap[key] as any;
       let child, childId;
-      if (edge instanceof ParameterizedEdge) {
-        const args = expandEdgeArguments(edge, query.variables);
+      if (edge instanceof Edge) {
+        const args = edge.parameterizedArguments ?
+          expandEdgeArguments(edge.parameterizedArguments, query.variables) : {};
         childId = nodeIdForParameterizedValue(containerId, [...path, key], args);
         const childSnapshot = snapshot.getSnapshot(childId);
         if (childSnapshot) {

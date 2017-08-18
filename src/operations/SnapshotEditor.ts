@@ -11,8 +11,8 @@ import {
   isObject,
   isScalar,
   lazyImmutableDeepSet,
-  ParameterizedEdge,
-  ParameterizedEdgeMap,
+  Edge,
+  EdgeMap,
   removeNodeReference,
   walkPayload,
 } from '../util';
@@ -32,7 +32,7 @@ interface MergeQueueItem {
   containerId: NodeId;
   containerPayload: any;
   visitRoot: boolean;
-  edges: ParameterizedEdge | ParameterizedEdgeMap | undefined;
+  edges: Edge | EdgeMap | undefined;
 }
 
 /**
@@ -150,7 +150,7 @@ export class SnapshotEditor {
       // Similarly, we need to be careful to break cycles _within_ a node.
       const visitedPayloadValues = new Set<any>();
 
-      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
+      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, edge) => {
         const payloadIsObject = isObject(payloadValue);
         const nodeIsObject = isObject(nodeValue);
         let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
@@ -167,9 +167,10 @@ export class SnapshotEditor {
           visitedPayloadValues.add(payloadValue);
         }
 
-        if (parameterizedEdge instanceof ParameterizedEdge) {
+        if (edge instanceof Edge) {
           // swap in any variables.
-          const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
+          const edgeArguments = edge.parameterizedArguments ?
+            expandEdgeArguments(edge.parameterizedArguments, query.variables) : {};
           const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
           // Parameterized edges are references, but maintain their own path.
@@ -191,7 +192,7 @@ export class SnapshotEditor {
           // reference an entity.  This allows us to build a chain of references
           // where the parameterized value points _directly_ to a particular
           // entity node.
-          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: parameterizedEdge.children });
+          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: edge.children });
 
           // Stop the walk for this subgraph.
           return true;
@@ -219,7 +220,7 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: parameterizedEdge });
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: edge });
           }
           // Stop the walk for this subgraph.
           return true;
