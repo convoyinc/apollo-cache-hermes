@@ -210,6 +210,7 @@ export class SnapshotEditor {
           // The payload is now referencing a new entity.  We want to update it,
           // but not until we've updated the values of our entities first.
           if (prevNodeId !== nextNodeId) {
+            // We have spread "path" so that we pass in new array.
             referenceEdits.push({ containerId, path: [...path], prevNodeId, nextNodeId });
           }
 
@@ -299,7 +300,7 @@ export class SnapshotEditor {
 
     while (queue.length) {
       const nodeId = queue.pop() as NodeId;
-      const snapshot = this.getSnapshot(nodeId);
+      const snapshot = this.getNodeSnapshot(nodeId);
       if (!snapshot || !snapshot.inbound) continue;
 
       for (const { id, path } of snapshot.inbound) {
@@ -319,8 +320,8 @@ export class SnapshotEditor {
   private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
     const queue = Array.from(nodeIds);
     while (queue.length) {
-      const nodeId = queue.pop() as NodeId;
-      const node = this.getSnapshot(nodeId);
+      const nodeId = queue.pop()!;
+      const node = this.getNodeSnapshot(nodeId);
       if (!node) continue;
 
       this._newNodes[nodeId] = undefined;
@@ -361,14 +362,14 @@ export class SnapshotEditor {
    * Retrieve the _latest_ version of a node.
    */
   private get(id: NodeId) {
-    const snapshot = this.getSnapshot(id);
+    const snapshot = this.getNodeSnapshot(id);
     return snapshot ? snapshot.node : undefined;
   }
 
   /**
    * Retrieve the _latest_ version of a node snapshot.
    */
-  private getSnapshot(id: NodeId) {
+  private getNodeSnapshot(id: NodeId) {
     return id in this._newNodes ? this._newNodes[id] : this._parent.getSnapshot(id);
   }
 
@@ -386,7 +387,7 @@ export class SnapshotEditor {
 
     const parent = this._parent.getSnapshot(id);
     const current = this._ensureNewSnapshot(id);
-    (current as any).node = lazyImmutableDeepSet(current && current.node, parent && parent.node, path, newValue);
+    current.node = lazyImmutableDeepSet(current.node, parent && parent.node, path, newValue);
   }
 
   /**
