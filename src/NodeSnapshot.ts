@@ -7,7 +7,7 @@ import { NodeId } from './schema';
 export class NodeSnapshot {
   constructor(
     /** A reference to the node this snapshot is about. */
-    readonly node?: any,
+    public node?: object,
     /** Other node snapshots that point to this one. */
     readonly inbound?: NodeSnapshot.Reference[],
     /** The node snapshots that this one points to. */

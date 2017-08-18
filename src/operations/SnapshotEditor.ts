@@ -424,7 +424,7 @@ export class SnapshotEditor {
 
     const parent = this._parent.getSnapshot(id);
     const current = this._ensureNewSnapshot(id);
-    (current as any).node = lazyImmutableDeepSet(current && current.node, parent && parent.node, path, newValue);
+    current.node = lazyImmutableDeepSet(current.node, parent && parent.node, path, newValue);
   }
 
   /**
