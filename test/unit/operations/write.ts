@@ -1271,7 +1271,7 @@ describe(`operations.write`, () => {
           baz
         }`);
 
-        const foo = { id: 1, name: 'Foo', bar: null as any };
+        const foo = { id: 1, name: 'Foo', bar: null as any};
         const bar = { id: 2, name: 'Bar', foo };
         foo.bar = bar;
 
@@ -1416,4 +1416,124 @@ describe(`operations.write`, () => {
 
   });
 
+  describe(`field alias`, () => {
+    describe(`basic aliasing without parameterized edge`, () => {
+      const basicAliasQuery = query(`{
+        foo {
+          ID: id
+          FirstName: name
+        }
+      }`);
+
+      const entityAliasQuery = query(`{
+        aliasFoo: foo {
+          ID: id
+          FirstName: name
+        }
+      }`);
+
+      it(`write using alias name`, () => {
+        const snapshot = write(config, empty, basicAliasQuery, {
+          foo: {
+            ID: 0,
+            FirstName: "Foo Foo"
+          }
+        }).snapshot;
+
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          foo: {
+            id: 0,
+            name: "Foo Foo"
+          }
+        });
+      });
+
+      it(`write using non-alias name`, () => {
+        const snapshot = write(config, empty, basicAliasQuery, {
+          foo: {
+            id: 0,
+            name: "Foo Foo"
+          }
+        }).snapshot;
+        
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          foo: {
+            id: 0,
+            name: "Foo Foo"
+          }
+        });
+      });
+
+      it(`write using alias entity name`, () => {
+        const snapshot = write(config, empty, entityAliasQuery, {
+          aliasFoo: {
+            id: 0,
+            FirstName: "Foo Foo"
+          }
+        }).snapshot;
+
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          foo: {
+            id: 0,
+            name: "Foo Foo"
+          }
+        });
+      });
+
+      it(`write using non-alias entity name`, () => {
+        const snapshot = write(config, empty, entityAliasQuery, {
+          foo: {
+            id: 0,
+            FirstName: "Foo Foo"
+          }
+        }).snapshot;
+
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          foo: {
+            id: 0,
+            name: "Foo Foo"
+          }
+        });
+      });
+    });
+
+    describe(`basic aliasing with parameterized edge`, () => {
+      const basicAliasQuery = query(`{
+        superUser: user(id: 4) {
+          ID: id
+          FirstName: name
+        }
+      }`);
+
+      const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
+
+      it(`write using alias name`, () => {
+        const snapshot = write(config, empty, basicAliasQuery, {
+          superUser: {
+            ID: 0,
+            FirstName: "Foo Foo"
+          }
+        }).snapshot;
+
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          id: 0,
+          name: "Foo Foo"
+        });
+      });
+
+      it(`write using non-alias name`, () => {
+        const snapshot = write(config, empty, basicAliasQuery, {
+          user: {
+            id: 0,
+            name: "Foo Foo"
+          }
+        }).snapshot;
+        
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          id: 0,
+          name: "Foo Foo"
+        });
+      });
+    });
+  });
 });

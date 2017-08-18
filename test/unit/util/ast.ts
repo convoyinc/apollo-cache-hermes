@@ -44,7 +44,7 @@ describe(`util.ast`, () => {
     describe(`with static arguments`, () => {
 
       it(`parses top level edges`, () => {
-        const map = buildEdgeMapForOperation(gql`{ 
+        const map = buildEdgeMapForOperation(gql`{
             foo(id:123) {
               a b
             }
@@ -203,6 +203,71 @@ describe(`util.ast`, () => {
 
     });
 
-  });
+    describe(`with field alias`, () => {
 
+      it(`build alias map for scalar value field`, () => {
+        const map = buildEdgeMapForOperation(gql`
+          query getUser {
+            user {
+              ID: id
+              FirstName: name
+            }
+          }
+        `);
+        expect(map).to.deep.eq({
+          user: {
+            fieldAliases: {
+              ID: "id",
+              FirstName: "name",
+            }
+          }
+        });
+      });
+
+      it(`build nest field alias map`, () => {
+        const map = buildEdgeMapForOperation(gql`
+          query getUser {
+            superUser: user {
+              ID: id
+              FirstName: name
+            }
+          }
+        `);
+        expect(map).to.deep.eq({
+          fieldAliases: {
+            superUser: "user",
+          },
+          user: {
+            fieldAliases: {
+              ID: "id",
+              FirstName: "name",
+            },
+          },
+        });
+      });
+
+      it(`build field alias with parameterized arguments`, () => {
+        const map = buildEdgeMapForOperation(gql`
+          query getProfile {
+            superUser: user(id: 4) {
+              ID: id
+              Profile: picture(width: 400, height: 200),
+            }
+          }
+        `);
+        expect(map).to.deep.eq({
+          fieldAliases: {
+            superUser: "user",
+          },
+          user: new Edge(
+            { id: 4 },
+            {
+              fieldAliases: { ID: "id", Profile: "picture" },
+              picture: new Edge( { width: 400, height: 200 }),
+            }
+          )
+        });
+      });
+    });
+  });
 });
