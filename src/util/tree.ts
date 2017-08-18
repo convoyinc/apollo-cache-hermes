@@ -12,7 +12,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 
 import { PathPart } from '../primitive';
 
-import { ParameterizedEdge, ParameterizedEdgeMap, fragmentMapForDocument, getOperationOrDie } from './ast';
+import { Edge, EdgeMap, fragmentMapForDocument, getOperationOrDie } from './ast';
 
 /**
  * Represents a node (of all values at the same location in their trees), used
@@ -25,7 +25,7 @@ class PayloadWalkNode {
     /** The value of the current node at this location in the walk. */
     public readonly node: any,
     /** The value of the edge map at this location in the walk. */
-    public readonly edgeMap: ParameterizedEdgeMap | ParameterizedEdge | undefined,
+    public readonly edgeMap: EdgeMap | Edge | undefined,
     /** The depth of the node (allows us to set the path correctly). */
     public readonly depth: number,
     /** The key/index of this node, relative to its parent. */
@@ -41,7 +41,7 @@ export type PayloadVisitor = (
   path: PathPart[],
   payloadValue: any,
   nodeValue: any,
-  parameterizedEdge: ParameterizedEdge | ParameterizedEdgeMap | undefined,
+  parameterizedEdge: Edge | EdgeMap | undefined
 ) => boolean;
 
 /**
@@ -60,17 +60,17 @@ export type PayloadVisitor = (
 export function walkPayload(
   payload: any,
   node: any,
-  edgeMap: ParameterizedEdge | ParameterizedEdgeMap | undefined,
+  edgeMap: Edge | EdgeMap | undefined,
   visitRoot: boolean,
   visitor: PayloadVisitor,
 ) {
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
-  const stack = [new PayloadWalkNode(payload, node, edgeMap, 0)];
-  const path = [] as PathPart[];
+  const stack = [new PayloadWalkNode(payload, node, edgeMap, /*depth*/0)];
+  const path: PathPart[] = [];
 
   while (stack.length) {
-    const walkNode = stack.pop() as PayloadWalkNode;
+    const walkNode = stack.pop()!;
 
     // Don't visit the root.
     if (walkNode.key !== undefined || visitRoot) {
@@ -84,7 +84,7 @@ export function walkPayload(
     }
 
     // Note that in all cases, we push nodes onto the stack in _reverse_ order,
-    // so that we visit nodes in iteration order (the stack is FIFO).
+    // so that we visit nodes in iteration order (the stack is LIFO).
     const newDepth = walkNode.depth + 1;
     if (Array.isArray(walkNode.payload)) {
       for (let index = walkNode.payload.length - 1; index >= 0; index--) {
@@ -96,8 +96,13 @@ export function walkPayload(
     } else if (walkNode.payload !== null && typeof walkNode.payload === 'object') {
       const keys = Object.getOwnPropertyNames(walkNode.payload);
       for (let index = keys.length - 1; index >= 0; index--) {
-        const key = keys[index];
-        stack.push(new PayloadWalkNode(get(walkNode.payload, key), get(walkNode.node, key), get(walkNode.edgeMap, key), newDepth, key));
+        const payloadKey = keys[index];
+        let queryKey = payloadKey;;
+        if (walkNode.edgeMap && (walkNode.edgeMap as EdgeMap).fieldAliases) {
+          queryKey = (walkNode.edgeMap as EdgeMap).fieldAliases![payloadKey] ?
+            (walkNode.edgeMap as EdgeMap).fieldAliases![payloadKey] : queryKey;
+        }
+        stack.push(new PayloadWalkNode(get(walkNode.payload, payloadKey), get(walkNode.node, queryKey), get(walkNode.edgeMap, queryKey), newDepth, queryKey));
       }
     }
 
@@ -144,7 +149,7 @@ export function walkOperation(document: DocumentNode, result: any, visitor: Oper
       continue;
     }
 
-    const fields = [] as FieldNode[];
+    const fields: FieldNode[] = [];
     // TODO: Directives?
     for (const selection of selectionSet.selections) {
       // A simple field.
