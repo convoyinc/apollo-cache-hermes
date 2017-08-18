@@ -96,8 +96,13 @@ export function walkPayload(
     } else if (walkNode.payload !== null && typeof walkNode.payload === 'object') {
       const keys = Object.getOwnPropertyNames(walkNode.payload);
       for (let index = keys.length - 1; index >= 0; index--) {
-        const key = keys[index];
-        stack.push(new PayloadWalkNode(get(walkNode.payload, key), get(walkNode.node, key), get(walkNode.edgeMap, key), newDepth, key));
+        const payloadKey = keys[index];
+        let queryKey = payloadKey;;
+        if (walkNode.edgeMap && (walkNode.edgeMap as EdgeMap).fieldAliases) {
+          queryKey = (walkNode.edgeMap as EdgeMap).fieldAliases![payloadKey] ?
+            (walkNode.edgeMap as EdgeMap).fieldAliases![payloadKey] : queryKey;
+        }
+        stack.push(new PayloadWalkNode(get(walkNode.payload, payloadKey), get(walkNode.node, queryKey), get(walkNode.edgeMap, queryKey), newDepth, queryKey));
       }
     }
 
