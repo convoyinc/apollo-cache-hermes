@@ -2,7 +2,6 @@ import lodashCloneDeep = require('lodash.clonedeep');
 import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
   ArgumentNode,
   DocumentNode,
-  DefinitionNode,
   FieldNode,
   FragmentDefinitionNode,
   OperationDefinitionNode,
