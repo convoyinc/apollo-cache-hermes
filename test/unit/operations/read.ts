@@ -400,6 +400,45 @@ describe(`operations.read`, () => {
 
       });
 
+      describe(`in an array with holes`, () => {
+
+        let snapshot: GraphSnapshot;
+        beforeAll(() => {
+          snapshot = write(context, empty, nestedQuery, {
+            one: [
+              null,
+              {
+                two: {
+                  id: 1,
+                  three: null,
+                },
+              },
+            ],
+          }).snapshot;
+        });
+
+        it(`returns the selected values, overlaid on the underlying data`, () => {
+          const { result } = read(context, nestedQuery, snapshot);
+          expect(result).to.deep.equal({
+            one: [
+              null,
+              {
+                two: {
+                  id: 1,
+                  three: null,
+                },
+              },
+            ],
+          });
+        });
+
+        it(`is marked complete`, () => {
+          const { complete } = read(context, nestedQuery, snapshot);
+          expect(complete).to.eq(true);
+        });
+
+      });
+
     });
 
     describe(`directly nested reference edges`, () => {

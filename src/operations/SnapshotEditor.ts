@@ -248,6 +248,10 @@ export class SnapshotEditor {
           if (nodeLength === payloadLength) return false;
 
           const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : [];
+          // We will fill in the values as we walk, but we ensure that the
+          // length is accurate, so that we properly handle empty values (e.g. a
+          // value that contains only parameterized edges).
+          newArray.length = payloadLength;
           this._setValue(containerId, path, newArray);
 
           // Also remove any references contained within any entries we removed:
