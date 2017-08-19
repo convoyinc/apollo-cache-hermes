@@ -141,7 +141,8 @@ export class SnapshotEditor {
 
     while (queue.length) {
       const { containerId, containerPayload, visitRoot, edges } = queue.pop() as MergeQueueItem;
-      const container = this.get(containerId);
+      const containerSnapshot = this.getSnapshot(containerId);
+      const container = containerSnapshot ? containerSnapshot.node : undefined;
       // Break cycles in referenced nodes from the payload.
       if (!visitRoot) {
         if (visitedNodes.has(containerPayload)) continue;
@@ -227,14 +228,38 @@ export class SnapshotEditor {
         // Arrays are a little special.  When present, we assume that the values
         // contained within the array are the _full_ set of values.
         } else if (Array.isArray(payloadValue)) {
+          const payloadLength = payloadValue.length;
+          const nodeLength = nodeValue && nodeValue.length;
           // We will walk to each value within the array, so we do not need to
           // process them yet; but because we update them by path, we do need to
           // ensure that the updated entity's array has the same number of
           // values.
-          if (nodeValue && nodeValue.length === payloadValue.length) return false;
+          if (nodeLength === payloadLength) return false;
 
-          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadValue.length) : [];
+          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : [];
           this._setValue(containerId, path, newArray);
+
+          // Also remove any references contained within any entries we removed:
+          //
+          // TODO: Deal with parameterized edges contained by this.
+          // TODO: Better abstract this.
+          if (payloadLength < nodeLength && containerSnapshot && containerSnapshot.outbound) {
+            for (const reference of containerSnapshot.outbound) {
+              if (!reference.path) continue;
+              if (!pathBeginsWith(reference.path, path)) continue;
+              const index = reference.path[path.length];
+              if (typeof index !== 'number') continue;
+              // This reference exists in the part of the array that we removed.
+              if (index >= payloadLength) {
+                referenceEdits.push({
+                  containerId,
+                  path: reference.path,
+                  prevNodeId: reference.id,
+                  nextNodeId: undefined,
+                });
+              }
+            }
+          }
 
         // All else we care about are updated scalar values.
         } else if (isScalar(payloadValue) && payloadValue !== nodeValue) {
@@ -422,4 +447,12 @@ export class SnapshotEditor {
  */
 export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
+}
+
+function pathBeginsWith(target: PathPart[], prefix: PathPart[]) {
+  if (target.length < prefix.length) return false;
+  for (let i = 0; i < prefix.length; i++) {
+    if (prefix[i] !== target[i]) return false;
+  }
+  return true;
 }

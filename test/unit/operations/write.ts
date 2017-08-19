@@ -1491,7 +1491,7 @@ describe(`operations.write`, () => {
       }).snapshot;
 
       expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
-        { id: '5', path: ['things', 0] },
+        { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
       ]);
     });
