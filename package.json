@@ -54,7 +54,7 @@
     "jest-junit": "^2.1.0",
     "rimraf": "^2.6.1",
     "typescript": "^2.4.2",
-    "typescript-eslint-parser": "^5.0.1"
+    "typescript-eslint-parser": "^6.0.0"
   },
   "dependencies": {
     "@types/graphql": "^0.10.2",
