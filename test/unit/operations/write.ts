@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import * as util from 'util';
 
 import { CacheContext } from '../../../src/context';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
@@ -17,6 +18,13 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 describe(`operations.write`, () => {
 
   const config = new CacheContext({
+    logger: {
+      warn(message: string, ...args: any[]) {
+        throw new Error(util.format(message, ...args));
+      },
+    },
+  });
+  const silentConfig = new CacheContext({
     logger: {
       warn: jest.fn(),
     },
@@ -979,7 +987,7 @@ describe(`operations.write`, () => {
         const updated = write(config, snapshot, nestedQuery, {
           one: {
             two: [
-              undefined,
+              null,
               {
                 three: {
                   four: { five: 2 },
@@ -1558,7 +1566,7 @@ describe(`operations.write`, () => {
     });
 
     it(`treats blanks in sparse arrays as null`, () => {
-      const updated = write(config, snapshot, arrayQuery, {
+      const updated = write(silentConfig, snapshot, arrayQuery, {
         things: [
           undefined,
           undefined,

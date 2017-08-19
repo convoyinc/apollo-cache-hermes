@@ -174,7 +174,7 @@ export class SnapshotEditor {
         if (payloadValue === undefined && typeof path[path.length - 1] === 'number') {
           this._context.warn(
             `Sparse arrays are not supported when writing.`,
-            `Treating undefined as null at ${containerId}:${path.join('.')}`,
+            `Treating blank as null in ${containerId} at ${path.join('.')}`,
           );
           payloadValue = null;
         }
