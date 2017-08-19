@@ -248,6 +248,10 @@ export class SnapshotEditor {
           if (nodeLength === payloadLength) return false;
 
           const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : [];
+          // We will fill in the values as we walk, but we ensure that the
+          // length is accurate, so that we properly handle empty values (e.g. a
+          // value that contains only parameterized edges).
+          newArray.length = payloadLength;
           this._setValue(containerId, path, newArray);
 
           // Also remove any references contained within any entries we removed:
@@ -262,12 +266,10 @@ export class SnapshotEditor {
               if (typeof index !== 'number') continue;
               // This reference exists in the part of the array that we removed.
               if (index >= payloadLength) {
-                referenceEdits.push({
-                  containerId,
-                  path: reference.path,
-                  prevNodeId: reference.id,
-                  nextNodeId: undefined,
-                });
+                const newContainerSnapshot = this._ensureNewSnapshot(containerId);
+                removeNodeReference('outbound', newContainerSnapshot, reference.id, path);
+                const prevTarget = this._ensureNewSnapshot(reference.id);
+                removeNodeReference('inbound', prevTarget, containerId, path);
               }
             }
           }

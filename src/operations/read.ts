@@ -134,6 +134,7 @@ export function _overlayParameterizedValues(
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
+            if (child[i] === null) continue;
             child[i] = _wrapValue(child[i]);
             queue.push(new OverlayWalkNode(child[i], containerId, edge, [...path, key, i]));
           }
