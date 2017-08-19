@@ -10,6 +10,10 @@ export namespace CacheContext {
 
   export type EntityIdForNode = (node: any) => EntityId | undefined;
   export type EntityIdMapper = (node: object) => string | number | undefined;
+  export type LogEmitter = (message: string, ...metadata: any[]) => void;
+  export interface Logger {
+    warn: LogEmitter;
+  }
 
   /**
    * Configuration for a Hermes cache.
@@ -27,6 +31,11 @@ export namespace CacheContext {
      * within the cache; everything else is not.
      */
     entityIdForNode?: EntityIdMapper;
+
+    /**
+     * The logger to use when emitting messages.  By default, `console`.
+     */
+    logger?: Logger;
   }
 
 }
@@ -45,10 +54,15 @@ export class CacheContext {
   private readonly _queryInfoMap = new Map<string, QueryInfo>();
   /** All currently known & parsed queries, for identity mapping. */
   private readonly _parsedQueriesMap = new Map<string, ParsedQuery[]>();
+  /** The logger we should use. */
+  private readonly _logger: CacheContext.Logger;
 
   constructor(config: CacheContext.Configuration = {}) {
-    this._addTypename = config.addTypename || false;
     this.entityIdForNode = _makeEntityIdMapper(config.entityIdForNode);
+    this._addTypename = config.addTypename || false;
+    this._logger = config.logger || {
+      warn: console.warn ? console.warn.bind(console) : console.log.bind(console), // eslint-disable-line no-console
+    };
   }
 
   /**
@@ -84,6 +98,13 @@ export class CacheContext {
     parsedQueries.push(parsedQuery);
 
     return parsedQuery;
+  }
+
+  /**
+   * Emit a warning.
+   */
+  warn(message: string, ...metadata: any[]): void {
+    this._logger.warn(message, ...metadata);
   }
 
   /**

@@ -168,15 +168,23 @@ export class SnapshotEditor {
           visitedPayloadValues.add(payloadValue);
         }
 
+        // Special case: If this is an array value, we DO NOT support writing
+        // sparse arrays; and GraphQL servers should be emitting null (by
+        // virtue of JSON as a transport).
+        if (payloadValue === undefined && typeof path[path.length - 1] === 'number') {
+          this._context.warn(`Sparse arrays are not supported when writing.  Treating undefined as null at ${containerId}:${path.join('.')}`);
+          payloadValue = null;
+        }
+
         if (parameterizedEdge instanceof ParameterizedEdge) {
           // swap in any variables.
           const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
           const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
           // Parameterized edges are references, but maintain their own path.
-          const containerSnapshot = this._ensureNewSnapshot(containerId);
-          if (!hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
-            addNodeReference('outbound', containerSnapshot, edgeId);
+          const newContainerSnapshot = this._ensureNewSnapshot(containerId);
+          if (!hasNodeReference(newContainerSnapshot, 'outbound', edgeId)) {
+            addNodeReference('outbound', newContainerSnapshot, edgeId);
             // This is a bit arcane, but if we
             let initialValue;
             if (Array.isArray(payloadValue)) {
