@@ -141,7 +141,8 @@ export class SnapshotEditor {
 
     while (queue.length) {
       const { containerId, containerPayload, visitRoot, edges } = queue.pop() as MergeQueueItem;
-      const container = this.get(containerId);
+      const containerSnapshot = this.getSnapshot(containerId);
+      const container = containerSnapshot ? containerSnapshot.node : undefined;
       // Break cycles in referenced nodes from the payload.
       if (!visitRoot) {
         if (visitedNodes.has(containerPayload)) continue;
@@ -167,15 +168,26 @@ export class SnapshotEditor {
           visitedPayloadValues.add(payloadValue);
         }
 
+        // Special case: If this is an array value, we DO NOT support writing
+        // sparse arrays; and GraphQL servers should be emitting null (by
+        // virtue of JSON as a transport).
+        if (payloadValue === undefined && typeof path[path.length - 1] === 'number') {
+          this._context.warn(
+            `Sparse arrays are not supported when writing.`,
+            `Treating blank as null in ${containerId} at ${path.join('.')}`,
+          );
+          payloadValue = null;
+        }
+
         if (parameterizedEdge instanceof ParameterizedEdge) {
           // swap in any variables.
           const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
           const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
           // Parameterized edges are references, but maintain their own path.
-          const containerSnapshot = this._ensureNewSnapshot(containerId);
-          if (!hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
-            addNodeReference('outbound', containerSnapshot, edgeId);
+          const newContainerSnapshot = this._ensureNewSnapshot(containerId);
+          if (!hasNodeReference(newContainerSnapshot, 'outbound', edgeId)) {
+            addNodeReference('outbound', newContainerSnapshot, edgeId);
             // This is a bit arcane, but if we
             let initialValue;
             if (Array.isArray(payloadValue)) {
@@ -227,14 +239,38 @@ export class SnapshotEditor {
         // Arrays are a little special.  When present, we assume that the values
         // contained within the array are the _full_ set of values.
         } else if (Array.isArray(payloadValue)) {
+          const payloadLength = payloadValue.length;
+          const nodeLength = nodeValue && nodeValue.length;
           // We will walk to each value within the array, so we do not need to
           // process them yet; but because we update them by path, we do need to
           // ensure that the updated entity's array has the same number of
           // values.
-          if (nodeValue && nodeValue.length === payloadValue.length) return false;
+          if (nodeLength === payloadLength) return false;
 
-          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadValue.length) : [];
+          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : [];
           this._setValue(containerId, path, newArray);
+
+          // Also remove any references contained within any entries we removed:
+          //
+          // TODO: Deal with parameterized edges contained by this.
+          // TODO: Better abstract this.
+          if (payloadLength < nodeLength && containerSnapshot && containerSnapshot.outbound) {
+            for (const reference of containerSnapshot.outbound) {
+              if (!reference.path) continue;
+              if (!pathBeginsWith(reference.path, path)) continue;
+              const index = reference.path[path.length];
+              if (typeof index !== 'number') continue;
+              // This reference exists in the part of the array that we removed.
+              if (index >= payloadLength) {
+                referenceEdits.push({
+                  containerId,
+                  path: reference.path,
+                  prevNodeId: reference.id,
+                  nextNodeId: undefined,
+                });
+              }
+            }
+          }
 
         // All else we care about are updated scalar values.
         } else if (isScalar(payloadValue) && payloadValue !== nodeValue) {
@@ -422,4 +458,12 @@ export class SnapshotEditor {
  */
 export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
+}
+
+function pathBeginsWith(target: PathPart[], prefix: PathPart[]) {
+  if (target.length < prefix.length) return false;
+  for (let i = 0; i < prefix.length; i++) {
+    if (prefix[i] !== target[i]) return false;
+  }
+  return true;
 }

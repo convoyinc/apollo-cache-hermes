@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import * as util from 'util';
 
 import { CacheContext } from '../../../src/context';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
@@ -16,7 +17,18 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
 
-  const config = new CacheContext();
+  const config = new CacheContext({
+    logger: {
+      warn(message: string, ...args: any[]) {
+        throw new Error(util.format(message, ...args));
+      },
+    },
+  });
+  const silentConfig = new CacheContext({
+    logger: {
+      warn: jest.fn(),
+    },
+  });
 
   const rootValuesQuery = query(`{ foo bar }`);
 
@@ -902,9 +914,9 @@ describe(`operations.write`, () => {
 
     describe(`writing nested indirect edges contained in an array`, () => {
 
-      let snapshot: GraphSnapshot, containerId: NodeId, entry1Id: NodeId, entry2Id: NodeId;
+      let nestedQuery: Query, snapshot: GraphSnapshot, containerId: NodeId, entry1Id: NodeId, entry2Id: NodeId;
       beforeAll(() => {
-        const nestedQuery = query(`query nested($id: ID!) {
+        nestedQuery = query(`query nested($id: ID!) {
           one {
             two(id: $id) {
               three {
@@ -969,6 +981,23 @@ describe(`operations.write`, () => {
         // behaves properly when iterating arrays that contain _only_
         // parameterized edges.
         expect(snapshot.get(containerId)).to.deep.eq([undefined, undefined]);
+      });
+
+      it(`allows removal of values containing an edge`, () => {
+        const updated = write(config, snapshot, nestedQuery, {
+          one: {
+            two: [
+              null,
+              {
+                three: {
+                  four: { five: 2 },
+                },
+              },
+            ],
+          },
+        }).snapshot;
+
+        expect(updated.get(containerId)).to.deep.eq([null, undefined]);
       });
 
     });
@@ -1412,6 +1441,155 @@ describe(`operations.write`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
       });
 
+    });
+
+  });
+
+  describe(`updating references in an array`, () => {
+
+    let arrayQuery: Query, snapshot: GraphSnapshot;
+    beforeAll(() => {
+      arrayQuery = query(`{
+        things { id name }
+      }`);
+
+      snapshot = write(config, empty, arrayQuery, {
+        things: [
+          { id: 1, name: 'One' },
+          { id: 2, name: 'Two' },
+          { id: 3, name: 'Three' },
+          { id: 4, name: 'Four' },
+          { id: 5, name: 'Five' },
+        ],
+      }).snapshot;
+    });
+
+    it(`sets up outbound references`, () => {
+      expect(snapshot.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+        { id: '1', path: ['things', 0] },
+        { id: '2', path: ['things', 1] },
+        { id: '3', path: ['things', 2] },
+        { id: '4', path: ['things', 3] },
+        { id: '5', path: ['things', 4] },
+      ]);
+    });
+
+    it(`lets you reorder references`, () => {
+      const updated = write(config, snapshot, arrayQuery, {
+        things: [
+          { id: 5, name: 'Five' },
+          { id: 2, name: 'Two' },
+          { id: 1, name: 'One' },
+          { id: 4, name: 'Four' },
+          { id: 3, name: 'Three' },
+        ],
+      }).snapshot;
+
+      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+        { id: '5', path: ['things', 0] },
+        { id: '2', path: ['things', 1] },
+        { id: '1', path: ['things', 2] },
+        { id: '4', path: ['things', 3] },
+        { id: '3', path: ['things', 4] },
+      ]);
+    });
+
+    it(`drops references when the array shrinks`, () => {
+      const updated = write(config, snapshot, arrayQuery, {
+        things: [
+          { id: 1, name: 'One' },
+          { id: 2, name: 'Two' },
+        ],
+      }).snapshot;
+
+      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+        { id: '1', path: ['things', 0] },
+        { id: '2', path: ['things', 1] },
+      ]);
+    });
+
+    it(`supports multiple references to the same node`, () => {
+      const updated = write(config, snapshot, arrayQuery, {
+        things: [
+          { id: 1, name: 'One' },
+          { id: 2, name: 'Two' },
+          { id: 3, name: 'Three' },
+          { id: 4, name: 'Four' },
+          { id: 5, name: 'Five' },
+          { id: 1, name: 'One' },
+          { id: 2, name: 'Two' },
+          { id: 3, name: 'Three' },
+          { id: 4, name: 'Four' },
+          { id: 5, name: 'Five' },
+        ],
+      }).snapshot;
+
+      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+        { id: '1', path: ['things', 0] },
+        { id: '2', path: ['things', 1] },
+        { id: '3', path: ['things', 2] },
+        { id: '4', path: ['things', 3] },
+        { id: '5', path: ['things', 4] },
+        { id: '1', path: ['things', 5] },
+        { id: '2', path: ['things', 6] },
+        { id: '3', path: ['things', 7] },
+        { id: '4', path: ['things', 8] },
+        { id: '5', path: ['things', 9] },
+      ]);
+    });
+
+    it(`supports holes`, () => {
+      const updated = write(config, snapshot, arrayQuery, {
+        things: [
+          null,
+          null,
+          { id: 3, name: 'Three' },
+          { id: 4, name: 'Four' },
+          null,
+        ],
+      }).snapshot;
+
+      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+        { id: '3', path: ['things', 2] },
+        { id: '4', path: ['things', 3] },
+      ]);
+
+      expect(updated.get(QueryRootId)).to.deep.eq({
+        things: [
+          null,
+          null,
+          { id: 3, name: 'Three' },
+          { id: 4, name: 'Four' },
+          null,
+        ],
+      });
+    });
+
+    it(`treats blanks in sparse arrays as null`, () => {
+      const updated = write(silentConfig, snapshot, arrayQuery, {
+        things: [
+          undefined,
+          undefined,
+          { id: 3, name: 'Three' },
+          { id: 4, name: 'Four' },
+          undefined,
+        ],
+      }).snapshot;
+
+      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+        { id: '3', path: ['things', 2] },
+        { id: '4', path: ['things', 3] },
+      ]);
+
+      expect(updated.get(QueryRootId)).to.deep.eq({
+        things: [
+          null,
+          null,
+          { id: 3, name: 'Three' },
+          { id: 4, name: 'Four' },
+          null,
+        ],
+      });
     });
 
   });
