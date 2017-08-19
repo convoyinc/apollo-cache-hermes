@@ -2606,9 +2606,9 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typescript-eslint-parser@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.npmjs.org/typescript-eslint-parser/-/typescript-eslint-parser-5.0.1.tgz#0a11b7c944dc56d4bd3826dcbd3d52a885098f3e"
+typescript-eslint-parser@6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/typescript-eslint-parser/-/typescript-eslint-parser-6.0.0.tgz#3e01a0e3baaadbbf547db2a8834ed469eec11cfe"
   dependencies:
     lodash.unescape "4.0.1"
     semver "5.3.0"
