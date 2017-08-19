@@ -266,12 +266,10 @@ export class SnapshotEditor {
               if (typeof index !== 'number') continue;
               // This reference exists in the part of the array that we removed.
               if (index >= payloadLength) {
-                referenceEdits.push({
-                  containerId,
-                  path: reference.path,
-                  prevNodeId: reference.id,
-                  nextNodeId: undefined,
-                });
+                const newContainerSnapshot = this._ensureNewSnapshot(containerId);
+                removeNodeReference('outbound', newContainerSnapshot, reference.id, path);
+                const prevTarget = this._ensureNewSnapshot(reference.id);
+                removeNodeReference('inbound', prevTarget, containerId, path);
               }
             }
           }
