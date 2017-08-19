@@ -172,7 +172,10 @@ export class SnapshotEditor {
         // sparse arrays; and GraphQL servers should be emitting null (by
         // virtue of JSON as a transport).
         if (payloadValue === undefined && typeof path[path.length - 1] === 'number') {
-          this._context.warn(`Sparse arrays are not supported when writing.  Treating undefined as null at ${containerId}:${path.join('.')}`);
+          this._context.warn(
+            `Sparse arrays are not supported when writing.`,
+            `Treating undefined as null at ${containerId}:${path.join('.')}`,
+          );
           payloadValue = null;
         }
 

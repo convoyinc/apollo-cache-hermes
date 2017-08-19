@@ -16,7 +16,11 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
 
-  const config = new CacheContext();
+  const config = new CacheContext({
+    logger: {
+      warn: jest.fn(),
+    },
+  });
 
   const rootValuesQuery = query(`{ foo bar }`);
 
