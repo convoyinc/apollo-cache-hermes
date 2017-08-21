@@ -46,7 +46,7 @@
     "codecov": "^2.2.0",
     "eslint": "^4.5.0",
     "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
-    "eslint-plugin-typescript": "^0.5.0",
+    "eslint-plugin-typescript": "nzakas/eslint-plugin-typescript#56c8990",
     "graphql": "^0.10.5",
     "graphql-tag": "^2.4.2",
     "greenkeeper-lockfile": "^1.7.2",
