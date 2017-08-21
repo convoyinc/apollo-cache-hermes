@@ -25,6 +25,9 @@ settings:
       - .ts
       - .tsx
 
+env:
+  es6: true
+
 rules:
   # http://eslint.org/docs/rules/
 
