@@ -222,6 +222,7 @@ export class SnapshotEditor {
           // The payload is now referencing a new entity.  We want to update it,
           // but not until we've updated the values of our entities first.
           if (prevNodeId !== nextNodeId) {
+            // We have spread "path" so that we pass in new array.
             referenceEdits.push({ containerId, path: [...path], prevNodeId, nextNodeId });
           }
 
