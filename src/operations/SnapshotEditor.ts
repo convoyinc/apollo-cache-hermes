@@ -128,19 +128,19 @@ export class SnapshotEditor {
     const { entityIdForNode } = this._context;
     const { parameterizedEdgeMap } = query.info;
 
-    const queue = [{
+    const queue: MergeQueueItem[] = [{
       containerId: query.rootId,
       containerPayload: fullPayload,
       visitRoot: false,
       edges: parameterizedEdgeMap,
-    }] as MergeQueueItem[];
-    const referenceEdits = [] as ReferenceEdit[];
+    }];
+    const referenceEdits: ReferenceEdit[] = [];
     // We have to be careful to break cycles; it's ok for a caller to give us a
     // cyclic payload.
     const visitedNodes = new Set<any>();
 
     while (queue.length) {
-      const { containerId, containerPayload, visitRoot, edges } = queue.pop() as MergeQueueItem;
+      const { containerId, containerPayload, visitRoot, edges } = queue.pop()!;
       const containerSnapshot = this.getSnapshot(containerId);
       const container = containerSnapshot ? containerSnapshot.node : undefined;
       // Break cycles in referenced nodes from the payload.
@@ -299,7 +299,7 @@ export class SnapshotEditor {
    * Returns the set of node ids that are newly orphaned by these edits.
    */
   private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]): Set<NodeId> {
-    const orphanedNodeIds = new Set() as Set<NodeId>;
+    const orphanedNodeIds: Set<NodeId> = new Set();
 
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
       const target = nextNodeId ? this.get(nextNodeId) : null;
@@ -335,7 +335,7 @@ export class SnapshotEditor {
     addToSet(this._rebuiltNodeIds, queue);
 
     while (queue.length) {
-      const nodeId = queue.pop() as NodeId;
+      const nodeId = queue.pop()!;
       const snapshot = this.getSnapshot(nodeId);
       if (!snapshot || !snapshot.inbound) continue;
 
@@ -356,7 +356,7 @@ export class SnapshotEditor {
   private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
     const queue = Array.from(nodeIds);
     while (queue.length) {
-      const nodeId = queue.pop() as NodeId;
+      const nodeId = queue.pop()!;
       const node = this.getSnapshot(nodeId);
       if (!node) continue;
 

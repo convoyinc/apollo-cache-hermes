@@ -67,10 +67,10 @@ export function walkPayload(
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
   const stack = [new PayloadWalkNode(payload, node, edgeMap, 0)];
-  const path = [] as PathPart[];
+  const path: PathPart[] = [];
 
   while (stack.length) {
-    const walkNode = stack.pop() as PayloadWalkNode;
+    const walkNode = stack.pop()!;
 
     // Don't visit the root.
     if (walkNode.key !== undefined || visitRoot) {
@@ -131,7 +131,7 @@ export function walkOperation(document: DocumentNode, result: any, visitor: Oper
   const stack = [new OperationWalkNode(operation.selectionSet, result)];
 
   while (stack.length) {
-    const { selectionSet, parent } = stack.pop() as OperationWalkNode;
+    const { selectionSet, parent } = stack.pop()!;
     // We consider null nodes to be skippable (and satisfy the walk).
     if (parent === null) continue;
 
@@ -144,7 +144,7 @@ export function walkOperation(document: DocumentNode, result: any, visitor: Oper
       continue;
     }
 
-    const fields = [] as FieldNode[];
+    const fields: FieldNode[] = [];
     // TODO: Directives?
     for (const selection of selectionSet.selections) {
       // A simple field.

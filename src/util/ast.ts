@@ -35,7 +35,7 @@ export interface FragmentMap {
  * Extracts fragments from `document` by name.
  */
 export function fragmentMapForDocument(document: DocumentNode): FragmentMap {
-  const map = {} as FragmentMap;
+  const map: FragmentMap = {};
   for (const definition of document.definitions) {
     if (definition.kind !== 'FragmentDefinition') continue;
     map[definition.name.value] = definition;
@@ -213,7 +213,7 @@ function addTypenameToSelectionSet(
       const alreadyHasThisField = selectionSet.selections.some((selection) => {
         return (
           selection.kind === 'Field' &&
-          (selection as FieldNode).name.value === '__typename'
+          selection!.name.value === '__typename'
         );
       });
 

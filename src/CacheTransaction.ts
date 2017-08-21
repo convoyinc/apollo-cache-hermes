@@ -16,10 +16,10 @@ import { addToSet } from './util';
 export class CacheTransaction implements Queryable {
 
   /** The set of nodes edited throughout the transaction. */
-  private _editedNodeIds = new Set() as Set<NodeId>;
+  private _editedNodeIds: Set<NodeId> = new Set();
 
   /** All edits made throughout the transaction. */
-  private _deltas = [] as QuerySnapshot[];
+  private _deltas: QuerySnapshot[] = [];
 
   constructor(
     private _context: CacheContext,
