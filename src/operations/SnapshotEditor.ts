@@ -420,7 +420,7 @@ export class SnapshotEditor {
    * Ensures that we have built a new version of a snapshot for node `id` (and
    * that it is referenced by `_newNodes`).
    */
-  private _ensureNewSnapshot(id: NodeId, initialValue?: object): NodeSnapshot {
+  private _ensureNewSnapshot(id: NodeId): NodeSnapshot {
     let newSnapshot;
     if (id in this._newNodes) {
       const current = this._newNodes[id];
@@ -432,7 +432,7 @@ export class SnapshotEditor {
       const parent = this._parent.getSnapshot(id);
       const value = parent
         ? Array.isArray(parent.node) ? [...parent.node] : { ...parent.node }
-        : initialValue;
+        : undefined;
       const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
       const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
 
