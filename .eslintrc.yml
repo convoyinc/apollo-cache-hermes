@@ -191,5 +191,4 @@ rules:
   typescript/no-angle-bracket-type-assertion: error
   typescript/no-triple-slash-reference: error
   typescript/no-unused-vars: error
-  # Until https://github.com/nzakas/eslint-plugin-typescript/issues/42
-  # typescript/type-annotation-spacing: error
+  typescript/type-annotation-spacing: error
