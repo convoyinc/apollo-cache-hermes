@@ -190,6 +190,11 @@ rules:
   # typescript/adjacent-overload-signatures: error
   typescript/class-name-casing: error
   typescript/interface-name-prefix: [error, never]
+  typescript/member-delimiter-style: [error, {
+    overrides: {
+      typeLiteral: { delimiter: comma, requireLast: false }
+    }
+  }]
   typescript/no-angle-bracket-type-assertion: error
   typescript/no-triple-slash-reference: error
   typescript/no-unused-vars: error
