@@ -141,7 +141,7 @@ export class SnapshotEditor {
 
     while (queue.length) {
       const { containerId, containerPayload, visitRoot, edges } = queue.pop()!;
-      const containerSnapshot = this.getSnapshot(containerId);
+      const containerSnapshot = this.getNodeSnapshot(containerId);
       const container = this.get(containerId);
 
       // Break cycles in referenced nodes from the payload.
@@ -337,7 +337,7 @@ export class SnapshotEditor {
 
     while (queue.length) {
       const nodeId = queue.pop() as NodeId;
-      const snapshot = this.getSnapshot(nodeId);
+      const snapshot = this.getNodeSnapshot(nodeId);
       if (!snapshot || !snapshot.inbound) continue;
 
       for (const { id, path } of snapshot.inbound) {
@@ -357,8 +357,8 @@ export class SnapshotEditor {
   private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
     const queue = Array.from(nodeIds);
     while (queue.length) {
-      const nodeId = queue.pop() as NodeId;
-      const node = this.getSnapshot(nodeId);
+      const nodeId = queue.pop()!;
+      const node = this.getNodeSnapshot(nodeId);
       if (!node) continue;
 
       this._newNodes[nodeId] = undefined;
@@ -399,14 +399,14 @@ export class SnapshotEditor {
    * Retrieve the _latest_ version of a node.
    */
   private get(id: NodeId) {
-    const snapshot = this.getSnapshot(id);
+    const snapshot = this.getNodeSnapshot(id);
     return snapshot ? snapshot.node : undefined;
   }
 
   /**
    * Retrieve the _latest_ version of a node snapshot.
    */
-  private getSnapshot(id: NodeId) {
+  private getNodeSnapshot(id: NodeId) {
     return id in this._newNodes ? this._newNodes[id] : this._parent.getSnapshot(id);
   }
 
