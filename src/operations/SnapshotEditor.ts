@@ -21,8 +21,8 @@ import {
  * A newly modified snapshot.
  */
 export interface EditedSnapshot {
-  snapshot: GraphSnapshot,
-  editedNodeIds: Set<NodeId>
+  snapshot: GraphSnapshot;
+  editedNodeIds: Set<NodeId>;
 }
 
 /**

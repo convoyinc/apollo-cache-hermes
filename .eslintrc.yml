@@ -25,6 +25,9 @@ settings:
       - .ts
       - .tsx
 
+env:
+  es6: true
+
 rules:
   # http://eslint.org/docs/rules/
 
@@ -185,8 +188,14 @@ rules:
 
   # TODO: It throws for us.  Build a repro case.
   # typescript/adjacent-overload-signatures: error
+  typescript/class-name-casing: error
+  typescript/interface-name-prefix: [error, never]
+  typescript/member-delimiter-style: [error, {
+    overrides: {
+      typeLiteral: { delimiter: comma, requireLast: false }
+    }
+  }]
   typescript/no-angle-bracket-type-assertion: error
   typescript/no-triple-slash-reference: error
   typescript/no-unused-vars: error
-  # Until https://github.com/nzakas/eslint-plugin-typescript/issues/42
-  # typescript/type-annotation-spacing: error
+  typescript/type-annotation-spacing: error

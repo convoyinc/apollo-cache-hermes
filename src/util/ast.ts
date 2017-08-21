@@ -28,7 +28,7 @@ export function getOperationOrDie(document: DocumentNode): OperationDefinitionNo
 }
 
 export interface FragmentMap {
-  [Key: string]: FragmentDefinitionNode,
+  [Key: string]: FragmentDefinitionNode;
 }
 
 /**
@@ -68,7 +68,7 @@ export class VariableArgument {
  */
 export type EdgeArgumentScalar = JsonScalar | VariableArgument;
 export interface EdgeArgumentArray extends Array<EdgeArgument> {}
-export interface EdgeArgumentObject { [Key: string]: EdgeArgument }
+export interface EdgeArgumentObject { [Key: string]: EdgeArgument; }
 export type EdgeArgument = EdgeArgumentScalar | EdgeArgumentArray | EdgeArgumentObject;
 
 /**
