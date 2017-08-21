@@ -8,9 +8,11 @@ This project is relatively dense, and juggles several concepts.  Here's a quick 
 
 **Entity**: A node that has special meaning in a particular schema; a business object.  May be composed of many nested nodes.  E.g. User, Comment, Post, etc.
 
-**Edge**: A name used to reference the value of a node.
+**Field**: [A name used to reference the value of a node](http://facebook.github.io/graphql/#sec-Language.Fields).
 
-**Parameterized Edge**: [An edge that includes parameters](http://facebook.github.io/graphql/#sec-Object-Field-Arguments) (that the values are a function of).
+**Parameterized Field**: [An edge that includes parameters](http://facebook.github.io/graphql/#sec-Object-Field-Arguments) (that the values are a function of).
+
+**Parameterized Value**: The value referenced by a specific instance of a parameterized field.
 
 **Selection Set**: [An expression of edges](http://facebook.github.io/graphql/#sec-Selection-Sets) - often nested - describing the paths to all values that should be retrieved by a query.
 
