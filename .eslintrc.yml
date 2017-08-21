@@ -188,6 +188,7 @@ rules:
 
   # TODO: It throws for us.  Build a repro case.
   # typescript/adjacent-overload-signatures: error
+  typescript/class-name-casing: error
   typescript/no-angle-bracket-type-assertion: error
   typescript/no-triple-slash-reference: error
   typescript/no-unused-vars: error
