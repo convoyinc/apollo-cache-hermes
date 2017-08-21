@@ -1,3 +1,4 @@
+import { ParameterizedValueSnapshot } from '../nodes/ParameterizedValueSnapshot';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot } from '../nodes';
@@ -455,6 +456,34 @@ export class SnapshotEditor {
 
     this._newNodes[id] = newSnapshot;
     return newSnapshot;
+  }
+
+  /**
+   *
+   */
+  _ensureParameterizedValueSnapshot(containerId: NodeId, nodeId: NodeId) {
+    const containerSnapshot = this.getSnapshot(containerId)!;
+    if (hasNodeReference(containerSnapshot, 'outbound', nodeId)) {
+      // TODO: Assert that the snapshot exists.
+      return this.getSnapshot(nodeId) as ParameterizedValueSnapshot;
+    }
+
+    // We need to construct a new snapshot otherwise.
+
+
+    // Parameterized edges are references, but maintain their own path.
+    if (!hasNodeReference(containerSnapshot, 'outbound', nodeId)) {
+      const newContainerSnapshot = this._ensureNewSnapshot(containerId);
+      addNodeReference('outbound', newContainerSnapshot, nodeId);
+      // This is a bit arcane, but if we
+      let initialValue;
+      if (Array.isArray(payloadValue)) {
+        initialValue = [];
+        initialValue.length = payloadValue.length;
+      }
+      const edgeSnapshot = this._ensureNewSnapshot(nodeId, initialValue);
+      addNodeReference('inbound', edgeSnapshot, containerId);
+    }
   }
 
 }
