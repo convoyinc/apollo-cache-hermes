@@ -196,7 +196,6 @@ rules:
     }
   }]
   typescript/no-angle-bracket-type-assertion: error
-  typescript/no-empty-interface: error
   typescript/no-triple-slash-reference: error
   typescript/no-unused-vars: error
   typescript/type-annotation-spacing: error
