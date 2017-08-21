@@ -183,23 +183,8 @@ export class SnapshotEditor {
         }
 
         if (edge instanceof DynamicEdge && edge.parameterizedEdgeArgs) {
-          // swap in any variables.
-          const edgeArguments = expandEdgeArguments(edge as DynamicEdgeWithParameterizedArguments, query.variables);
-          const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
+          const edgeId = this._ensureParameterizedValueSnapshot(containerId, path, edge, query.variables!);
 
-          // Parameterized edges are references, but maintain their own path.
-          const newContainerSnapshot = this._ensureNewSnapshot(containerId);
-          if (!hasNodeReference(newContainerSnapshot, 'outbound', edgeId)) {
-            addNodeReference('outbound', newContainerSnapshot, edgeId);
-            // This is a bit arcane, but if we
-            let initialValue;
-            if (Array.isArray(payloadValue)) {
-              initialValue = [];
-              initialValue.length = payloadValue.length;
-            }
-            const edgeSnapshot = this._ensureNewSnapshot(edgeId, initialValue);
-            addNodeReference('inbound', edgeSnapshot, containerId);
-          }
           // We walk the values of the parameterized edge like any other entity.
           //
           // EXCEPT: We re-visit the payload, in case it might _directly_
@@ -459,31 +444,24 @@ export class SnapshotEditor {
   }
 
   /**
-   *
+   * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, nodeId: NodeId) {
-    const containerSnapshot = this.getSnapshot(containerId)!;
-    if (hasNodeReference(containerSnapshot, 'outbound', nodeId)) {
-      // TODO: Assert that the snapshot exists.
-      return this.getSnapshot(nodeId) as ParameterizedValueSnapshot;
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], edge: DynamicEdgeWithParameterizedArguments, variables: object) {
+    const edgeArguments = expandEdgeArguments(edge, variables);
+    const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
+
+    const containerSnapshot = this.getNodeSnapshot(containerId);
+    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
+      // We need to construct a new snapshot otherwise.
+      const newSnapshot = new ParameterizedValueSnapshot();
+      addNodeReference('inbound', newSnapshot, containerId);
+      this._newNodes[edgeId] = newSnapshot;
+
+      // Ensure that the container points to it.
+      addNodeReference('outbound', this._ensureNewSnapshot(containerId), edgeId);
     }
 
-    // We need to construct a new snapshot otherwise.
-
-
-    // Parameterized edges are references, but maintain their own path.
-    if (!hasNodeReference(containerSnapshot, 'outbound', nodeId)) {
-      const newContainerSnapshot = this._ensureNewSnapshot(containerId);
-      addNodeReference('outbound', newContainerSnapshot, nodeId);
-      // This is a bit arcane, but if we
-      let initialValue;
-      if (Array.isArray(payloadValue)) {
-        initialValue = [];
-        initialValue.length = payloadValue.length;
-      }
-      const edgeSnapshot = this._ensureNewSnapshot(nodeId, initialValue);
-      addNodeReference('inbound', edgeSnapshot, containerId);
-    }
+    return edgeId;
   }
 
 }
