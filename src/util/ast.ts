@@ -13,6 +13,31 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 import { JsonScalar } from '../primitive';
 
 /**
+ * String enum of GraphQL AST Node.
+ * NOTE: this list is NOT complete and only include node _kind_ we use
+ */
+export enum GraphqlNodeKind {
+  Field = 'Field',
+  FragmentSpread = 'FragmentSpread',
+  FragmentDefinition = 'FragmentDefinition',
+  InlineFragment = 'InlineFragment',
+  Name = 'Name',
+  OperationDefinition = 'OperationDefinition',
+}
+
+export enum GraphqlValueNodeKind {
+  BooleanValue = 'BooleanValue',
+  EnumValue = 'EnumValue',
+  FloatValue = 'FloatValue',
+  IntValue = 'IntValue',
+  ListValue = 'ListValue',
+  NullValue = 'NullValue',
+  ObjectValue = 'ObjectValue',
+  StringValue = 'StringValue',
+  Variable = 'Variable',
+}
+
+/**
  * Extracts the query operation from `document`.
  */
 export function getOperationOrDie(document: DocumentNode): OperationDefinitionNode {
@@ -35,9 +60,9 @@ export interface FragmentMap {
  * Extracts fragments from `document` by name.
  */
 export function fragmentMapForDocument(document: DocumentNode): FragmentMap {
-  const map = {} as FragmentMap;
+  const map: FragmentMap = {};
   for (const definition of document.definitions) {
-    if (definition.kind !== 'FragmentDefinition') continue;
+    if (definition.kind !== GraphqlNodeKind.FragmentDefinition) continue;
     map[definition.name.value] = definition;
   }
 
@@ -97,22 +122,22 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
     let key, value;
 
     // Parameterized edge.
-    if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
-      const args = _buildParameterizedEdgeArgs(selection as any);
+    if (selection.kind === GraphqlNodeKind.Field && selection.arguments && selection.arguments.length) {
+      const args = _buildParameterizedEdgeArgs(selection.arguments);
       const children = buildParameterizedEdgeMap(fragments, selection.selectionSet);
 
       key = selection.name.value;
       value = new ParameterizedEdge(args, children);
 
     // We need to walk any simple fields that have selection sets of their own.
-    } else if (selection.kind === 'Field' && selection.selectionSet) {
+    } else if (selection.kind === GraphqlNodeKind.Field && selection.selectionSet) {
       value = buildParameterizedEdgeMap(fragments, selection.selectionSet);
       if (value) {
         key = selection.name.value;
       }
 
     // Fragments may include parameterized edges of their own; walk 'em.
-    } else if (selection.kind === 'FragmentSpread') {
+    } else if (selection.kind === GraphqlNodeKind.FragmentSpread) {
       const fragment = fragments[selection.name.value];
       if (!fragment) {
         throw new Error(`Expected fragment ${selection.name.value} to exist in GraphQL document`);
@@ -138,37 +163,42 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildParameterizedEdgeArgs(field: FieldNode & { arguments: ArgumentNode[] }) {
+function _buildParameterizedEdgeArgs(argumentsNode: ArgumentNode[]) {
   const args = {};
-  for (const arg of field.arguments) {
+  for (const arg of argumentsNode) {
+    // Mapped name of argument to it JS value
     args[arg.name.value] = _valueFromNode(arg.value);
   }
 
   return args;
 }
 
+
 /**
  * Evaluate a ValueNode and yield its value in its natural JS form.
  */
 function _valueFromNode(node: ValueNode): any {
-  if (node.kind === 'Variable') {
-    return new VariableArgument(node.name.value);
-  } else if (node.kind === 'NullValue') {
-    return null;
-  } else if (node.kind === 'IntValue') {
-    return parseInt(node.value);
-  } else if (node.kind === 'FloatValue') {
-    return parseFloat(node.value);
-  } else if (node.kind === 'ListValue') {
-    return node.values.map(_valueFromNode);
-  } else if (node.kind === 'ObjectValue') {
-    const value = {};
-    for (const field of node.fields) {
-      value[field.name.value] = _valueFromNode(field.value);
-    }
-    return value;
-  } else {
-    return node.value;
+  switch (node.kind) {
+    case GraphqlValueNodeKind.Variable:
+      return new VariableArgument(node.name.value);
+    case GraphqlValueNodeKind.NullValue:
+      return null;
+    case GraphqlValueNodeKind.IntValue:
+      return parseInt(node.value);
+    case GraphqlValueNodeKind.FloatValue:
+      return parseFloat(node.value);
+    case GraphqlValueNodeKind.ListValue:
+      return node.values.map(_valueFromNode);
+    case GraphqlValueNodeKind.ObjectValue:
+      const value = {};
+      for (const field of node.fields) {
+        value[field.name.value] = _valueFromNode(field.value);
+      }
+      return value;
+    case GraphqlValueNodeKind.BooleanValue:
+    case GraphqlValueNodeKind.StringValue:
+    case GraphqlValueNodeKind.EnumValue:
+      return node.value
   }
 }
 
@@ -197,9 +227,9 @@ export function expandEdgeArguments(edge: ParameterizedEdge, variables: object =
 // The following are borrowed directly from apollo-client:
 
 const TYPENAME_FIELD: FieldNode = {
-  kind: 'Field',
+  kind: GraphqlNodeKind.Field,
   name: {
-    kind: 'Name',
+    kind: GraphqlNodeKind.Name,
     value: '__typename',
   },
 };
@@ -211,10 +241,7 @@ function addTypenameToSelectionSet(
   if (selectionSet.selections) {
     if (!isRoot) {
       const alreadyHasThisField = selectionSet.selections.some((selection) => {
-        return (
-          selection.kind === 'Field' &&
-          (selection as FieldNode).name.value === '__typename'
-        );
+        return selection.kind === GraphqlNodeKind.Field && selection.name.value === '__typename';
       });
 
       if (!alreadyHasThisField) {
@@ -224,14 +251,14 @@ function addTypenameToSelectionSet(
 
     selectionSet.selections.forEach((selection) => {
       // Must not add __typename if we're inside an introspection query
-      if (selection.kind === 'Field') {
+      if (selection.kind === GraphqlNodeKind.Field) {
         if (
           selection.name.value.lastIndexOf('__', 0) !== 0 &&
           selection.selectionSet
         ) {
           addTypenameToSelectionSet(selection.selectionSet);
         }
-      } else if (selection.kind === 'InlineFragment') {
+      } else if (selection.kind === GraphqlNodeKind.InlineFragment) {
         if (selection.selectionSet) {
           addTypenameToSelectionSet(selection.selectionSet);
         }
@@ -244,10 +271,9 @@ export function addTypenameToDocument(doc: DocumentNode) {
   const docClone = lodashCloneDeep(doc);
 
   docClone.definitions.forEach((definition: DefinitionNode) => {
-    const isRoot = definition.kind === 'OperationDefinition';
     addTypenameToSelectionSet(
       (definition as OperationDefinitionNode).selectionSet,
-      isRoot,
+      /*isRoot*/ definition.kind === GraphqlNodeKind.OperationDefinition,
     );
   });
 
