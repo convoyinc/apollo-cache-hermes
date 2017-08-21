@@ -67,9 +67,9 @@ export interface DynamicEdgeMap {
  * A value that can be expressed as an argument of a parameterized edge.
  */
 export type EdgeArgumentScalar = JsonScalar | VariableArgument;
-export interface EdgeArgumentArray extends Array<EdgeArgument> {}
-export interface EdgeArgumentObject { [Key: string]: EdgeArgument; }
-export type EdgeArgument = EdgeArgumentScalar | EdgeArgumentArray | EdgeArgumentObject;
+export interface EdgeArgumentArray extends Array<ParameterizedEdgeArgumentValue> {}
+export interface ParameterizedEdgeArguments { [argumentName: string]: ParameterizedEdgeArgumentValue }
+export type ParameterizedEdgeArgumentValue = EdgeArgumentScalar | EdgeArgumentArray | ParameterizedEdgeArguments;
 
 /**
  * Represent dynamic information: alias, parameterized arguments, directives
@@ -78,13 +78,15 @@ export type EdgeArgument = EdgeArgumentScalar | EdgeArgumentArray | EdgeArgument
 export class DynamicEdge {
   constructor(
     /** The map of arguments and their static or variable values. */
-    public readonly parameterizedEdgeArgs?: EdgeArgumentObject,
+    public readonly parameterizedEdgeArgs?: ParameterizedEdgeArguments,
+    /** A field name if exist an alias */
+    public readonly fieldName?: string,
     /** Any child edge maps. */
     public readonly children?: DynamicEdgeMap,
   ) {}
 }
 
-export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: EdgeArgumentObject };
+export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: ParameterizedEdgeArguments };
 
 /**
  * Walks a selection set, identifying the path to all parameterized edges.
@@ -105,7 +107,7 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
       const children = buildParameterizedEdgeMap(fragments, selection.selectionSet);
 
       key = selection.name.value;
-      value = new DynamicEdge(parameterizedArguments, children);
+      value = new DynamicEdge(parameterizedArguments, /*fieldName*/ undefined, children);
 
     // We need to walk any simple fields that have selection sets of their own.
     } else if (selection.kind === 'Field' && selection.selectionSet) {
