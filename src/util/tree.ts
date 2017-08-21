@@ -67,10 +67,10 @@ export function walkPayload(
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
   const stack = [new PayloadWalkNode(payload, node, edgeMap, 0)];
-  const path = [] as PathPart[];
+  const path: PathPart[] = [];
 
   while (stack.length) {
-    const walkNode = stack.pop() as PayloadWalkNode;
+    const walkNode = stack.pop()!;
 
     // Don't visit the root.
     if (walkNode.key !== undefined || visitRoot) {
@@ -84,7 +84,7 @@ export function walkPayload(
     }
 
     // Note that in all cases, we push nodes onto the stack in _reverse_ order,
-    // so that we visit nodes in iteration order (the stack is FIFO).
+    // so that we visit nodes in iteration order (the stack is LIFO).
     const newDepth = walkNode.depth + 1;
     if (Array.isArray(walkNode.payload)) {
       for (let index = walkNode.payload.length - 1; index >= 0; index--) {
@@ -144,7 +144,7 @@ export function walkOperation(document: DocumentNode, result: any, visitor: Oper
       continue;
     }
 
-    const fields = [] as FieldNode[];
+    const fields: FieldNode[] = [];
     // TODO: Directives?
     for (const selection of selectionSet.selections) {
       // A simple field.

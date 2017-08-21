@@ -16,10 +16,10 @@ import { addToSet } from './util';
 export class CacheTransaction implements Queryable {
 
   /** The set of nodes edited throughout the transaction. */
-  private _editedNodeIds = new Set() as Set<NodeId>;
+  private _editedNodeIds = new Set<NodeId>();
 
   /** All edits made throughout the transaction. */
-  private _deltas = [] as QuerySnapshot[];
+  private _deltas: QuerySnapshot[] = [];
 
   constructor(
     private _context: CacheContext,
@@ -108,13 +108,12 @@ export class CacheTransaction implements Queryable {
    * Merge a payload with the optimistic snapshot.
    */
   private _writeOptimistic(query: Query, payload: any) {
-    const current = this._snapshot;
     this._deltas.push({ query, payload });
 
-    const { snapshot: optimistic, editedNodeIds } = write(this._context, current.baseline, query, payload);
+    const { snapshot: optimistic, editedNodeIds } = write(this._context, this._snapshot.baseline, query, payload);
     addToSet(this._editedNodeIds, editedNodeIds);
 
-    this._snapshot = { ...current, optimistic };
+    this._snapshot = { ...this._snapshot, optimistic };
   }
 
 }

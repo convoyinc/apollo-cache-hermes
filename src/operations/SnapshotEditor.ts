@@ -60,7 +60,7 @@ export class SnapshotEditor {
   /**
    * Tracks all node snapshots that have changed vs the parent snapshot.
    */
-  private _newNodes = Object.create(null) as { [Key in NodeId]: NodeSnapshot | undefined };
+  private _newNodes: { [Key in NodeId]: NodeSnapshot | undefined } = Object.create(null);
 
   /**
    * Tracks the nodes that have new _values_ vs the parent snapshot.
@@ -128,21 +128,22 @@ export class SnapshotEditor {
     const { entityIdForNode } = this._context;
     const { parameterizedEdgeMap } = query.info;
 
-    const queue = [{
+    const queue: MergeQueueItem[] = [{
       containerId: query.rootId,
       containerPayload: fullPayload,
       visitRoot: false,
       edges: parameterizedEdgeMap,
-    }] as MergeQueueItem[];
-    const referenceEdits = [] as ReferenceEdit[];
+    }];
+    const referenceEdits: ReferenceEdit[] = [];
     // We have to be careful to break cycles; it's ok for a caller to give us a
     // cyclic payload.
-    const visitedNodes = new Set<any>();
+    const visitedNodes = new Set<object>();
 
     while (queue.length) {
-      const { containerId, containerPayload, visitRoot, edges } = queue.pop() as MergeQueueItem;
+      const { containerId, containerPayload, visitRoot, edges } = queue.pop()!;
       const containerSnapshot = this.getSnapshot(containerId);
-      const container = containerSnapshot ? containerSnapshot.node : undefined;
+      const container = this.get(containerId);
+
       // Break cycles in referenced nodes from the payload.
       if (!visitRoot) {
         if (visitedNodes.has(containerPayload)) continue;
@@ -377,7 +378,7 @@ export class SnapshotEditor {
    * Commits the transaction, returning a new immutable snapshot.
    */
   commit(): EditedSnapshot {
-    const snapshots: { [Key in NodeId]: NodeSnapshot } = { ...(this._parent as any)._values };
+    const snapshots = { ...this._parent._values };
     for (const id in this._newNodes) {
       const newSnapshot = this._newNodes[id];
       // Drop snapshots that were garbage collected.

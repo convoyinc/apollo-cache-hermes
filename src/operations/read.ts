@@ -102,7 +102,7 @@ export function _overlayParameterizedValues(
   const queue = [new OverlayWalkNode(newResult, query.rootId, edges, [])];
 
   while (queue.length) {
-    const walkNode = queue.pop() as OverlayWalkNode;
+    const walkNode = queue.pop()!;
     const { value, edgeMap } = walkNode;
     let { containerId, path } = walkNode;
     const valueId = context.entityIdForNode(value);
