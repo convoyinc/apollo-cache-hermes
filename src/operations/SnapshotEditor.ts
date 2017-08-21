@@ -1,6 +1,6 @@
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeSnapshot } from '../NodeSnapshot';
+import { EntitySnapshot, NodeSnapshot } from '../nodes';
 import { PathPart } from '../primitive';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
@@ -441,7 +441,7 @@ export class SnapshotEditor {
       // We may have deleted the node.
       if (current) return current;
       // If so, we should start fresh.
-      newSnapshot = new NodeSnapshot();
+      newSnapshot = new EntitySnapshot();
     } else {
       const parent = this._parent.getSnapshot(id);
       const value = parent
@@ -450,7 +450,7 @@ export class SnapshotEditor {
       const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
       const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
 
-      newSnapshot = new NodeSnapshot(value, inbound, outbound);
+      newSnapshot = new EntitySnapshot(value, inbound, outbound);
     }
 
     this._newNodes[id] = newSnapshot;

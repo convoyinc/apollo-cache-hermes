@@ -1,4 +1,4 @@
-import { NodeSnapshot } from './NodeSnapshot';
+import { NodeSnapshot } from './nodes';
 import { QueryResult, QueryResultWithNodeIds } from './operations/read';
 import { NodeId, ParsedQuery } from './schema';
 
