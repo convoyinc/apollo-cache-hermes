@@ -14,6 +14,8 @@ This project is relatively dense, and juggles several concepts.  Here's a quick 
 
 **Parameterized Value**: The value referenced by a specific instance of a parameterized field.
 
+**Static Value**: A value of some field within an entity, where that field is _not_ parameterized.
+
 **Selection Set**: [An expression of edges](http://facebook.github.io/graphql/#sec-Selection-Sets) - often nested - describing the paths to all values that should be retrieved by a query.
 
 **Identity Map**: A lookup table mapping identities to a value associated with it.  E.g. userId -> User, etc.
