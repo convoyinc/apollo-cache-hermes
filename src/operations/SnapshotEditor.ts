@@ -140,7 +140,7 @@ export class SnapshotEditor {
     const visitedNodes = new Set<any>();
 
     while (queue.length) {
-      const { containerId, containerPayload, visitRoot, edges } = queue.pop() as MergeQueueItem;
+      const { containerId, containerPayload, visitRoot, edges } = queue.pop()!;
       const containerSnapshot = this.getSnapshot(containerId);
       const container = containerSnapshot ? containerSnapshot.node : undefined;
       // Break cycles in referenced nodes from the payload.
@@ -335,7 +335,7 @@ export class SnapshotEditor {
     addToSet(this._rebuiltNodeIds, queue);
 
     while (queue.length) {
-      const nodeId = queue.pop() as NodeId;
+      const nodeId = queue.pop()!;
       const snapshot = this.getSnapshot(nodeId);
       if (!snapshot || !snapshot.inbound) continue;
 
@@ -356,7 +356,7 @@ export class SnapshotEditor {
   private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
     const queue = Array.from(nodeIds);
     while (queue.length) {
-      const nodeId = queue.pop() as NodeId;
+      const nodeId = queue.pop()!;
       const node = this.getSnapshot(nodeId);
       if (!node) continue;
 

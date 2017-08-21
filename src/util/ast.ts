@@ -213,7 +213,7 @@ function addTypenameToSelectionSet(
       const alreadyHasThisField = selectionSet.selections.some((selection) => {
         return (
           selection.kind === 'Field' &&
-          (selection as FieldNode).name.value === '__typename'
+          selection!.name.value === '__typename'
         );
       });
 
