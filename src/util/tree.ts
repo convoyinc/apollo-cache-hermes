@@ -67,7 +67,7 @@ export function walkPayload(
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
   const stack = [new PayloadWalkNode(payload, node, edgeMap, 0)];
-  const path = [] as PathPart[];
+  const path: PathPart[] = [];
 
   while (stack.length) {
     const walkNode = stack.pop()!;
@@ -144,7 +144,7 @@ export function walkOperation(document: DocumentNode, result: any, visitor: Oper
       continue;
     }
 
-    const fields = [] as FieldNode[];
+    const fields: FieldNode[] = [];
     // TODO: Directives?
     for (const selection of selectionSet.selections) {
       // A simple field.

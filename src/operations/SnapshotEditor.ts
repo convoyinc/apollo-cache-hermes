@@ -128,13 +128,13 @@ export class SnapshotEditor {
     const { entityIdForNode } = this._context;
     const { parameterizedEdgeMap } = query.info;
 
-    const queue = [{
+    const queue: MergeQueueItem[] = [{
       containerId: query.rootId,
       containerPayload: fullPayload,
       visitRoot: false,
       edges: parameterizedEdgeMap,
-    }] as MergeQueueItem[];
-    const referenceEdits = [] as ReferenceEdit[];
+    }];
+    const referenceEdits: ReferenceEdit[] = [];
     // We have to be careful to break cycles; it's ok for a caller to give us a
     // cyclic payload.
     const visitedNodes = new Set<any>();
@@ -299,7 +299,7 @@ export class SnapshotEditor {
    * Returns the set of node ids that are newly orphaned by these edits.
    */
   private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]): Set<NodeId> {
-    const orphanedNodeIds = new Set() as Set<NodeId>;
+    const orphanedNodeIds: Set<NodeId> = new Set();
 
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
       const target = nextNodeId ? this.get(nextNodeId) : null;

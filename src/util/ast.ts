@@ -35,7 +35,7 @@ export interface FragmentMap {
  * Extracts fragments from `document` by name.
  */
 export function fragmentMapForDocument(document: DocumentNode): FragmentMap {
-  const map = {} as FragmentMap;
+  const map: FragmentMap = {};
   for (const definition of document.definitions) {
     if (definition.kind !== 'FragmentDefinition') continue;
     map[definition.name.value] = definition;
