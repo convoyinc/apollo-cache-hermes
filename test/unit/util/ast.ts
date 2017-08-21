@@ -67,8 +67,8 @@ describe(`util.ast`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({ id: 123 }, {
-            bar: new DynamicEdge({ asdf: 'fdsa' }, {
+          foo: new DynamicEdge({ id: 123 }, /*fieldName*/ undefined, {
+            bar: new DynamicEdge({ asdf: 'fdsa' }, /*fieldName*/ undefined, {
               baz: new DynamicEdge({ one: true, two: null }),
             }),
           }),

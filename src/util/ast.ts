@@ -92,6 +92,8 @@ export class DynamicEdge {
   constructor(
     /** The map of arguments and their static or variable values. */
     public readonly parameterizedEdgeArgs?: ParameterizedEdgeArguments,
+    /** A field name if exist an alias */
+    public readonly fieldName?: string,
     /** Any child edge maps. */
     public readonly children?: DynamicEdgeMap,
   ) {}
@@ -116,7 +118,7 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
       const children = buildParameterizedEdgeMap(fragments, selection.selectionSet);
 
       key = selection.name.value;
-      value = new DynamicEdge(parameterizedArguments, children);
+      value = new DynamicEdge(parameterizedArguments, /*fieldName*/ undefined, children);
 
     // We need to walk any simple fields that have selection sets of their own.
     } else if (selection.kind === GraphqlNodeKind.Field && selection.selectionSet) {
