@@ -5,7 +5,7 @@ import {
   buildParameterizedEdgeMap,
   fragmentMapForDocument,
   getOperationOrDie,
-  ParameterizedEdge,
+  DynamicEdge,
   VariableArgument,
 } from '../../../src/util';
 
@@ -46,15 +46,15 @@ describe(`util.ast`, () => {
       it(`parses top level edges`, () => {
         const map = parameterizedEdgesForOperation(gql`{ foo(id:123) { a b } }`);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({ id: 123 }),
+          foo: new DynamicEdge({ id: 123 }),
         });
       });
 
       it(`parses queries with sibling edges`, () => {
         const map = parameterizedEdgesForOperation(gql`{ foo(id: 123) { a b } bar(id: "asdf") { a b } }`);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({ id: 123 }),
-          bar: new ParameterizedEdge({ id: 'asdf' }),
+          foo: new DynamicEdge({ id: 123 }),
+          bar: new DynamicEdge({ id: 'asdf' }),
         });
       });
 
@@ -67,9 +67,9 @@ describe(`util.ast`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({ id: 123 }, {
-            bar: new ParameterizedEdge({ asdf: 'fdsa' }, {
-              baz: new ParameterizedEdge({ one: true, two: null }),
+          foo: new DynamicEdge({ id: 123 }, {
+            bar: new DynamicEdge({ asdf: 'fdsa' }, {
+              baz: new DynamicEdge({ one: true, two: null }),
             }),
           }),
         });
@@ -89,7 +89,7 @@ describe(`util.ast`, () => {
           foo: {
             fizz: {
               buzz: {
-                moo: new ParameterizedEdge({ val: 1.234 }),
+                moo: new DynamicEdge({ val: 1.234 }),
               },
             },
           },
@@ -111,7 +111,7 @@ describe(`util.ast`, () => {
 
         expect(map).to.deep.eq({
           stuff: {
-            things: new ParameterizedEdge({ count: 5 }),
+            things: new DynamicEdge({ count: 5 }),
           },
         });
       });
@@ -138,7 +138,7 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({
+          foo: new DynamicEdge({
             variable: new VariableArgument('variable'),
             null: null,
             int: 123,
@@ -168,7 +168,7 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({
+          foo: new DynamicEdge({
             id: new VariableArgument('id'),
           }),
         });
@@ -181,7 +181,7 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new ParameterizedEdge({
+          foo: new DynamicEdge({
             id: new VariableArgument('id'),
             foo: 'asdf',
             bar: new VariableArgument('id'),

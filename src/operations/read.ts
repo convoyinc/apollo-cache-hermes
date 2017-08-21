@@ -7,8 +7,8 @@ import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   expandEdgeArguments,
   isObject,
-  ParameterizedEdge,
-  ParameterizedEdgeMap,
+  DynamicEdge,
+  DynamicEdgeMap,
 } from '../util';
 
 export interface QueryResult {
@@ -36,7 +36,7 @@ export function read(context: CacheContext, query: Query, snapshot: GraphSnapsho
 
     const { parameterizedEdgeMap } = parsed.info;
     if (parameterizedEdgeMap) {
-      result = _overlayParameterizedValues(parsed, context, snapshot, parameterizedEdgeMap, result);
+      result = _walkAndOverlayDynamicValues(parsed, context, snapshot, parameterizedEdgeMap, result);
     }
 
     const { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
@@ -61,7 +61,7 @@ class OverlayWalkNode {
   constructor(
     public readonly value: any,
     public readonly containerId: NodeId,
-    public readonly edgeMap: ParameterizedEdgeMap,
+    public readonly edgeMap: DynamicEdgeMap,
     public readonly path: PathPart[],
   ) {}
 }
@@ -74,11 +74,11 @@ class OverlayWalkNode {
  * and new properties pointing to the parameterized values (or objects that
  * contain them).
  */
-export function _overlayParameterizedValues(
+export function _walkAndOverlayDynamicValues(
   query: ParsedQuery,
   context: CacheContext,
   snapshot: GraphSnapshot,
-  edges: ParameterizedEdgeMap,
+  edges: DynamicEdgeMap,
   result: any,
 ): any {
   // Corner case: We stop walking once we reach a parameterized edge with no
@@ -114,7 +114,7 @@ export function _overlayParameterizedValues(
     for (const key in edgeMap) {
       let edge = edgeMap[key] as any;
       let child, childId;
-      if (edge instanceof ParameterizedEdge) {
+      if (edge instanceof DynamicEdge && edge.parameterizedEdgeArgs) {
         const args = expandEdgeArguments(edge, query.variables);
         childId = nodeIdForParameterizedValue(containerId, [...path, key], args);
         const childSnapshot = snapshot.getSnapshot(childId);

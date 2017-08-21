@@ -25,18 +25,6 @@ export enum GraphqlNodeKind {
   OperationDefinition = 'OperationDefinition',
 }
 
-export enum GraphqlValueNodeKind {
-  BooleanValue = 'BooleanValue',
-  EnumValue = 'EnumValue',
-  FloatValue = 'FloatValue',
-  IntValue = 'IntValue',
-  ListValue = 'ListValue',
-  NullValue = 'NullValue',
-  ObjectValue = 'ObjectValue',
-  StringValue = 'StringValue',
-  Variable = 'Variable',
-}
-
 /**
  * Extracts the query operation from `document`.
  */
@@ -70,14 +58,6 @@ export function fragmentMapForDocument(document: DocumentNode): FragmentMap {
 }
 
 /**
- * A recursive map where the keys indicate the path to any edge in a result set
- * that contain a parameterized edge.
- */
-export interface ParameterizedEdgeMap {
-  [Key: string]: ParameterizedEdgeMap | ParameterizedEdge;
-}
-
-/**
  * Represents the location a variable should be used as an argument to a
  * parameterized edge.
  */
@@ -89,22 +69,31 @@ export class VariableArgument {
 }
 
 /**
+ * A recursive map where the keys indicate the path to any edge in a result set
+ * that contain a parameterized edge.
+ */
+export interface DynamicEdgeMap {
+  [Key: string]: DynamicEdgeMap | DynamicEdge;
+}
+
+/**
  * A value that can be expressed as an argument of a parameterized edge.
  */
 export type EdgeArgumentScalar = JsonScalar | VariableArgument;
-export interface EdgeArgumentArray extends Array<EdgeArgument> {}
-export interface EdgeArgumentObject { [Key: string]: EdgeArgument }
-export type EdgeArgument = EdgeArgumentScalar | EdgeArgumentArray | EdgeArgumentObject;
+export interface EdgeArgumentArray extends Array<ParameterizedEdgeArgumentValue> {}
+export interface ParameterizedEdgeArguments { [argumentName: string]: ParameterizedEdgeArgumentValue }
+export type ParameterizedEdgeArgumentValue = EdgeArgumentScalar | EdgeArgumentArray | ParameterizedEdgeArguments;
 
 /**
- * Represents a parameterized edge (within an edge map).
+ * Represent dynamic information: alias, parameterized arguments,
+ * directives (if existed) of NodeSnapshot in GraphSnapshot.
  */
-export class ParameterizedEdge {
+export class DynamicEdge {
   constructor(
     /** The map of arguments and their static or variable values. */
-    public readonly args: EdgeArgumentObject,
+    public readonly parameterizedEdgeArgs?: ParameterizedEdgeArguments,
     /** Any child edge maps. */
-    public readonly children?: ParameterizedEdgeMap,
+    public readonly children?: DynamicEdgeMap,
   ) {}
 }
 
@@ -113,7 +102,7 @@ export class ParameterizedEdge {
  *
  * TODO: Support for directives (maybe?).
  */
-export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): ParameterizedEdgeMap | undefined {
+export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicEdgeMap | undefined {
   if (!selectionSet) return undefined;
 
   let edgeMap;
@@ -123,11 +112,11 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
 
     // Parameterized edge.
     if (selection.kind === GraphqlNodeKind.Field && selection.arguments && selection.arguments.length) {
-      const args = _buildParameterizedEdgeArgs(selection.arguments);
+      const parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
       const children = buildParameterizedEdgeMap(fragments, selection.selectionSet);
 
       key = selection.name.value;
-      value = new ParameterizedEdge(args, children);
+      value = new DynamicEdge(parameterizedArguments, children);
 
     // We need to walk any simple fields that have selection sets of their own.
     } else if (selection.kind === GraphqlNodeKind.Field && selection.selectionSet) {
@@ -173,43 +162,41 @@ function _buildParameterizedEdgeArgs(argumentsNode: ArgumentNode[]) {
   return args;
 }
 
-
 /**
  * Evaluate a ValueNode and yield its value in its natural JS form.
  */
 function _valueFromNode(node: ValueNode): any {
   switch (node.kind) {
-    case GraphqlValueNodeKind.Variable:
-      return new VariableArgument(node.name.value);
-    case GraphqlValueNodeKind.NullValue:
-      return null;
-    case GraphqlValueNodeKind.IntValue:
-      return parseInt(node.value);
-    case GraphqlValueNodeKind.FloatValue:
-      return parseFloat(node.value);
-    case GraphqlValueNodeKind.ListValue:
-      return node.values.map(_valueFromNode);
-    case GraphqlValueNodeKind.ObjectValue:
-      const value = {};
-      for (const field of node.fields) {
-        value[field.name.value] = _valueFromNode(field.value);
-      }
-      return value;
-    case GraphqlValueNodeKind.BooleanValue:
-    case GraphqlValueNodeKind.StringValue:
-    case GraphqlValueNodeKind.EnumValue:
-      return node.value
+  case 'Variable':
+    return new VariableArgument(node.name.value);
+  case 'NullValue':
+    return null;
+  case 'IntValue':
+    return parseInt(node.value);
+  case 'FloatValue':
+    return parseFloat(node.value);
+  case 'ListValue':
+    return node.values.map(_valueFromNode);
+  case 'ObjectValue': {
+    const value = {};
+    for (const field of node.fields) {
+      value[field.name.value] = _valueFromNode(field.value);
+    }
+    return value;
+  }
+  default:
+    return node.value;
   }
 }
 
 /**
  * Sub values in for any variables required by an edge's args.
  */
-export function expandEdgeArguments(edge: ParameterizedEdge, variables: object = {}): object {
+export function expandEdgeArguments(edge: DynamicEdge, variables: object = {}): object {
   const edgeArguments = {} as any;
   // TODO: Recurse into objects/arrays.
-  for (const key in edge.args) {
-    let arg = edge.args[key];
+  for (const key in edge.parameterizedEdgeArgs!) {
+    let arg = edge.parameterizedEdgeArgs![key];
     if (arg instanceof VariableArgument) {
       if (!(arg.name in variables)) {
         // TODO: Detect optional variables?
@@ -273,7 +260,7 @@ export function addTypenameToDocument(doc: DocumentNode) {
   docClone.definitions.forEach((definition: DefinitionNode) => {
     addTypenameToSelectionSet(
       (definition as OperationDefinitionNode).selectionSet,
-      /*isRoot*/ definition.kind === GraphqlNodeKind.OperationDefinition,
+      /* isRoot*/ definition.kind === GraphqlNodeKind.OperationDefinition,
     );
   });
 

@@ -11,8 +11,8 @@ import {
   isObject,
   isScalar,
   lazyImmutableDeepSet,
-  ParameterizedEdge,
-  ParameterizedEdgeMap,
+  DynamicEdge,
+  DynamicEdgeMap,
   removeNodeReference,
   walkPayload,
 } from '../util';
@@ -32,7 +32,7 @@ interface MergeQueueItem {
   containerId: NodeId;
   containerPayload: any;
   visitRoot: boolean;
-  edges: ParameterizedEdge | ParameterizedEdgeMap | undefined;
+  edges: DynamicEdge | DynamicEdgeMap | undefined;
 }
 
 /**
@@ -180,7 +180,7 @@ export class SnapshotEditor {
           payloadValue = null;
         }
 
-        if (parameterizedEdge instanceof ParameterizedEdge) {
+        if (parameterizedEdge instanceof DynamicEdge) {
           // swap in any variables.
           const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
           const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
