@@ -6,7 +6,7 @@ import {// eslint-disable-line import/no-extraneous-dependencies, import/no-unre
 import {
   FragmentMap,
   DynamicEdgeMap,
-  buildParameterizedEdgeMap,
+  buildDynamicEdgeMap,
   fragmentMapForDocument,
   getOperationOrDie,
 } from '../util';
@@ -27,15 +27,17 @@ export class QueryInfo {
   public readonly operationName?: string;
   /** All fragments in the document, indexed by name. */
   public readonly fragmentMap: FragmentMap;
-  /** The edge map for the document, if there are any parameterized edges. */
-  public readonly parameterizedEdgeMap?: DynamicEdgeMap;
+  /** The edge map for the document, if there are any dynamic features:
+   *    alias, parameterized arguments, directive 
+   */
+  public readonly dynamicEdgeMap?: DynamicEdgeMap;
 
   constructor(document: DocumentNode) {
     this.document = document;
     this.operation = getOperationOrDie(document);
     this.operationName = this.operation.name && this.operation.name.value;
     this.fragmentMap = fragmentMapForDocument(document);
-    this.parameterizedEdgeMap = buildParameterizedEdgeMap(this.fragmentMap, this.operation.selectionSet);
+    this.dynamicEdgeMap = buildDynamicEdgeMap(this.fragmentMap, this.operation.selectionSet);
   }
 
 }

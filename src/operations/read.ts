@@ -35,9 +35,9 @@ export function read(context: CacheContext, query: Query, snapshot: GraphSnapsho
   if (!queryResult) {
     let result = snapshot.get(parsed.rootId);
 
-    const { parameterizedEdgeMap } = parsed.info;
-    if (parameterizedEdgeMap) {
-      result = _walkAndOverlayDynamicValues(parsed, context, snapshot, parameterizedEdgeMap, result);
+    const { dynamicEdgeMap } = parsed.info;
+    if (dynamicEdgeMap) {
+      result = _walkAndOverlayDynamicValues(parsed, context, snapshot, dynamicEdgeMap, result);
     }
 
     const { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);

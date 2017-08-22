@@ -51,7 +51,7 @@ describe(`context.QueryInfo`, () => {
     });
 
     it(`builds a parameterized edge map`, () => {
-      expect(info.parameterizedEdgeMap).to.deep.eq({
+      expect(info.dynamicEdgeMap).to.deep.eq({
         things: new DynamicEdge({
           ids: new VariableArgument('ids'),
         }),

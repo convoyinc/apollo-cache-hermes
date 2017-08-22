@@ -128,13 +128,13 @@ export class SnapshotEditor {
    */
   private _mergePayloadValues(query: ParsedQuery, fullPayload: object): ReferenceEdit[] {
     const { entityIdForNode } = this._context;
-    const { parameterizedEdgeMap } = query.info;
+    const { dynamicEdgeMap } = query.info;
 
     const queue: MergeQueueItem[] = [{
       containerId: query.rootId,
       containerPayload: fullPayload,
       visitRoot: false,
-      edges: parameterizedEdgeMap,
+      edges: dynamicEdgeMap,
     }];
     const referenceEdits: ReferenceEdit[] = [];
     // We have to be careful to break cycles; it's ok for a caller to give us a
@@ -184,7 +184,6 @@ export class SnapshotEditor {
 
         if (isDynamicEdgeWithParameterizedArguments(edge)) {
           const edgeId = this._ensureParameterizedValueSnapshot(containerId, path, edge, query.variables!);
-
           // We walk the values of the parameterized edge like any other entity.
           //
           // EXCEPT: We re-visit the payload, in case it might _directly_
@@ -221,7 +220,8 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: edge });
+            const updateEdge = edge instanceof DynamicEdge ? edge.children : edge;
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: updateEdge });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -237,11 +237,10 @@ export class SnapshotEditor {
           // values.
           if (nodeLength === payloadLength) return false;
 
-          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : [];
           // We will fill in the values as we walk, but we ensure that the
           // length is accurate, so that we properly handle empty values (e.g. a
           // value that contains only parameterized edges).
-          newArray.length = payloadLength;
+          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : new Array(payloadLength);
           this._setValue(containerId, path, newArray);
 
           // Also remove any references contained within any entries we removed:
@@ -464,7 +463,7 @@ export class SnapshotEditor {
 /**
  * Generate a stable id for a parameterized value.
  */
-export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object) {
+export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object | undefined) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
 }
 
