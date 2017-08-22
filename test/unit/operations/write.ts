@@ -1651,6 +1651,18 @@ describe(`operations.write`, () => {
             name: "Foo"
           }
         });
+
+        expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+          new EntitySnapshot(
+            {
+              user: {
+                id: 0, name: "Foo"
+              }
+            },
+            /*inbound*/ undefined,
+            /*outbound*/ [{id: "0", path:["user"]}]
+          )
+        );
       });
 
       it(`simple query alias on entityId`, () => {
@@ -1674,6 +1686,18 @@ describe(`operations.write`, () => {
             name: "Foo"
           }
         });
+
+        expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+          new EntitySnapshot(
+            {
+              user: {
+                id: 0, name: "Foo"
+              }
+            },
+            /*inbound*/ undefined,
+            /*outbound*/ [{id: "0", path:["user"]}]
+          )
+        );
       });
 
       it(`nested non-entity query`, () => {
@@ -1755,7 +1779,7 @@ describe(`operations.write`, () => {
         query GetUser {
           fullUserInfo: user {
             userId: id
-            name
+            FirstName: name
             contact: phone
           }
           user {
@@ -1769,7 +1793,7 @@ describe(`operations.write`, () => {
         const snapshot = write(config, empty, mixQuery, {
           fullUserInfo: {
             userId: 0,
-            name: "FooBar",
+            FirstName: "Foo",
             contact: "555-555-5555",
           },
           user: {
