@@ -408,7 +408,7 @@ export class SnapshotEditor {
    * Retrieve the _latest_ version of a node snapshot.
    */
   private getNodeSnapshot(id: NodeId) {
-    return id in this._newNodes ? this._newNodes[id] : this._parent.getSnapshot(id);
+    return id in this._newNodes ? this._newNodes[id] : this._parent.getGraphNodeSnapshot(id);
   }
 
   /**
@@ -423,7 +423,7 @@ export class SnapshotEditor {
       this._editedNodeIds.add(id);
     }
 
-    const parent = this._parent.getSnapshot(id);
+    const parent = this._parent.getGraphNodeSnapshot(id);
     const current = this._ensureNewSnapshot(id);
     current.node = lazyImmutableDeepSet(current.node, parent && parent.node, path, newValue);
   }
@@ -441,7 +441,7 @@ export class SnapshotEditor {
       // If so, we should start fresh.
       newSnapshot = new NodeSnapshot();
     } else {
-      const parent = this._parent.getSnapshot(id);
+      const parent = this._parent.getGraphNodeSnapshot(id);
       const value = parent
         ? Array.isArray(parent.node) ? [...parent.node] : { ...parent.node }
         : initialValue;
