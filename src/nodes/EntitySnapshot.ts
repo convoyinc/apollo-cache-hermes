@@ -1,4 +1,4 @@
-import { NodeSnapshot, NodeReference } from './NodeSnapshot';
+import { NodeReference, NodeSnapshot } from './NodeSnapshot';
 
 /**
  * Maintains a reference to a single entity within the cached graph, and any

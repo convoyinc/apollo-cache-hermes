@@ -3,6 +3,7 @@ import * as util from 'util';
 
 import { CacheContext } from '../../../src/context';
 import { GraphSnapshot } from '../../../src/GraphSnapshot';
+import { EntitySnapshot, ParameterizedValueSnapshot } from '../../../src/nodes';
 import { nodeIdForParameterizedValue } from '../../../src/operations/SnapshotEditor';
 import { write } from '../../../src/operations/write';
 import { NodeId, Query, StaticNodeId } from '../../../src/schema';
@@ -61,6 +62,10 @@ describe(`operations.write`, () => {
       expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
     });
 
+    it(`emits the root as an EntitySnapshot`, () => {
+      expect(snapshot.getSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+    });
+
   });
 
   describe(`when writing a (new) single entity hanging off of a root`, () => {
@@ -84,6 +89,14 @@ describe(`operations.write`, () => {
       expect(snapshot.get('123')).to.deep.eq({
         id: 123, name: 'Gouda',
       });
+    });
+
+    it(`emits the root as an EntitySnapshot`, () => {
+      expect(snapshot.getSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+    });
+
+    it(`emits the entity as an EntitySnapshot`, () => {
+      expect(snapshot.getSnapshot('123')).to.be.an.instanceOf(EntitySnapshot);
     });
 
     it(`directly references viewer from the query root`, () => {
@@ -145,6 +158,10 @@ describe(`operations.write`, () => {
 
     it(`only contains the root node`, () => {
       expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+    });
+
+    it(`emits the edited node as an EntitySnapshot`, () => {
+      expect(snapshot.getSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
     });
 
   });
@@ -269,6 +286,12 @@ describe(`operations.write`, () => {
 
     it(`contains the correct nodes`, () => {
       expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
+    });
+
+    it(`emits the edited nodes as an EntitySnapshot`, () => {
+      expect(snapshot.getSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getSnapshot('1')).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getSnapshot('2')).to.be.an.instanceOf(EntitySnapshot);
     });
 
   });
@@ -597,6 +620,10 @@ describe(`operations.write`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
       });
 
+      it(`emits a ParameterizedValueSnapshot`, () => {
+        expect(snapshot.getSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+      });
+
     });
 
     describe(`creating a nested edge`, () => {
@@ -651,6 +678,10 @@ describe(`operations.write`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
       });
 
+      it(`emits a ParameterizedValueSnapshot`, () => {
+        expect(snapshot.getSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+      });
+
     });
 
     describe(`updating an edge`, () => {
@@ -694,6 +725,10 @@ describe(`operations.write`, () => {
 
       it(`marks only the edge as edited`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
+      });
+
+      it(`emits a ParameterizedValueSnapshot`, () => {
+        expect(snapshot.getSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
       });
 
     });

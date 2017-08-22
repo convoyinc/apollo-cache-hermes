@@ -1,7 +1,6 @@
-import { ParameterizedValueSnapshot } from '../nodes/ParameterizedValueSnapshot';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { EntitySnapshot, NodeSnapshot } from '../nodes';
+import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
 import { PathPart } from '../primitive';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
@@ -421,24 +420,17 @@ export class SnapshotEditor {
    * that it is referenced by `_newNodes`).
    */
   private _ensureNewSnapshot(id: NodeId): NodeSnapshot {
-    let newSnapshot;
+    let parent;
     if (id in this._newNodes) {
       const current = this._newNodes[id];
       // We may have deleted the node.
       if (current) return current;
       // If so, we should start fresh.
-      newSnapshot = new EntitySnapshot();
     } else {
-      const parent = this._parent.getSnapshot(id);
-      const value = parent
-        ? Array.isArray(parent.node) ? [...parent.node] : { ...parent.node }
-        : undefined;
-      const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
-      const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
-
-      newSnapshot = new EntitySnapshot(value, inbound, outbound);
+      parent = this._parent.getSnapshot(id);
     }
 
+    const newSnapshot = parent ? cloneNodeSnapshot(parent) : new EntitySnapshot();
     this._newNodes[id] = newSnapshot;
     return newSnapshot;
   }

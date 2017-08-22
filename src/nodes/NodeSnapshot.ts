@@ -6,11 +6,28 @@ import { NodeId } from '../schema';
  */
 export interface NodeSnapshot {
   /** A reference to the node this snapshot is about. TODO: Remove? */
-  readonly node?: any,
+  readonly node?: any;
   /** Other node snapshots that point to this one. */
-  readonly inbound?: NodeReference[],
+  readonly inbound?: NodeReference[];
   /** The node snapshots that this one points to. */
-  readonly outbound?: NodeReference[],
+  readonly outbound?: NodeReference[];
+}
+
+
+
+
+/**
+ *
+ * TODO: Can we assert that specific NodeSnapshot implementations conform to
+ * this without casting them?
+ */
+export interface NodeSnapshotClass<TNodeSnapshot extends NodeSnapshot = NodeSnapshot> {
+  new(...args: any[]): TNodeSnapshot;
+
+  /**
+   *
+   */
+  clone(snapshot: TNodeSnapshot): TNodeSnapshot;
 }
 
 /**
@@ -23,7 +40,7 @@ export interface NodeReference {
    * Id of the node that is either doing the referencing (inbound), or being
    * referenced (outbound).
    */
-  id: NodeId,
+  id: NodeId;
 
   /**
    * The path (object/array keys) within the node to the reference.
@@ -31,5 +48,5 @@ export interface NodeReference {
    * If the path is omitted, this reference is used purely for garbage
    * collection, but is not walked when regenerating node references.
    */
-  path?: PathPart[],
+  path?: PathPart[];
 }
