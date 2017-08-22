@@ -67,6 +67,7 @@ export function walkPayload(
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
   const stack = [new PayloadWalkNode(payload, node, edgeMap, /* depth */ 0)];
+  // TODO : comment
   const path: PathPart[] = [];
 
   while (stack.length) {
@@ -75,10 +76,16 @@ export function walkPayload(
     // Don't visit the root.
     if (walkNode.key !== undefined || visitRoot) {
       path.splice(walkNode.depth - 1);
-      if (walkNode.key !== undefined) {
+      const edgeMap = walkNode.edgeMap;
+      // TODO : comment
+      if (typeof walkNode.key === "number") {
         path.push(walkNode.key);
+      } else if (walkNode.key !== undefined) {
+        const fieldName = edgeMap && edgeMap instanceof DynamicEdge && edgeMap.fieldName ? edgeMap.fieldName : undefined;
+        path.push(fieldName ? fieldName : walkNode.key);
       }
 
+      // TODO : be more generic about what is "id"
       const skipChildren = visitor(path, walkNode.payload, walkNode.node, walkNode.edgeMap);
       if (skipChildren) continue;
     }
@@ -95,12 +102,12 @@ export function walkPayload(
       }
     } else if (walkNode.payload !== null && typeof walkNode.payload === 'object') {
       const keys = Object.getOwnPropertyNames(walkNode.payload);
+      const childMap = walkNode.edgeMap instanceof DynamicEdge ? walkNode.edgeMap.children : walkNode.edgeMap;
       for (let index = keys.length - 1; index >= 0; index--) {
         const key = keys[index];
-        stack.push(new PayloadWalkNode(get(walkNode.payload, key), get(walkNode.node, key), get(walkNode.edgeMap, key), newDepth, key));
+        stack.push(new PayloadWalkNode(get(walkNode.payload, key), get(walkNode.node, key), get(childMap, key), newDepth, key));
       }
     }
-
   }
 }
 
