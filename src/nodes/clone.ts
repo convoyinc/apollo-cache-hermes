@@ -17,8 +17,8 @@ export function cloneNodeSnapshot(parent: NodeSnapshot) {
   } else {
     node = parent.node;
   }
-  const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
-  const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
+  const inbound = parent.inbound ? [...parent.inbound] : undefined;
+  const outbound = parent.outbound ? [...parent.outbound] : undefined;
 
   const NodeSnapshotClass = Object.getPrototypeOf(parent).constructor;
   switch (NodeSnapshotClass) {

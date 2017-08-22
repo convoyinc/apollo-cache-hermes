@@ -13,23 +13,6 @@ export interface NodeSnapshot {
   readonly outbound?: NodeReference[];
 }
 
-
-
-
-/**
- *
- * TODO: Can we assert that specific NodeSnapshot implementations conform to
- * this without casting them?
- */
-export interface NodeSnapshotClass<TNodeSnapshot extends NodeSnapshot = NodeSnapshot> {
-  new(...args: any[]): TNodeSnapshot;
-
-  /**
-   *
-   */
-  clone(snapshot: TNodeSnapshot): TNodeSnapshot;
-}
-
 /**
  * Each node maintains a list of references to/from it, and how to find them.
  *

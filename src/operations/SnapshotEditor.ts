@@ -425,11 +425,16 @@ export class SnapshotEditor {
       const current = this._newNodes[id];
       // We may have deleted the node.
       if (current) return current;
-      // If so, we should start fresh.
+      // We don't have enough information to safely recover in this case for
+      // non-entity nodes; let's not risk it.
+      throw new Error(`Re-creating deleted cache nodes mid-transaction is not yet supported`);
     } else {
       parent = this._parent.getSnapshot(id);
     }
 
+    // TODO: We're assuming that the only time we call _ensureNewSnapshot when
+    // there is no parent is when the node is an entity.  Can we enforce it, or
+    // pass a type through?
     const newSnapshot = parent ? cloneNodeSnapshot(parent) : new EntitySnapshot();
     this._newNodes[id] = newSnapshot;
     return newSnapshot;
