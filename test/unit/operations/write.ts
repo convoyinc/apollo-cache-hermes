@@ -1334,7 +1334,7 @@ describe(`operations.write`, () => {
           baz
         }`);
 
-        const foo = { id: 1, name: 'Foo', bar: null as any };
+        const foo = { id: 1, name: 'Foo', bar: null as any};
         const bar = { id: 2, name: 'Bar', foo };
         foo.bar = bar;
 
@@ -1628,4 +1628,371 @@ describe(`operations.write`, () => {
 
   });
 
+  describe(`field alias`, () => {
+    describe(`without parameterized arguments`, () => {
+      it(`simple query alias on non entityId`, () => {
+        const basicAliasQuery = query(`{
+          user {
+            id
+            FirstName: name
+          }
+        }`);
+
+        const snapshot = write(config, empty, basicAliasQuery, {
+          user: {
+            id: 0,
+            FirstName: "Foo"
+          }
+        }).snapshot;
+
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            id: 0,
+            name: "Foo"
+          }
+        });
+      });
+
+      it(`simple query alias on entityId`, () => {
+        const basicAliasQuery = query(`{
+          user {
+            userId: id
+            FirstName: name
+          }
+        }`);
+
+        const snapshot = write(config, empty, basicAliasQuery, {
+          user: {
+            userId: 0,
+            FirstName: "Foo"
+          }
+        }).snapshot;
+
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            id: 0,
+            name: "Foo"
+          }
+        });
+      });
+
+      it(`nested non-entity query`, () => {
+        const basicAliasQuery = query(`{
+          user {
+            info {
+              FirstName: name
+            }
+          }
+        }`);
+
+        const snapshot = write(config, empty, basicAliasQuery, {
+          user: {
+            info : {
+              FirstName: "Foo"
+            }
+          }
+        }).snapshot;
+
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            info: {
+              name: "Foo"
+            }
+          }
+        });
+      });
+
+      it(`nested alias`, () => {
+        const nestedAliasQuery = query(`
+          query GetUser {
+            fullUserInfo: user {
+              userId: id
+              nickName
+              FirstName: name
+              contact {
+                address: homeAddress {
+                  city
+                  state
+                }
+                phone
+              }
+            }
+          }
+        `);
+        const snapshot = write(config, empty, nestedAliasQuery, {
+          fullUserInfo: {
+            userId: 0,
+            nickName: "Foo Foo",
+            FirstName: "Foo",
+            contact: {
+              address: {
+                city: "Seattle",
+                state: "WA"
+              },
+              phone: "555-555-5555",
+            }
+          },
+        }).snapshot;
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            id: 0,
+            name: "Foo",
+            nickName: "Foo Foo",
+            contact: {
+              homeAddress: {
+                city: "Seattle",
+                state: "WA",
+              },
+              phone: "555-555-5555",
+            }
+          }
+        });
+      })
+    });
+      
+    describe(`query with both alias and non-alias to same field`, () => {
+      const mixQuery = query(`
+        query GetUser {
+          fullUserInfo: user {
+            userId: id
+            name
+            contact: phone
+          }
+          user {
+            id
+            name
+          }
+        }
+      `);
+
+      it(`payload with alias first`, () => {
+        const snapshot = write(config, empty, mixQuery, {
+          fullUserInfo: {
+            userId: 0,
+            name: "FooBar",
+            contact: "555-555-5555",
+          },
+          user: {
+            id: 0,
+            name: "Foo",
+          }
+        }).snapshot;
+
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            id: 0,
+            name: "Foo",
+            phone: "555-555-5555",
+          }
+        });
+      });
+
+      it(`payload with non-alias first`, () => {
+        const snapshot = write(config, empty, mixQuery, {
+          user: {
+            id: 0,
+            name: "Foo",
+          },
+          fullUserInfo: {
+            userId: 0,
+            FirstName: "Foo",
+            contact: "555-555-5555",
+          },
+        }).snapshot;
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            id: 0,
+            name: "Foo",
+            phone: "555-555-5555",
+          }
+        });
+      });
+
+      it(`payload with conflict between alias and non-alias`, () => {
+        const snapshot = write(config, empty, mixQuery, {
+          user: {
+            id: 0,
+            name: "Foo",
+          },
+          fullUserInfo: {
+            userId: 1,
+            FirstName: "FooBar",
+            contact: "555-555-5555",
+          },
+        }).snapshot;
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            id: 1,
+            name: "FooBar",
+            phone: "555-555-5555",
+          }
+        });
+      });
+    });
+
+    describe(`with parameterized arguments`, () => {
+      it(`simple query`, () => {
+        const aliasQuery = query(`{
+          superUser: user(id: 4) {
+            ID: id
+            FirstName: name
+          }
+        }`);
+
+        const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
+        const snapshot = write(config, empty, aliasQuery, {
+          superUser: {
+            ID: 0,
+            FirstName: "Baz"
+          }
+        }).snapshot;
+
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          id: 0,
+          name: "Baz"
+        });
+      });
+
+      it(`simple query with variables`, () => {
+        const aliasQuery = query(`
+          query getUser($id: ID!) {
+            superUser: user(id: $id) {
+              ID: id
+              FirstName: name
+            }
+          }
+        `, { id: 4 });
+
+        const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
+        const snapshot = write(config, empty, aliasQuery, {
+          superUser: {
+            ID: 0,
+            FirstName: "Baz"
+          }
+        }).snapshot;
+
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          id: 0,
+          name: "Baz"
+        });
+      });
+
+      it(`complex query`, () => {
+        const nestedAliasQuery = query(`{
+          shipments(first: 2) {
+            shipmentsInfo: edges {
+              id
+              loads: contents {
+                type: shipmentItemType
+              }
+              shipmentSize: dimensions {
+                weight
+                unit: weightUnit
+              }
+            }
+          }
+        }`);
+
+        const snapshot = write(config, empty, nestedAliasQuery, {
+          shipments: {
+            shipmentsInfo: [
+              {
+                id: 0,
+                loads: [ { type: "26 Pallet" }, { type: "Other"} ],
+                shipmentSize: { weight: 1000, unit: "lb" },
+              },
+              {
+                id: 1,
+                loads: [ { type: "24 Pallet" }, { type: "Other"} ],
+                shipmentSize: { weight: 2000, unit: "lb" },
+              }
+            ]
+          }
+        }).snapshot;
+
+        const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['shipments'], { first: 2 });
+
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          edges: [
+            {
+              id: 0,
+              contents: [ { shipmentItemType: "26 Pallet" }, { shipmentItemType: "Other"} ],
+              dimensions: { weight: 1000, weightUnit: "lb" },
+            },
+            {
+              id: 1,
+              contents: [ { shipmentItemType: "24 Pallet" }, { shipmentItemType: "Other"} ],
+              dimensions: { weight: 2000, weightUnit: "lb" },
+            }
+          ]
+          }
+        );
+      });
+
+      it(`alias and non-alias`, () => {
+        const aliasQuery = query(`{
+          fullUser: user(id: 4) {
+            ID: id
+            FirstName: name
+            contact: contactInfo {
+              shortAddress: address {
+                city
+                state
+              }
+              phone
+            }
+          }
+          shortUser: user (id: 4) {
+            ID: id
+            FirstName: name
+            contact: contactInfo {
+              phone
+            }
+          }
+          user (id: 4) {
+            id
+            name
+          }
+        }`);
+        const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
+        
+        const snapshot = write(config, empty, aliasQuery, {
+          fullUser: {
+            ID: 4,
+            FirstName: "Foo",
+            contact: {
+              shortAddress: {
+                city: "ABA",
+                state: "AA"
+              },
+              phone: "555-555-5555",
+            },
+          },
+          shortUser: {
+            ID: 4,
+            FirstName: "Foo",
+            contact: {
+              phone: "555-555-5555",
+            },
+          },
+          user: {
+            id: 4,
+            name: "Foo",
+          }
+        }).snapshot;
+        
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          id: 4,
+          name: "Foo",
+          contactInfo: {
+            address: {
+              city: "ABA",
+              state: "AA"
+            },
+            phone: "555-555-5555",
+          },
+        });
+      });
+    });
+  });
 });
