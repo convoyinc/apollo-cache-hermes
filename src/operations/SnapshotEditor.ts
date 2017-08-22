@@ -396,7 +396,7 @@ export class SnapshotEditor {
    * Retrieve the _latest_ version of a node snapshot.
    */
   private getNodeSnapshot(id: NodeId) {
-    return id in this._newNodes ? this._newNodes[id] : this._parent.getSnapshot(id);
+    return id in this._newNodes ? this._newNodes[id] : this._parent.getNodeSnapshot(id);
   }
 
   /**
@@ -411,7 +411,7 @@ export class SnapshotEditor {
       this._editedNodeIds.add(id);
     }
 
-    const parent = this._parent.getSnapshot(id);
+    const parent = this._parent.getNodeSnapshot(id);
     const current = this._ensureNewSnapshot(id);
     current.node = lazyImmutableDeepSet(current.node, parent && parent.node, path, newValue);
   }
@@ -425,7 +425,7 @@ export class SnapshotEditor {
     if (id in this._newNodes) {
       return this._newNodes[id]!;
     } else {
-      parent = this._parent.getSnapshot(id);
+      parent = this._parent.getNodeSnapshot(id);
     }
 
     // TODO: We're assuming that the only time we call _ensureNewSnapshot when

@@ -82,10 +82,10 @@ export function _walkAndOverlayDynamicValues(
   edges: DynamicEdgeMap,
   result: any,
 ): any {
+  const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
   // Corner case: We stop walking once we reach a parameterized edge with no
   // snapshot, but we should also pre-emptively stop walking if there are no
   // parameterized edges at all for the selection.
-  const rootSnapshot = snapshot.getSnapshot(query.rootId);
   if (!rootSnapshot || !rootSnapshot.outbound) {
     // For now, what's probably good enough is to just stop the walk if we have
     // no root snapshot making outbound references to any other edges.
@@ -118,7 +118,7 @@ export function _walkAndOverlayDynamicValues(
       if (edge instanceof DynamicEdge && edge.parameterizedEdgeArgs) {
         const args = expandEdgeArguments(edge as DynamicEdgeWithParameterizedArguments, query.variables);
         childId = nodeIdForParameterizedValue(containerId, [...path, key], args);
-        const childSnapshot = snapshot.getSnapshot(childId);
+        const childSnapshot = snapshot.getNodeSnapshot(childId);
         if (childSnapshot) {
           edge = edge.children;
           child = childSnapshot.node;
