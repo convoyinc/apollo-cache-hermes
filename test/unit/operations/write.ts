@@ -368,7 +368,7 @@ describe(`operations.write`, () => {
     });
 
     it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId) as NodeSnapshot;
+      const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
     });
 
@@ -447,7 +447,7 @@ describe(`operations.write`, () => {
     });
 
     it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId) as NodeSnapshot;
+      const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
     });
 
@@ -586,7 +586,7 @@ describe(`operations.write`, () => {
       });
 
       it(`creates an inbound reference to the edge's container`, () => {
-        const values = snapshot.getGraphNodeSnapshot(parameterizedId) as NodeSnapshot;
+        const values = snapshot.getGraphNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
@@ -635,12 +635,12 @@ describe(`operations.write`, () => {
       });
 
       it(`creates an outgoing reference from the edge's container`, () => {
-        const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId) as NodeSnapshot;
+        const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
       it(`creates an inbound reference to the edge's container`, () => {
-        const values = snapshot.getGraphNodeSnapshot(parameterizedId) as NodeSnapshot;
+        const values = snapshot.getGraphNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
@@ -731,22 +731,22 @@ describe(`operations.write`, () => {
       });
 
       it(`creates an outgoing reference from the edge's container`, () => {
-        const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId) as NodeSnapshot;
+        const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
       it(`creates an inbound reference to the edge's container`, () => {
-        const values = snapshot.getGraphNodeSnapshot(parameterizedId) as NodeSnapshot;
+        const values = snapshot.getGraphNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
       it(`creates an outgoing reference from the parameterized edge to the referenced entity`, () => {
-        const values = snapshot.getGraphNodeSnapshot(parameterizedId) as NodeSnapshot;
+        const values = snapshot.getGraphNodeSnapshot(parameterizedId)!;
         expect(values.outbound).to.deep.eq([{ id: '1', path: [] }]);
       });
 
       it(`creates an incoming reference from the parameterized edge to the referenced entity`, () => {
-        const entity = snapshot.getGraphNodeSnapshot('1') as NodeSnapshot;
+        const entity = snapshot.getGraphNodeSnapshot('1')!;
         expect(entity.inbound).to.deep.eq([{ id: parameterizedId, path: [] }]);
       });
 
@@ -960,15 +960,15 @@ describe(`operations.write`, () => {
       });
 
       it(`references the parent snapshot from the children`, () => {
-        const entry1 = snapshot.getGraphNodeSnapshot(entry1Id) as NodeSnapshot;
-        const entry2 = snapshot.getGraphNodeSnapshot(entry2Id) as NodeSnapshot;
+        const entry1 = snapshot.getGraphNodeSnapshot(entry1Id)!;
+        const entry2 = snapshot.getGraphNodeSnapshot(entry2Id)!;
 
         expect(entry1.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
         expect(entry2.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
       });
 
       it(`references the children from the parent`, () => {
-        const container = snapshot.getGraphNodeSnapshot(containerId) as NodeSnapshot;
+        const container = snapshot.getGraphNodeSnapshot(containerId)!;
 
         expect(container.outbound).to.have.deep.members([
           { id: entry1Id, path: undefined },
