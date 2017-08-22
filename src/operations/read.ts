@@ -5,7 +5,6 @@ import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
-  DynamicEdgeWithParameterizedArguments,
   expandEdgeArguments,
   isObject,
   DynamicEdge,
@@ -82,11 +81,14 @@ export function _walkAndOverlayDynamicValues(
   edges: DynamicEdgeMap,
   result: any,
 ): any {
-  const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
   // Corner case: We stop walking once we reach a parameterized edge with no
   // snapshot, but we should also pre-emptively stop walking if there are no
-  // parameterized edges at all for the selection.
-  if (!rootSnapshot || !rootSnapshot.outbound) {
+
+  // dynamic values to be overlaid 
+  const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
+
+  // TODO : comment
+  if (!rootSnapshot || !(rootSnapshot.outbound || edges)) {
     // For now, what's probably good enough is to just stop the walk if we have
     // no root snapshot making outbound references to any other edges.
     return result;
@@ -113,39 +115,49 @@ export function _walkAndOverlayDynamicValues(
     }
 
     for (const key in edgeMap) {
-      let edge = edgeMap[key] as any;
+      if (key === "entityIdAlias") continue;
+      const edge = edgeMap[key];
+      let nextEdge = edge;
       let child, childId;
-      if (edge instanceof DynamicEdge && edge.parameterizedEdgeArgs) {
-        const args = expandEdgeArguments(edge as DynamicEdgeWithParameterizedArguments, query.variables);
-        childId = nodeIdForParameterizedValue(containerId, [...path, key], args);
-        const childSnapshot = snapshot.getNodeSnapshot(childId);
-        if (childSnapshot) {
-          edge = edge.children;
-          child = childSnapshot.node;
+      let fieldName = key;
+
+      if (edge instanceof DynamicEdge) {
+        // If exist filedName property then the current key is an alias
+        fieldName = edge.fieldName ? edge.fieldName : key;
+        nextEdge = edge.children;
+
+        if (edge.parameterizedEdgeArgs) {
+          const args = expandEdgeArguments(edge.parameterizedEdgeArgs, query.variables);
+          childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], args);
+          const childSnapshot = snapshot.getNodeSnapshot(childId);
+          if (childSnapshot) {
+            child = childSnapshot.node;
+          } 
         } else {
-          // Stop walking any further down.
-          edge = undefined;
+          child = value[fieldName];
         }
       } else {
         child = value[key];
       }
 
       // Should we continue the walk?
-      if (edge && child !== null) {
+      // TODO : comment
+      if (nextEdge && !(nextEdge instanceof DynamicEdge) && child !== null) {
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
             child[i] = _wrapValue(child[i]);
-            queue.push(new OverlayWalkNode(child[i], containerId, edge, [...path, key, i]));
+            queue.push(new OverlayWalkNode(child[i], containerId, nextEdge as DynamicEdgeMap, [...path, fieldName, i]));
           }
 
         } else {
           child = _wrapValue(child);
-          queue.push(new OverlayWalkNode(child, containerId, edge, [...path, key]))
+          queue.push(new OverlayWalkNode(child, containerId, nextEdge as DynamicEdgeMap, [...path, fieldName]))
         }
       }
 
+      // Because key is already a field alias, result will be written correctly using alias as key
       value[key] = child;
     }
   }
