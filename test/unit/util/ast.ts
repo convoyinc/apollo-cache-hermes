@@ -2,7 +2,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import gql from 'graphql-tag';
 
 import {
-  buildParameterizedEdgeMap,
+  buildDynamicEdgeMap,
   fragmentMapForDocument,
   getOperationOrDie,
   DynamicEdge,
@@ -16,7 +16,7 @@ describe(`util.ast`, () => {
     function buildEdgeMapForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
       const fragmentMap = fragmentMapForDocument(document);
-      return buildParameterizedEdgeMap(fragmentMap, operation.selectionSet);
+      return buildDynamicEdgeMap(fragmentMap, operation.selectionSet);
     }
 
     describe(`with no parameterized edges`, () => {

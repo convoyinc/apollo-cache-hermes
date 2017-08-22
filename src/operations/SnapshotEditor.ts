@@ -126,13 +126,13 @@ export class SnapshotEditor {
    */
   private _mergePayloadValues(query: ParsedQuery, fullPayload: object): ReferenceEdit[] {
     const { entityIdForNode } = this._context;
-    const { parameterizedEdgeMap } = query.info;
+    const { dynamicEdgeMap } = query.info;
 
     const queue: MergeQueueItem[] = [{
       containerId: query.rootId,
       containerPayload: fullPayload,
       visitRoot: false,
-      edges: parameterizedEdgeMap,
+      edges: dynamicEdgeMap,
     }];
     const referenceEdits: ReferenceEdit[] = [];
     // We have to be careful to break cycles; it's ok for a caller to give us a
@@ -152,7 +152,7 @@ export class SnapshotEditor {
       // Similarly, we need to be careful to break cycles _within_ a node.
       const visitedPayloadValues = new Set<any>();
 
-      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
+      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, edge) => {
         const payloadIsObject = isObject(payloadValue);
         const nodeIsObject = isObject(nodeValue);
         let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
@@ -180,9 +180,10 @@ export class SnapshotEditor {
           payloadValue = null;
         }
 
-        if (parameterizedEdge instanceof DynamicEdge) {
+        if (edge instanceof DynamicEdge && edge.parameterizedEdgeArgs) {
           // swap in any variables.
-          const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
+          const edgeArguments = expandEdgeArguments(edge.parameterizedEdgeArgs, query.variables);
+
           const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
           // Parameterized edges are references, but maintain their own path.
@@ -204,7 +205,7 @@ export class SnapshotEditor {
           // reference an entity.  This allows us to build a chain of references
           // where the parameterized value points _directly_ to a particular
           // entity node.
-          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: parameterizedEdge.children });
+          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: edge.children });
 
           // Stop the walk for this subgraph.
           return true;
@@ -233,7 +234,9 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: parameterizedEdge });
+            // TODO (yuisu): clean up
+            const updateEdge = edge instanceof DynamicEdge ? edge.children : edge;
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: updateEdge });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -249,11 +252,10 @@ export class SnapshotEditor {
           // values.
           if (nodeLength === payloadLength) return false;
 
-          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : [];
           // We will fill in the values as we walk, but we ensure that the
           // length is accurate, so that we properly handle empty values (e.g. a
           // value that contains only parameterized edges).
-          newArray.length = payloadLength;
+          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : new Array(payloadLength);
           this._setValue(containerId, path, newArray);
 
           // Also remove any references contained within any entries we removed:
@@ -460,7 +462,7 @@ export class SnapshotEditor {
 /**
  * Generate a stable id for a parameterized value.
  */
-export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object) {
+export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object | undefined) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
 }
 
