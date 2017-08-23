@@ -27,7 +27,7 @@ export namespace NodeSnapshot {
      * Id of the node that is either doing the referencing (inbound), or being
      * referenced (outbound).
      */
-    id: NodeId,
+    id: NodeId;
 
     /**
      * The path (object/array keys) within the node to the reference.
@@ -35,7 +35,7 @@ export namespace NodeSnapshot {
      * If the path is omitted, this reference is used purely for garbage
      * collection, but is not walked when regenerating node references.
      */
-    path?: PathPart[],
+    path?: PathPart[];
   }
 
 }

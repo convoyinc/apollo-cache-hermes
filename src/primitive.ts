@@ -19,7 +19,7 @@ export type PathPart = number | string;
  */
 export interface Constructor<TClass extends object> {
   new(...args: any[]): TClass;
-  prototype: TClass
+  prototype: TClass;
 }
 
 /**
@@ -40,5 +40,5 @@ export type DeepReadonly<TType> = {
 
 export type JsonScalar = null | boolean | number | string;
 export interface JsonArray extends Array<JsonValue> {}
-export interface JsonObject { [Key: string]: JsonValue }
+export interface JsonObject { [Key: string]: JsonValue; }
 export type JsonValue = JsonScalar | JsonArray | JsonObject;

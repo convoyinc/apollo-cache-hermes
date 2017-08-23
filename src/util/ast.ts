@@ -28,7 +28,7 @@ export function getOperationOrDie(document: DocumentNode): OperationDefinitionNo
 }
 
 export interface FragmentMap {
-  [Key: string]: FragmentDefinitionNode,
+  [Key: string]: FragmentDefinitionNode;
 }
 
 /**
@@ -67,9 +67,9 @@ export interface DynamicEdgeMap {
  * A value that can be expressed as an argument of a parameterized edge.
  */
 export type EdgeArgumentScalar = JsonScalar | VariableArgument;
-export interface EdgeArgumentArray extends Array<ParameterizedEdgeArgumentValue> {}
-export interface ParameterizedEdgeArguments { [argumentName: string]: ParameterizedEdgeArgumentValue }
-export type ParameterizedEdgeArgumentValue = EdgeArgumentScalar | EdgeArgumentArray | ParameterizedEdgeArguments;
+export interface EdgeArgumentArray extends Array<EdgeArgument> {}
+export interface EdgeArgumentObject { [Key: string]: EdgeArgument; }
+export type EdgeArgument = EdgeArgumentScalar | EdgeArgumentArray | EdgeArgumentObject;
 
 /**
  * Represent dynamic information: alias, parameterized arguments, directives
@@ -78,7 +78,7 @@ export type ParameterizedEdgeArgumentValue = EdgeArgumentScalar | EdgeArgumentAr
 export class DynamicEdge {
   constructor(
     /** The map of arguments and their static or variable values. */
-    public readonly parameterizedEdgeArgs?: ParameterizedEdgeArguments,
+    public readonly parameterizedEdgeArgs?: EdgeArgumentObject,
     /** Any child edge maps. */
     public readonly children?: DynamicEdgeMap,
   ) {}
@@ -176,7 +176,7 @@ function _valueFromNode(node: ValueNode): any {
   }
 }
 
-export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: ParameterizedEdgeArguments };
+export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: EdgeArgumentObject };
 /**
  * Sub values in for any variables required by an edge's args.
  */

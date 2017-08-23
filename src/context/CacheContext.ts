@@ -1,4 +1,4 @@
-import { DocumentNode, Location } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import lodashIsEqual = require('lodash.isequal');
 
 import { EntityId, ParsedQuery, Query } from '../schema';
@@ -118,7 +118,7 @@ export class CacheContext {
       }
       this._queryInfoMap.set(cacheKey, new QueryInfo(document));
     }
-    return this._queryInfoMap.get(cacheKey) as QueryInfo;
+    return this._queryInfoMap.get(cacheKey)!;
   }
 
 }
@@ -145,5 +145,5 @@ export function defaultEntityIdMapper(node: any) {
 }
 
 export function queryCacheKey(document: DocumentNode) {
-  return (document.loc as Location).source.body;
+  return document.loc!.source.body;
 }

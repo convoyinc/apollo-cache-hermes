@@ -22,8 +22,8 @@ import {
  * A newly modified snapshot.
  */
 export interface EditedSnapshot {
-  snapshot: GraphSnapshot,
-  editedNodeIds: Set<NodeId>
+  snapshot: GraphSnapshot;
+  editedNodeIds: Set<NodeId>;
 }
 
 /**
@@ -303,7 +303,7 @@ export class SnapshotEditor {
    * Returns the set of node ids that are newly orphaned by these edits.
    */
   private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]): Set<NodeId> {
-    const orphanedNodeIds = new Set() as Set<NodeId>;
+    const orphanedNodeIds: Set<NodeId> = new Set();
 
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
       const target = nextNodeId ? this.getDataNodeOfNodeSnapshot(nextNodeId) : null;
@@ -339,7 +339,7 @@ export class SnapshotEditor {
     addToSet(this._rebuiltNodeIds, queue);
 
     while (queue.length) {
-      const nodeId = queue.pop() as NodeId;
+      const nodeId = queue.pop()!;
       const snapshot = this.getNodeSnapshot(nodeId);
       if (!snapshot || !snapshot.inbound) continue;
 

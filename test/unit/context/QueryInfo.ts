@@ -1,4 +1,4 @@
-import { DocumentNode, NameNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
 import { QueryInfo } from '../../../src/context/QueryInfo';
@@ -38,7 +38,7 @@ describe(`context.QueryInfo`, () => {
     });
 
     it(`extracts the operation`, () => {
-      expect((info.operation.name as NameNode).value).to.eq('getThings');
+      expect(info.operation.name!.value).to.eq('getThings');
       expect(info.operation.operation).to.eq('query');
     });
 
