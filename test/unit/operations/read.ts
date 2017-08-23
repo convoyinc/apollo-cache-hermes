@@ -443,7 +443,8 @@ describe(`operations.read`, () => {
 
     describe(`directly nested reference edges`, () => {
 
-      const nestedQuery = query(`query nested($id: ID!) {
+      const nestedQuery = query(`
+      query nested($id: ID!) {
         one(id: $id) {
           id
           two(extra: true) {
@@ -706,6 +707,66 @@ describe(`operations.read`, () => {
           },
         });
       });
+
+      it(`with variables`, () => {
+        const aliasQuery = query(`
+          query getUser($id: ID!) {
+            fullUser: user(id: $id) {
+              firstName: FirstName,
+              userId: id
+              address: Address {
+                city
+                state
+              }
+            }
+            user(id: $id) {
+              FirstName
+              id
+            }
+          }
+        `, { id: 2 });
+        const snapshot = write(context, empty, aliasQuery, {
+          fullUser: {
+            firstName: 'Bob',
+            userId: 2,
+            address: {
+              city: 'A',
+              state: 'AA',
+            },
+          },
+          user: {
+            FirstName: 'Bob',
+            id: 2,
+          },
+        }).snapshot;
+
+        const { result } = read(context, aliasQuery, snapshot);
+        expect(result).to.deep.eq({
+          fullUser: {
+            firstName: 'Bob',
+            FirstName: 'Bob',
+            id: 2,
+            userId: 2,
+            address: {
+              city: 'A',
+              state: 'AA',
+            },
+            Address: {
+              city: 'A',
+              state: 'AA',
+            },
+          },
+          user: {
+            FirstName: 'Bob',
+            id: 2,
+            Address: {
+              city: 'A',
+              state: 'AA',
+            },
+          },
+        });
+      });
+
 
       it(`complex nested alias`, () => {
         const nestedAliasQuery = query(`{

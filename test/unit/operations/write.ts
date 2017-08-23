@@ -1630,105 +1630,140 @@ describe(`operations.write`, () => {
 
   describe(`field alias`, () => {
     describe(`without parameterized arguments`, () => {
-      it(`simple query alias on non entityId`, () => {
-        const basicAliasQuery = query(`{
-          user {
-            id
-            FirstName: name
-          }
-        }`);
-
-        const snapshot = write(config, empty, basicAliasQuery, {
-          user: {
-            id: 0,
-            FirstName: 'Foo',
-          },
-        }).snapshot;
-
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
-          user: {
-            id: 0,
-            name: 'Foo',
-          },
-        });
-
-        expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
-          new EntitySnapshot(
-            {
-              user: {
-                id: 0,
-                name: 'Foo',
-              },
-            },
-            /* inbound */ undefined,
-            /* outbound */ [{ id: '0', path: ['user'] }],
-          )
-        );
-      });
-
-      it(`simple query alias on entityId`, () => {
-        const basicAliasQuery = query(`{
-          user {
-            userId: id
-            FirstName: name
-          }
-        }`);
-
-        const snapshot = write(config, empty, basicAliasQuery, {
-          user: {
-            userId: 0,
-            FirstName: 'Foo',
-          },
-        }).snapshot;
-
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
-          user: {
-            id: 0,
-            name: 'Foo',
-          },
-        });
-
-        expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
-          new EntitySnapshot(
-            {
-              user: {
-                id: 0,
-                name: 'Foo',
-              },
-            },
-            /* inbound */ undefined,
-            /* outbound */ [{ id: '0', path: ['user'] }],
-          )
-        );
-      });
-
-      it(`nested non-entity query`, () => {
-        const basicAliasQuery = query(`{
-          user {
-            info {
+      describe(`simple query alias on non entityId`, () => {
+        let aliasQuery: Query, snapshot: GraphSnapshot;
+        beforeAll(() => {
+          aliasQuery = query(`{
+            user {
+              id
               FirstName: name
             }
-          }
-        }`);
+          }`);
 
-        const snapshot = write(config, empty, basicAliasQuery, {
-          user: {
-            info: {
+          snapshot = write(config, empty, aliasQuery, {
+            user: {
+              id: 0,
               FirstName: 'Foo',
             },
-          },
-        }).snapshot;
+          }).snapshot;
+        });
 
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
-          user: {
-            info: {
+        it(`check write result`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            user: {
+              id: 0,
               name: 'Foo',
             },
-          },
+          });
+        });
+
+        it(`check shape of graph`, () => {
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+            new EntitySnapshot(
+              {
+                user: {
+                  id: 0,
+                  name: 'Foo',
+                },
+              },
+              /* inbound */ undefined,
+              /* outbound */ [{ id: '0', path: ['user'] }],
+            )
+          );
         });
       });
 
-      it(`nested alias`, () => {
+      describe(`simple query alias on entityId`, () => {
+        let aliasQuery: Query, snapshot: GraphSnapshot;
+        beforeAll(() => {
+          aliasQuery = query(`{
+            user {
+              userId: id
+              FirstName: name
+            }
+          }`);
+
+          snapshot = write(config, empty, aliasQuery, {
+            user: {
+              userId: 0,
+              FirstName: 'Foo',
+            },
+          }).snapshot;
+        });
+
+        it(`check write result`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            user: {
+              id: 0,
+              name: 'Foo',
+            },
+          });
+        });
+
+        it(`check shape of graph`, () => {
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+            new EntitySnapshot(
+              {
+                user: {
+                  id: 0,
+                  name: 'Foo',
+                },
+              },
+              /* inbound */ undefined,
+              /* outbound */ [{ id: '0', path: ['user'] }],
+            )
+          );
+        });
+      });
+
+      describe(`nested non entityId alias query`, () => {
+        let aliasQuery: Query, snapshot: GraphSnapshot;
+        beforeAll(() => {
+          aliasQuery = query(`{
+            user {
+              info {
+                FirstName: name
+              }
+            }
+          }`);
+
+          snapshot = write(config, empty, aliasQuery, {
+            user: {
+              info: {
+                FirstName: 'Foo',
+              },
+            },
+          }).snapshot;
+        });
+
+        it(`check write result`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            user: {
+              info: {
+                name: 'Foo',
+              },
+            },
+          });
+        });
+
+        it(`check shape of graph`, () => {
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+            new EntitySnapshot(
+              {
+                user: {
+                  info: {
+                    name: 'Foo',
+                  },
+                },
+              },
+              /* inbound */ undefined,
+              /* outbound */ undefined,
+            )
+          );
+        });
+      });
+
+      it(`nested entityId alias`, () => {
         const nestedAliasQuery = query(`
           query GetUser {
             fullUserInfo: user {
@@ -1811,6 +1846,34 @@ describe(`operations.write`, () => {
             phone: '555-555-5555',
           },
         });
+      });
+
+      it(`payload with alias first - check graph shape`, () => {
+        const snapshot = write(config, empty, mixQuery, {
+          fullUserInfo: {
+            userId: 0,
+            FirstName: 'Foo',
+            contact: '555-555-5555',
+          },
+          user: {
+            id: 0,
+            name: 'Foo',
+          },
+        }).snapshot;
+
+        expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+          new EntitySnapshot(
+            {
+              user: {
+                id: 0,
+                name: 'Foo',
+                phone: '555-555-5555',
+              },
+            },
+            /* inbound */ undefined,
+            /* outbound */ [{ id: '0', path: ['user'] }],
+          )
+        );
       });
 
       it(`payload with non-alias first`, () => {
