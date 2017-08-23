@@ -9,9 +9,9 @@ export class NodeSnapshot {
     /** A reference to the node this snapshot is about. */
     public node?: object,
     /** Other node snapshots that point to this one. */
-    readonly inbound?: NodeSnapshot.Reference[],
+    public inbound?: NodeSnapshot.Reference[],
     /** The node snapshots that this one points to. */
-    readonly outbound?: NodeSnapshot.Reference[],
+    public outbound?: NodeSnapshot.Reference[],
   ) {}
 }
 
