@@ -67,7 +67,17 @@ export function walkPayload(
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
   const stack = [new PayloadWalkNode(payload, node, edgeMap, /* depth */ 0)];
-  // TODO : comment
+  // Store array of path (which is a name of property in an object) from root
+  // node to interested property.
+  // i.e. {
+  //  user: {
+  //    name: "Bob",   -> path = ["user", "name"]
+  //    address: {     -> path = ["user", "address"]
+  //      city: "A",   -> path = ["user", "address", "city"]
+  //      state: "AB", -> path = ["user", "address", "state"]
+  //    }
+  //  }
+  // }
   const path: PathPart[] = [];
 
   while (stack.length) {
@@ -76,16 +86,18 @@ export function walkPayload(
     // Don't visit the root.
     if (walkNode.key !== undefined || visitRoot) {
       path.splice(walkNode.depth - 1);
-      const edgeMap = walkNode.edgeMap;
-      // TODO : comment
-      if (typeof walkNode.key === "number") {
+      const walkNodeEdgeMap = walkNode.edgeMap;
+      // The type of walkNode's key is number meaning that it is an
+      // index to an array and should not undergo de-aliasing.
+      if (typeof walkNode.key === 'number') {
         path.push(walkNode.key);
       } else if (walkNode.key !== undefined) {
-        const fieldName = edgeMap && edgeMap instanceof DynamicEdge && edgeMap.fieldName ? edgeMap.fieldName : undefined;
+        const fieldName = walkNodeEdgeMap &&
+          walkNodeEdgeMap instanceof DynamicEdge &&
+          walkNodeEdgeMap.fieldName ? walkNodeEdgeMap.fieldName : undefined;
         path.push(fieldName ? fieldName : walkNode.key);
       }
 
-      // TODO : be more generic about what is "id"
       const skipChildren = visitor(path, walkNode.payload, walkNode.node, walkNode.edgeMap);
       if (skipChildren) continue;
     }

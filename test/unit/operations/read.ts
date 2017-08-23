@@ -626,8 +626,8 @@ describe(`operations.read`, () => {
         const snapshot = write(context, empty, aliasQuery, {
           user: {
             userId: 0,
-            userName: "Foo"
-          }
+            userName: 'Foo',
+          },
         }).snapshot;
 
         const { result } = read(context, aliasQuery, snapshot);
@@ -635,8 +635,8 @@ describe(`operations.read`, () => {
           user: {
             id: 0,
             userId: 0,
-            name: "Foo",
-            userName: "Foo"
+            name: 'Foo',
+            userName: 'Foo',
           },
         });
       });
@@ -656,12 +656,12 @@ describe(`operations.read`, () => {
         const snapshot = write(context, empty, aliasQuery, {
           superUser: {
             userId: 0,
-            userName: "Foo"
+            userName: 'Foo',
           },
           user: {
             id: 100,
-            name: "Baz",
-          }
+            name: 'Baz',
+          },
         }).snapshot;
 
         const { result } = read(context, aliasQuery, snapshot);
@@ -669,13 +669,13 @@ describe(`operations.read`, () => {
           superUser: {
             id: 100,
             userId: 100,
-            name: "Baz",
-            userName: "Baz"
+            name: 'Baz',
+            userName: 'Baz',
           },
           user: {
             id: 100,
-            name: "Baz"
-          }
+            name: 'Baz',
+          },
         });
       });
     });
@@ -688,12 +688,12 @@ describe(`operations.read`, () => {
             FirstName: name
           }
         }`);
-        
+
         const snapshot = write(context, empty, aliasQuery, {
           superUser: {
             ID: 0,
-            FirstName: "Baz"
-          }
+            FirstName: 'Baz',
+          },
         }).snapshot;
 
         const { result } = read(context, aliasQuery, snapshot);
@@ -701,13 +701,10 @@ describe(`operations.read`, () => {
           superUser: {
             id: 0,
             ID: 0,
-            name: "Baz",
-            FirstName: "Baz",
-          }
+            name: 'Baz',
+            FirstName: 'Baz',
+          },
         });
-      });
-
-      it(`nested alias`, () => {
       });
 
       it(`complex nested alias`, () => {
@@ -731,16 +728,16 @@ describe(`operations.read`, () => {
             shipmentsInfo: [
               {
                 id: 0,
-                loads: [ { type: "26 Pallet" }, { type: "Other"} ],
-                shipmentSize: { weight: 1000, unit: "lb" },
+                loads: [{ type: '26 Pallet' }, { type: 'Other' }],
+                shipmentSize: { weight: 1000, unit: 'lb' },
               },
               {
                 id: 1,
-                loads: [ { type: "24 Pallet" }, { type: "Other"} ],
-                shipmentSize: { weight: 2000, unit: "lb" },
-              }
-            ]
-          }
+                loads: [{ type: '24 Pallet' }, { type: 'Other' }],
+                shipmentSize: { weight: 2000, unit: 'lb' },
+              },
+            ],
+          },
         }).snapshot;
 
         const { result } = read(context, nestedAliasQuery, snapshot);
@@ -749,34 +746,34 @@ describe(`operations.read`, () => {
             shipmentsInfo: [
               {
                 id: 0,
-                loads: [ { type: "26 Pallet", shipmentItemType: "26 Pallet" }, { type: "Other", shipmentItemType: "Other" } ],
-                contents: [ { shipmentItemType: "26 Pallet" }, { shipmentItemType: "Other" } ],
-                shipmentSize: { weight: 1000, unit: "lb", weightUnit: "lb" },
-                dimensions: { weight: 1000, weightUnit: "lb" },
+                loads: [{ type: '26 Pallet', shipmentItemType: '26 Pallet' }, { type: 'Other', shipmentItemType: 'Other' }],
+                contents: [{ shipmentItemType: '26 Pallet' }, { shipmentItemType: 'Other' }],
+                shipmentSize: { weight: 1000, unit: 'lb', weightUnit: 'lb' },
+                dimensions: { weight: 1000, weightUnit: 'lb' },
               },
               {
                 id: 1,
-                loads: [ { type: "24 Pallet", shipmentItemType: "24 Pallet" }, { type: "Other", shipmentItemType: "Other" } ],
-                contents: [ { shipmentItemType: "24 Pallet" }, { shipmentItemType: "Other"} ],
-                shipmentSize: { weight: 2000, unit: "lb", weightUnit: "lb"},
-                dimensions: { weight: 2000, weightUnit: "lb" },
-              }
+                loads: [{ type: '24 Pallet', shipmentItemType: '24 Pallet' }, { type: 'Other', shipmentItemType: 'Other' }],
+                contents: [{ shipmentItemType: '24 Pallet' }, { shipmentItemType: 'Other' }],
+                shipmentSize: { weight: 2000, unit: 'lb', weightUnit: 'lb' },
+                dimensions: { weight: 2000, weightUnit: 'lb' },
+              },
             ],
             edges: [
               {
                 id: 0,
-                contents: [ { shipmentItemType: "26 Pallet" }, { shipmentItemType: "Other" } ],
-                dimensions: { weight: 1000, weightUnit: "lb" },
+                contents: [{ shipmentItemType: '26 Pallet' }, { shipmentItemType: 'Other' }],
+                dimensions: { weight: 1000, weightUnit: 'lb' },
               },
               {
                 id: 1,
-                contents: [ { shipmentItemType: "24 Pallet" }, { shipmentItemType: "Other"} ],
-                dimensions: { weight: 2000, weightUnit: "lb" },
-              }
+                contents: [{ shipmentItemType: '24 Pallet' }, { shipmentItemType: 'Other' }],
+                dimensions: { weight: 2000, weightUnit: 'lb' },
+              },
             ],
-          }
+          },
         });
       });
     });
-  })
+  });
 });

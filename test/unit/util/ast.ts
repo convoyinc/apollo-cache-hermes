@@ -55,7 +55,14 @@ describe(`util.ast`, () => {
       });
 
       it(`parses queries with sibling edges`, () => {
-        const map = buildEdgeMapForOperation(gql`{ foo(id: 123) { a b } bar(id: "asdf") { a b } }`);
+        const map = buildEdgeMapForOperation(gql`{
+          foo(id: 123) {
+            a b
+          }
+          bar(id: "asdf") {
+            a b
+          }
+        }`);
         expect(map).to.deep.eq({
           foo: new DynamicEdge({ id: 123 }),
           bar: new DynamicEdge({ id: 'asdf' }),
@@ -71,8 +78,8 @@ describe(`util.ast`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({ id: 123 }, /*fieldName*/ undefined, {
-            bar: new DynamicEdge({ asdf: 'fdsa' }, /*fieldName*/ undefined, {
+          foo: new DynamicEdge({ id: 123 }, /* fieldName */ undefined, {
+            bar: new DynamicEdge({ asdf: 'fdsa' }, /* fieldName */ undefined, {
               baz: new DynamicEdge({ one: true, two: null }),
             }),
           }),
@@ -181,7 +188,9 @@ describe(`util.ast`, () => {
       it(`handles a mix of variables and static values`, () => {
         const map = buildEdgeMapForOperation(gql`
           query get($id: ID!, $val: String) {
-            foo(id: $id, foo: "asdf", bar: $id, baz: $val) { a b c }
+            foo(id: $id, foo: "asdf", bar: $id, baz: $val) {
+              a b c
+            }
           }
         `);
         expect(map).to.deep.eq({
@@ -201,16 +210,16 @@ describe(`util.ast`, () => {
       it(`simple query`, () => {
         const map = buildEdgeMapForOperation(gql`{
             user {
-              ID: id
-              FirstName: name
-            }
+              ID: id,
+              FirstName: name,
+            },
           }
         `);
         expect(map).to.deep.eq({
           user: {
-            ID: new DynamicEdge(/*parameterizedEdgeArgs*/ undefined, /*fiedlName*/ "id"),
-            FirstName: new DynamicEdge(/*parameterizedEdgeArgs*/ undefined, /*fiedlName*/ "name"),
-          }
+            ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+            FirstName: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
+          },
         });
       });
 
@@ -225,11 +234,11 @@ describe(`util.ast`, () => {
         `);
         expect(map).to.deep.eq({
           superUser: new DynamicEdge(
-            /*parameterizedEdgeArgs*/ undefined,
-            /*fiedlName*/ "user",
+            /* parameterizedEdgeArgs */ undefined,
+            /* fiedlName */ 'user',
             {
-              ID: new DynamicEdge(/*parameterizedEdgeArgs*/ undefined, /*fiedlName*/ "id"),
-              FirstName: new DynamicEdge(/*parameterizedEdgeArgs*/ undefined, /*fiedlName*/ "name"),
+              ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+              FirstName: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
             }
           ),
         });
@@ -247,12 +256,12 @@ describe(`util.ast`, () => {
         expect(map).to.deep.eq({
           superUser: new DynamicEdge(
             { id: 4 },
-            /*fieldName*/ "user",
+            /* fieldName */ 'user',
             {
-              ID: new DynamicEdge(/*parameterizedEdgeArgs*/ undefined, /*fiedlName*/ "id"),
-              Profile: new DynamicEdge({ width: 400, height: 200 }, /*fieldName*/ "picture"),
-            }
-          )
+              ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+              Profile: new DynamicEdge({ width: 400, height: 200 }, /* fieldName */ 'picture'),
+            },
+          ),
         });
       });
 
@@ -268,12 +277,12 @@ describe(`util.ast`, () => {
         expect(map).to.deep.eq({
           superUser: new DynamicEdge(
             { id: new VariableArgument('id') },
-            /*fieldName*/ "user",
+            /* fieldName */ 'user',
             {
-              ID: new DynamicEdge(/*parameterizedEdgeArgs*/ undefined, /*fiedlName*/ "id"),
-              Profile: new DynamicEdge({ width: 400, height: 200 }, /*fieldName*/ "picture"),
-            }
-          )
+              ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+              Profile: new DynamicEdge({ width: 400, height: 200 }, /* fieldName */ 'picture'),
+            },
+          ),
         });
       });
 
@@ -296,32 +305,32 @@ describe(`util.ast`, () => {
         expect(map).to.deep.eq({
           shipments: new DynamicEdge(
             { first: 2 },
-            /*fieldName*/ undefined, 
+            /* fieldName */ undefined, 
             {
               shipmentsInfo: new DynamicEdge(
-                /*parameterizedEdgeArgs*/ undefined,
-                "edges",
+                /* parameterizedEdgeArgs */ undefined,
+                'edges',
                 {
                   loads: new DynamicEdge(
-                    /*parameterizedEdgeArgs*/ undefined,
-                    "contents",
+                    /* parameterizedEdgeArgs */ undefined,
+                    'contents',
                     {
-                      type: new DynamicEdge(/*parameterizedEdgeArgs*/ undefined, "shipmentItemType"),
+                      type: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, 'shipmentItemType'),
                     }
                   ),
                   shipmentSize: new DynamicEdge(
-                    /*parameterizedEdgeArgs*/ undefined,
-                    "dimensions", 
+                    /* parameterizedEdgeArgs */ undefined,
+                    'dimensions',
                     {
-                      unit: new DynamicEdge(/*parameterizedEdgeArgs*/ undefined, "weightUnit"),
+                      unit: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, 'weightUnit'),
                     }
-                  )
+                  ),
                 }
-              )
+              ),
             }
-          )
+          ),
         });
-      })
+      });
     });
   });
 });

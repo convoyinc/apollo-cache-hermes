@@ -114,24 +114,24 @@ export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: Selec
       // but its children have dynamic features, we will hsot the DynamicEdgeMap
       // of the chidren directly instead of creating indirect DynamicEdge with
       // children. This is to save resources in walking
-      const currentKey: string = selection.alias ? selection.alias.value : selection.name.value; 
+      const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
       let currentEdge: DynamicEdge | DynamicEdgeMap | undefined;
-      let parameterizedArguments: ParameterizedEdgeArguments | undefined; 
+      let parameterizedArguments: ParameterizedEdgeArguments | undefined;
 
       if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
         parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
       }
 
-      // If current selection has either parameterized arguments or alias,
-      // we will want to create dynamic edge. Otherwise recurse into the children.
+      // If current selection has either parameterized arguments or alias, we
+      // will want to create dynamic edge. Otherwise recurse into the children.
       if (parameterizedArguments || selection.alias) {
         currentEdge = new DynamicEdge(parameterizedArguments,
           selection.alias ? selection.name.value : undefined,
           buildDynamicEdgeMap(fragments, selection.selectionSet));
-      }
-      else if (selection.selectionSet) {
+      } else if (selection.selectionSet) {
         currentEdge = buildDynamicEdgeMap(fragments, selection.selectionSet);
       }
+
       if (currentEdge) {
         (edgeMap || (edgeMap = {}))[currentKey] = currentEdge;
       }
@@ -192,7 +192,7 @@ export function isDynamicEdgeWithParameterizedArguments(edge: any): edge is Dyna
  * Sub values in for any variables required by an edge's args.
  */
 export function expandEdgeArguments(parameterizedEdgeArgs: ParameterizedEdgeArguments, variables: object = {}): object {
-  const edgeArguments = {}; 
+  const edgeArguments = {};
   // TODO: Recurse into objects/arrays.
   for (const key in parameterizedEdgeArgs) {
     let arg = parameterizedEdgeArgs[key];
