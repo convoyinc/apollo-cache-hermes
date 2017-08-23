@@ -13,19 +13,6 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 import { JsonScalar } from '../primitive';
 
 /**
- * String enum of GraphQL AST Node.
- * NOTE: this list is NOT complete and only include node _kind_ we use
- */
-export enum GraphqlNodeKind {
-  Field = 'Field',
-  FragmentSpread = 'FragmentSpread',
-  FragmentDefinition = 'FragmentDefinition',
-  InlineFragment = 'InlineFragment',
-  Name = 'Name',
-  OperationDefinition = 'OperationDefinition',
-}
-
-/**
  * Extracts the query operation from `document`.
  */
 export function getOperationOrDie(document: DocumentNode): OperationDefinitionNode {
@@ -50,7 +37,7 @@ export interface FragmentMap {
 export function fragmentMapForDocument(document: DocumentNode): FragmentMap {
   const map: FragmentMap = {};
   for (const definition of document.definitions) {
-    if (definition.kind !== GraphqlNodeKind.FragmentDefinition) continue;
+    if (definition.kind !== 'FragmentDefinition') continue;
     map[definition.name.value] = definition;
   }
 
@@ -85,8 +72,8 @@ export interface ParameterizedEdgeArguments { [argumentName: string]: Parameteri
 export type ParameterizedEdgeArgumentValue = EdgeArgumentScalar | EdgeArgumentArray | ParameterizedEdgeArguments;
 
 /**
- * Represent dynamic information: alias, parameterized arguments,
- * directives (if existed) of NodeSnapshot in GraphSnapshot.
+ * Represent dynamic information: alias, parameterized arguments, directives
+ * (if existed) of NodeSnapshot in GraphSnapshot.
  */
 export class DynamicEdge {
   constructor(
@@ -111,7 +98,7 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
     let key, value;
 
     // Parameterized edge.
-    if (selection.kind === GraphqlNodeKind.Field && selection.arguments && selection.arguments.length) {
+    if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
       const parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
       const children = buildParameterizedEdgeMap(fragments, selection.selectionSet);
 
@@ -119,14 +106,14 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
       value = new DynamicEdge(parameterizedArguments, children);
 
     // We need to walk any simple fields that have selection sets of their own.
-    } else if (selection.kind === GraphqlNodeKind.Field && selection.selectionSet) {
+    } else if (selection.kind === 'Field' && selection.selectionSet) {
       value = buildParameterizedEdgeMap(fragments, selection.selectionSet);
       if (value) {
         key = selection.name.value;
       }
 
     // Fragments may include parameterized edges of their own; walk 'em.
-    } else if (selection.kind === GraphqlNodeKind.FragmentSpread) {
+    } else if (selection.kind === 'FragmentSpread') {
       const fragment = fragments[selection.name.value];
       if (!fragment) {
         throw new Error(`Expected fragment ${selection.name.value} to exist in GraphQL document`);
@@ -189,10 +176,11 @@ function _valueFromNode(node: ValueNode): any {
   }
 }
 
+export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: ParameterizedEdgeArguments };
 /**
  * Sub values in for any variables required by an edge's args.
  */
-export function expandEdgeArguments(edge: DynamicEdge, variables: object = {}): object {
+export function expandEdgeArguments(edge: DynamicEdgeWithParameterizedArguments, variables: object = {}): object {
   const edgeArguments = {} as any;
   // TODO: Recurse into objects/arrays.
   for (const key in edge.parameterizedEdgeArgs!) {
@@ -214,9 +202,9 @@ export function expandEdgeArguments(edge: DynamicEdge, variables: object = {}): 
 // The following are borrowed directly from apollo-client:
 
 const TYPENAME_FIELD: FieldNode = {
-  kind: GraphqlNodeKind.Field,
+  kind: 'Field',
   name: {
-    kind: GraphqlNodeKind.Name,
+    kind: 'Name',
     value: '__typename',
   },
 };
@@ -228,7 +216,7 @@ function addTypenameToSelectionSet(
   if (selectionSet.selections) {
     if (!isRoot) {
       const alreadyHasThisField = selectionSet.selections.some((selection) => {
-        return selection.kind === GraphqlNodeKind.Field && selection.name.value === '__typename';
+        return selection.kind === 'Field' && selection.name.value === '__typename';
       });
 
       if (!alreadyHasThisField) {
@@ -238,14 +226,14 @@ function addTypenameToSelectionSet(
 
     selectionSet.selections.forEach((selection) => {
       // Must not add __typename if we're inside an introspection query
-      if (selection.kind === GraphqlNodeKind.Field) {
+      if (selection.kind === 'Field') {
         if (
           selection.name.value.lastIndexOf('__', 0) !== 0 &&
           selection.selectionSet
         ) {
           addTypenameToSelectionSet(selection.selectionSet);
         }
-      } else if (selection.kind === GraphqlNodeKind.InlineFragment) {
+      } else if (selection.kind === 'InlineFragment') {
         if (selection.selectionSet) {
           addTypenameToSelectionSet(selection.selectionSet);
         }
@@ -260,7 +248,7 @@ export function addTypenameToDocument(doc: DocumentNode) {
   docClone.definitions.forEach((definition: DefinitionNode) => {
     addTypenameToSelectionSet(
       (definition as OperationDefinitionNode).selectionSet,
-      /* isRoot*/ definition.kind === GraphqlNodeKind.OperationDefinition,
+      /* isRoot */ definition.kind === 'OperationDefinition',
     );
   });
 

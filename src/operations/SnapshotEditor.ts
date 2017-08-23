@@ -6,6 +6,7 @@ import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   addNodeReference,
   addToSet,
+  DynamicEdgeWithParameterizedArguments,
   expandEdgeArguments,
   hasNodeReference,
   isObject,
@@ -142,7 +143,7 @@ export class SnapshotEditor {
     while (queue.length) {
       const { containerId, containerPayload, visitRoot, edges } = queue.pop()!;
       const containerSnapshot = this.getNodeSnapshot(containerId);
-      const container = this.get(containerId);
+      const container = containerSnapshot ? containerSnapshot.node : undefined;
 
       // Break cycles in referenced nodes from the payload.
       if (!visitRoot) {
@@ -152,7 +153,7 @@ export class SnapshotEditor {
       // Similarly, we need to be careful to break cycles _within_ a node.
       const visitedPayloadValues = new Set<any>();
 
-      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, parameterizedEdge) => {
+      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, edge) => {
         const payloadIsObject = isObject(payloadValue);
         const nodeIsObject = isObject(nodeValue);
         let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
@@ -180,9 +181,9 @@ export class SnapshotEditor {
           payloadValue = null;
         }
 
-        if (parameterizedEdge instanceof DynamicEdge) {
+        if (edge instanceof DynamicEdge && edge.parameterizedEdgeArgs) {
           // swap in any variables.
-          const edgeArguments = expandEdgeArguments(parameterizedEdge, query.variables);
+          const edgeArguments = expandEdgeArguments(edge as DynamicEdgeWithParameterizedArguments, query.variables);
           const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
           // Parameterized edges are references, but maintain their own path.
@@ -204,7 +205,7 @@ export class SnapshotEditor {
           // reference an entity.  This allows us to build a chain of references
           // where the parameterized value points _directly_ to a particular
           // entity node.
-          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: parameterizedEdge.children });
+          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: edge.children });
 
           // Stop the walk for this subgraph.
           return true;
@@ -222,7 +223,8 @@ export class SnapshotEditor {
           // The payload is now referencing a new entity.  We want to update it,
           // but not until we've updated the values of our entities first.
           if (prevNodeId !== nextNodeId) {
-            // We have spread "path" so that we pass in new array.
+            // We have spread "path" so that we pass in new array. "path" array 
+            // will be mutated by walkPayload function.
             referenceEdits.push({ containerId, path: [...path], prevNodeId, nextNodeId });
           }
 
@@ -233,7 +235,7 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: parameterizedEdge });
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: edge });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -304,7 +306,7 @@ export class SnapshotEditor {
     const orphanedNodeIds = new Set() as Set<NodeId>;
 
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
-      const target = nextNodeId ? this.get(nextNodeId) : null;
+      const target = nextNodeId ? this.getDataNodeOfNodeSnapshot(nextNodeId) : null;
       this._setValue(containerId, path, target);
       const container = this._ensureNewSnapshot(containerId);
 
@@ -399,7 +401,7 @@ export class SnapshotEditor {
   /**
    * Retrieve the _latest_ version of a node.
    */
-  private get(id: NodeId) {
+  private getDataNodeOfNodeSnapshot(id: NodeId) {
     const snapshot = this.getNodeSnapshot(id);
     return snapshot ? snapshot.node : undefined;
   }

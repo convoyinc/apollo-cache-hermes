@@ -7,11 +7,11 @@ import { NodeId } from './schema';
 export class NodeSnapshot {
   constructor(
     /** A reference to the node this snapshot is about. */
-    public node?: object,
+    public node?: any,
     /** Other node snapshots that point to this one. */
-    readonly inbound?: NodeSnapshot.Reference[],
+    public inbound?: NodeSnapshot.Reference[],
     /** The node snapshots that this one points to. */
-    readonly outbound?: NodeSnapshot.Reference[],
+    public outbound?: NodeSnapshot.Reference[],
   ) {}
 }
 

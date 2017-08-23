@@ -5,6 +5,7 @@ import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
+  DynamicEdgeWithParameterizedArguments,
   expandEdgeArguments,
   isObject,
   DynamicEdge,
@@ -115,7 +116,7 @@ export function _walkAndOverlayDynamicValues(
       let edge = edgeMap[key] as any;
       let child, childId;
       if (edge instanceof DynamicEdge && edge.parameterizedEdgeArgs) {
-        const args = expandEdgeArguments(edge, query.variables);
+        const args = expandEdgeArguments(edge as DynamicEdgeWithParameterizedArguments, query.variables);
         childId = nodeIdForParameterizedValue(containerId, [...path, key], args);
         const childSnapshot = snapshot.getSnapshot(childId);
         if (childSnapshot) {
