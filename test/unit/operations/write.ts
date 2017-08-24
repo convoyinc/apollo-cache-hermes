@@ -1809,6 +1809,79 @@ describe(`operations.write`, () => {
           },
         });
       });
+
+      describe(`same alias name in different scope`, () => {
+        let aliasQuery: Query, snapshot: GraphSnapshot;
+        beforeAll(() => {
+          aliasQuery = query(`{
+            shipment: Shipment {
+              id: shipmentId,
+              name: shipmentName,
+            }
+            dispatch: Dispatcher {
+              id
+              name
+            }
+            carrier: Carrier {
+              id: carrierId
+              name: carrierName
+            }
+          }`);
+
+          snapshot = write(config, empty, aliasQuery, {
+            shipment: {
+              id: 0,
+              name: 'ToSeattle',
+            },
+            dispatch: {
+              id: 2,
+              name: 'Bob The dispatcher',
+            },
+            carrier: {
+              id: 1,
+              name: 'Bob',
+            },
+          }).snapshot;
+        });
+
+        it(`check write result`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            Shipment: {
+              shipmentId: 0,
+              shipmentName: 'ToSeattle',
+            },
+            Dispatcher: {
+              id: 2,
+              name: 'Bob The dispatcher',
+            },
+            Carrier: {
+              carrierId: 1,
+              carrierName: 'Bob',
+            },
+          });
+        });
+
+        it(`check shape of graph`, () => {
+          expect(snapshot.getGraphNodeSnapshot(QueryRootId)).to.deep.eq({
+            inbound: undefined,
+            outbound: [{ id: '0', path: ['Shipment'] }, { id: '2', path: ['Dispatcher'] }, { id: '1', path: ['Carrier'] }],
+            node: {
+              Shipment: {
+                shipmentId: 0,
+                shipmentName: 'ToSeattle',
+              },
+              Dispatcher: {
+                id: 2,
+                name: 'Bob The dispatcher',
+              },
+              Carrier: {
+                carrierId: 1,
+                carrierName: 'Bob',
+              },
+            },
+          });
+        });
+      });
     });
 
     describe(`query with both alias and non-alias to same field`, () => {
