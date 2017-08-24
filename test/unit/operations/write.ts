@@ -1710,7 +1710,7 @@ describe(`operations.write`, () => {
                 },
               },
               /* inbound */ undefined,
-              /* outbound */ [{ id: '0', path: ['user'] }],
+              /* outbound */ undefined,
             )
           );
         });
@@ -1885,68 +1885,64 @@ describe(`operations.write`, () => {
     });
 
     describe(`query with both alias and non-alias to same field`, () => {
-      const mixQuery = query(`
-        query GetUser {
-          fullUserInfo: user {
-            userId: id
-            FirstName: name
-            contact: phone
+      let mixQuery: Query;
+      beforeAll(() => {
+        mixQuery = query(`
+          query GetUser {
+            fullUserInfo: user {
+              id
+              FirstName: name
+              contact: phone
+            }
+            user {
+              id
+              name
+            }
           }
-          user {
-            id
-            name
-          }
-        }
-      `);
-
-      it(`payload with alias first`, () => {
-        const snapshot = write(config, empty, mixQuery, {
-          fullUserInfo: {
-            userId: 0,
-            FirstName: 'Foo',
-            contact: '555-555-5555',
-          },
-          user: {
-            id: 0,
-            name: 'Foo',
-          },
-        }).snapshot;
-
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
-          user: {
-            id: 0,
-            name: 'Foo',
-            phone: '555-555-5555',
-          },
-        });
+        `);
       });
 
-      it(`payload with alias first - check graph shape`, () => {
-        const snapshot = write(config, empty, mixQuery, {
-          fullUserInfo: {
-            userId: 0,
-            FirstName: 'Foo',
-            contact: '555-555-5555',
-          },
-          user: {
-            id: 0,
-            name: 'Foo',
-          },
-        }).snapshot;
-
-        expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
-          new EntitySnapshot(
-            {
-              user: {
-                id: 0,
-                name: 'Foo',
-                phone: '555-555-5555',
-              },
+      describe(`payload with aliases first`, () => {
+        let snapshot: GraphSnapshot;
+        beforeAll(() => {
+          snapshot = write(config, empty, mixQuery, {
+            fullUserInfo: {
+              id: 0,
+              FirstName: 'Foo',
+              contact: '555-555-5555',
             },
-            /* inbound */ undefined,
-            /* outbound */ [{ id: '0', path: ['user'] }],
-          )
-        );
+            user: {
+              id: 0,
+              name: 'Foo',
+            },
+          }).snapshot;
+        });
+
+        it(`check result`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            user: {
+              id: 0,
+              name: 'Foo',
+              phone: '555-555-5555',
+            },
+          });
+        });
+
+        it(`check graph shape`, () => {
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+            new EntitySnapshot(
+              {
+                user: {
+                  id: 0,
+                  name: 'Foo',
+                  phone: '555-555-5555',
+                },
+              },
+              /* inbound */ undefined,
+              /* outbound */ [{ id: '0', path: ['user'] }],
+            )
+          );
+        });
       });
 
       it(`payload with non-alias first`, () => {
@@ -1956,7 +1952,7 @@ describe(`operations.write`, () => {
             name: 'Foo',
           },
           fullUserInfo: {
-            userId: 0,
+            id: 0,
             FirstName: 'Foo',
             contact: '555-555-5555',
           },
@@ -1977,7 +1973,7 @@ describe(`operations.write`, () => {
             name: 'Foo',
           },
           fullUserInfo: {
-            userId: 1,
+            id: 1,
             FirstName: 'FooBar',
             contact: '555-555-5555',
           },
