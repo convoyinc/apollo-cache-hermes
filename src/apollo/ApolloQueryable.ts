@@ -33,8 +33,11 @@ export abstract class ApolloQueryable {
   }
 
   readQuery<QueryType>(options: interfaces.Cache.ReadQueryOptions, optimistic?: true): QueryType {
-    const query = toQuery(options.query, options.variables);
-    return this._queryable.read(query, optimistic).result;
+    return this.read({
+      query: options.query,
+      variables: options.variables,
+      optimistic: !!optimistic,
+    });
   }
 
   readFragment<FragmentType>(options: interfaces.Cache.ReadFragmentOptions, optimistic?: true): FragmentType | null {
