@@ -1862,7 +1862,7 @@ describe(`operations.write`, () => {
         });
 
         it(`check shape of graph`, () => {
-          expect(snapshot.getGraphNodeSnapshot(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq({
             inbound: undefined,
             outbound: [{ id: '0', path: ['Shipment'] }, { id: '2', path: ['Dispatcher'] }, { id: '1', path: ['Carrier'] }],
             node: {

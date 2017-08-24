@@ -26,7 +26,11 @@ export class GraphSnapshot {
   /**
    * Retrieves the value identified by `id`.
    */
+<<<<<<< HEAD
   get(id: NodeId): Readonly<any> | undefined {
+=======
+  get(id: NodeId): any | undefined {
+>>>>>>> Address PR: rename getGraphNodeSnapshot
     const snapshot = this.getNodeSnapshot(id);
     return snapshot ? snapshot.node : undefined;
   }
@@ -43,7 +47,11 @@ export class GraphSnapshot {
    *
    * @internal
    */
+<<<<<<< HEAD
   getNodeSnapshot(id: NodeId): Readonly<NodeSnapshot> | undefined {
+=======
+  getNodeSnapshot(id: NodeId): NodeSnapshot | undefined {
+>>>>>>> Address PR: rename getGraphNodeSnapshot
     return this._values[id];
   }
 

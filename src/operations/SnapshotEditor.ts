@@ -447,7 +447,18 @@ export class SnapshotEditor {
     if (id in this._newNodes) {
       return this._newNodes[id]!;
     } else {
+<<<<<<< HEAD
       parent = this._parent.getNodeSnapshot(id);
+=======
+      const parent = this._parent.getNodeSnapshot(id);
+      const value = parent
+        ? Array.isArray(parent.node) ? [...parent.node] : { ...parent.node }
+        : initialValue;
+      const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
+      const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
+
+      newSnapshot = new NodeSnapshot(value, inbound, outbound);
+>>>>>>> Address PR: rename getGraphNodeSnapshot
     }
 
     // TODO: We're assuming that the only time we call _ensureNewSnapshot when
