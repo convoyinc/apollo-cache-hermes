@@ -20,13 +20,11 @@ export function cloneNodeSnapshot(parent: NodeSnapshot) {
   const inbound = parent.inbound ? [...parent.inbound] : undefined;
   const outbound = parent.outbound ? [...parent.outbound] : undefined;
 
-  const NodeSnapshotClass = Object.getPrototypeOf(parent).constructor;
-  switch (NodeSnapshotClass) {
-  case EntitySnapshot:
+  if (parent instanceof EntitySnapshot) {
     return new EntitySnapshot(node, inbound, outbound);
-  case ParameterizedValueSnapshot:
+  } else if (parent instanceof ParameterizedValueSnapshot) {
     return new ParameterizedValueSnapshot(node, inbound, outbound);
-  default:
-    throw new Error(`Unknown node type: ${NodeSnapshotClass.name}`);
+  } else {
+    throw new Error(`Unknown node type: ${Object.getPrototypeOf(parent).constructor.name}`);
   }
 }

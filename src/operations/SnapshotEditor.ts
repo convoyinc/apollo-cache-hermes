@@ -422,12 +422,7 @@ export class SnapshotEditor {
   private _ensureNewSnapshot(id: NodeId): NodeSnapshot {
     let parent;
     if (id in this._newNodes) {
-      const current = this._newNodes[id];
-      // We may have deleted the node.
-      if (current) return current;
-      // We don't have enough information to safely recover in this case for
-      // non-entity nodes; let's not risk it.
-      throw new Error(`Re-creating deleted cache nodes mid-transaction is not yet supported`);
+      return this._newNodes[id]!;
     } else {
       parent = this._parent.getSnapshot(id);
     }
@@ -447,6 +442,8 @@ export class SnapshotEditor {
     const edgeArguments = expandEdgeArguments(edge, variables);
     const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
+    // We're careful to not edit the container unless we absolutely have to.
+    // (There may be no changes for this parameterized value).
     const containerSnapshot = this.getNodeSnapshot(containerId);
     if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
       // We need to construct a new snapshot otherwise.
