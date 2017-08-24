@@ -27,7 +27,7 @@ export class GraphSnapshot {
    * Retrieves the value identified by `id`.
    */
   get(id: NodeId): any | undefined {
-    const snapshot = this.getGraphNodeSnapshot(id);
+    const snapshot = this.getNodeSnapshot(id);
     return snapshot ? snapshot.node : undefined;
   }
 
@@ -43,7 +43,7 @@ export class GraphSnapshot {
    *
    * @internal
    */
-  getGraphNodeSnapshot(id: NodeId): NodeSnapshot | undefined {
+  getNodeSnapshot(id: NodeId): NodeSnapshot | undefined {
     return this._values[id];
   }
 

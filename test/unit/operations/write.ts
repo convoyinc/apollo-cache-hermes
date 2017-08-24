@@ -94,13 +94,13 @@ describe(`operations.write`, () => {
     });
 
     it(`records the outbound reference from the query root`, () => {
-      const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
+      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.deep.eq([{ id: '123', path: ['viewer'] }]);
       expect(queryRoot.inbound).to.eq(undefined);
     });
 
     it(`records the inbound reference from referenced entity`, () => {
-      const queryRoot = snapshot.getGraphNodeSnapshot('123')!;
+      const queryRoot = snapshot.getNodeSnapshot('123')!;
       expect(queryRoot.inbound).to.deep.eq([{ id: QueryRootId, path: ['viewer'] }]);
       expect(queryRoot.outbound).to.eq(undefined);
     });
@@ -308,7 +308,7 @@ describe(`operations.write`, () => {
     });
 
     it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
+      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.have.deep.members([
         { id: '2', path: ['foo'] },
         { id: '1', path: ['bar'] },
@@ -317,8 +317,8 @@ describe(`operations.write`, () => {
     });
 
     it(`updates inbound references`, () => {
-      const foo = snapshot.getGraphNodeSnapshot('1')!;
-      const bar = snapshot.getGraphNodeSnapshot('2')!;
+      const foo = snapshot.getNodeSnapshot('1')!;
+      const bar = snapshot.getNodeSnapshot('2')!;
       expect(foo.inbound).to.have.deep.members([{ id: QueryRootId, path: ['bar'] }]);
       expect(bar.inbound).to.have.deep.members([{ id: QueryRootId, path: ['foo'] }]);
     });
@@ -368,7 +368,7 @@ describe(`operations.write`, () => {
     });
 
     it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
+      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
     });
 
@@ -447,7 +447,7 @@ describe(`operations.write`, () => {
     });
 
     it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
+      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
     });
 
@@ -581,12 +581,12 @@ describe(`operations.write`, () => {
       });
 
       it(`creates an outgoing reference from the edge's container`, () => {
-        const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
+        const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
       it(`creates an inbound reference to the edge's container`, () => {
-        const values = snapshot.getGraphNodeSnapshot(parameterizedId)!;
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
@@ -635,12 +635,12 @@ describe(`operations.write`, () => {
       });
 
       it(`creates an outgoing reference from the edge's container`, () => {
-        const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
+        const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
       it(`creates an inbound reference to the edge's container`, () => {
-        const values = snapshot.getGraphNodeSnapshot(parameterizedId)!;
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
@@ -731,22 +731,22 @@ describe(`operations.write`, () => {
       });
 
       it(`creates an outgoing reference from the edge's container`, () => {
-        const queryRoot = snapshot.getGraphNodeSnapshot(QueryRootId)!;
+        const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
       it(`creates an inbound reference to the edge's container`, () => {
-        const values = snapshot.getGraphNodeSnapshot(parameterizedId)!;
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
       it(`creates an outgoing reference from the parameterized edge to the referenced entity`, () => {
-        const values = snapshot.getGraphNodeSnapshot(parameterizedId)!;
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.outbound).to.deep.eq([{ id: '1', path: [] }]);
       });
 
       it(`creates an incoming reference from the parameterized edge to the referenced entity`, () => {
-        const entity = snapshot.getGraphNodeSnapshot('1')!;
+        const entity = snapshot.getNodeSnapshot('1')!;
         expect(entity.inbound).to.deep.eq([{ id: parameterizedId, path: [] }]);
       });
 
@@ -951,24 +951,24 @@ describe(`operations.write`, () => {
       });
 
       it(`writes a value snapshot for the containing edge`, () => {
-        expect(snapshot.getGraphNodeSnapshot(containerId)).to.exist;
+        expect(snapshot.getNodeSnapshot(containerId)).to.exist;
       });
 
       it(`writes value snapshots for each array entry`, () => {
-        expect(snapshot.getGraphNodeSnapshot(entry1Id)).to.exist;
-        expect(snapshot.getGraphNodeSnapshot(entry2Id)).to.exist;
+        expect(snapshot.getNodeSnapshot(entry1Id)).to.exist;
+        expect(snapshot.getNodeSnapshot(entry2Id)).to.exist;
       });
 
       it(`references the parent snapshot from the children`, () => {
-        const entry1 = snapshot.getGraphNodeSnapshot(entry1Id)!;
-        const entry2 = snapshot.getGraphNodeSnapshot(entry2Id)!;
+        const entry1 = snapshot.getNodeSnapshot(entry1Id)!;
+        const entry2 = snapshot.getNodeSnapshot(entry2Id)!;
 
         expect(entry1.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
         expect(entry2.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
       });
 
       it(`references the children from the parent`, () => {
-        const container = snapshot.getGraphNodeSnapshot(containerId)!;
+        const container = snapshot.getNodeSnapshot(containerId)!;
 
         expect(container.outbound).to.have.deep.members([
           { id: entry1Id, path: undefined },
@@ -1465,7 +1465,7 @@ describe(`operations.write`, () => {
     });
 
     it(`sets up outbound references`, () => {
-      expect(snapshot.getGraphNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '3', path: ['things', 2] },
@@ -1485,7 +1485,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getGraphNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '5', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '1', path: ['things', 2] },
@@ -1502,7 +1502,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getGraphNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
       ]);
@@ -1524,7 +1524,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getGraphNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '3', path: ['things', 2] },
@@ -1549,7 +1549,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getGraphNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '3', path: ['things', 2] },
         { id: '4', path: ['things', 3] },
       ]);
@@ -1576,7 +1576,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getGraphNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '3', path: ['things', 2] },
         { id: '4', path: ['things', 3] },
       ]);
@@ -1624,7 +1624,7 @@ describe(`operations.write`, () => {
         });
 
         it(`check shape of graph`, () => {
-          expect(snapshot.getGraphNodeSnapshot(QueryRootId)).to.deep.eq(
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
             new NodeSnapshot(
               {
                 user: {
@@ -1667,7 +1667,7 @@ describe(`operations.write`, () => {
         });
 
         it(`check shape of graph`, () => {
-          expect(snapshot.getGraphNodeSnapshot(QueryRootId)).to.deep.eq(
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
             new NodeSnapshot(
               {
                 user: {
@@ -1713,7 +1713,7 @@ describe(`operations.write`, () => {
         });
 
         it(`check shape of graph`, () => {
-          expect(snapshot.getGraphNodeSnapshot(QueryRootId)).to.deep.eq(
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
             new NodeSnapshot(
               {
                 user: {
@@ -1828,7 +1828,7 @@ describe(`operations.write`, () => {
         });
 
         it(`check shape of graph`, () => {
-          expect(snapshot.getGraphNodeSnapshot(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq({
             inbound: undefined,
             outbound: [{ id: '0', path: ['Shipment'] }, { id: '2', path: ['Dispatcher'] }, { id: '1', path: ['Carrier'] }],
             node: {
@@ -1900,7 +1900,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(snapshot.getGraphNodeSnapshot(QueryRootId)).to.deep.eq(
+        expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
           new NodeSnapshot(
             {
               user: {

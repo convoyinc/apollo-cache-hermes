@@ -85,7 +85,7 @@ export function _walkAndOverlayDynamicValues(
   // snapshot, but we should also pre-emptively stop walking if there are no
 
   // dynamic values to be overlaid 
-  const rootSnapshot = snapshot.getGraphNodeSnapshot(query.rootId);
+  const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
 
   // TODO : comment
   if (!rootSnapshot || !(rootSnapshot.outbound || edges)) {
@@ -129,7 +129,7 @@ export function _walkAndOverlayDynamicValues(
         if (edge.parameterizedEdgeArgs) {
           const args = expandEdgeArguments(edge.parameterizedEdgeArgs, query.variables);
           childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], args);
-          const childSnapshot = snapshot.getGraphNodeSnapshot(childId);
+          const childSnapshot = snapshot.getNodeSnapshot(childId);
           if (childSnapshot) {
             child = childSnapshot.node;
           } 
