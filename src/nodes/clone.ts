@@ -1,0 +1,30 @@
+import { isObject } from '../util';
+
+import { EntitySnapshot } from './EntitySnapshot';
+import { NodeSnapshot } from './NodeSnapshot';
+import { ParameterizedValueSnapshot } from './ParameterizedValueSnapshot';
+
+/**
+ * Factory function for cloning nodes to their specific type signatures, while
+ * preserving object shapes.
+ */
+export function cloneNodeSnapshot(parent: NodeSnapshot) {
+  let node;
+  if (Array.isArray(parent.node)) {
+    node = [...parent.node];
+  } else if (isObject(parent.node)) {
+    node = { ...parent.node };
+  } else {
+    node = parent.node;
+  }
+  const inbound = parent.inbound ? [...parent.inbound] : undefined;
+  const outbound = parent.outbound ? [...parent.outbound] : undefined;
+
+  if (parent instanceof EntitySnapshot) {
+    return new EntitySnapshot(node, inbound, outbound);
+  } else if (parent instanceof ParameterizedValueSnapshot) {
+    return new ParameterizedValueSnapshot(node, inbound, outbound);
+  } else {
+    throw new Error(`Unknown node type: ${Object.getPrototypeOf(parent).constructor.name}`);
+  }
+}

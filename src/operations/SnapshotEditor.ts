@@ -1,19 +1,20 @@
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeSnapshot } from '../NodeSnapshot';
+import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
 import { PathPart } from '../primitive';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   addNodeReference,
   addToSet,
+  DynamicEdge,
+  DynamicEdgeMap,
   DynamicEdgeWithParameterizedArguments,
   expandEdgeArguments,
   hasNodeReference,
+  isDynamicEdgeWithParameterizedArguments,
   isObject,
   isScalar,
   lazyImmutableDeepSet,
-  DynamicEdge,
-  DynamicEdgeMap,
   removeNodeReference,
   walkPayload,
 } from '../util';
@@ -181,24 +182,9 @@ export class SnapshotEditor {
           payloadValue = null;
         }
 
-        if (edge instanceof DynamicEdge && edge.parameterizedEdgeArgs) {
-          // swap in any variables.
-          const edgeArguments = expandEdgeArguments(edge as DynamicEdgeWithParameterizedArguments, query.variables);
-          const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
+        if (isDynamicEdgeWithParameterizedArguments(edge)) {
+          const edgeId = this._ensureParameterizedValueSnapshot(containerId, path, edge, query.variables!);
 
-          // Parameterized edges are references, but maintain their own path.
-          const newContainerSnapshot = this._ensureNewSnapshot(containerId);
-          if (!hasNodeReference(newContainerSnapshot, 'outbound', edgeId)) {
-            addNodeReference('outbound', newContainerSnapshot, edgeId);
-            // This is a bit arcane, but if we
-            let initialValue;
-            if (Array.isArray(payloadValue)) {
-              initialValue = [];
-              initialValue.length = payloadValue.length;
-            }
-            const edgeSnapshot = this._ensureNewSnapshot(edgeId, initialValue);
-            addNodeReference('inbound', edgeSnapshot, containerId);
-          }
           // We walk the values of the parameterized edge like any other entity.
           //
           // EXCEPT: We re-visit the payload, in case it might _directly_
@@ -434,27 +420,43 @@ export class SnapshotEditor {
    * Ensures that we have built a new version of a snapshot for node `id` (and
    * that it is referenced by `_newNodes`).
    */
-  private _ensureNewSnapshot(id: NodeId, initialValue?: object): NodeSnapshot {
-    let newSnapshot;
+  private _ensureNewSnapshot(id: NodeId): NodeSnapshot {
+    let parent;
     if (id in this._newNodes) {
-      const current = this._newNodes[id];
-      // We may have deleted the node.
-      if (current) return current;
-      // If so, we should start fresh.
-      newSnapshot = new NodeSnapshot();
+      return this._newNodes[id]!;
     } else {
-      const parent = this._parent.getSnapshot(id);
-      const value = parent
-        ? Array.isArray(parent.node) ? [...parent.node] : { ...parent.node }
-        : initialValue;
-      const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
-      const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
-
-      newSnapshot = new NodeSnapshot(value, inbound, outbound);
+      parent = this._parent.getSnapshot(id);
     }
 
+    // TODO: We're assuming that the only time we call _ensureNewSnapshot when
+    // there is no parent is when the node is an entity.  Can we enforce it, or
+    // pass a type through?
+    const newSnapshot = parent ? cloneNodeSnapshot(parent) : new EntitySnapshot();
     this._newNodes[id] = newSnapshot;
     return newSnapshot;
+  }
+
+  /**
+   * Ensures that there is a ParameterizedValueSnapshot for the given field.
+   */
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], edge: DynamicEdgeWithParameterizedArguments, variables: object) {
+    const edgeArguments = expandEdgeArguments(edge, variables);
+    const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
+
+    // We're careful to not edit the container unless we absolutely have to.
+    // (There may be no changes for this parameterized value).
+    const containerSnapshot = this.getNodeSnapshot(containerId);
+    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
+      // We need to construct a new snapshot otherwise.
+      const newSnapshot = new ParameterizedValueSnapshot();
+      addNodeReference('inbound', newSnapshot, containerId);
+      this._newNodes[edgeId] = newSnapshot;
+
+      // Ensure that the container points to it.
+      addNodeReference('outbound', this._ensureNewSnapshot(containerId), edgeId);
+    }
+
+    return edgeId;
   }
 
 }
