@@ -753,9 +753,9 @@ eslint-plugin-import@nevir/eslint-plugin-import#randallreedjr-import-sort-order:
     minimatch "^3.0.3"
     read-pkg-up "^2.0.0"
 
-eslint-plugin-typescript@nzakas/eslint-plugin-typescript#56c8990:
-  version "0.5.0"
-  resolved "https://codeload.github.com/nzakas/eslint-plugin-typescript/tar.gz/56c8990"
+eslint-plugin-typescript@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-typescript/-/eslint-plugin-typescript-0.6.0.tgz#ee0994a7d66262f62aeb75c2fd2cc8255b5d1dfb"
   dependencies:
     requireindex "~1.1.0"
 
@@ -2607,7 +2607,7 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typescript-eslint-parser@7.0.0:
+typescript-eslint-parser@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/typescript-eslint-parser/-/typescript-eslint-parser-7.0.0.tgz#be57d8768e37707af825e339ea2af18d7393cabb"
   dependencies:

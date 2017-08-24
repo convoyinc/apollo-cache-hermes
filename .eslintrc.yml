@@ -192,7 +192,7 @@ rules:
   typescript/interface-name-prefix: [error, never]
   typescript/member-delimiter-style: [error, {
     overrides: {
-      typeLiteral: { delimiter: comma, requireLast: false }
+      typeLiteral: { delimiter: comma, requireLast: true, ignoreSingleLine: true }
     }
   }]
   typescript/no-angle-bracket-type-assertion: error
