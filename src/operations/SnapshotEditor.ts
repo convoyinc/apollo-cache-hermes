@@ -155,30 +155,7 @@ export class SnapshotEditor {
       walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, dynamicEdges) => {
         const payloadIsObject = isObject(payloadValue);
         const nodeIsObject = isObject(nodeValue);
-        let nextNodeId: string | undefined;
-        if (payloadIsObject) {
-          nextNodeId = entityIdForNode(payloadValue);
-          // If we can't find property "id", it doesn't mean that this
-          // payloadValue is not an entity trying to check if its "id"
-          // is alias. Note: we only need to walk one level!
-          // TODO: more generic approach to detect "id"
-          if (!nextNodeId) {
-            const edgesChildren = dynamicEdges instanceof DynamicEdge ? dynamicEdges.children : dynamicEdges;
-            if (edgesChildren) {
-              for (const key in edgesChildren) {
-                const child = edgesChildren[key];
-                if (child instanceof DynamicEdge && child.fieldName === 'id') {
-                  nextNodeId = payloadValue[key];
-                  if (typeof nextNodeId === 'number' || typeof nextNodeId === 'string') {
-                    nextNodeId = `${nextNodeId}`;
-                  }
-                  break;
-                }
-              }
-            }
-          }
-
-        }
+        let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
         const prevNodeId = nodeIsObject ? entityIdForNode(nodeValue) : undefined;
         const isReference = nextNodeId || prevNodeId;
         // TODO: Rather than failing on cycles in payload values, we should

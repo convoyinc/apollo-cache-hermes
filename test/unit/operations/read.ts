@@ -713,7 +713,7 @@ describe(`operations.read`, () => {
           query getUser($id: ID!) {
             fullUser: user(id: $id) {
               firstName: FirstName,
-              userId: id
+              id
               address: Address {
                 city
                 state
@@ -728,7 +728,7 @@ describe(`operations.read`, () => {
         const snapshot = write(context, empty, aliasQuery, {
           fullUser: {
             firstName: 'Bob',
-            userId: 2,
+            id: 2,
             address: {
               city: 'A',
               state: 'AA',
@@ -746,7 +746,6 @@ describe(`operations.read`, () => {
             firstName: 'Bob',
             FirstName: 'Bob',
             id: 2,
-            userId: 2,
             address: {
               city: 'A',
               state: 'AA',
