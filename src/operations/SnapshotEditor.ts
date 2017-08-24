@@ -203,7 +203,7 @@ export class SnapshotEditor {
           payloadValue = null;
         }
 
-        if (dynamicEdges instanceof DynamicEdge && dynamicEdges.parameterizedEdgeArgs) {
+        if (dynamicEdges && dynamicEdges.parameterizedEdgeArgs) {
           // swap in any variables.
           const edgeArguments = expandEdgeArguments(dynamicEdges.parameterizedEdgeArgs, query.variables);
 
@@ -257,7 +257,7 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            const updateEdge = dynamicEdges instanceof DynamicEdge ? dynamicEdges.children : dynamicEdges;
+            const updateEdge = dynamicEdges && dynamicEdges.children ? dynamicEdges.children : dynamicEdges;
             queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: updateEdge });
           }
           // Stop the walk for this subgraph.

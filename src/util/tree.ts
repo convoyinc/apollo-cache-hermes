@@ -41,7 +41,7 @@ export type PayloadVisitor = (
   path: PathPart[],
   payloadValue: any,
   nodeValue: any,
-  dynamicEdge: DynamicEdge | DynamicEdgeMap | undefined,
+  dynamicEdge: DynamicEdge | undefined,
 ) => boolean;
 
 /**

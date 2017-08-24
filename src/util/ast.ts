@@ -73,7 +73,7 @@ export class VariableArgument {
  * that contain a parameterized edge.
  */
 export interface DynamicEdgeMap {
-  [Key: string]: DynamicEdgeMap | DynamicEdge | string | undefined;
+  [Key: string]: DynamicEdge | undefined;
 }
 
 /**
@@ -127,20 +127,23 @@ export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: Selec
       // children. This is to save resources in walking
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
       let currentEdge: DynamicEdge | DynamicEdgeMap | undefined;
+
+      let fieldName: string | undefined;
       let parameterizedArguments: ParameterizedEdgeArguments | undefined;
+      let children: DynamicEdgeMap | undefined;
 
       if (selection.kind === GraphqlNodeKind.Field && selection.arguments && selection.arguments.length) {
         parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
       }
+      if (selection.alias) {
+        fieldName = selection.name.value;
+      }
+      if (selection.selectionSet) {
+        children = buildDynamicEdgeMap(fragments, selection.selectionSet);
+      }
 
-      // If current selection has either parameterized arguments or alias, we
-      // will want to create dynamic edge. Otherwise recurse into the children.
-      if (parameterizedArguments || selection.alias) {
-        currentEdge = new DynamicEdge(parameterizedArguments,
-          selection.alias ? selection.name.value : undefined,
-          buildDynamicEdgeMap(fragments, selection.selectionSet));
-      } else if (selection.selectionSet) {
-        currentEdge = buildDynamicEdgeMap(fragments, selection.selectionSet);
+      if (fieldName || parameterizedArguments || children) {
+        currentEdge = new DynamicEdge(parameterizedArguments, fieldName, children);
       }
 
       if (currentEdge) {
