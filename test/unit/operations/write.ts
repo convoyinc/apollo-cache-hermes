@@ -1648,7 +1648,7 @@ describe(`operations.write`, () => {
           }).snapshot;
         });
 
-        it(`check write result`, () => {
+        it(`only writes fields from the schema`, () => {
           expect(snapshot.get(QueryRootId)).to.deep.eq({
             user: {
               id: 0,
@@ -1657,7 +1657,7 @@ describe(`operations.write`, () => {
           });
         });
 
-        it(`check shape of graph`, () => {
+        it(`check shape of GraphNodeSnapshot`, () => {
           expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
             new EntitySnapshot(
               {
@@ -1691,7 +1691,7 @@ describe(`operations.write`, () => {
           }).snapshot;
         });
 
-        it(`check write result`, () => {
+        it(`only writes fields from the schema`, () => {
           expect(snapshot.get(QueryRootId)).to.deep.eq({
             user: {
               id: 0,
@@ -1700,7 +1700,7 @@ describe(`operations.write`, () => {
           });
         });
 
-        it(`check shape of graph`, () => {
+        it(`check shape of GraphNodeSnapshot`, () => {
           expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
             new EntitySnapshot(
               {
@@ -1736,7 +1736,7 @@ describe(`operations.write`, () => {
           }).snapshot;
         });
 
-        it(`check write result`, () => {
+        it(`only writes fields from the schema`, () => {
           expect(snapshot.get(QueryRootId)).to.deep.eq({
             user: {
               info: {
@@ -1844,7 +1844,7 @@ describe(`operations.write`, () => {
           }).snapshot;
         });
 
-        it(`check write result`, () => {
+        it(`only writes fields from the schema`, () => {
           expect(snapshot.get(QueryRootId)).to.deep.eq({
             Shipment: {
               shipmentId: 0,
@@ -1861,7 +1861,7 @@ describe(`operations.write`, () => {
           });
         });
 
-        it(`check shape of graph`, () => {
+        it(`check shape of GraphNodeSnapshot`, () => {
           expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq({
             inbound: undefined,
             outbound: [{ id: '0', path: ['Shipment'] }, { id: '2', path: ['Dispatcher'] }, { id: '1', path: ['Carrier'] }],
@@ -1918,7 +1918,7 @@ describe(`operations.write`, () => {
           }).snapshot;
         });
 
-        it(`check result`, () => {
+        it(`only writes fields from the schema`, () => {
           expect(snapshot.get(QueryRootId)).to.deep.eq({
             user: {
               id: 0,
@@ -1928,7 +1928,7 @@ describe(`operations.write`, () => {
           });
         });
 
-        it(`check graph shape`, () => {
+        it(`check shape of GraphNodeSnapshot`, () => {
           expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
             new EntitySnapshot(
               {
