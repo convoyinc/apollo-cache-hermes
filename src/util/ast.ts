@@ -60,7 +60,7 @@ export class VariableArgument {
  * that contain a parameterized edge.
  */
 export interface DynamicEdgeMap {
-  [Key: string]: DynamicEdgeMap | DynamicEdge | string | undefined;
+  [Key: string]: DynamicEdgeMap | DynamicEdge | undefined;
 }
 
 /**
@@ -111,7 +111,7 @@ export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: Selec
       }
     } else if (selection.kind === 'Field') {
       // if the current selection doesn't have any dynamic features
-      // but its children have dynamic features, we will hsot the DynamicEdgeMap
+      // but its children have dynamic features, we will host the DynamicEdgeMap
       // of the chidren directly instead of creating indirect DynamicEdge with
       // children. This is to save resources in walking
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
@@ -136,6 +136,7 @@ export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: Selec
         (edgeMap || (edgeMap = {}))[currentKey] = currentEdge;
       }
     }
+    // TODO: inline fragments.
   }
 
   return edgeMap;
