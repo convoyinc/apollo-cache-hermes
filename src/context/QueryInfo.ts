@@ -5,7 +5,7 @@ import {// eslint-disable-line import/no-extraneous-dependencies, import/no-unre
 
 import {
   FragmentMap,
-  ParameterizedEdgeMap,
+  DynamicEdgeMap,
   buildParameterizedEdgeMap,
   fragmentMapForDocument,
   getOperationOrDie,
@@ -28,7 +28,7 @@ export class QueryInfo {
   /** All fragments in the document, indexed by name. */
   public readonly fragmentMap: FragmentMap;
   /** The edge map for the document, if there are any parameterized edges. */
-  public readonly parameterizedEdgeMap?: ParameterizedEdgeMap;
+  public readonly parameterizedEdgeMap?: DynamicEdgeMap;
 
   constructor(document: DocumentNode) {
     this.document = document;

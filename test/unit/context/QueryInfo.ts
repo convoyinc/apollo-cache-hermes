@@ -2,7 +2,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import gql from 'graphql-tag';
 
 import { QueryInfo } from '../../../src/context/QueryInfo';
-import { ParameterizedEdge, VariableArgument } from '../../../src/util';
+import { DynamicEdge, VariableArgument } from '../../../src/util';
 
 describe(`context.QueryInfo`, () => {
 
@@ -52,7 +52,7 @@ describe(`context.QueryInfo`, () => {
 
     it(`builds a parameterized edge map`, () => {
       expect(info.parameterizedEdgeMap).to.deep.eq({
-        things: new ParameterizedEdge({
+        things: new DynamicEdge({
           ids: new VariableArgument('ids'),
         }),
       });

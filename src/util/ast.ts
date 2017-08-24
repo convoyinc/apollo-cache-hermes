@@ -45,14 +45,6 @@ export function fragmentMapForDocument(document: DocumentNode): FragmentMap {
 }
 
 /**
- * A recursive map where the keys indicate the path to any edge in a result set
- * that contain a parameterized edge.
- */
-export interface ParameterizedEdgeMap {
-  [Key: string]: ParameterizedEdgeMap | ParameterizedEdge;
-}
-
-/**
  * Represents the location a variable should be used as an argument to a
  * parameterized edge.
  */
@@ -64,6 +56,14 @@ export class VariableArgument {
 }
 
 /**
+ * A recursive map where the keys indicate the path to any edge in a result set
+ * that contain a parameterized edge.
+ */
+export interface DynamicEdgeMap {
+  [Key: string]: DynamicEdgeMap | DynamicEdge;
+}
+
+/**
  * A value that can be expressed as an argument of a parameterized edge.
  */
 export type EdgeArgumentScalar = JsonScalar | VariableArgument;
@@ -72,14 +72,15 @@ export interface EdgeArgumentObject { [Key: string]: EdgeArgument; }
 export type EdgeArgument = EdgeArgumentScalar | EdgeArgumentArray | EdgeArgumentObject;
 
 /**
- * Represents a parameterized edge (within an edge map).
+ * Represent dynamic information: alias, parameterized arguments, directives
+ * (if existed) of NodeSnapshot in GraphSnapshot.
  */
-export class ParameterizedEdge {
+export class DynamicEdge {
   constructor(
     /** The map of arguments and their static or variable values. */
-    public readonly args: EdgeArgumentObject,
+    public readonly parameterizedEdgeArgs?: EdgeArgumentObject,
     /** Any child edge maps. */
-    public readonly children?: ParameterizedEdgeMap,
+    public readonly children?: DynamicEdgeMap,
   ) {}
 }
 
@@ -88,7 +89,7 @@ export class ParameterizedEdge {
  *
  * TODO: Support for directives (maybe?).
  */
-export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): ParameterizedEdgeMap | undefined {
+export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicEdgeMap | undefined {
   if (!selectionSet) return undefined;
 
   let edgeMap;
@@ -98,11 +99,11 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
 
     // Parameterized edge.
     if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
-      const args = _buildParameterizedEdgeArgs(selection as any);
+      const parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
       const children = buildParameterizedEdgeMap(fragments, selection.selectionSet);
 
       key = selection.name.value;
-      value = new ParameterizedEdge(args, children);
+      value = new DynamicEdge(parameterizedArguments, children);
 
     // We need to walk any simple fields that have selection sets of their own.
     } else if (selection.kind === 'Field' && selection.selectionSet) {
@@ -138,9 +139,10 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildParameterizedEdgeArgs(field: FieldNode & { arguments: ArgumentNode[] }) {
+function _buildParameterizedEdgeArgs(argumentsNode: ArgumentNode[]) {
   const args = {};
-  for (const arg of field.arguments) {
+  for (const arg of argumentsNode) {
+    // Mapped name of argument to it JS value
     args[arg.name.value] = _valueFromNode(arg.value);
   }
 
@@ -151,35 +153,38 @@ function _buildParameterizedEdgeArgs(field: FieldNode & { arguments: ArgumentNod
  * Evaluate a ValueNode and yield its value in its natural JS form.
  */
 function _valueFromNode(node: ValueNode): any {
-  if (node.kind === 'Variable') {
+  switch (node.kind) {
+  case 'Variable':
     return new VariableArgument(node.name.value);
-  } else if (node.kind === 'NullValue') {
+  case 'NullValue':
     return null;
-  } else if (node.kind === 'IntValue') {
+  case 'IntValue':
     return parseInt(node.value);
-  } else if (node.kind === 'FloatValue') {
+  case 'FloatValue':
     return parseFloat(node.value);
-  } else if (node.kind === 'ListValue') {
+  case 'ListValue':
     return node.values.map(_valueFromNode);
-  } else if (node.kind === 'ObjectValue') {
+  case 'ObjectValue': {
     const value = {};
     for (const field of node.fields) {
       value[field.name.value] = _valueFromNode(field.value);
     }
     return value;
-  } else {
+  }
+  default:
     return node.value;
   }
 }
 
+export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: EdgeArgumentObject };
 /**
  * Sub values in for any variables required by an edge's args.
  */
-export function expandEdgeArguments(edge: ParameterizedEdge, variables: object = {}): object {
+export function expandEdgeArguments(edge: DynamicEdgeWithParameterizedArguments, variables: object = {}): object {
   const edgeArguments = {} as any;
   // TODO: Recurse into objects/arrays.
-  for (const key in edge.args) {
-    let arg = edge.args[key];
+  for (const key in edge.parameterizedEdgeArgs!) {
+    let arg = edge.parameterizedEdgeArgs![key];
     if (arg instanceof VariableArgument) {
       if (!(arg.name in variables)) {
         // TODO: Detect optional variables?
@@ -211,10 +216,7 @@ function addTypenameToSelectionSet(
   if (selectionSet.selections) {
     if (!isRoot) {
       const alreadyHasThisField = selectionSet.selections.some((selection) => {
-        return (
-          selection.kind === 'Field' &&
-          selection!.name.value === '__typename'
-        );
+        return selection.kind === 'Field' && selection.name.value === '__typename';
       });
 
       if (!alreadyHasThisField) {
@@ -244,10 +246,9 @@ export function addTypenameToDocument(doc: DocumentNode) {
   const docClone = lodashCloneDeep(doc);
 
   docClone.definitions.forEach((definition: DefinitionNode) => {
-    const isRoot = definition.kind === 'OperationDefinition';
     addTypenameToSelectionSet(
       (definition as OperationDefinitionNode).selectionSet,
-      isRoot,
+      /* isRoot */ definition.kind === 'OperationDefinition',
     );
   });
 
