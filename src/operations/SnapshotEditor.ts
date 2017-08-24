@@ -10,7 +10,6 @@ import {
   DynamicEdgeMap,
   DynamicEdgeWithParameterizedArguments,
   expandEdgeArguments,
-  hasNodeReference,
   isDynamicEdgeWithParameterizedArguments,
   isObject,
   isScalar,
@@ -424,18 +423,7 @@ export class SnapshotEditor {
     if (id in this._newNodes) {
       return this._newNodes[id]!;
     } else {
-<<<<<<< HEAD
       parent = this._parent.getNodeSnapshot(id);
-=======
-      const parent = this._parent.getNodeSnapshot(id);
-      const value = parent
-        ? Array.isArray(parent.node) ? [...parent.node] : { ...parent.node }
-        : initialValue;
-      const inbound = parent && parent.inbound ? [...parent.inbound] : undefined;
-      const outbound = parent && parent.outbound ? [...parent.outbound] : undefined;
-
-      newSnapshot = new NodeSnapshot(value, inbound, outbound);
->>>>>>> Address PR: rename getGraphNodeSnapshot
     }
 
     // TODO: We're assuming that the only time we call _ensureNewSnapshot when
@@ -456,14 +444,11 @@ export class SnapshotEditor {
     // We're careful to not edit the container unless we absolutely have to.
     // (There may be no changes for this parameterized value).
     const containerSnapshot = this.getNodeSnapshot(containerId);
-    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
+    if (!containerSnapshot || addNodeReference('outbound', this._ensureNewSnapshot(containerId), edgeId)) {
       // We need to construct a new snapshot otherwise.
       const newSnapshot = new ParameterizedValueSnapshot();
       addNodeReference('inbound', newSnapshot, containerId);
       this._newNodes[edgeId] = newSnapshot;
-
-      // Ensure that the container points to it.
-      addNodeReference('outbound', this._ensureNewSnapshot(containerId), edgeId);
     }
 
     return edgeId;

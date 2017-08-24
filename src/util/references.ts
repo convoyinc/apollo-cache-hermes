@@ -40,7 +40,7 @@ export function addNodeReference(
   snapshot: NodeSnapshot,
   id: NodeId,
   path?: PathPart[],
-): void {
+): boolean {
   let references = snapshot[direction];
   if (!references) {
     references = snapshot[direction] = [];
@@ -49,22 +49,9 @@ export function addNodeReference(
   const idx = getIndexOfGivenReference(references, id, path);
   if (idx === -1) {
     references.push({ id, path });
+    return true;
   }
-}
-
-/**
- * Whether a snapshot has a specific reference.
- */
-export function hasNodeReference(
-  snapshot: NodeSnapshot,
-  type: ReferenceDirection,
-  id: NodeId,
-  path?: PathPart[],
-): boolean {
-  const references = snapshot[type];
-  if (!references) return false;
-  const idx = getIndexOfGivenReference(references, id, path);
-  return idx !== -1;
+  return false;
 }
 
 /**
