@@ -6,14 +6,15 @@ import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   addNodeReference,
   addToSet,
+  DynamicEdge,
+  DynamicEdgeMap,
   DynamicEdgeWithParameterizedArguments,
   expandEdgeArguments,
   hasNodeReference,
+  isDynamicEdgeWithParameterizedArguments,
   isObject,
   isScalar,
   lazyImmutableDeepSet,
-  DynamicEdge,
-  DynamicEdgeMap,
   removeNodeReference,
   walkPayload,
 } from '../util';
@@ -181,7 +182,7 @@ export class SnapshotEditor {
           payloadValue = null;
         }
 
-        if (edge instanceof DynamicEdge && edge.parameterizedEdgeArgs) {
+        if (isDynamicEdgeWithParameterizedArguments(edge)) {
           const edgeId = this._ensureParameterizedValueSnapshot(containerId, path, edge, query.variables!);
 
           // We walk the values of the parameterized edge like any other entity.

@@ -84,6 +84,8 @@ export class DynamicEdge {
   ) {}
 }
 
+export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: EdgeArgumentObject };
+
 /**
  * Walks a selection set, identifying the path to all parameterized edges.
  *
@@ -176,7 +178,13 @@ function _valueFromNode(node: ValueNode): any {
   }
 }
 
-export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: EdgeArgumentObject };
+/**
+ * Whether the edge is a DynamicEdgeWithParameterizedArguments
+ */
+export function isDynamicEdgeWithParameterizedArguments(edge: any): edge is DynamicEdgeWithParameterizedArguments {
+  return !!(edge instanceof DynamicEdge && edge.parameterizedEdgeArgs);
+}
+
 /**
  * Sub values in for any variables required by an edge's args.
  */
