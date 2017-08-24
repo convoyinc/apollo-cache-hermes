@@ -168,7 +168,6 @@ rules:
   import/no-absolute-path: error
 
   # Helpful Warnings
-  import/export: error
   import/no-named-as-default: error
   import/no-deprecated: error
   import/no-extraneous-dependencies: [error, {
@@ -192,7 +191,7 @@ rules:
   typescript/interface-name-prefix: [error, never]
   typescript/member-delimiter-style: [error, {
     overrides: {
-      typeLiteral: { delimiter: comma, requireLast: false }
+      typeLiteral: { delimiter: comma, requireLast: true, ignoreSingleLine: true }
     }
   }]
   typescript/no-angle-bracket-type-assertion: error
