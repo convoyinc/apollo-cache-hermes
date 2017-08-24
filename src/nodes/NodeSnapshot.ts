@@ -6,11 +6,11 @@ import { NodeId } from '../schema';
  */
 export interface NodeSnapshot {
   /** A reference to the node this snapshot is about. TODO: Remove? */
-  readonly node?: any;
+  node?: any;
   /** Other node snapshots that point to this one. */
-  readonly inbound?: NodeReference[];
+  inbound?: NodeReference[];
   /** The node snapshots that this one points to. */
-  readonly outbound?: NodeReference[];
+  outbound?: NodeReference[];
 }
 
 /**

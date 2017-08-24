@@ -10,10 +10,10 @@ import { NodeReference, NodeSnapshot } from './NodeSnapshot';
 export class EntitySnapshot implements NodeSnapshot {
   constructor(
     /** A reference to the entity this snapshot is about. */
-    readonly node?: any,
+    public node?: any,
     /** Other node snapshots that point to this one. */
-    readonly inbound?: NodeReference[],
+    public inbound?: NodeReference[],
     /** The node snapshots that this one points to. */
-    readonly outbound?: NodeReference[],
+    public outbound?: NodeReference[],
   ) {}
 }
