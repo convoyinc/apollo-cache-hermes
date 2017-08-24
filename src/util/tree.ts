@@ -66,7 +66,7 @@ export function walkPayload(
 ) {
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
-  const stack = [new PayloadWalkNode(payload, node, edgeMap, /* depth*/ 0)];
+  const stack = [new PayloadWalkNode(payload, node, edgeMap, /* depth */ 0)];
   // Store array of path (which is a name of property in an object) from root
   // node to interested property.
   // i.e. {
