@@ -7,7 +7,6 @@ import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   expandEdgeArguments,
   isObject,
-  DynamicEdge,
   DynamicEdgeMap,
 } from '../util';
 
@@ -117,11 +116,11 @@ export function _walkAndOverlayDynamicValues(
     for (const key in edgeMap) {
       if (key === "entityIdAlias") continue;
       const edge = edgeMap[key];
-      let nextEdge = edge;
+      let nextEdge: DynamicEdgeMap | undefined;
       let child, childId;
       let fieldName = key;
 
-      if (edge instanceof DynamicEdge) {
+      if (edge) {
         // If exist filedName property then the current key is an alias
         fieldName = edge.fieldName ? edge.fieldName : key;
         nextEdge = edge.children;
@@ -142,18 +141,18 @@ export function _walkAndOverlayDynamicValues(
 
       // Should we continue the walk?
       // TODO : comment
-      if (nextEdge && !(nextEdge instanceof DynamicEdge) && child !== null) {
+      if (nextEdge && child !== null) {
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
             child[i] = _wrapValue(child[i]);
-            queue.push(new OverlayWalkNode(child[i], containerId, nextEdge as DynamicEdgeMap, [...path, fieldName, i]));
+            queue.push(new OverlayWalkNode(child[i], containerId, nextEdge, [...path, fieldName, i]));
           }
 
         } else {
           child = _wrapValue(child);
-          queue.push(new OverlayWalkNode(child, containerId, nextEdge as DynamicEdgeMap, [...path, fieldName]))
+          queue.push(new OverlayWalkNode(child, containerId, nextEdge, [...path, fieldName]))
         }
       }
 
