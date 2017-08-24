@@ -7,7 +7,6 @@ import {
   addNodeReference,
   addToSet,
   expandEdgeArguments,
-  hasNodeReference,
   isObject,
   isScalar,
   lazyImmutableDeepSet,
@@ -188,8 +187,7 @@ export class SnapshotEditor {
 
           // Parameterized edges are references, but maintain their own path.
           const newContainerSnapshot = this._ensureNewSnapshot(containerId);
-          if (!hasNodeReference(newContainerSnapshot, 'outbound', edgeId)) {
-            addNodeReference('outbound', newContainerSnapshot, edgeId);
+          if (addNodeReference('outbound', newContainerSnapshot, edgeId)) {
             // This is a bit arcane, but if we
             let initialValue;
             if (Array.isArray(payloadValue)) {
