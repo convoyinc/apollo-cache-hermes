@@ -75,7 +75,9 @@ export function walkPayload(
   //    address: {     -> path = ["user", "address"]
   //      city: "A",   -> path = ["user", "address", "city"]
   //      state: "AB", -> path = ["user", "address", "state"]
-  //    }
+  //    },
+  //    phone: ["1234", -> path = ["user", 0]
+  //            "5678"] -> path = ["user", 1]
   //  }
   // }
   const path: PathPart[] = [];
