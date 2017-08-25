@@ -87,7 +87,8 @@ export function _walkAndOverlayDynamicValues(
   // dynamic values to be overlaid 
   const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
 
-  // TODO : comment
+  // It is possible to have no outbound but there is still an dynamic edge
+  // that need to be overlaid (i.e. alias)
   if (!rootSnapshot || !(rootSnapshot.outbound || edges)) {
     // For now, what's probably good enough is to just stop the walk if we have
     // no root snapshot making outbound references to any other edges.
