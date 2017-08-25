@@ -55,7 +55,8 @@ export function addNodeReference(
 }
 
 /**
- * Whether a snapshot has a specific reference.
+ * Return index of { id, path } reference in references array.
+ * Otherwise, return -1.
  */
 export function hasNodeReference(
   snapshot: NodeSnapshot,
