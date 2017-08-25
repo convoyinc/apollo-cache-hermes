@@ -63,7 +63,7 @@ describe(`operations.write`, () => {
     });
 
     it(`emits the root as an EntitySnapshot`, () => {
-      expect(snapshot.getSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
     });
 
   });
@@ -92,11 +92,11 @@ describe(`operations.write`, () => {
     });
 
     it(`emits the root as an EntitySnapshot`, () => {
-      expect(snapshot.getSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
     });
 
     it(`emits the entity as an EntitySnapshot`, () => {
-      expect(snapshot.getSnapshot('123')).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot('123')).to.be.an.instanceOf(EntitySnapshot);
     });
 
     it(`directly references viewer from the query root`, () => {
@@ -106,13 +106,13 @@ describe(`operations.write`, () => {
     });
 
     it(`records the outbound reference from the query root`, () => {
-      const queryRoot = snapshot.getSnapshot(QueryRootId)!;
+      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.deep.eq([{ id: '123', path: ['viewer'] }]);
       expect(queryRoot.inbound).to.eq(undefined);
     });
 
     it(`records the inbound reference from referenced entity`, () => {
-      const queryRoot = snapshot.getSnapshot('123')!;
+      const queryRoot = snapshot.getNodeSnapshot('123')!;
       expect(queryRoot.inbound).to.deep.eq([{ id: QueryRootId, path: ['viewer'] }]);
       expect(queryRoot.outbound).to.eq(undefined);
     });
@@ -161,7 +161,7 @@ describe(`operations.write`, () => {
     });
 
     it(`emits the edited node as an EntitySnapshot`, () => {
-      expect(snapshot.getSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
     });
 
   });
@@ -289,9 +289,9 @@ describe(`operations.write`, () => {
     });
 
     it(`emits the edited nodes as an EntitySnapshot`, () => {
-      expect(snapshot.getSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
-      expect(snapshot.getSnapshot('1')).to.be.an.instanceOf(EntitySnapshot);
-      expect(snapshot.getSnapshot('2')).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot('1')).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot('2')).to.be.an.instanceOf(EntitySnapshot);
     });
 
   });
@@ -330,7 +330,7 @@ describe(`operations.write`, () => {
     });
 
     it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getSnapshot(QueryRootId)!;
+      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.have.deep.members([
         { id: '2', path: ['foo'] },
         { id: '1', path: ['bar'] },
@@ -339,8 +339,8 @@ describe(`operations.write`, () => {
     });
 
     it(`updates inbound references`, () => {
-      const foo = snapshot.getSnapshot('1')!;
-      const bar = snapshot.getSnapshot('2')!;
+      const foo = snapshot.getNodeSnapshot('1')!;
+      const bar = snapshot.getNodeSnapshot('2')!;
       expect(foo.inbound).to.have.deep.members([{ id: QueryRootId, path: ['bar'] }]);
       expect(bar.inbound).to.have.deep.members([{ id: QueryRootId, path: ['foo'] }]);
     });
@@ -390,7 +390,7 @@ describe(`operations.write`, () => {
     });
 
     it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getSnapshot(QueryRootId)!;
+      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
     });
 
@@ -469,7 +469,7 @@ describe(`operations.write`, () => {
     });
 
     it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getSnapshot(QueryRootId)!;
+      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
       expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
     });
 
@@ -603,12 +603,12 @@ describe(`operations.write`, () => {
       });
 
       it(`creates an outgoing reference from the edge's container`, () => {
-        const queryRoot = snapshot.getSnapshot(QueryRootId)!;
+        const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
       it(`creates an inbound reference to the edge's container`, () => {
-        const values = snapshot.getSnapshot(parameterizedId)!;
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
@@ -621,7 +621,7 @@ describe(`operations.write`, () => {
       });
 
       it(`emits a ParameterizedValueSnapshot`, () => {
-        expect(snapshot.getSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+        expect(snapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
       });
 
     });
@@ -661,12 +661,12 @@ describe(`operations.write`, () => {
       });
 
       it(`creates an outgoing reference from the edge's container`, () => {
-        const queryRoot = snapshot.getSnapshot(QueryRootId)!;
+        const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
       it(`creates an inbound reference to the edge's container`, () => {
-        const values = snapshot.getSnapshot(parameterizedId)!;
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
@@ -679,7 +679,7 @@ describe(`operations.write`, () => {
       });
 
       it(`emits a ParameterizedValueSnapshot`, () => {
-        expect(snapshot.getSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+        expect(snapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
       });
 
     });
@@ -728,7 +728,7 @@ describe(`operations.write`, () => {
       });
 
       it(`emits a ParameterizedValueSnapshot`, () => {
-        expect(snapshot.getSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+        expect(snapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
       });
 
     });
@@ -765,22 +765,22 @@ describe(`operations.write`, () => {
       });
 
       it(`creates an outgoing reference from the edge's container`, () => {
-        const queryRoot = snapshot.getSnapshot(QueryRootId)!;
+        const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
       it(`creates an inbound reference to the edge's container`, () => {
-        const values = snapshot.getSnapshot(parameterizedId)!;
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
       it(`creates an outgoing reference from the parameterized edge to the referenced entity`, () => {
-        const values = snapshot.getSnapshot(parameterizedId)!;
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.outbound).to.deep.eq([{ id: '1', path: [] }]);
       });
 
       it(`creates an incoming reference from the parameterized edge to the referenced entity`, () => {
-        const entity = snapshot.getSnapshot('1')!;
+        const entity = snapshot.getNodeSnapshot('1')!;
         expect(entity.inbound).to.deep.eq([{ id: parameterizedId, path: [] }]);
       });
 
@@ -985,24 +985,24 @@ describe(`operations.write`, () => {
       });
 
       it(`writes a value snapshot for the containing edge`, () => {
-        expect(snapshot.getSnapshot(containerId)).to.exist;
+        expect(snapshot.getNodeSnapshot(containerId)).to.exist;
       });
 
       it(`writes value snapshots for each array entry`, () => {
-        expect(snapshot.getSnapshot(entry1Id)).to.exist;
-        expect(snapshot.getSnapshot(entry2Id)).to.exist;
+        expect(snapshot.getNodeSnapshot(entry1Id)).to.exist;
+        expect(snapshot.getNodeSnapshot(entry2Id)).to.exist;
       });
 
       it(`references the parent snapshot from the children`, () => {
-        const entry1 = snapshot.getSnapshot(entry1Id)!;
-        const entry2 = snapshot.getSnapshot(entry2Id)!;
+        const entry1 = snapshot.getNodeSnapshot(entry1Id)!;
+        const entry2 = snapshot.getNodeSnapshot(entry2Id)!;
 
         expect(entry1.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
         expect(entry2.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
       });
 
       it(`references the children from the parent`, () => {
-        const container = snapshot.getSnapshot(containerId)!;
+        const container = snapshot.getNodeSnapshot(containerId)!;
 
         expect(container.outbound).to.have.deep.members([
           { id: entry1Id, path: undefined },
@@ -1387,7 +1387,7 @@ describe(`operations.write`, () => {
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
       });
-      */
+       */
 
       it(`can construct a graph from a cyclic payload`, () => {
         // Note that we explicitly DO NOT construct graph cycles for
@@ -1499,7 +1499,7 @@ describe(`operations.write`, () => {
     });
 
     it(`sets up outbound references`, () => {
-      expect(snapshot.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '3', path: ['things', 2] },
@@ -1519,7 +1519,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '5', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '1', path: ['things', 2] },
@@ -1536,7 +1536,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
       ]);
@@ -1558,7 +1558,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '3', path: ['things', 2] },
@@ -1583,7 +1583,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '3', path: ['things', 2] },
         { id: '4', path: ['things', 3] },
       ]);
@@ -1610,7 +1610,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      expect(updated.getSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: '3', path: ['things', 2] },
         { id: '4', path: ['things', 3] },
       ]);
@@ -1628,4 +1628,528 @@ describe(`operations.write`, () => {
 
   });
 
+  describe(`field alias`, () => {
+    describe(`without parameterized arguments`, () => {
+      describe(`simple query alias on non entityId`, () => {
+        let aliasQuery: Query, snapshot: GraphSnapshot;
+        beforeAll(() => {
+          aliasQuery = query(`{
+            user {
+              id
+              FirstName: name
+            }
+          }`);
+
+          snapshot = write(config, empty, aliasQuery, {
+            user: {
+              id: 0,
+              FirstName: 'Foo',
+            },
+          }).snapshot;
+        });
+
+        it(`only writes fields from the schema`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            user: {
+              id: 0,
+              name: 'Foo',
+            },
+          });
+        });
+
+        it(`check shape of GraphNodeSnapshot`, () => {
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+            new EntitySnapshot(
+              {
+                user: {
+                  id: 0,
+                  name: 'Foo',
+                },
+              },
+              /* inbound */ undefined,
+              /* outbound */ [{ id: '0', path: ['user'] }],
+            )
+          );
+        });
+      });
+
+      describe(`simple query alias on entityId`, () => {
+        let aliasQuery: Query, snapshot: GraphSnapshot;
+        beforeAll(() => {
+          aliasQuery = query(`{
+            user {
+              userId: id
+              FirstName: name
+            }
+          }`);
+
+          snapshot = write(config, empty, aliasQuery, {
+            user: {
+              userId: 0,
+              FirstName: 'Foo',
+            },
+          }).snapshot;
+        });
+
+        it(`only writes fields from the schema`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            user: {
+              id: 0,
+              name: 'Foo',
+            },
+          });
+        });
+
+        it(`check shape of GraphNodeSnapshot`, () => {
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+            new EntitySnapshot(
+              {
+                user: {
+                  id: 0,
+                  name: 'Foo',
+                },
+              },
+              /* inbound */ undefined,
+              /* outbound */ undefined,
+            )
+          );
+        });
+      });
+
+      describe(`nested non entityId alias query`, () => {
+        let aliasQuery: Query, snapshot: GraphSnapshot;
+        beforeAll(() => {
+          aliasQuery = query(`{
+            user {
+              info {
+                FirstName: name
+              }
+            }
+          }`);
+
+          snapshot = write(config, empty, aliasQuery, {
+            user: {
+              info: {
+                FirstName: 'Foo',
+              },
+            },
+          }).snapshot;
+        });
+
+        it(`only writes fields from the schema`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            user: {
+              info: {
+                name: 'Foo',
+              },
+            },
+          });
+        });
+
+        it(`check shape of graph`, () => {
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+            new EntitySnapshot(
+              {
+                user: {
+                  info: {
+                    name: 'Foo',
+                  },
+                },
+              },
+              /* inbound */ undefined,
+              /* outbound */ undefined,
+            )
+          );
+        });
+      });
+
+      it(`nested entityId alias`, () => {
+        const nestedAliasQuery = query(`
+          query GetUser {
+            fullUserInfo: user {
+              userId: id
+              nickName
+              FirstName: name
+              contact {
+                address: homeAddress {
+                  city
+                  state
+                }
+                phone
+              }
+            }
+          }
+        `);
+        const snapshot = write(config, empty, nestedAliasQuery, {
+          fullUserInfo: {
+            userId: 0,
+            nickName: 'Foo Foo',
+            FirstName: 'Foo',
+            contact: {
+              address: {
+                city: 'Seattle',
+                state: 'WA',
+              },
+              phone: '555-555-5555',
+            },
+          },
+        }).snapshot;
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            id: 0,
+            name: 'Foo',
+            nickName: 'Foo Foo',
+            contact: {
+              homeAddress: {
+                city: 'Seattle',
+                state: 'WA',
+              },
+              phone: '555-555-5555',
+            },
+          },
+        });
+      });
+
+      describe(`same alias name in different scope`, () => {
+        let aliasQuery: Query, snapshot: GraphSnapshot;
+        beforeAll(() => {
+          aliasQuery = query(`{
+            shipment: Shipment {
+              id: shipmentId,
+              name: shipmentName,
+            }
+            dispatch: Dispatcher {
+              id
+              name
+            }
+            carrier: Carrier {
+              id: carrierId
+              name: carrierName
+            }
+          }`);
+
+          snapshot = write(config, empty, aliasQuery, {
+            shipment: {
+              id: 0,
+              name: 'ToSeattle',
+            },
+            dispatch: {
+              id: 2,
+              name: 'Bob The dispatcher',
+            },
+            carrier: {
+              id: 1,
+              name: 'Bob',
+            },
+          }).snapshot;
+        });
+
+        it(`only writes fields from the schema`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            Shipment: {
+              shipmentId: 0,
+              shipmentName: 'ToSeattle',
+            },
+            Dispatcher: {
+              id: 2,
+              name: 'Bob The dispatcher',
+            },
+            Carrier: {
+              carrierId: 1,
+              carrierName: 'Bob',
+            },
+          });
+        });
+
+        it(`check shape of GraphNodeSnapshot`, () => {
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq({
+            inbound: undefined,
+            outbound: [{ id: '0', path: ['Shipment'] }, { id: '2', path: ['Dispatcher'] }, { id: '1', path: ['Carrier'] }],
+            node: {
+              Shipment: {
+                shipmentId: 0,
+                shipmentName: 'ToSeattle',
+              },
+              Dispatcher: {
+                id: 2,
+                name: 'Bob The dispatcher',
+              },
+              Carrier: {
+                carrierId: 1,
+                carrierName: 'Bob',
+              },
+            },
+          });
+        });
+      });
+    });
+
+    describe(`query with both alias and non-alias to same field`, () => {
+      let mixQuery: Query;
+      beforeAll(() => {
+        mixQuery = query(`
+          query GetUser {
+            fullUserInfo: user {
+              id
+              FirstName: name
+              contact: phone
+            }
+            user {
+              id
+              name
+            }
+          }
+        `);
+      });
+
+      describe(`payload with aliases first`, () => {
+        let snapshot: GraphSnapshot;
+        beforeAll(() => {
+          snapshot = write(config, empty, mixQuery, {
+            fullUserInfo: {
+              id: 0,
+              FirstName: 'Foo',
+              contact: '555-555-5555',
+            },
+            user: {
+              id: 0,
+              name: 'Foo',
+            },
+          }).snapshot;
+        });
+
+        it(`only writes fields from the schema`, () => {
+          expect(snapshot.get(QueryRootId)).to.deep.eq({
+            user: {
+              id: 0,
+              name: 'Foo',
+              phone: '555-555-5555',
+            },
+          });
+        });
+
+        it(`check shape of GraphNodeSnapshot`, () => {
+          expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+            new EntitySnapshot(
+              {
+                user: {
+                  id: 0,
+                  name: 'Foo',
+                  phone: '555-555-5555',
+                },
+              },
+              /* inbound */ undefined,
+              /* outbound */ [{ id: '0', path: ['user'] }],
+            )
+          );
+        });
+      });
+
+      it(`payload with non-alias first`, () => {
+        const snapshot = write(config, empty, mixQuery, {
+          user: {
+            id: 0,
+            name: 'Foo',
+          },
+          fullUserInfo: {
+            id: 0,
+            FirstName: 'Foo',
+            contact: '555-555-5555',
+          },
+        }).snapshot;
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            id: 0,
+            name: 'Foo',
+            phone: '555-555-5555',
+          },
+        });
+      });
+
+      it(`payload with conflict between alias and non-alias`, () => {
+        const snapshot = write(config, empty, mixQuery, {
+          user: {
+            id: 0,
+            name: 'Foo',
+          },
+          fullUserInfo: {
+            id: 1,
+            FirstName: 'FooBar',
+            contact: '555-555-5555',
+          },
+        }).snapshot;
+        expect(snapshot.get(QueryRootId)).to.deep.eq({
+          user: {
+            id: 1,
+            name: 'FooBar',
+            phone: '555-555-5555',
+          },
+        });
+      });
+    });
+
+    describe(`with parameterized arguments`, () => {
+      it(`simple query`, () => {
+        const aliasQuery = query(`{
+          superUser: user(id: 4) {
+            ID: id
+            FirstName: name
+          }
+        }`);
+
+        const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
+        const snapshot = write(config, empty, aliasQuery, {
+          superUser: {
+            ID: 0,
+            FirstName: 'Baz',
+          },
+        }).snapshot;
+
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          id: 0,
+          name: 'Baz',
+        });
+      });
+
+      it(`simple query with variables`, () => {
+        const aliasQuery = query(`
+          query getUser($id: ID!) {
+            superUser: user(id: $id) {
+              ID: id
+              FirstName: name
+            }
+          }
+        `, { id: 4 });
+
+        const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
+        const snapshot = write(config, empty, aliasQuery, {
+          superUser: {
+            ID: 0,
+            FirstName: 'Baz',
+          },
+        }).snapshot;
+
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          id: 0,
+          name: 'Baz',
+        });
+      });
+
+      it(`complex query`, () => {
+        const nestedAliasQuery = query(`{
+          shipments(first: 2) {
+            shipmentsInfo: edges {
+              id
+              loads: contents {
+                type: shipmentItemType
+              }
+              shipmentSize: dimensions {
+                weight
+                unit: weightUnit
+              }
+            }
+          }
+        }`);
+
+        const snapshot = write(config, empty, nestedAliasQuery, {
+          shipments: {
+            shipmentsInfo: [
+              {
+                id: 0,
+                loads: [{ type: '26 Pallet' }, { type: 'Other' }],
+                shipmentSize: { weight: 1000, unit: 'lb' },
+              },
+              {
+                id: 1,
+                loads: [{ type: '24 Pallet' }, { type: 'Other' }],
+                shipmentSize: { weight: 2000, unit: 'lb' },
+              },
+            ],
+          },
+        }).snapshot;
+
+        const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['shipments'], { first: 2 });
+
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          edges: [
+            {
+              id: 0,
+              contents: [{ shipmentItemType: '26 Pallet' }, { shipmentItemType: 'Other' }],
+              dimensions: { weight: 1000, weightUnit: 'lb' },
+            },
+            {
+              id: 1,
+              contents: [{ shipmentItemType: '24 Pallet' }, { shipmentItemType: 'Other' }],
+              dimensions: { weight: 2000, weightUnit: 'lb' },
+            },
+          ],
+        });
+      });
+
+      it(`alias and non-alias`, () => {
+        const aliasQuery = query(`{
+          fullUser: user(id: 4) {
+            ID: id
+            FirstName: name
+            contact: contactInfo {
+              shortAddress: address {
+                city
+                state
+              }
+              phone
+            }
+          }
+          shortUser: user (id: 4) {
+            ID: id
+            FirstName: name
+            contact: contactInfo {
+              phone
+            }
+          }
+          user (id: 4) {
+            id
+            name
+          }
+        }`);
+        const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
+
+        const snapshot = write(config, empty, aliasQuery, {
+          fullUser: {
+            ID: 4,
+            FirstName: 'Foo',
+            contact: {
+              shortAddress: {
+                city: 'ABA',
+                state: 'AA',
+              },
+              phone: '555-555-5555',
+            },
+          },
+          shortUser: {
+            ID: 4,
+            FirstName: 'Foo',
+            contact: {
+              phone: '555-555-5555',
+            },
+          },
+          user: {
+            id: 4,
+            name: 'Foo',
+          },
+        }).snapshot;
+
+        expect(snapshot.get(parameterizedId)).to.deep.eq({
+          id: 4,
+          name: 'Foo',
+          contactInfo: {
+            address: {
+              city: 'ABA',
+              state: 'AA',
+            },
+            phone: '555-555-5555',
+          },
+        });
+      });
+    });
+  });
 });

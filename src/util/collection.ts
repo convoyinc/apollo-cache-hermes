@@ -12,7 +12,7 @@ export function addToSet<T>(target: Set<T>, source: Iterable<T>): void {
 /**
  * An immutable deep set, where it only creates containers (objects/arrays) if
  * they differ from the _original_ object copied from - even if
- * `setValueForPath` is called against it multiple times.
+ * `_setValue` is called against it multiple times.
  */
 export function lazyImmutableDeepSet<TEntity>(
   target: TEntity | undefined,

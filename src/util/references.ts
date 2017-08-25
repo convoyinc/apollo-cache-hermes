@@ -1,6 +1,6 @@
 import lodashIsEqual = require('lodash.isequal');
 
-import { NodeSnapshot } from '../nodes';
+import { NodeReference, NodeSnapshot } from '../nodes';
 import { PathPart } from '../primitive';
 import { NodeId } from '../schema';
 
@@ -22,13 +22,11 @@ export function removeNodeReference(
     throw new Error(`Inconsistent GraphSnapshot: Expected snapshot to have ${direction} references`);
   }
 
-  const fromIndex = references.findIndex((reference) => {
-    return lodashIsEqual(reference.id, id) && lodashIsEqual(reference.path, path);
-  });
+  const fromIndex = getIndexOfGivenReference(references, id, path);
   references.splice(fromIndex, 1);
 
   if (!references.length) {
-    (snapshot as any)[direction] = undefined;
+    snapshot[direction] = undefined;
   }
 
   return !references.length;
@@ -42,17 +40,23 @@ export function addNodeReference(
   snapshot: NodeSnapshot,
   id: NodeId,
   path?: PathPart[],
-): void {
+): boolean {
   let references = snapshot[direction];
   if (!references) {
-    references = (snapshot as any)[direction] = [];
+    references = snapshot[direction] = [];
   }
 
-  references.push({ id, path });
+  const idx = getIndexOfGivenReference(references, id, path);
+  if (idx === -1) {
+    references.push({ id, path });
+    return true;
+  }
+  return false;
 }
 
 /**
- * Whether a snapshot has a specific reference.
+ * Return index of { id, path } reference in references array.
+ * Otherwise, return -1.
  */
 export function hasNodeReference(
   snapshot: NodeSnapshot,
@@ -61,10 +65,16 @@ export function hasNodeReference(
   path?: PathPart[],
 ): boolean {
   const references = snapshot[type];
-  if (!references) return false;
-  for (const reference of references) {
-    if (reference.id === id && lodashIsEqual(reference.path, path)) return true;
-  }
+  if (!references || getIndexOfGivenReference(references, id, path) === -1) return false;
+  return true;
+}
 
-  return false;
+/**
+ * Return index of { id, path } reference in references array.
+ * Otherwise, return -1.
+ */
+function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path?: PathPart[]): number {
+  return references.findIndex((reference) => {
+    return reference.id === id && lodashIsEqual(reference.path, path);
+  });
 }

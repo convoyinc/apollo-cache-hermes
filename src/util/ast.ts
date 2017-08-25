@@ -60,16 +60,16 @@ export class VariableArgument {
  * that contain a parameterized edge.
  */
 export interface DynamicEdgeMap {
-  [Key: string]: DynamicEdgeMap | DynamicEdge;
+  [Key: string]: DynamicEdgeMap | DynamicEdge | undefined;
 }
 
 /**
  * A value that can be expressed as an argument of a parameterized edge.
  */
 export type EdgeArgumentScalar = JsonScalar | VariableArgument;
-export interface EdgeArgumentArray extends Array<EdgeArgument> {}
-export interface EdgeArgumentObject { [Key: string]: EdgeArgument; }
-export type EdgeArgument = EdgeArgumentScalar | EdgeArgumentArray | EdgeArgumentObject;
+export interface EdgeArgumentArray extends Array<ParameterizedEdgeArgumentValue> {}
+export interface ParameterizedEdgeArguments { [argumentName: string]: ParameterizedEdgeArgumentValue }
+export type ParameterizedEdgeArgumentValue = EdgeArgumentScalar | EdgeArgumentArray | ParameterizedEdgeArguments;
 
 /**
  * Represent dynamic information: alias, parameterized arguments, directives
@@ -78,61 +78,65 @@ export type EdgeArgument = EdgeArgumentScalar | EdgeArgumentArray | EdgeArgument
 export class DynamicEdge {
   constructor(
     /** The map of arguments and their static or variable values. */
-    public readonly parameterizedEdgeArgs?: EdgeArgumentObject,
+    public readonly parameterizedEdgeArgs?: ParameterizedEdgeArguments,
+    /** A field name if exist an alias */
+    public readonly fieldName?: string,
     /** Any child edge maps. */
     public readonly children?: DynamicEdgeMap,
   ) {}
 }
 
-export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: EdgeArgumentObject };
+export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: ParameterizedEdgeArguments };
 
 /**
- * Walks a selection set, identifying the path to all parameterized edges.
- *
+ * Walks a selection set, identifying the path to any dynamic edges
+ * which are alias, parameterized arguments, directives
  * TODO: Support for directives (maybe?).
  */
-export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicEdgeMap | undefined {
+export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicEdgeMap | undefined {
   if (!selectionSet) return undefined;
 
   let edgeMap;
 
   for (const selection of selectionSet.selections) {
-    let key, value;
-
-    // Parameterized edge.
-    if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
-      const parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
-      const children = buildParameterizedEdgeMap(fragments, selection.selectionSet);
-
-      key = selection.name.value;
-      value = new DynamicEdge(parameterizedArguments, children);
-
-    // We need to walk any simple fields that have selection sets of their own.
-    } else if (selection.kind === 'Field' && selection.selectionSet) {
-      value = buildParameterizedEdgeMap(fragments, selection.selectionSet);
-      if (value) {
-        key = selection.name.value;
-      }
-
-    // Fragments may include parameterized edges of their own; walk 'em.
-    } else if (selection.kind === 'FragmentSpread') {
+    if (selection.kind === 'FragmentSpread') {
       const fragment = fragments[selection.name.value];
       if (!fragment) {
         throw new Error(`Expected fragment ${selection.name.value} to exist in GraphQL document`);
       }
       // TODO: Memoize.
-      const fragmentEdges = buildParameterizedEdgeMap(fragments, fragment.selectionSet);
+      const fragmentEdges = buildDynamicEdgeMap(fragments, fragment.selectionSet);
       if (fragmentEdges) {
         edgeMap = { ...edgeMap, ...fragmentEdges };
       }
-    }
+    } else if (selection.kind === 'Field') {
+      // if the current selection doesn't have any dynamic features
+      // but its children have dynamic features, we will host the DynamicEdgeMap
+      // of the chidren directly instead of creating indirect DynamicEdge with
+      // children. This is to save resources in walking
+      const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
+      let currentEdge: DynamicEdge | DynamicEdgeMap | undefined;
+      let parameterizedArguments: ParameterizedEdgeArguments | undefined;
 
+      if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
+        parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
+      }
+
+      // If current selection has either parameterized arguments or alias, we
+      // will want to create dynamic edge. Otherwise recurse into the children.
+      if (parameterizedArguments || selection.alias) {
+        currentEdge = new DynamicEdge(parameterizedArguments,
+          selection.alias ? selection.name.value : undefined,
+          buildDynamicEdgeMap(fragments, selection.selectionSet));
+      } else if (selection.selectionSet) {
+        currentEdge = buildDynamicEdgeMap(fragments, selection.selectionSet);
+      }
+
+      if (currentEdge) {
+        (edgeMap || (edgeMap = {}))[currentKey] = currentEdge;
+      }
+    }
     // TODO: inline fragments.
-
-    if (key) {
-      edgeMap = edgeMap || {};
-      edgeMap[key] = value;
-    }
   }
 
   return edgeMap;
@@ -141,7 +145,7 @@ export function buildParameterizedEdgeMap(fragments: FragmentMap, selectionSet?:
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildParameterizedEdgeArgs(argumentsNode: ArgumentNode[]) {
+function _buildParameterizedEdgeArgs(argumentsNode: ArgumentNode[]): ParameterizedEdgeArguments {
   const args = {};
   for (const arg of argumentsNode) {
     // Mapped name of argument to it JS value
@@ -188,11 +192,11 @@ export function isDynamicEdgeWithParameterizedArguments(edge: any): edge is Dyna
 /**
  * Sub values in for any variables required by an edge's args.
  */
-export function expandEdgeArguments(edge: DynamicEdgeWithParameterizedArguments, variables: object = {}): object {
-  const edgeArguments = {} as any;
+export function expandEdgeArguments(parameterizedEdgeArgs: ParameterizedEdgeArguments, variables: object = {}): object {
+  const edgeArguments = {};
   // TODO: Recurse into objects/arrays.
-  for (const key in edge.parameterizedEdgeArgs!) {
-    let arg = edge.parameterizedEdgeArgs![key];
+  for (const key in parameterizedEdgeArgs) {
+    let arg = parameterizedEdgeArgs[key];
     if (arg instanceof VariableArgument) {
       if (!(arg.name in variables)) {
         // TODO: Detect optional variables?
@@ -217,10 +221,7 @@ const TYPENAME_FIELD: FieldNode = {
   },
 };
 
-function addTypenameToSelectionSet(
-  selectionSet: SelectionSetNode,
-  isRoot = false,
-) {
+function addTypenameToSelectionSet(selectionSet: SelectionSetNode, isRoot = false) {
   if (selectionSet.selections) {
     if (!isRoot) {
       const alreadyHasThisField = selectionSet.selections.some((selection) => {

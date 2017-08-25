@@ -128,13 +128,13 @@ export class SnapshotEditor {
    */
   private _mergePayloadValues(query: ParsedQuery, fullPayload: object): ReferenceEdit[] {
     const { entityIdForNode } = this._context;
-    const { parameterizedEdgeMap } = query.info;
+    const { dynamicEdgeMap } = query.info;
 
     const queue: MergeQueueItem[] = [{
       containerId: query.rootId,
       containerPayload: fullPayload,
       visitRoot: false,
-      edges: parameterizedEdgeMap,
+      edges: dynamicEdgeMap,
     }];
     const referenceEdits: ReferenceEdit[] = [];
     // We have to be careful to break cycles; it's ok for a caller to give us a
@@ -154,7 +154,7 @@ export class SnapshotEditor {
       // Similarly, we need to be careful to break cycles _within_ a node.
       const visitedPayloadValues = new Set<any>();
 
-      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, edge) => {
+      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, dynamicEdges) => {
         const payloadIsObject = isObject(payloadValue);
         const nodeIsObject = isObject(nodeValue);
         let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
@@ -182,16 +182,15 @@ export class SnapshotEditor {
           payloadValue = null;
         }
 
-        if (isDynamicEdgeWithParameterizedArguments(edge)) {
-          const edgeId = this._ensureParameterizedValueSnapshot(containerId, path, edge, query.variables!);
-
+        if (isDynamicEdgeWithParameterizedArguments(dynamicEdges)) {
+          const edgeId = this._ensureParameterizedValueSnapshot(containerId, path, dynamicEdges, query.variables!);
           // We walk the values of the parameterized edge like any other entity.
           //
           // EXCEPT: We re-visit the payload, in case it might _directly_
           // reference an entity.  This allows us to build a chain of references
           // where the parameterized value points _directly_ to a particular
           // entity node.
-          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: edge.children });
+          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: dynamicEdges.children });
 
           // Stop the walk for this subgraph.
           return true;
@@ -221,7 +220,8 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: edge });
+            const updateEdge = dynamicEdges instanceof DynamicEdge ? dynamicEdges.children : dynamicEdges;
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: updateEdge });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -237,11 +237,10 @@ export class SnapshotEditor {
           // values.
           if (nodeLength === payloadLength) return false;
 
-          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : [];
           // We will fill in the values as we walk, but we ensure that the
           // length is accurate, so that we properly handle empty values (e.g. a
           // value that contains only parameterized edges).
-          newArray.length = payloadLength;
+          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : new Array(payloadLength);
           this._setValue(containerId, path, newArray);
 
           // Also remove any references contained within any entries we removed:
@@ -396,7 +395,7 @@ export class SnapshotEditor {
    * Retrieve the _latest_ version of a node snapshot.
    */
   private getNodeSnapshot(id: NodeId) {
-    return id in this._newNodes ? this._newNodes[id] : this._parent.getSnapshot(id);
+    return id in this._newNodes ? this._newNodes[id] : this._parent.getNodeSnapshot(id);
   }
 
   /**
@@ -411,7 +410,7 @@ export class SnapshotEditor {
       this._editedNodeIds.add(id);
     }
 
-    const parent = this._parent.getSnapshot(id);
+    const parent = this._parent.getNodeSnapshot(id);
     const current = this._ensureNewSnapshot(id);
     current.node = lazyImmutableDeepSet(current.node, parent && parent.node, path, newValue);
   }
@@ -425,7 +424,7 @@ export class SnapshotEditor {
     if (id in this._newNodes) {
       return this._newNodes[id]!;
     } else {
-      parent = this._parent.getSnapshot(id);
+      parent = this._parent.getNodeSnapshot(id);
     }
 
     // TODO: We're assuming that the only time we call _ensureNewSnapshot when
@@ -440,7 +439,7 @@ export class SnapshotEditor {
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
   _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], edge: DynamicEdgeWithParameterizedArguments, variables: object) {
-    const edgeArguments = expandEdgeArguments(edge, variables);
+    const edgeArguments = expandEdgeArguments(edge.parameterizedEdgeArgs, variables);
     const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
     // We're careful to not edit the container unless we absolutely have to.
@@ -456,6 +455,7 @@ export class SnapshotEditor {
       addNodeReference('outbound', this._ensureNewSnapshot(containerId), edgeId);
     }
 
+
     return edgeId;
   }
 
@@ -464,7 +464,7 @@ export class SnapshotEditor {
 /**
  * Generate a stable id for a parameterized value.
  */
-export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object) {
+export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object | undefined) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
 }
 
