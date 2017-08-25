@@ -1,6 +1,6 @@
 import lodashIsEqual = require('lodash.isequal');
 
-import { NodeSnapshot } from '../nodes';
+import { NodeReference, NodeSnapshot } from '../nodes';
 import { PathPart } from '../primitive';
 import { NodeId } from '../schema';
 
@@ -55,10 +55,24 @@ export function addNodeReference(
 }
 
 /**
+ * Whether a snapshot has a specific reference.
+ */
+export function hasNodeReference(
+  snapshot: NodeSnapshot,
+  type: ReferenceDirection,
+  id: NodeId,
+  path?: PathPart[],
+): boolean {
+  const references = snapshot[type];
+  if (!references || getIndexOfGivenReference(references, id, path) === -1) return false;
+  return true;
+}
+
+/**
  * Return index of { id, path } reference in references array.
  * Otherwise, return -1.
  */
-function getIndexOfGivenReference(references: NodeSnapshot.Reference[], id: NodeId, path?: PathPart[]): number {
+function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path?: PathPart[]): number {
   return references.findIndex((reference) => {
     return reference.id === id && lodashIsEqual(reference.path, path);
   });

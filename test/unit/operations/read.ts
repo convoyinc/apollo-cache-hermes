@@ -766,7 +766,6 @@ describe(`operations.read`, () => {
         });
       });
 
-
       it(`complex nested alias`, () => {
         const nestedAliasQuery = query(`{
           shipments(first: 2) {

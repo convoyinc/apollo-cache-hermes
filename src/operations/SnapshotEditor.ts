@@ -16,6 +16,7 @@ import {
   lazyImmutableDeepSet,
   removeNodeReference,
   walkPayload,
+  hasNodeReference,
 } from '../util';
 
 /**
@@ -438,18 +439,22 @@ export class SnapshotEditor {
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
   _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], edge: DynamicEdgeWithParameterizedArguments, variables: object) {
-    const edgeArguments = expandEdgeArguments(edge, variables);
+    const edgeArguments = expandEdgeArguments(edge.parameterizedEdgeArgs, variables);
     const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
     // We're careful to not edit the container unless we absolutely have to.
     // (There may be no changes for this parameterized value).
     const containerSnapshot = this.getNodeSnapshot(containerId);
-    if (!containerSnapshot || addNodeReference('outbound', this._ensureNewSnapshot(containerId), edgeId)) {
+    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
       // We need to construct a new snapshot otherwise.
       const newSnapshot = new ParameterizedValueSnapshot();
       addNodeReference('inbound', newSnapshot, containerId);
       this._newNodes[edgeId] = newSnapshot;
+
+      // Ensure that the container points to it.
+      addNodeReference('outbound', this._ensureNewSnapshot(containerId), edgeId);
     }
+
 
     return edgeId;
   }
