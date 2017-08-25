@@ -10,13 +10,13 @@ import {
   DynamicEdgeMap,
   DynamicEdgeWithParameterizedArguments,
   expandEdgeArguments,
+  hasNodeReference,
   isDynamicEdgeWithParameterizedArguments,
   isObject,
   isScalar,
   lazyImmutableDeepSet,
   removeNodeReference,
   walkPayload,
-  hasNodeReference,
 } from '../util';
 
 /**
