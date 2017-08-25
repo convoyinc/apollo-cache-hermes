@@ -140,7 +140,6 @@ export function _walkAndOverlayDynamicValues(
       }
 
       // Should we continue the walk?
-      // TODO : comment
       if (edge && !(edge instanceof DynamicEdge) && child !== null) {
         if (Array.isArray(child)) {
           child = [...child];
