@@ -10,6 +10,7 @@ export namespace CacheContext {
 
   export type EntityIdForNode = (node: any) => EntityId | undefined;
   export type EntityIdMapper = (node: object) => string | number | undefined;
+  export type EntityTransformer = (node: object, ...args: any[]) => void;
   export type LogEmitter = (message: string, ...metadata: any[]) => void;
   export interface Logger {
     warn: LogEmitter;
@@ -20,7 +21,7 @@ export namespace CacheContext {
    */
   export interface Configuration {
     /** Whether __typename should be injected into nodes in queries. */
-    addTypename?: true;
+    addTypename?: boolean;
 
     /**
      * Given a node, determines a _globally unique_ identifier for it to be used
@@ -33,9 +34,15 @@ export namespace CacheContext {
     entityIdForNode?: EntityIdMapper;
 
     /**
-     * The logger to use when emitting messages.  By default, `console`.
+     * The logger to use when emitting messages. By default, `console`.
      */
     logger?: Logger;
+
+    /**
+     * Transformation function to be run on entity node that change during
+     * write operation, entity node is defined by `entityIdForNode`.
+     */
+    entityTransformer?: EntityTransformer;
   }
 
 }
@@ -48,6 +55,9 @@ export class CacheContext {
   /** Retrieve the EntityId for a given node, if any. */
   readonly entityIdForNode: CacheContext.EntityIdForNode;
 
+  /** Run transformation on changed entity node, if any */
+  readonly entityTransformer: CacheContext.EntityTransformer | undefined;
+
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
@@ -58,8 +68,9 @@ export class CacheContext {
   private readonly _logger: CacheContext.Logger;
 
   constructor(config: CacheContext.Configuration = {}) {
-    this.entityIdForNode = _makeEntityIdMapper(config.entityIdForNode);
     this._addTypename = config.addTypename || false;
+    this.entityIdForNode = _makeEntityIdMapper(config.entityIdForNode);
+    this.entityTransformer = config.entityTransformer;
     this._logger = config.logger || {
       warn: console.warn ? console.warn.bind(console) : console.log.bind(console), // eslint-disable-line no-console
     };
