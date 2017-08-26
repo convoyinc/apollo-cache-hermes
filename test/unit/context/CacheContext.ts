@@ -4,7 +4,6 @@ import gql from 'graphql-tag';
 import { CacheContext } from '../../../src/context/CacheContext';
 
 describe(`context.CacheContext`, () => {
-
   describe(`entityIdForNode`, () => {
 
     describe(`default behavior`, () => {
@@ -245,5 +244,4 @@ describe(`context.CacheContext`, () => {
     });
 
   });
-
 });
