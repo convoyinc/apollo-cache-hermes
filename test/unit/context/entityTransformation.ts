@@ -21,7 +21,7 @@ describe(`context.CacheContext`, () => {
           }
         }`);
 
-        function mixinHelperMethods(obj: object, proto: object| null): void {
+        function mixinHelperMethods(obj: object, proto: object | null): void {
           if (obj['__typename'] === 'viewer') {
             const newPrototype = _.clone(Object.getPrototypeOf(obj));
             Object.assign(newPrototype, proto);
