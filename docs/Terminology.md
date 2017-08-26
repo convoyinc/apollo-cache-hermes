@@ -6,7 +6,7 @@ This project is relatively dense, and juggles several concepts.  Here's a quick 
 
 **Node**: A [GraphQL object](http://facebook.github.io/graphql/#sec-Objects). May contain scalar values, or references to other nodes. _The term "node" ends up being clearer than "object" when used throughout this document._
 
-**Entity**: A node that has special meaning in a particular schema; a business object.  May be composed of many nested nodes.  E.g. User, Comment, Post, etc. User can define how to determine entity by providing function `entityIdForNode` as part of cache configuration.
+**Entity**: A node that has special meaning in a particular schema; a business object.  May be composed of many nested nodes.  E.g. User, Comment, Post, etc. User can define how to determine entity by providing function `entityIdForNode` as part of cache configuration. Enity can be transformed before returning to user by providing function `entityTransformer` as part of cache configuration.
 
 **Field**: [A name used to reference the value of a node](http://facebook.github.io/graphql/#sec-Language.Fields).
 
