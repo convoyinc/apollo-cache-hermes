@@ -39,8 +39,8 @@ export namespace CacheContext {
     logger?: Logger;
 
     /**
-     * Transformation function to be run on entity node that change during
-     * write operation, entity node is defined by `entityIdForNode`.
+     * Transformation function to be run on entity nodes that change during
+     * write operation; an entity node is defined by `entityIdForNode`.
      */
     entityTransformer?: EntityTransformer;
   }
