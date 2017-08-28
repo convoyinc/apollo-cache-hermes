@@ -34,7 +34,7 @@ describe(`DynamicField`, () => {
     });
 
     describe(`with static arguments`, () => {
-      it(`parses top level edges`, () => {
+      it(`parses top level fields`, () => {
         const map = buildEdgeMapForOperation(gql`{
             foo(id:123) {
               a b
@@ -45,7 +45,7 @@ describe(`DynamicField`, () => {
         });
       });
 
-      it(`parses queries with sibling edges`, () => {
+      it(`parses queries with sibling fields`, () => {
         const map = buildEdgeMapForOperation(gql`{
           foo(id: 123) {
             a b
@@ -60,7 +60,7 @@ describe(`DynamicField`, () => {
         });
       });
 
-      it(`handles nested edges`, () => {
+      it(`handles nested fields`, () => {
         const map = buildEdgeMapForOperation(gql`{
           foo(id: 123) {
             bar(asdf: "fdsa") {
@@ -98,7 +98,7 @@ describe(`DynamicField`, () => {
         });
       });
 
-      it(`handles edges declared via fragment spreads`, () => {
+      it(`handles fields declared via fragment spreads`, () => {
         const map = buildEdgeMapForOperation(gql`
           fragment bar on Foo {
             stuff { ...things }

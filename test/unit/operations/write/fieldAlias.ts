@@ -435,7 +435,7 @@ describe(`operations.write`, () => {
       it(`complex query`, () => {
         const nestedAliasQuery = query(`{
           shipments(first: 2) {
-            shipmentsInfo: edges {
+            shipmentsInfo: fields {
               id
               loads: contents {
                 type: shipmentItemType
@@ -468,7 +468,7 @@ describe(`operations.write`, () => {
         const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['shipments'], { first: 2 });
 
         expect(snapshot.get(parameterizedId)).to.deep.eq({
-          edges: [
+          fields: [
             {
               id: 0,
               contents: [{ shipmentItemType: '26 Pallet' }, { shipmentItemType: 'Other' }],

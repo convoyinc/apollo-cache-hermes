@@ -36,7 +36,7 @@ interface MergeQueueItem {
   containerId: NodeId;
   containerPayload: any;
   visitRoot: boolean;
-  edges: DynamicField | DynamicFieldMap | undefined;
+  fields: DynamicField | DynamicFieldMap | undefined;
 }
 
 /**
@@ -136,7 +136,7 @@ export class SnapshotEditor {
       containerId: query.rootId,
       containerPayload: fullPayload,
       visitRoot: false,
-      edges: dynamicEdgeMap,
+      fields: dynamicEdgeMap,
     }];
     const referenceEdits: ReferenceEdit[] = [];
     // We have to be careful to break cycles; it's ok for a caller to give us a
@@ -144,7 +144,7 @@ export class SnapshotEditor {
     const visitedNodes = new Set<object>();
 
     while (queue.length) {
-      const { containerId, containerPayload, visitRoot, edges } = queue.pop()!;
+      const { containerId, containerPayload, visitRoot, fields } = queue.pop()!;
       const containerSnapshot = this.getNodeSnapshot(containerId);
       const container = containerSnapshot ? containerSnapshot.node : undefined;
 
@@ -156,7 +156,7 @@ export class SnapshotEditor {
       // Similarly, we need to be careful to break cycles _within_ a node.
       const visitedPayloadValues = new Set<any>();
 
-      walkPayload(containerPayload, container, edges, visitRoot, (path, payloadValue, nodeValue, dynamicEdges) => {
+      walkPayload(containerPayload, container, fields, visitRoot, (path, payloadValue, nodeValue, dynamicEdges) => {
         const payloadIsObject = isObject(payloadValue);
         const nodeIsObject = isObject(nodeValue);
         let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
@@ -192,7 +192,7 @@ export class SnapshotEditor {
           // reference an entity.  This allows us to build a chain of references
           // where the parameterized value points _directly_ to a particular
           // entity node.
-          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, edges: dynamicEdges.children });
+          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, fields: dynamicEdges.children });
 
           // Stop the walk for this subgraph.
           return true;
@@ -223,7 +223,7 @@ export class SnapshotEditor {
           // subgraph.
           if (nextNodeId) {
             const updateEdge = dynamicEdges instanceof DynamicField ? dynamicEdges.children : dynamicEdges;
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: updateEdge });
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, fields: updateEdge });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -443,8 +443,8 @@ export class SnapshotEditor {
   /**
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], edge: DynamicFieldWithArgs, variables: object) {
-    const edgeArguments = expandFieldArguments(edge.args, variables);
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: object) {
+    const edgeArguments = expandFieldArguments(field.args, variables);
     const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
     // We're careful to not edit the container unless we absolutely have to.

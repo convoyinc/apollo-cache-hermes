@@ -25,7 +25,7 @@ class PayloadWalkNode {
     public readonly payload: any,
     /** The value of the current node at this location in the walk. */
     public readonly node: any,
-    /** The value of the edge map at this location in the walk. */
+    /** The value of the field map at this location in the walk. */
     public readonly edgeMap: DynamicFieldMap | DynamicField | undefined,
     /** The depth of the node (allows us to set the path correctly). */
     public readonly depth: number,
@@ -110,7 +110,7 @@ export function walkPayload(
     const newDepth = walkNode.depth + 1;
     if (Array.isArray(walkNode.payload)) {
       for (let index = walkNode.payload.length - 1; index >= 0; index--) {
-        // Note that we DO NOT walk into `edgeMap` for array values; the edge
+        // Note that we DO NOT walk into `edgeMap` for array values; the field
         // map is blind to them, and continues to apply to all values contained
         // within the array.
         stack.push(new PayloadWalkNode(get(walkNode.payload, index), get(walkNode.node, index), walkNode.edgeMap, newDepth, index));

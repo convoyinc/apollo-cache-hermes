@@ -54,7 +54,7 @@ There are several types of entities tracked by node snapshots, each with a speci
 
 [**Entities**](../src/NodeSnapshot.ts#L38-L69): Tracks an object modeling one of the application's domains.
 
-[**Parameterized Values**](../src/NodeSnapshot.ts#L71-L111): Tracks the value of a parameterized field, the node it occurs within, and the path to the edge.  These are used at query time to layer the value of a parameterized field on top of the underlying node.
+[**Parameterized Values**](../src/NodeSnapshot.ts#L71-L111): Tracks the value of a parameterized field, the node it occurs within, and the path to the field.  These are used at query time to layer the value of a parameterized field on top of the underlying node.
 
 
 ### Graph Snapshots

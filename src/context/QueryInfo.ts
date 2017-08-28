@@ -22,7 +22,7 @@ export class QueryInfo {
   public readonly operationName?: string;
   /** All fragments in the document, indexed by name. */
   public readonly fragmentMap: FragmentMap;
-  /** The edge map for the document, if there are any dynamic features:
+  /** The field map for the document, if there are any dynamic features:
    *    alias, parameterized arguments, directive
    */
   public readonly dynamicEdgeMap?: DynamicFieldMap;

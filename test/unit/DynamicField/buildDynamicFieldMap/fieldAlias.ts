@@ -96,7 +96,7 @@ describe(`DynamicField`, () => {
       it(`complex nested alias`, () => {
         const map = buildEdgeMapForOperation(gql`{
           shipments(first: 2) {
-            shipmentsInfo: edges {
+            shipmentsInfo: fields {
               id
               loads: contents {
                 type: shipmentItemType
@@ -116,7 +116,7 @@ describe(`DynamicField`, () => {
             {
               shipmentsInfo: new DynamicField(
                 /* parameterizedEdgeArgs */ undefined,
-                'edges',
+                'fields',
                 {
                   loads: new DynamicField(
                     /* parameterizedEdgeArgs */ undefined,
