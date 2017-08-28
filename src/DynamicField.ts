@@ -156,7 +156,7 @@ export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArg
 }
 
 /**
- * Sub values in for any variables required by an field's args.
+ * Sub values in for any variables required by a field's args.
  */
 export function expandFieldArguments(args: FieldArguments, variables: object = {}): object {
   const expanded = {};

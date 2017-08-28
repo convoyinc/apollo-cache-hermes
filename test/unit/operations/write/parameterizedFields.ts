@@ -143,7 +143,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`updating an field`, () => {
+    describe(`updating a field`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -301,7 +301,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`updating an field with a direct reference`, () => {
+    describe(`updating a field with a direct reference`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -352,7 +352,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`indirectly updating an field with a direct reference`, () => {
+    describe(`indirectly updating a field with a direct reference`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -476,7 +476,7 @@ describe(`operations.write`, () => {
         expect(snapshot.get(containerId)).to.deep.eq([undefined, undefined]);
       });
 
-      it(`allows removal of values containing an field`, () => {
+      it(`allows removal of values containing a field`, () => {
         const updated = write(config, snapshot, nestedQuery, {
           one: {
             two: [
