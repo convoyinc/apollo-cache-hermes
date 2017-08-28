@@ -1,15 +1,11 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import {
-  buildDynamicEdgeMap,
-  fragmentMapForDocument,
-  getOperationOrDie,
-  DynamicEdge,
-  VariableArgument,
-} from '../../../src/util';
+import { buildDynamicEdgeMap, DynamicEdge, VariableArgument } from '../../src/DynamicEdge';
+import { fragmentMapForDocument, getOperationOrDie } from '../../src/util';
 
-describe(`util.ast`, () => {
+
+describe(`DynamicEdge`, () => {
 
   describe(`buildDynamicEdgeMap`, () => {
 
@@ -305,7 +301,7 @@ describe(`util.ast`, () => {
         expect(map).to.deep.eq({
           shipments: new DynamicEdge(
             { first: 2 },
-            /* fieldName */ undefined, 
+            /* fieldName */ undefined,
             {
               shipmentsInfo: new DynamicEdge(
                 /* parameterizedEdgeArgs */ undefined,

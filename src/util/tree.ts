@@ -10,9 +10,10 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   SelectionSetNode,
 } from 'graphql';
 
+import { DynamicEdge, DynamicEdgeMap } from '../DynamicEdge';
 import { PathPart } from '../primitive';
 
-import { DynamicEdge, DynamicEdgeMap, fragmentMapForDocument, getOperationOrDie } from './ast';
+import { fragmentMapForDocument, getOperationOrDie } from './ast';
 
 /**
  * Represents a node (of all values at the same location in their trees), used
