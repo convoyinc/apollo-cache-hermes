@@ -57,7 +57,7 @@ class OverlayWalkNode {
   constructor(
     public readonly value: any,
     public readonly containerId: NodeId,
-    public readonly edgeMap: DynamicFieldMap,
+    public readonly fieldMap: DynamicFieldMap,
     public readonly path: PathPart[],
   ) {}
 }
@@ -103,7 +103,7 @@ export function _walkAndOverlayDynamicValues(
 
   while (queue.length) {
     const walkNode = queue.pop()!;
-    const { value, edgeMap } = walkNode;
+    const { value, fieldMap } = walkNode;
     let { containerId, path } = walkNode;
     const valueId = context.entityIdForNode(value);
     if (valueId) {
@@ -111,8 +111,8 @@ export function _walkAndOverlayDynamicValues(
       path = [];
     }
 
-    for (const key in edgeMap) {
-      let field: DynamicFieldMap | DynamicField | undefined = edgeMap[key];
+    for (const key in fieldMap) {
+      let field: DynamicFieldMap | DynamicField | undefined = fieldMap[key];
       let child, childId;
       let fieldName = key;
 
