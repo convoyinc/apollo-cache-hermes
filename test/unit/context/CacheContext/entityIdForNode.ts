@@ -1,4 +1,4 @@
-import { CacheContext } from '../../../src/context/CacheContext';
+import { CacheContext } from '../../../../src/context/CacheContext';
 
 describe(`context.CacheContext`, () => {
   describe(`entityIdForNode`, () => {

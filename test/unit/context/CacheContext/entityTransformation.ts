@@ -1,11 +1,11 @@
 import * as _ from 'lodash';
 
-import { CacheContext } from '../../../src/context';
-import { GraphSnapshot } from '../../../src/GraphSnapshot';
-import { read } from '../../../src/operations/read';
-import { write } from '../../../src/operations/write';
-import { Query, StaticNodeId } from '../../../src/schema';
-import { query } from '../../helpers';
+import { CacheContext } from '../../../../src/context';
+import { GraphSnapshot } from '../../../../src/GraphSnapshot';
+import { read } from '../../../../src/operations/read';
+import { write } from '../../../../src/operations/write';
+import { Query, StaticNodeId } from '../../../../src/schema';
+import { query } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 

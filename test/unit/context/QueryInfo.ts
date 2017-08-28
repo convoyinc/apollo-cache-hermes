@@ -1,8 +1,8 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { QueryInfo } from '../../src/context/QueryInfo';
-import { DynamicField, VariableArgument } from '../../src/DynamicField';
+import { QueryInfo } from '../../../src/context/QueryInfo';
+import { DynamicField, VariableArgument } from '../../../src/DynamicField';
 
 describe(`context.QueryInfo`, () => {
 
