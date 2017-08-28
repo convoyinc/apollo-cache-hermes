@@ -366,6 +366,7 @@ export class SnapshotEditor {
    * Commits the transaction, returning a new immutable snapshot.
    */
   commit(): EditedSnapshot {
+    const { entityTransformer } = this._context;
     const snapshots = { ...this._parent._values };
     for (const id in this._newNodes) {
       const newSnapshot = this._newNodes[id];
@@ -373,6 +374,8 @@ export class SnapshotEditor {
       if (newSnapshot === undefined) {
         delete snapshots[id];
       } else {
+        // _newNodes only contains EntityNode
+        if (entityTransformer) entityTransformer(this._newNodes[id]!.node);
         snapshots[id] = newSnapshot;
       }
     }
@@ -458,7 +461,6 @@ export class SnapshotEditor {
 
     return edgeId;
   }
-
 }
 
 /**
