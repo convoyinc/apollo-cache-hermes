@@ -1,15 +1,10 @@
-import {// eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
   DocumentNode,
   OperationDefinitionNode,
 } from 'graphql';
 
-import {
-  FragmentMap,
-  DynamicEdgeMap,
-  buildDynamicEdgeMap,
-  fragmentMapForDocument,
-  getOperationOrDie,
-} from '../util';
+import { DynamicEdgeMap, buildDynamicEdgeMap } from '../DynamicEdge';
+import { FragmentMap, fragmentMapForDocument, getOperationOrDie } from '../util';
 
 /**
  * Metadata about a GraphQL document (query/mutation/fragment/etc).
@@ -28,7 +23,7 @@ export class QueryInfo {
   /** All fragments in the document, indexed by name. */
   public readonly fragmentMap: FragmentMap;
   /** The edge map for the document, if there are any dynamic features:
-   *    alias, parameterized arguments, directive 
+   *    alias, parameterized arguments, directive
    */
   public readonly dynamicEdgeMap?: DynamicEdgeMap;
 

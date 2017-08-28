@@ -2,7 +2,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import gql from 'graphql-tag';
 
 import { QueryInfo } from '../../../src/context/QueryInfo';
-import { DynamicEdge, VariableArgument } from '../../../src/util';
+import { DynamicEdge, VariableArgument } from '../../../src/DynamicEdge';
 
 describe(`context.QueryInfo`, () => {
 

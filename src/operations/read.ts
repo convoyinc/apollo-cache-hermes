@@ -1,15 +1,11 @@
 import { PathPart } from '../primitive';
+import { expandEdgeArguments, DynamicEdge, DynamicEdgeMap } from '../DynamicEdge';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, ParsedQuery, Query } from '../schema';
-import {
-  expandEdgeArguments,
-  isObject,
-  DynamicEdge,
-  DynamicEdgeMap,
-} from '../util';
+import { isObject } from '../util';
 
 export interface QueryResult {
   /** The value of the root requested by a query. */
@@ -84,7 +80,7 @@ export function _walkAndOverlayDynamicValues(
   // Corner case: We stop walking once we reach a parameterized edge with no
   // snapshot, but we should also pre-emptively stop walking if there are no
 
-  // dynamic values to be overlaid 
+  // dynamic values to be overlaid
   const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
 
   // It is possible to have no outbound but there is still an dynamic edge
@@ -130,7 +126,7 @@ export function _walkAndOverlayDynamicValues(
           const childSnapshot = snapshot.getNodeSnapshot(childId);
           if (childSnapshot) {
             child = childSnapshot.node;
-          } 
+          }
         } else {
           child = value[fieldName];
         }

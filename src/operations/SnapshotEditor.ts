@@ -1,4 +1,11 @@
 import { CacheContext } from '../context';
+import {
+  DynamicEdge,
+  DynamicEdgeMap,
+  DynamicEdgeWithParameterizedArguments,
+  expandEdgeArguments,
+  isDynamicEdgeWithParameterizedArguments,
+} from '../DynamicEdge';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
 import { PathPart } from '../primitive';
@@ -6,12 +13,7 @@ import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   addNodeReference,
   addToSet,
-  DynamicEdge,
-  DynamicEdgeMap,
-  DynamicEdgeWithParameterizedArguments,
-  expandEdgeArguments,
   hasNodeReference,
-  isDynamicEdgeWithParameterizedArguments,
   isObject,
   isScalar,
   lazyImmutableDeepSet,
@@ -208,7 +210,7 @@ export class SnapshotEditor {
           // The payload is now referencing a new entity.  We want to update it,
           // but not until we've updated the values of our entities first.
           if (prevNodeId !== nextNodeId) {
-            // We have spread "path" so that we pass in new array. "path" array 
+            // We have spread "path" so that we pass in new array. "path" array
             // will be mutated by walkPayload function.
             referenceEdits.push({ containerId, path: [...path], prevNodeId, nextNodeId });
           }
