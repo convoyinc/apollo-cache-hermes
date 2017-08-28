@@ -1,7 +1,7 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { buildDynamicEdgeMap, DynamicEdge, VariableArgument } from '../../../../src/DynamicEdge';
+import { buildDynamicEdgeMap, DynamicField, VariableArgument } from '../../../../src/DynamicField';
 import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util';
 
 describe(`util.ast`, () => {
@@ -41,7 +41,7 @@ describe(`util.ast`, () => {
             }
           }`);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({ id: 123 }),
+          foo: new DynamicField({ id: 123 }),
         });
       });
 
@@ -55,8 +55,8 @@ describe(`util.ast`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({ id: 123 }),
-          bar: new DynamicEdge({ id: 'asdf' }),
+          foo: new DynamicField({ id: 123 }),
+          bar: new DynamicField({ id: 'asdf' }),
         });
       });
 
@@ -69,9 +69,9 @@ describe(`util.ast`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({ id: 123 }, /* fieldName */ undefined, {
-            bar: new DynamicEdge({ asdf: 'fdsa' }, /* fieldName */ undefined, {
-              baz: new DynamicEdge({ one: true, two: null }),
+          foo: new DynamicField({ id: 123 }, /* fieldName */ undefined, {
+            bar: new DynamicField({ asdf: 'fdsa' }, /* fieldName */ undefined, {
+              baz: new DynamicField({ one: true, two: null }),
             }),
           }),
         });
@@ -91,7 +91,7 @@ describe(`util.ast`, () => {
           foo: {
             fizz: {
               buzz: {
-                moo: new DynamicEdge({ val: 1.234 }),
+                moo: new DynamicField({ val: 1.234 }),
               },
             },
           },
@@ -113,7 +113,7 @@ describe(`util.ast`, () => {
 
         expect(map).to.deep.eq({
           stuff: {
-            things: new DynamicEdge({ count: 5 }),
+            things: new DynamicField({ count: 5 }),
           },
         });
       });
@@ -140,7 +140,7 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({
+          foo: new DynamicField({
             variable: new VariableArgument('variable'),
             null: null,
             int: 123,
@@ -169,7 +169,7 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({
+          foo: new DynamicField({
             id: new VariableArgument('id'),
           }),
         });
@@ -184,7 +184,7 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({
+          foo: new DynamicField({
             id: new VariableArgument('id'),
             foo: 'asdf',
             bar: new VariableArgument('id'),

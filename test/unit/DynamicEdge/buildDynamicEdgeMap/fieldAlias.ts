@@ -1,7 +1,7 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { buildDynamicEdgeMap, DynamicEdge, VariableArgument } from '../../../../src/DynamicEdge';
+import { buildDynamicEdgeMap, DynamicField, VariableArgument } from '../../../../src/DynamicField';
 import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util';
 
 describe(`util.ast`, () => {
@@ -24,8 +24,8 @@ describe(`util.ast`, () => {
         `);
         expect(map).to.deep.eq({
           user: {
-            ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-            FirstName: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
+            ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+            FirstName: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
           },
         });
       });
@@ -40,12 +40,12 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          superUser: new DynamicEdge(
+          superUser: new DynamicField(
             /* parameterizedEdgeArgs */ undefined,
             /* fiedlName */ 'user',
             {
-              ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-              FirstName: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
+              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+              FirstName: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
             }
           ),
         });
@@ -61,12 +61,12 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          superUser: new DynamicEdge(
+          superUser: new DynamicField(
             { id: 4 },
             /* fieldName */ 'user',
             {
-              ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-              Profile: new DynamicEdge({ width: 400, height: 200 }, /* fieldName */ 'picture'),
+              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+              Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
             },
           ),
         });
@@ -82,12 +82,12 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          superUser: new DynamicEdge(
+          superUser: new DynamicField(
             { id: new VariableArgument('id') },
             /* fieldName */ 'user',
             {
-              ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-              Profile: new DynamicEdge({ width: 400, height: 200 }, /* fieldName */ 'picture'),
+              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+              Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
             },
           ),
         });
@@ -110,26 +110,26 @@ describe(`util.ast`, () => {
         }`);
 
         expect(map).to.deep.eq({
-          shipments: new DynamicEdge(
+          shipments: new DynamicField(
             { first: 2 },
             /* fieldName */ undefined,
             {
-              shipmentsInfo: new DynamicEdge(
+              shipmentsInfo: new DynamicField(
                 /* parameterizedEdgeArgs */ undefined,
                 'edges',
                 {
-                  loads: new DynamicEdge(
+                  loads: new DynamicField(
                     /* parameterizedEdgeArgs */ undefined,
                     'contents',
                     {
-                      type: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, 'shipmentItemType'),
+                      type: new DynamicField(/* parameterizedEdgeArgs */ undefined, 'shipmentItemType'),
                     }
                   ),
-                  shipmentSize: new DynamicEdge(
+                  shipmentSize: new DynamicField(
                     /* parameterizedEdgeArgs */ undefined,
                     'dimensions',
                     {
-                      unit: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, 'weightUnit'),
+                      unit: new DynamicField(/* parameterizedEdgeArgs */ undefined, 'weightUnit'),
                     }
                   ),
                 }

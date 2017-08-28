@@ -1,11 +1,11 @@
 import { CacheContext } from '../context';
 import {
-  DynamicEdge,
+  DynamicField,
   DynamicEdgeMap,
   DynamicEdgeWithParameterizedArguments,
   expandEdgeArguments,
   isDynamicEdgeWithParameterizedArguments,
-} from '../DynamicEdge';
+} from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
 import { PathPart } from '../primitive';
@@ -36,7 +36,7 @@ interface MergeQueueItem {
   containerId: NodeId;
   containerPayload: any;
   visitRoot: boolean;
-  edges: DynamicEdge | DynamicEdgeMap | undefined;
+  edges: DynamicField | DynamicEdgeMap | undefined;
 }
 
 /**
@@ -222,7 +222,7 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            const updateEdge = dynamicEdges instanceof DynamicEdge ? dynamicEdges.children : dynamicEdges;
+            const updateEdge = dynamicEdges instanceof DynamicField ? dynamicEdges.children : dynamicEdges;
             queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, edges: updateEdge });
           }
           // Stop the walk for this subgraph.

@@ -1,5 +1,5 @@
 import { PathPart } from '../primitive';
-import { expandEdgeArguments, DynamicEdge, DynamicEdgeMap } from '../DynamicEdge';
+import { expandEdgeArguments, DynamicField, DynamicEdgeMap } from '../DynamicField';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
@@ -112,11 +112,11 @@ export function _walkAndOverlayDynamicValues(
     }
 
     for (const key in edgeMap) {
-      let edge: DynamicEdgeMap | DynamicEdge | undefined = edgeMap[key];
+      let edge: DynamicEdgeMap | DynamicField | undefined = edgeMap[key];
       let child, childId;
       let fieldName = key;
 
-      if (edge instanceof DynamicEdge) {
+      if (edge instanceof DynamicField) {
         // If exist filedName property then the current key is an alias
         fieldName = edge.fieldName ? edge.fieldName : key;
 
@@ -136,7 +136,7 @@ export function _walkAndOverlayDynamicValues(
       }
 
       // Should we continue the walk?
-      if (edge && !(edge instanceof DynamicEdge) && child !== null) {
+      if (edge && !(edge instanceof DynamicField) && child !== null) {
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {

@@ -11,7 +11,7 @@ import { FragmentMap } from './util';
  * Represent dynamic information: alias, parameterized arguments, directives
  * (if existed) of NodeSnapshot in GraphSnapshot.
  */
-export class DynamicEdge {
+export class DynamicField {
   constructor(
     /** The map of arguments and their static or variable values. */
     public readonly parameterizedEdgeArgs?: ParameterizedEdgeArguments,
@@ -22,14 +22,14 @@ export class DynamicEdge {
   ) {}
 }
 
-export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterizedEdgeArgs: ParameterizedEdgeArguments };
+export type DynamicEdgeWithParameterizedArguments = DynamicField & { parameterizedEdgeArgs: ParameterizedEdgeArguments };
 
 /**
  * A recursive map where the keys indicate the path to any edge in a result set
  * that contain a parameterized edge.
  */
 export interface DynamicEdgeMap {
-  [Key: string]: DynamicEdgeMap | DynamicEdge;
+  [Key: string]: DynamicEdgeMap | DynamicField;
 }
 
 /**
@@ -75,10 +75,10 @@ export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: Selec
     } else if (selection.kind === 'Field') {
       // if the current selection doesn't have any dynamic features
       // but its children have dynamic features, we will host the DynamicEdgeMap
-      // of the chidren directly instead of creating indirect DynamicEdge with
+      // of the chidren directly instead of creating indirect DynamicField with
       // children. This is to save resources in walking
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
-      let currentEdge: DynamicEdge | DynamicEdgeMap | undefined;
+      let currentEdge: DynamicField | DynamicEdgeMap | undefined;
       let parameterizedArguments: ParameterizedEdgeArguments | undefined;
 
       if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
@@ -88,7 +88,7 @@ export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: Selec
       // If current selection has either parameterized arguments or alias, we
       // will want to create dynamic edge. Otherwise recurse into the children.
       if (parameterizedArguments || selection.alias) {
-        currentEdge = new DynamicEdge(parameterizedArguments,
+        currentEdge = new DynamicField(parameterizedArguments,
           selection.alias ? selection.name.value : undefined,
           buildDynamicEdgeMap(fragments, selection.selectionSet));
       } else if (selection.selectionSet) {
@@ -149,7 +149,7 @@ function _valueFromNode(node: ValueNode): any {
  * Whether the edge is a DynamicEdgeWithParameterizedArguments
  */
 export function isDynamicEdgeWithParameterizedArguments(edge: any): edge is DynamicEdgeWithParameterizedArguments {
-  return !!(edge instanceof DynamicEdge && edge.parameterizedEdgeArgs);
+  return !!(edge instanceof DynamicField && edge.parameterizedEdgeArgs);
 }
 
 /**

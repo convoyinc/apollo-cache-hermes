@@ -10,7 +10,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   SelectionSetNode,
 } from 'graphql';
 
-import { DynamicEdge, DynamicEdgeMap } from '../DynamicEdge';
+import { DynamicField, DynamicEdgeMap } from '../DynamicField';
 import { PathPart } from '../primitive';
 
 import { fragmentMapForDocument, getOperationOrDie } from './ast';
@@ -26,7 +26,7 @@ class PayloadWalkNode {
     /** The value of the current node at this location in the walk. */
     public readonly node: any,
     /** The value of the edge map at this location in the walk. */
-    public readonly edgeMap: DynamicEdgeMap | DynamicEdge | undefined,
+    public readonly edgeMap: DynamicEdgeMap | DynamicField | undefined,
     /** The depth of the node (allows us to set the path correctly). */
     public readonly depth: number,
     /** The key/index of this node, relative to its parent. */
@@ -42,7 +42,7 @@ export type PayloadVisitor = (
   path: PathPart[],
   payloadValue: any,
   nodeValue: any,
-  dynamicEdge: DynamicEdge | DynamicEdgeMap | undefined,
+  dynamicEdge: DynamicField | DynamicEdgeMap | undefined,
 ) => boolean;
 
 /**
@@ -61,7 +61,7 @@ export type PayloadVisitor = (
 export function walkPayload(
   payload: any,
   node: any,
-  edgeMap: DynamicEdge | DynamicEdgeMap | undefined,
+  edgeMap: DynamicField | DynamicEdgeMap | undefined,
   visitRoot: boolean,
   visitor: PayloadVisitor,
 ) {
@@ -96,7 +96,7 @@ export function walkPayload(
         path.push(walkNode.key);
       } else if (walkNode.key !== undefined) {
         const fieldName = walkNodeEdgeMap &&
-          walkNodeEdgeMap instanceof DynamicEdge &&
+          walkNodeEdgeMap instanceof DynamicField &&
           walkNodeEdgeMap.fieldName ? walkNodeEdgeMap.fieldName : undefined;
         path.push(fieldName ? fieldName : walkNode.key);
       }
@@ -117,7 +117,7 @@ export function walkPayload(
       }
     } else if (walkNode.payload !== null && typeof walkNode.payload === 'object') {
       const keys = Object.getOwnPropertyNames(walkNode.payload);
-      const childMap = walkNode.edgeMap instanceof DynamicEdge ? walkNode.edgeMap.children : walkNode.edgeMap;
+      const childMap = walkNode.edgeMap instanceof DynamicField ? walkNode.edgeMap.children : walkNode.edgeMap;
       for (let index = keys.length - 1; index >= 0; index--) {
         const key = keys[index];
         stack.push(new PayloadWalkNode(get(walkNode.payload, key), get(walkNode.node, key), get(childMap, key), newDepth, key));

@@ -3,7 +3,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   OperationDefinitionNode,
 } from 'graphql';
 
-import { DynamicEdgeMap, buildDynamicEdgeMap } from '../DynamicEdge';
+import { DynamicEdgeMap, buildDynamicEdgeMap } from '../DynamicField';
 import { FragmentMap, fragmentMapForDocument, getOperationOrDie } from '../util';
 
 /**
