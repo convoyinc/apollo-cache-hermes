@@ -29,7 +29,7 @@ export type DynamicEdgeWithParameterizedArguments = DynamicEdge & { parameterize
  * that contain a parameterized edge.
  */
 export interface DynamicEdgeMap {
-  [Key: string]: DynamicEdgeMap | DynamicEdge | undefined;
+  [Key: string]: DynamicEdgeMap | DynamicEdge;
 }
 
 /**

@@ -112,7 +112,7 @@ export function _walkAndOverlayDynamicValues(
     }
 
     for (const key in edgeMap) {
-      let edge = edgeMap[key];
+      let edge: DynamicEdgeMap | DynamicEdge | undefined = edgeMap[key];
       let child, childId;
       let fieldName = key;
 
