@@ -26,7 +26,7 @@ class PayloadWalkNode {
     /** The value of the current node at this location in the walk. */
     public readonly node: any,
     /** The value of the field map at this location in the walk. */
-    public readonly edgeMap: DynamicFieldMap | DynamicField | undefined,
+    public readonly fieldMap: DynamicFieldMap | DynamicField | undefined,
     /** The depth of the node (allows us to set the path correctly). */
     public readonly depth: number,
     /** The key/index of this node, relative to its parent. */
@@ -42,7 +42,7 @@ export type PayloadVisitor = (
   path: PathPart[],
   payloadValue: any,
   nodeValue: any,
-  dynamicEdge: DynamicField | DynamicFieldMap | undefined,
+  dynamicField: DynamicField | DynamicFieldMap | undefined,
 ) => boolean;
 
 /**
@@ -54,20 +54,20 @@ export type PayloadVisitor = (
  * node, effectively treating it as a leaf.
  *
  * All values from the node are walked following the same path.  Similarly,
- * all values from `edgeMap` are walked, but they are only provided if a leaf
+ * all values from `fieldMap` are walked, but they are only provided if a leaf
  * (`EntityType`) is reached.  References skip over arrays, so that they apply
  * to the values inside the (homogeneous) array.
  */
 export function walkPayload(
   payload: any,
   node: any,
-  edgeMap: DynamicField | DynamicFieldMap | undefined,
+  rootFieldMap: DynamicField | DynamicFieldMap | undefined,
   visitRoot: boolean,
   visitor: PayloadVisitor,
 ) {
   // We perform a pretty standard depth-first traversal, with the addition of
   // tracking the current path at each node.
-  const stack = [new PayloadWalkNode(payload, node, edgeMap, /* depth */ 0)];
+  const stack = [new PayloadWalkNode(payload, node, rootFieldMap, /* depth */ 0)];
   // Store array of path (which is a name of property in an object) from root
   // node to interested property.
   // i.e. {
@@ -85,23 +85,23 @@ export function walkPayload(
 
   while (stack.length) {
     const walkNode = stack.pop()!;
+    const { fieldMap, key } = walkNode;
 
     // Don't visit the root.
-    if (walkNode.key !== undefined || visitRoot) {
+    if (key !== undefined || visitRoot) {
       path.splice(walkNode.depth - 1);
-      const walkNodeEdgeMap = walkNode.edgeMap;
       // The type of walkNode's key is number meaning that it is an
       // index to an array and should not undergo de-aliasing.
-      if (typeof walkNode.key === 'number') {
-        path.push(walkNode.key);
-      } else if (walkNode.key !== undefined) {
-        const fieldName = walkNodeEdgeMap &&
-          walkNodeEdgeMap instanceof DynamicField &&
-          walkNodeEdgeMap.fieldName ? walkNodeEdgeMap.fieldName : undefined;
-        path.push(fieldName ? fieldName : walkNode.key);
+      if (typeof key === 'number') {
+        path.push(key);
+      } else if (key !== undefined) {
+        const fieldName = fieldMap &&
+          fieldMap instanceof DynamicField &&
+          fieldMap.fieldName ? fieldMap.fieldName : undefined;
+        path.push(fieldName ? fieldName : key);
       }
 
-      const skipChildren = visitor(path, walkNode.payload, walkNode.node, walkNode.edgeMap);
+      const skipChildren = visitor(path, walkNode.payload, walkNode.node, walkNode.fieldMap);
       if (skipChildren) continue;
     }
 
@@ -110,17 +110,23 @@ export function walkPayload(
     const newDepth = walkNode.depth + 1;
     if (Array.isArray(walkNode.payload)) {
       for (let index = walkNode.payload.length - 1; index >= 0; index--) {
-        // Note that we DO NOT walk into `edgeMap` for array values; the field
+        // Note that we DO NOT walk into `fieldMap` for array values; the field
         // map is blind to them, and continues to apply to all values contained
         // within the array.
-        stack.push(new PayloadWalkNode(get(walkNode.payload, index), get(walkNode.node, index), walkNode.edgeMap, newDepth, index));
+        stack.push(new PayloadWalkNode(get(walkNode.payload, index), get(walkNode.node, index), walkNode.fieldMap, newDepth, index));
       }
     } else if (walkNode.payload !== null && typeof walkNode.payload === 'object') {
       const keys = Object.getOwnPropertyNames(walkNode.payload);
-      const childMap = walkNode.edgeMap instanceof DynamicField ? walkNode.edgeMap.children : walkNode.edgeMap;
+      const childMap = walkNode.fieldMap instanceof DynamicField ? walkNode.fieldMap.children : walkNode.fieldMap;
       for (let index = keys.length - 1; index >= 0; index--) {
-        const key = keys[index];
-        stack.push(new PayloadWalkNode(get(walkNode.payload, key), get(walkNode.node, key), get(childMap, key), newDepth, key));
+        const childKey = keys[index];
+        stack.push(new PayloadWalkNode(
+          get(walkNode.payload, childKey),
+          get(walkNode.node, childKey),
+          get(childMap, childKey),
+          newDepth,
+          childKey,
+        ));
       }
     }
   }
