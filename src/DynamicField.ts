@@ -14,7 +14,7 @@ import { FragmentMap } from './util';
 export class DynamicField {
   constructor(
     /** The map of arguments and their static or variable values. */
-    public readonly parameterizedEdgeArgs?: ParameterizedEdgeArguments,
+    public readonly args?: ParameterizedEdgeArguments,
     /** A field name if exist an alias */
     public readonly fieldName?: string,
     /** Any child edge maps. */
@@ -22,7 +22,7 @@ export class DynamicField {
   ) {}
 }
 
-export type DynamicFieldWithParameterizedArguments = DynamicField & { parameterizedEdgeArgs: ParameterizedEdgeArguments };
+export type DynamicFieldWithParameterizedArguments = DynamicField & { args: ParameterizedEdgeArguments };
 
 /**
  * A recursive map where the keys indicate the path to any edge in a result set
@@ -149,17 +149,17 @@ function _valueFromNode(node: ValueNode): any {
  * Whether the edge is a DynamicEdgeWithParameterizedArguments
  */
 export function isDynamicEdgeWithParameterizedArguments(edge: any): edge is DynamicFieldWithParameterizedArguments {
-  return !!(edge instanceof DynamicField && edge.parameterizedEdgeArgs);
+  return !!(edge instanceof DynamicField && edge.args);
 }
 
 /**
  * Sub values in for any variables required by an edge's args.
  */
-export function expandEdgeArguments(parameterizedEdgeArgs: ParameterizedEdgeArguments, variables: object = {}): object {
+export function expandEdgeArguments(args: ParameterizedEdgeArguments, variables: object = {}): object {
   const edgeArguments = {};
   // TODO: Recurse into objects/arrays.
-  for (const key in parameterizedEdgeArgs) {
-    let arg = parameterizedEdgeArgs[key];
+  for (const key in args) {
+    let arg = args[key];
     if (arg instanceof VariableArgument) {
       if (!(arg.name in variables)) {
         // TODO: Detect optional variables?

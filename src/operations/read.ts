@@ -120,8 +120,8 @@ export function _walkAndOverlayDynamicValues(
         // If exist filedName property then the current key is an alias
         fieldName = edge.fieldName ? edge.fieldName : key;
 
-        if (edge.parameterizedEdgeArgs) {
-          const args = expandEdgeArguments(edge.parameterizedEdgeArgs, query.variables);
+        if (edge.args) {
+          const args = expandEdgeArguments(edge.args, query.variables);
           childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], args);
           const childSnapshot = snapshot.getNodeSnapshot(childId);
           if (childSnapshot) {
