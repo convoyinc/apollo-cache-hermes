@@ -24,8 +24,8 @@ describe(`util.ast`, () => {
         `);
         expect(map).to.deep.eq({
           user: {
-            ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-            FirstName: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
+            ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'id'),
+            FirstName: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'name'),
           },
         });
       });
@@ -42,10 +42,10 @@ describe(`util.ast`, () => {
         expect(map).to.deep.eq({
           superUser: new DynamicField(
             /* parameterizedEdgeArgs */ undefined,
-            /* fiedlName */ 'user',
+            /* fieldName */ 'user',
             {
-              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-              FirstName: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
+              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'id'),
+              FirstName: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'name'),
             }
           ),
         });
@@ -65,7 +65,7 @@ describe(`util.ast`, () => {
             { id: 4 },
             /* fieldName */ 'user',
             {
-              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'id'),
               Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
             },
           ),
@@ -86,7 +86,7 @@ describe(`util.ast`, () => {
             { id: new VariableArgument('id') },
             /* fieldName */ 'user',
             {
-              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
+              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'id'),
               Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
             },
           ),
