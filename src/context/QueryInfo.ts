@@ -5,7 +5,14 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 } from 'graphql';
 
 import { DynamicFieldMap, buildDynamicFieldMap } from '../DynamicField';
-import { FragmentMap, fragmentMapForDocument, getOperationOrDie, variablesInOperation } from '../util';
+import { JsonValue } from '../primitive';
+import {
+  FragmentMap,
+  fragmentMapForDocument,
+  getOperationOrDie,
+  variableDefaultsInOperation,
+  variablesInOperation,
+} from '../util';
 
 /**
  * Metadata about a GraphQL document (query/mutation/fragment/etc).
@@ -32,6 +39,12 @@ export class QueryInfo {
   public readonly dynamicFieldMap?: DynamicFieldMap;
   /** Variables used within this query. */
   public readonly variables: Set<string>;
+  /**
+   * Default values for the variables used by this query.
+   *
+   * Variables not present in this map are considered required.
+   */
+  public readonly variableDefaults: { [Key: string]: JsonValue }
 
   constructor(document: DocumentNode) {
     this.document = document;
@@ -43,6 +56,7 @@ export class QueryInfo {
     const { fieldMap, variables } = buildDynamicFieldMap(this.fragmentMap, this.operation.selectionSet);
     this.dynamicFieldMap = fieldMap;
     this.variables = variables;
+    this.variableDefaults = variableDefaultsInOperation(this.operation);
 
     this._assertValid();
   }

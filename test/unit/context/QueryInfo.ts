@@ -64,6 +64,37 @@ describe(`context.QueryInfo`, () => {
 
   });
 
+  describe(`with variable defaults`, () => {
+
+    let query: DocumentNode, info: QueryInfo;
+    beforeAll(() => {
+      query = gql`
+        mutation makeCheesy($ids: [ID]!, $name: String = 'Munster', $stinky: Boolean) {
+          updateCheesiness(ids: $ids, name: $name, stinky: $stinky)
+        }
+      `;
+
+      info = new QueryInfo(query);
+    });
+
+    it(`collects the variables that are used`, () => {
+      expect(info.variables).to.deep.eq(new Set(['ids', 'name', 'stinky']));
+    });
+
+    it(`collects default values for operation parameters`, () => {
+      expect(info.variableDefaults['name']).to.eq('Munster');
+    });
+
+    it(`includes optional arguments as having a default value of undefined`, () => {
+      expect(info.variableDefaults['stinky']).to.eq(undefined);
+    });
+
+    it(`excludes required parameters from the defaults`, () => {
+      expect(info.variableDefaults).to.not.have.key('ids');
+    });
+
+  });
+
   describe(`validation`, () => {
 
     it(`asserts that all variables are declared`, () => {

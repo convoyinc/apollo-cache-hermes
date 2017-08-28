@@ -8,6 +8,8 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   SelectionSetNode,
 } from 'graphql';
 
+import { JsonValue } from '../primitive';
+
 /**
  * Extracts the query operation from `document`.
  */
@@ -36,6 +38,22 @@ export function variablesInOperation(operation: OperationDefinitionNode): Set<st
 
   return names;
 }
+
+/**
+ * Returns the default values of all variables in the operation.
+ */
+export function variableDefaultsInOperation(operation: OperationDefinitionNode): { [Key: string]: JsonValue } {
+  const defaults = {};
+  if (operation.variableDefinitions) {
+    for (const definition of operation.variableDefinitions) {
+      if (definition.type.kind === 'NonNullType') continue; // Required.
+      defaults[definition.variable.name.value] = definition.defaultValue;
+    }
+  }
+
+  return defaults;
+}
+
 
 export interface FragmentMap {
   [Key: string]: FragmentDefinitionNode;
