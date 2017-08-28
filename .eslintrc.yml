@@ -185,8 +185,7 @@ rules:
 
   # https://github.com/nzakas/eslint-plugin-typescript#supported-rules
 
-  # TODO: It throws for us.  Build a repro case.
-  # typescript/adjacent-overload-signatures: error
+  typescript/adjacent-overload-signatures: error
   typescript/class-name-casing: error
   typescript/interface-name-prefix: [error, never]
   typescript/member-delimiter-style: [error, {
