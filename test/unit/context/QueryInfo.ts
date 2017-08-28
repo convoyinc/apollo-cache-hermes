@@ -60,4 +60,56 @@ describe(`context.QueryInfo`, () => {
 
   });
 
+  describe(`validation`, () => {
+
+    it(`asserts that all variables are declared`, () => {
+      expect(() => {
+        new QueryInfo(gql`
+          query whoops($foo: Number) {
+            thing(foo: $foo, bar: $bar, baz: $baz)
+          }
+        `);
+      }).to.throw(/\$bar(.|\n)*\$baz/);
+    });
+
+    it(`asserts that all variables are declared, when used via fragments`, () => {
+      expect(() => {
+        new QueryInfo(gql`
+          query whoops($foo: Number) {
+            thing { ...stuff }
+          }
+
+          fragment stuff on Thing {
+            stuff(foo: $foo, bar: $bar, baz: $baz)
+          }
+        `);
+      }).to.throw(/\$bar(.|\n)*\$baz/);
+    });
+
+    it(`asserts that all variables are used`, () => {
+      expect(() => {
+        new QueryInfo(gql`
+          query whoops($foo: Number, $bar: String, $baz: ID) {
+            thing(bar: $bar)
+          }
+        `);
+      }).to.throw(/\$foo(.|\n)*\$baz/);
+    });
+
+    it(`asserts that all variables are used, including fragments`, () => {
+      expect(() => {
+        new QueryInfo(gql`
+          query whoops($foo: Number, $bar: String, $baz: ID) {
+            thing { ...stuff }
+          }
+
+          fragment stuff on Thing {
+            thing(bar: $bar)
+          }
+        `);
+      }).to.throw(/\$foo(.|\n)*\$baz/);
+    });
+
+  });
+
 });
