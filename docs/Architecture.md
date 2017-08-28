@@ -17,9 +17,9 @@ Design points:
 
 4. Cached entities directly (potentially circularly) [reference other cached entities](./Design%20Exploration.md#normalized-graph-cache)
 
-5. Values from parameterized edges are [layered on top of entities via prototypes](./Design%20Exploration.md#dealing-with-parameterized-edges)
+5. Values from parameterized fields are [layered on top of entities via prototypes](./Design%20Exploration.md#dealing-with-parameterized-fields)
 
-6. [Entities from the cache are _directly_ returned](./Design%20Exploration.md#normalized-graph-cache) where possible (no parameterized edges).  _This minimizes the amount of work required when reading from the cache._
+6. [Entities from the cache are _directly_ returned](./Design%20Exploration.md#normalized-graph-cache) where possible (no parameterized fields).  _This minimizes the amount of work required when reading from the cache._
 
 7. The cache will garbage collect orphaned entities, as well as provide a mechanism to directly evict entities (and any orphaned by that eviction).
 
@@ -54,7 +54,7 @@ There are several types of entities tracked by node snapshots, each with a speci
 
 [**Entities**](../src/NodeSnapshot.ts#L38-L69): Tracks an object modeling one of the application's domains.
 
-[**Parameterized Values**](../src/NodeSnapshot.ts#L71-L111): Tracks the value of a parameterized edge, the node it occurs within, and the path to the edge.  These are used at query time to layer the value of a parameterized edge on top of the underlying node.
+[**Parameterized Values**](../src/NodeSnapshot.ts#L71-L111): Tracks the value of a parameterized field, the node it occurs within, and the path to the field.  These are used at query time to layer the value of a parameterized field on top of the underlying node.
 
 
 ### Graph Snapshots
@@ -64,11 +64,11 @@ All node snapshots referencing a particular version of the graph are collected i
 
 ### Reading From The Cache
 
-Because the cache is built to store values in a format that can be directly returned (for un-parameterized edges), most of the work to perform a query revolves around making sure that the cache can satisfy the query.  The high level approach to performing a query is roughly:
+Because the cache is built to store values in a format that can be directly returned (for un-parameterized fields), most of the work to perform a query revolves around making sure that the cache can satisfy the query.  The high level approach to performing a query is roughly:
 
-1. Pre-process the query (if not already done), extracting paths to parameterized edges.
+1. Pre-process the query (if not already done), extracting paths to parameterized fields.
 
-2. If there are parameterized edges in the query, fill in the object path up to them, taking advantage of object prototypes to point to the underlying nodes.
+2. If there are parameterized fields in the query, fill in the object path up to them, taking advantage of object prototypes to point to the underlying nodes.
 
 3. Verify that the query is satisfied by the cache.  _The naive approach is to walk the selection set(s) expressed by the query; it's probably good enough for now_.
 

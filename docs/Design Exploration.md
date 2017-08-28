@@ -63,14 +63,14 @@ Using [the example]((./Motivation.md#flattening--normalization)) from the motiva
 }
 ```
 
-With a fully normalized graph, we could potentially return it _directly_ to satisfy simple queries ([parameterized edges are more complicated](#dealing-with-parameterized-edges)).  This would also have an added benefit that there is only ever one instance of a particular entity, even _across queries_.
+With a fully normalized graph, we could potentially return it _directly_ to satisfy simple queries ([parameterized fields are more complicated](#dealing-with-parameterized-fields)).  This would also have an added benefit that there is only ever one instance of a particular entity, even _across queries_.
 
 The downside is that we have to loosen Apollo's contract around query results: It would potentially return a superset of results, rather than those that exactly match a query's selection set.  The trade off is worth it - and likely could be mitigated by type checkers or development-mode runtime checks.
 
 
-### Dealing With Parameterized Edges
+### Dealing With Parameterized Fields
 
-Parameterized edges introduce a challenge for the [normalized graph cache](#cyclic-graph-cache) approach: a single property can have multiple values (based on the parameters given).
+Parameterized fields introduce a challenge for the [normalized graph cache](#cyclic-graph-cache) approach: a single property can have multiple values (based on the parameters given).
 
 For example:
 
@@ -82,9 +82,9 @@ type Category {
 }
 ```
 
-The `posts` edge is associated with a particular category, but also has different values based on the `since` argument.  If the cache only has one copy of each entity, we're in a bit of a bind.  How do we persist all the different versions of `posts` in a way that can be efficiently retrieved at read time?
+The `posts` field is associated with a particular category, but also has different values based on the `since` argument.  If the cache only has one copy of each entity, we're in a bit of a bind.  How do we persist all the different versions of `posts` in a way that can be efficiently retrieved at read time?
 
-A way around this is to realize that <u>parameterized edges are a view on top of the entity</u>.  We can efficiently achieve that behavior via object prototypes: Any time a query selects parameterized edges, the result can be a thin view on top of it, where the parameterized results are contained in objects that have a prototype of the underling entity.
+A way around this is to realize that <u>parameterized fields are a view on top of the entity</u>.  We can efficiently achieve that behavior via object prototypes: Any time a query selects parameterized fields, the result can be a thin view on top of it, where the parameterized results are contained in objects that have a prototype of the underling entity.
 
 To illustrate this, here's a condensed example query:
 
@@ -135,6 +135,6 @@ There are a few key design decisions we've determined:
 
 [Cached entities are stored in a normalized _graph_, rather than a flat identity map](#normalized-graph-cache): This drastically reduces the amount of work required to read values from the cache, at the cost of queries potentially returning a superset of the requested values.
 
-[Parameterized edges are layered on top of entities with prototypes](#dealing-with-parameterized-edges): This minimizes the cost (memory and CPU) of entities that have multiple (parameterized) values for the same property.
+[Parameterized fields are layered on top of entities with prototypes](#dealing-with-parameterized-fields): This minimizes the cost (memory and CPU) of entities that have multiple (parameterized) values for the same property.
 
 A design is beginning to form!  Up next: we solidify these ideas into an actual [architecture](./Architecture.md).

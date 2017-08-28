@@ -2,7 +2,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import gql from 'graphql-tag';
 
 import { QueryInfo } from '../../src/context/QueryInfo';
-import { DynamicEdge, VariableArgument } from '../../src/DynamicEdge';
+import { DynamicField, VariableArgument } from '../../src/DynamicField';
 
 describe(`context.QueryInfo`, () => {
 
@@ -50,9 +50,9 @@ describe(`context.QueryInfo`, () => {
       expect(info.fragmentMap).to.have.all.keys('completeStuff', 'completeThing');
     });
 
-    it(`builds a parameterized edge map`, () => {
-      expect(info.dynamicEdgeMap).to.deep.eq({
-        things: new DynamicEdge({
+    it(`builds a parameterized field map`, () => {
+      expect(info.dynamicFieldMap).to.deep.eq({
+        things: new DynamicField({
           ids: new VariableArgument('ids'),
         }),
       });

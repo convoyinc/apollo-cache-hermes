@@ -3,7 +3,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   OperationDefinitionNode,
 } from 'graphql';
 
-import { DynamicEdgeMap, buildDynamicEdgeMap } from '../DynamicEdge';
+import { DynamicFieldMap, buildDynamicFieldMap } from '../DynamicField';
 import { FragmentMap, fragmentMapForDocument, getOperationOrDie } from '../util';
 
 /**
@@ -22,17 +22,17 @@ export class QueryInfo {
   public readonly operationName?: string;
   /** All fragments in the document, indexed by name. */
   public readonly fragmentMap: FragmentMap;
-  /** The edge map for the document, if there are any dynamic features:
+  /** The field map for the document, if there are any dynamic features:
    *    alias, parameterized arguments, directive
    */
-  public readonly dynamicEdgeMap?: DynamicEdgeMap;
+  public readonly dynamicFieldMap?: DynamicFieldMap;
 
   constructor(document: DocumentNode) {
     this.document = document;
     this.operation = getOperationOrDie(document);
     this.operationName = this.operation.name && this.operation.name.value;
     this.fragmentMap = fragmentMapForDocument(document);
-    this.dynamicEdgeMap = buildDynamicEdgeMap(this.fragmentMap, this.operation.selectionSet);
+    this.dynamicFieldMap = buildDynamicFieldMap(this.fragmentMap, this.operation.selectionSet);
   }
 
 }

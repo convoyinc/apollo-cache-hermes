@@ -33,9 +33,9 @@ describe(`operations.write`, () => {
 
   const empty = new GraphSnapshot();
 
-  describe(`parameterized edges`, () => {
+  describe(`parameterized fields`, () => {
 
-    describe(`creating a new top level edge`, () => {
+    describe(`creating a new top level field`, () => {
 
       let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -57,25 +57,25 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`writes a node for the edge`, () => {
+      it(`writes a node for the field`, () => {
         expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
       });
 
-      it(`creates an outgoing reference from the edge's container`, () => {
+      it(`creates an outgoing reference from the field's container`, () => {
         const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
-      it(`creates an inbound reference to the edge's container`, () => {
+      it(`creates an inbound reference to the field's container`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
-      it(`does not expose the parameterized edge directly from its container`, () => {
+      it(`does not expose the parameterized field directly from its container`, () => {
         expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
       });
 
-      it(`marks only the new edge as edited`, () => {
+      it(`marks only the new field as edited`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
       });
 
@@ -85,7 +85,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`creating a nested edge`, () => {
+    describe(`creating a nested field`, () => {
 
       let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -115,25 +115,25 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`writes a node for the edge`, () => {
+      it(`writes a node for the field`, () => {
         expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
       });
 
-      it(`creates an outgoing reference from the edge's container`, () => {
+      it(`creates an outgoing reference from the field's container`, () => {
         const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
-      it(`creates an inbound reference to the edge's container`, () => {
+      it(`creates an inbound reference to the field's container`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
-      it(`does not expose the parameterized edge directly from its container`, () => {
+      it(`does not expose the parameterized field directly from its container`, () => {
         expect(_.get(snapshot.get(QueryRootId), 'foo.bar.baz')).to.eq(undefined);
       });
 
-      it(`marks only the new edge as edited`, () => {
+      it(`marks only the new field as edited`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
       });
 
@@ -143,7 +143,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`updating an edge`, () => {
+    describe(`updating a field`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -178,11 +178,11 @@ describe(`operations.write`, () => {
         expect(baseline.get(parameterizedId)).to.not.eq(snapshot.get(parameterizedId));
       });
 
-      it(`updates the node for the edge`, () => {
+      it(`updates the node for the field`, () => {
         expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo Bar', extra: false });
       });
 
-      it(`marks only the edge as edited`, () => {
+      it(`marks only the field as edited`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
       });
 
@@ -192,7 +192,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`new edges with a direct reference`, () => {
+    describe(`new fields with a direct reference`, () => {
 
       let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -219,41 +219,41 @@ describe(`operations.write`, () => {
         expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
       });
 
-      it(`writes a node for the edge that points to the entity's value`, () => {
+      it(`writes a node for the field that points to the entity's value`, () => {
         expect(snapshot.get(parameterizedId)).to.eq(snapshot.get('1'));
       });
 
-      it(`creates an outgoing reference from the edge's container`, () => {
+      it(`creates an outgoing reference from the field's container`, () => {
         const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
         expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
       });
 
-      it(`creates an inbound reference to the edge's container`, () => {
+      it(`creates an inbound reference to the field's container`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
-      it(`creates an outgoing reference from the parameterized edge to the referenced entity`, () => {
+      it(`creates an outgoing reference from the parameterized field to the referenced entity`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.outbound).to.deep.eq([{ id: '1', path: [] }]);
       });
 
-      it(`creates an incoming reference from the parameterized edge to the referenced entity`, () => {
+      it(`creates an incoming reference from the parameterized field to the referenced entity`, () => {
         const entity = snapshot.getNodeSnapshot('1')!;
         expect(entity.inbound).to.deep.eq([{ id: parameterizedId, path: [] }]);
       });
 
-      it(`does not expose the parameterized edge directly from its container`, () => {
+      it(`does not expose the parameterized field directly from its container`, () => {
         expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
       });
 
-      it(`marks the new edge and entity as edited`, () => {
+      it(`marks the new field and entity as edited`, () => {
         expect(Array.from(editedNodeIds)).to.have.members([parameterizedId, '1']);
       });
 
     });
 
-    describe(`updating edges with an array of direct references`, () => {
+    describe(`updating fields with an array of direct references`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -301,7 +301,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`updating an edge with a direct reference`, () => {
+    describe(`updating a field with a direct reference`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -338,11 +338,11 @@ describe(`operations.write`, () => {
         expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
       });
 
-      it(`updates the node for the edge`, () => {
+      it(`updates the node for the field`, () => {
         expect(snapshot.get(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
       });
 
-      it(`writes a node for the edge that points to the entity's value`, () => {
+      it(`writes a node for the field that points to the entity's value`, () => {
         expect(snapshot.get(parameterizedId)).to.eq(snapshot.get('1'));
       });
 
@@ -352,7 +352,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`indirectly updating an edge with a direct reference`, () => {
+    describe(`indirectly updating a field with a direct reference`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -389,7 +389,7 @@ describe(`operations.write`, () => {
         expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
       });
 
-      it(`updates the node for the edge`, () => {
+      it(`updates the node for the field`, () => {
         expect(snapshot.get(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
       });
 
@@ -405,7 +405,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`writing nested indirect edges contained in an array`, () => {
+    describe(`writing nested indirect fields contained in an array`, () => {
 
       let nestedQuery: Query, snapshot: GraphSnapshot, containerId: NodeId, entry1Id: NodeId, entry2Id: NodeId;
       beforeAll(() => {
@@ -443,7 +443,7 @@ describe(`operations.write`, () => {
         }).snapshot;
       });
 
-      it(`writes a value snapshot for the containing edge`, () => {
+      it(`writes a value snapshot for the containing field`, () => {
         expect(snapshot.getNodeSnapshot(containerId)).to.exist;
       });
 
@@ -472,11 +472,11 @@ describe(`operations.write`, () => {
       it(`writes an array with the correct length`, () => {
         // This is a bit arcane, but it ensures that _overlayParameterizedValues
         // behaves properly when iterating arrays that contain _only_
-        // parameterized edges.
+        // parameterized fields.
         expect(snapshot.get(containerId)).to.deep.eq([undefined, undefined]);
       });
 
-      it(`allows removal of values containing an edge`, () => {
+      it(`allows removal of values containing a field`, () => {
         const updated = write(config, snapshot, nestedQuery, {
           one: {
             two: [

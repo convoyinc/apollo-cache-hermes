@@ -36,9 +36,15 @@ export type DeepReadonly<TType> = {
   readonly [Key in keyof TType]: DeepReadonly<TType[Key]>
 };
 
+/**
+ * Represents a complex object that can contain values of a specific type,
+ * that can be rooted within objects/arrays of arbitrary depth.
+ */
+export type NestedValue<TValue> = TValue | NestedArray<TValue> | NestedObject<TValue>;
+export interface NestedArray<TValue> extends Array<NestedValue<TValue>> {}
+export interface NestedObject<TValue> { [key: string]: NestedValue<TValue>; }
+
 // JSON
 
 export type JsonScalar = null | boolean | number | string;
-export interface JsonArray extends Array<JsonValue> {}
-export interface JsonObject { [Key: string]: JsonValue; }
-export type JsonValue = JsonScalar | JsonArray | JsonObject;
+export type JsonValue = NestedValue<JsonScalar>;

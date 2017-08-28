@@ -15,7 +15,7 @@ describe(`operations.read`, () => {
     stuff
   }`, { id: 1 });
 
-  describe(`parameterized edges`, () => {
+  describe(`parameterized fields`, () => {
 
     describe(`with a complete cache`, () => {
 
@@ -37,7 +37,7 @@ describe(`operations.read`, () => {
 
     });
 
-    describe(`with nested edges`, () => {
+    describe(`with nested fields`, () => {
 
       const nestedQuery = query(`query nested($id: ID!) {
         one {
@@ -102,7 +102,7 @@ describe(`operations.read`, () => {
 
       describe(`and an empty store`, () => {
 
-        it(`doesn't recurse to nested edges if there are no values for their parent`, () => {
+        it(`doesn't recurse to nested fields if there are no values for their parent`, () => {
           const { result } = read(context, nestedQuery, empty);
           expect(result).to.deep.equal(undefined);
         });
@@ -270,7 +270,7 @@ describe(`operations.read`, () => {
 
     });
 
-    describe(`directly nested reference edges`, () => {
+    describe(`directly nested reference fields`, () => {
 
       const nestedQuery = query(`
       query nested($id: ID!) {

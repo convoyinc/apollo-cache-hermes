@@ -163,7 +163,7 @@ describe(`operations.read`, () => {
       it(`complex nested alias`, () => {
         const nestedAliasQuery = query(`{
           shipments(first: 2) {
-            shipmentsInfo: edges {
+            shipmentsInfo: fields {
               id
               loads: contents {
                 type: shipmentItemType
@@ -212,7 +212,7 @@ describe(`operations.read`, () => {
                 dimensions: { weight: 2000, weightUnit: 'lb' },
               },
             ],
-            edges: [
+            fields: [
               {
                 id: 0,
                 contents: [{ shipmentItemType: '26 Pallet' }, { shipmentItemType: 'Other' }],

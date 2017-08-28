@@ -1,21 +1,21 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { buildDynamicEdgeMap, DynamicEdge, VariableArgument } from '../../../../src/DynamicEdge';
+import { buildDynamicFieldMap, DynamicField, VariableArgument } from '../../../../src/DynamicField';
 import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util';
 
-describe(`util.ast`, () => {
-  describe(`buildDynamicEdgeMap`, () => {
-    function buildEdgeMapForOperation(document: DocumentNode) {
+describe(`DynamicField`, () => {
+  describe(`buildDynamicFieldMap`, () => {
+    function buildFieldMapForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
       const fragmentMap = fragmentMapForDocument(document);
-      return buildDynamicEdgeMap(fragmentMap, operation.selectionSet);
+      return buildDynamicFieldMap(fragmentMap, operation.selectionSet);
     }
 
     describe(`with field alias`, () => {
 
       it(`simple query`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+        const map = buildFieldMapForOperation(gql`{
             user {
               ID: id,
               FirstName: name,
@@ -24,14 +24,14 @@ describe(`util.ast`, () => {
         `);
         expect(map).to.deep.eq({
           user: {
-            ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-            FirstName: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
+            ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+            FirstName: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'name'),
           },
         });
       });
 
       it(`nested alias`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query getUser {
             superUser: user {
               ID: id
@@ -40,19 +40,19 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          superUser: new DynamicEdge(
-            /* parameterizedEdgeArgs */ undefined,
-            /* fiedlName */ 'user',
+          superUser: new DynamicField(
+            /* fieldArgs */ undefined,
+            /* fieldName */ 'user',
             {
-              ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-              FirstName: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'name'),
+              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+              FirstName: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'name'),
             }
           ),
         });
       });
 
-      it(`field alias with parameterized edge`, () => {
-        const map = buildEdgeMapForOperation(gql`
+      it(`field alias with parameterized field`, () => {
+        const map = buildFieldMapForOperation(gql`
           query getProfile {
             superUser: user(id: 4) {
               ID: id
@@ -61,19 +61,19 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          superUser: new DynamicEdge(
+          superUser: new DynamicField(
             { id: 4 },
             /* fieldName */ 'user',
             {
-              ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-              Profile: new DynamicEdge({ width: 400, height: 200 }, /* fieldName */ 'picture'),
+              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+              Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
             },
           ),
         });
       });
 
-      it(`field alias with variable parameterized edge`, () => {
-        const map = buildEdgeMapForOperation(gql`
+      it(`field alias with variable parameterized field`, () => {
+        const map = buildFieldMapForOperation(gql`
           query getProfile ($id: ID!) {
             superUser: user(id: $id) {
               ID: id
@@ -82,21 +82,21 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          superUser: new DynamicEdge(
+          superUser: new DynamicField(
             { id: new VariableArgument('id') },
             /* fieldName */ 'user',
             {
-              ID: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, /* fiedlName */ 'id'),
-              Profile: new DynamicEdge({ width: 400, height: 200 }, /* fieldName */ 'picture'),
+              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+              Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
             },
           ),
         });
       });
 
       it(`complex nested alias`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+        const map = buildFieldMapForOperation(gql`{
           shipments(first: 2) {
-            shipmentsInfo: edges {
+            shipmentsInfo: fields {
               id
               loads: contents {
                 type: shipmentItemType
@@ -110,26 +110,26 @@ describe(`util.ast`, () => {
         }`);
 
         expect(map).to.deep.eq({
-          shipments: new DynamicEdge(
+          shipments: new DynamicField(
             { first: 2 },
             /* fieldName */ undefined,
             {
-              shipmentsInfo: new DynamicEdge(
-                /* parameterizedEdgeArgs */ undefined,
-                'edges',
+              shipmentsInfo: new DynamicField(
+                /* fieldArgs */ undefined,
+                'fields',
                 {
-                  loads: new DynamicEdge(
-                    /* parameterizedEdgeArgs */ undefined,
+                  loads: new DynamicField(
+                    /* fieldArgs */ undefined,
                     'contents',
                     {
-                      type: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, 'shipmentItemType'),
+                      type: new DynamicField(/* fieldArgs */ undefined, 'shipmentItemType'),
                     }
                   ),
-                  shipmentSize: new DynamicEdge(
-                    /* parameterizedEdgeArgs */ undefined,
+                  shipmentSize: new DynamicField(
+                    /* fieldArgs */ undefined,
                     'dimensions',
                     {
-                      unit: new DynamicEdge(/* parameterizedEdgeArgs */ undefined, 'weightUnit'),
+                      unit: new DynamicField(/* fieldArgs */ undefined, 'weightUnit'),
                     }
                   ),
                 }

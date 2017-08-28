@@ -1,26 +1,26 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { buildDynamicEdgeMap, DynamicEdge, VariableArgument } from '../../../../src/DynamicEdge';
+import { buildDynamicFieldMap, DynamicField, VariableArgument } from '../../../../src/DynamicField';
 import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util';
 
-describe(`util.ast`, () => {
-  describe(`buildDynamicEdgeMap`, () => {
-    function buildEdgeMapForOperation(document: DocumentNode) {
+describe(`DynamicField`, () => {
+  describe(`buildDynamicFieldMap`, () => {
+    function buildFieldMapForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
       const fragmentMap = fragmentMapForDocument(document);
-      return buildDynamicEdgeMap(fragmentMap, operation.selectionSet);
+      return buildDynamicFieldMap(fragmentMap, operation.selectionSet);
     }
 
-    describe(`with no parameterized edges`, () => {
+    describe(`with no parameterized fields`, () => {
 
-      it(`returns undefined for selections sets with no parameterized edges`, () => {
-        const map = buildEdgeMapForOperation(gql`{ foo bar }`);
+      it(`returns undefined for selections sets with no parameterized fields`, () => {
+        const map = buildFieldMapForOperation(gql`{ foo bar }`);
         expect(map).to.eq(undefined);
       });
 
-      it(`handles fragments without parameterized edges`, () => {
-        const map = buildEdgeMapForOperation(gql`
+      it(`handles fragments without parameterized fields`, () => {
+        const map = buildFieldMapForOperation(gql`
           query foo { ...bar }
 
           fragment bar on Foo {
@@ -34,19 +34,19 @@ describe(`util.ast`, () => {
     });
 
     describe(`with static arguments`, () => {
-      it(`parses top level edges`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+      it(`parses top level fields`, () => {
+        const map = buildFieldMapForOperation(gql`{
             foo(id:123) {
               a b
             }
           }`);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({ id: 123 }),
+          foo: new DynamicField({ id: 123 }),
         });
       });
 
-      it(`parses queries with sibling edges`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+      it(`parses queries with sibling fields`, () => {
+        const map = buildFieldMapForOperation(gql`{
           foo(id: 123) {
             a b
           }
@@ -55,13 +55,13 @@ describe(`util.ast`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({ id: 123 }),
-          bar: new DynamicEdge({ id: 'asdf' }),
+          foo: new DynamicField({ id: 123 }),
+          bar: new DynamicField({ id: 'asdf' }),
         });
       });
 
-      it(`handles nested edges`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+      it(`handles nested fields`, () => {
+        const map = buildFieldMapForOperation(gql`{
           foo(id: 123) {
             bar(asdf: "fdsa") {
               baz(one: true, two: null) { a b c }
@@ -69,16 +69,16 @@ describe(`util.ast`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({ id: 123 }, /* fieldName */ undefined, {
-            bar: new DynamicEdge({ asdf: 'fdsa' }, /* fieldName */ undefined, {
-              baz: new DynamicEdge({ one: true, two: null }),
+          foo: new DynamicField({ id: 123 }, /* fieldName */ undefined, {
+            bar: new DynamicField({ asdf: 'fdsa' }, /* fieldName */ undefined, {
+              baz: new DynamicField({ one: true, two: null }),
             }),
           }),
         });
       });
 
       it(`properly constructs deeply nested paths`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+        const map = buildFieldMapForOperation(gql`{
           foo {
             fizz {
               buzz {
@@ -91,15 +91,15 @@ describe(`util.ast`, () => {
           foo: {
             fizz: {
               buzz: {
-                moo: new DynamicEdge({ val: 1.234 }),
+                moo: new DynamicField({ val: 1.234 }),
               },
             },
           },
         });
       });
 
-      it(`handles edges declared via fragment spreads`, () => {
-        const map = buildEdgeMapForOperation(gql`
+      it(`handles fields declared via fragment spreads`, () => {
+        const map = buildFieldMapForOperation(gql`
           fragment bar on Foo {
             stuff { ...things }
           }
@@ -113,13 +113,13 @@ describe(`util.ast`, () => {
 
         expect(map).to.deep.eq({
           stuff: {
-            things: new DynamicEdge({ count: 5 }),
+            things: new DynamicField({ count: 5 }),
           },
         });
       });
 
       it(`supports all types of variables`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query typetastic($variable: Custom) {
             foo(
               variable: $variable,
@@ -140,7 +140,7 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({
+          foo: new DynamicField({
             variable: new VariableArgument('variable'),
             null: null,
             int: 123,
@@ -163,20 +163,20 @@ describe(`util.ast`, () => {
     describe(`with variables`, () => {
 
       it(`creates placeholder args for variables`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query get($id: ID!) {
             foo(id: $id) { a b c }
           }
         `);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({
+          foo: new DynamicField({
             id: new VariableArgument('id'),
           }),
         });
       });
 
       it(`handles a mix of variables and static values`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query get($id: ID!, $val: String) {
             foo(id: $id, foo: "asdf", bar: $id, baz: $val) {
               a b c
@@ -184,7 +184,7 @@ describe(`util.ast`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new DynamicEdge({
+          foo: new DynamicField({
             id: new VariableArgument('id'),
             foo: 'asdf',
             bar: new VariableArgument('id'),

@@ -1,5 +1,5 @@
 import { PathPart } from '../primitive';
-import { expandEdgeArguments, DynamicEdge, DynamicEdgeMap } from '../DynamicEdge';
+import { expandFieldArguments, DynamicField, DynamicFieldMap } from '../DynamicField';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
@@ -30,9 +30,9 @@ export function read(context: CacheContext, query: Query, snapshot: GraphSnapsho
   if (!queryResult) {
     let result = snapshot.get(parsed.rootId);
 
-    const { dynamicEdgeMap } = parsed.info;
-    if (dynamicEdgeMap) {
-      result = _walkAndOverlayDynamicValues(parsed, context, snapshot, dynamicEdgeMap, result);
+    const { dynamicFieldMap } = parsed.info;
+    if (dynamicFieldMap) {
+      result = _walkAndOverlayDynamicValues(parsed, context, snapshot, dynamicFieldMap, result);
     }
 
     const { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
@@ -57,13 +57,13 @@ class OverlayWalkNode {
   constructor(
     public readonly value: any,
     public readonly containerId: NodeId,
-    public readonly edgeMap: DynamicEdgeMap,
+    public readonly fieldMap: DynamicFieldMap,
     public readonly path: PathPart[],
   ) {}
 }
 
 /**
- * Walks a parameterized edge map, overlaying values at those paths on top of
+ * Walks a parameterized field map, overlaying values at those paths on top of
  * existing results.
  *
  * Overlaid values are objects with prototypes pointing to the original results,
@@ -74,20 +74,20 @@ export function _walkAndOverlayDynamicValues(
   query: ParsedQuery,
   context: CacheContext,
   snapshot: GraphSnapshot,
-  edges: DynamicEdgeMap,
+  fields: DynamicFieldMap,
   result: any,
 ): any {
-  // Corner case: We stop walking once we reach a parameterized edge with no
+  // Corner case: We stop walking once we reach a parameterized field with no
   // snapshot, but we should also pre-emptively stop walking if there are no
 
   // dynamic values to be overlaid
   const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
 
-  // It is possible to have no outbound but there is still an dynamic edge
+  // It is possible to have no outbound but there is still an dynamic field
   // that need to be overlaid (i.e. alias)
-  if (!rootSnapshot || !(rootSnapshot.outbound || edges)) {
+  if (!rootSnapshot || !(rootSnapshot.outbound || fields)) {
     // For now, what's probably good enough is to just stop the walk if we have
-    // no root snapshot making outbound references to any other edges.
+    // no root snapshot making outbound references to any other fields.
     return result;
   }
 
@@ -99,11 +99,11 @@ export function _walkAndOverlayDynamicValues(
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
   // schema.  Can we layer that on in such a way that we can support uses w/ and
   // w/o a schema compilation step?
-  const queue = [new OverlayWalkNode(newResult, query.rootId, edges, [])];
+  const queue = [new OverlayWalkNode(newResult, query.rootId, fields, [])];
 
   while (queue.length) {
     const walkNode = queue.pop()!;
-    const { value, edgeMap } = walkNode;
+    const { value, fieldMap } = walkNode;
     let { containerId, path } = walkNode;
     const valueId = context.entityIdForNode(value);
     if (valueId) {
@@ -111,17 +111,17 @@ export function _walkAndOverlayDynamicValues(
       path = [];
     }
 
-    for (const key in edgeMap) {
-      let edge: DynamicEdgeMap | DynamicEdge | undefined = edgeMap[key];
+    for (const key in fieldMap) {
+      let field: DynamicFieldMap | DynamicField | undefined = fieldMap[key];
       let child, childId;
       let fieldName = key;
 
-      if (edge instanceof DynamicEdge) {
+      if (field instanceof DynamicField) {
         // If exist filedName property then the current key is an alias
-        fieldName = edge.fieldName ? edge.fieldName : key;
+        fieldName = field.fieldName ? field.fieldName : key;
 
-        if (edge.parameterizedEdgeArgs) {
-          const args = expandEdgeArguments(edge.parameterizedEdgeArgs, query.variables);
+        if (field.args) {
+          const args = expandFieldArguments(field.args, query.variables);
           childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], args);
           const childSnapshot = snapshot.getNodeSnapshot(childId);
           if (childSnapshot) {
@@ -130,24 +130,24 @@ export function _walkAndOverlayDynamicValues(
         } else {
           child = value[fieldName];
         }
-        edge = edge!.children;
+        field = field!.children;
       } else {
         child = value[key];
       }
 
       // Should we continue the walk?
-      if (edge && !(edge instanceof DynamicEdge) && child !== null) {
+      if (field && !(field instanceof DynamicField) && child !== null) {
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
             child[i] = _wrapValue(child[i]);
-            queue.push(new OverlayWalkNode(child[i], containerId, edge as DynamicEdgeMap, [...path, fieldName, i]));
+            queue.push(new OverlayWalkNode(child[i], containerId, field as DynamicFieldMap, [...path, fieldName, i]));
           }
 
         } else {
           child = _wrapValue(child);
-          queue.push(new OverlayWalkNode(child, containerId, edge as DynamicEdgeMap, [...path, fieldName]))
+          queue.push(new OverlayWalkNode(child, containerId, field as DynamicFieldMap, [...path, fieldName]))
         }
       }
 
