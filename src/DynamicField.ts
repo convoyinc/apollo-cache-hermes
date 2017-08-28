@@ -17,7 +17,7 @@ export class DynamicField {
     public readonly args?: FieldArguments,
     /** A field name if exist an alias */
     public readonly fieldName?: string,
-    /** Any child edge maps. */
+    /** Any children with dynamic fields. */
     public readonly children?: DynamicFieldMap,
   ) {}
 }
@@ -27,8 +27,8 @@ export interface DynamicFieldWithArgs extends DynamicField {
 }
 
 /**
- * A recursive map where the keys indicate the path to any edge in a result set
- * that contain a parameterized edge.
+ * A recursive map where the keys indicate the path to any field in a result set
+ * that contain a dynamic field.
  */
 export interface DynamicFieldMap {
   [Key: string]: DynamicFieldMap | DynamicField;
@@ -36,12 +36,16 @@ export interface DynamicFieldMap {
 
 /**
  * A mapping of argument names to their values.
+
  */
 export type FieldArguments = NestedObject<JsonScalar | VariableArgument>;
 
 /**
  * Represents the location a variable should be used as an argument to a
- * parameterized edge.
+ * parameterized field.
+ *
+ * Note that variables can occur _anywhere_ within an argument, not just at the
+ * top level.
  */
 export class VariableArgument {
   constructor(
@@ -51,14 +55,14 @@ export class VariableArgument {
 }
 
 /**
- * Walks a selection set, identifying the path to any dynamic edges
- * which are alias, parameterized arguments, directives
+ * Walks a selection set, identifying any dynamic fields within.
+ *
  * TODO: Support for directives (maybe?).
  */
 export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicFieldMap | undefined {
   if (!selectionSet) return undefined;
 
-  let edgeMap;
+  let fieldMap;
 
   for (const selection of selectionSet.selections) {
     if (selection.kind === 'FragmentSpread') {
@@ -69,13 +73,14 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
       // TODO: Memoize.
       const fragmentEdges = buildDynamicFieldMap(fragments, fragment.selectionSet);
       if (fragmentEdges) {
-        edgeMap = { ...edgeMap, ...fragmentEdges };
+        fieldMap = { ...fieldMap, ...fragmentEdges };
       }
     } else if (selection.kind === 'Field') {
-      // if the current selection doesn't have any dynamic features
-      // but its children have dynamic features, we will host the DynamicEdgeMap
-      // of the chidren directly instead of creating indirect DynamicField with
-      // children. This is to save resources in walking
+      // if the current selection doesn't have any dynamic features but its
+      // children do, we will host the DynamicFieldMap of the children directly
+      // instead of creating indirect DynamicField with only children.  This
+      // saves a bit of overhead, and allows us to more cleanly reason about
+      // where dynamic fields are in the selection.
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
       let currentEdge: DynamicField | DynamicFieldMap | undefined;
       let parameterizedArguments: FieldArguments | undefined;
@@ -84,8 +89,7 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
         parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
       }
 
-      // If current selection has either parameterized arguments or alias, we
-      // will want to create dynamic edge. Otherwise recurse into the children.
+      // Is this a dynamic field?
       if (parameterizedArguments || selection.alias) {
         currentEdge = new DynamicField(parameterizedArguments,
           selection.alias ? selection.name.value : undefined,
@@ -95,13 +99,13 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
       }
 
       if (currentEdge) {
-        (edgeMap || (edgeMap = {}))[currentKey] = currentEdge;
+        (fieldMap || (fieldMap = {}))[currentKey] = currentEdge;
       }
     }
     // TODO: inline fragments.
   }
 
-  return edgeMap;
+  return fieldMap;
 }
 
 /**
