@@ -156,7 +156,7 @@ export class SnapshotEditor {
       // Similarly, we need to be careful to break cycles _within_ a node.
       const visitedPayloadValues = new Set<any>();
 
-      walkPayload(containerPayload, container, fields, visitRoot, (path, payloadValue, nodeValue, dynamicEdges) => {
+      walkPayload(containerPayload, container, fields, visitRoot, (path, payloadValue, nodeValue, dynamicFields) => {
         const payloadIsObject = isObject(payloadValue);
         const nodeIsObject = isObject(nodeValue);
         let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
@@ -184,15 +184,15 @@ export class SnapshotEditor {
           payloadValue = null;
         }
 
-        if (isDynamicFieldWithArgs(dynamicEdges)) {
-          const edgeId = this._ensureParameterizedValueSnapshot(containerId, path, dynamicEdges, query.variables!);
+        if (isDynamicFieldWithArgs(dynamicFields)) {
+          const fieldId = this._ensureParameterizedValueSnapshot(containerId, path, dynamicFields, query.variables!);
           // We walk the values of the parameterized field like any other entity.
           //
           // EXCEPT: We re-visit the payload, in case it might _directly_
           // reference an entity.  This allows us to build a chain of references
           // where the parameterized value points _directly_ to a particular
           // entity node.
-          queue.push({ containerId: edgeId, containerPayload: payloadValue, visitRoot: true, fields: dynamicEdges.children });
+          queue.push({ containerId: fieldId, containerPayload: payloadValue, visitRoot: true, fields: dynamicFields.children });
 
           // Stop the walk for this subgraph.
           return true;
@@ -222,8 +222,8 @@ export class SnapshotEditor {
           // So, walk if we have new values, otherwise we're done for this
           // subgraph.
           if (nextNodeId) {
-            const updateEdge = dynamicEdges instanceof DynamicField ? dynamicEdges.children : dynamicEdges;
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, fields: updateEdge });
+            const nextFields = dynamicFields instanceof DynamicField ? dynamicFields.children : dynamicFields;
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, fields: nextFields });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -444,24 +444,24 @@ export class SnapshotEditor {
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
   _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: object) {
-    const edgeArguments = expandFieldArguments(field.args, variables);
-    const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
+    const args = expandFieldArguments(field.args, variables);
+    const fieldId = nodeIdForParameterizedValue(containerId, path, args);
 
     // We're careful to not edit the container unless we absolutely have to.
     // (There may be no changes for this parameterized value).
     const containerSnapshot = this.getNodeSnapshot(containerId);
-    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', edgeId)) {
+    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', fieldId)) {
       // We need to construct a new snapshot otherwise.
       const newSnapshot = new ParameterizedValueSnapshot();
       addNodeReference('inbound', newSnapshot, containerId);
-      this._newNodes[edgeId] = newSnapshot;
+      this._newNodes[fieldId] = newSnapshot;
 
       // Ensure that the container points to it.
-      addNodeReference('outbound', this._ensureNewSnapshot(containerId), edgeId);
+      addNodeReference('outbound', this._ensureNewSnapshot(containerId), fieldId);
     }
 
 
-    return edgeId;
+    return fieldId;
   }
 }
 
