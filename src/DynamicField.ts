@@ -71,9 +71,9 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
         throw new Error(`Expected fragment ${selection.name.value} to exist in GraphQL document`);
       }
       // TODO: Memoize.
-      const fragmentEdges = buildDynamicFieldMap(fragments, fragment.selectionSet);
-      if (fragmentEdges) {
-        fieldMap = { ...fieldMap, ...fragmentEdges };
+      const fragmentFields = buildDynamicFieldMap(fragments, fragment.selectionSet);
+      if (fragmentFields) {
+        fieldMap = { ...fieldMap, ...fragmentFields };
       }
     } else if (selection.kind === 'Field') {
       // if the current selection doesn't have any dynamic features but its
@@ -82,24 +82,24 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
       // saves a bit of overhead, and allows us to more cleanly reason about
       // where dynamic fields are in the selection.
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
-      let currentEdge: DynamicField | DynamicFieldMap | undefined;
+      let currentField: DynamicField | DynamicFieldMap | undefined;
       let parameterizedArguments: FieldArguments | undefined;
 
       if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
-        parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
+        parameterizedArguments = _buildFieldArgs(selection.arguments);
       }
 
       // Is this a dynamic field?
       if (parameterizedArguments || selection.alias) {
-        currentEdge = new DynamicField(parameterizedArguments,
+        currentField = new DynamicField(parameterizedArguments,
           selection.alias ? selection.name.value : undefined,
           buildDynamicFieldMap(fragments, selection.selectionSet));
       } else if (selection.selectionSet) {
-        currentEdge = buildDynamicFieldMap(fragments, selection.selectionSet);
+        currentField = buildDynamicFieldMap(fragments, selection.selectionSet);
       }
 
-      if (currentEdge) {
-        (fieldMap || (fieldMap = {}))[currentKey] = currentEdge;
+      if (currentField) {
+        (fieldMap || (fieldMap = {}))[currentKey] = currentField;
       }
     }
     // TODO: inline fragments.
@@ -111,7 +111,7 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildParameterizedEdgeArgs(argumentsNode: ArgumentNode[]): FieldArguments {
+function _buildFieldArgs(argumentsNode: ArgumentNode[]): FieldArguments {
   const args = {};
   for (const arg of argumentsNode) {
     // Mapped name of argument to it JS value
