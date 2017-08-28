@@ -23,10 +23,13 @@ describe(`DynamicField`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          user: {
-            ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
-            FirstName: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'name'),
+          fieldMap: {
+            user: {
+              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+              FirstName: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'name'),
+            },
           },
+          variables: new Set(),
         });
       });
 
@@ -40,14 +43,17 @@ describe(`DynamicField`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          superUser: new DynamicField(
-            /* fieldArgs */ undefined,
-            /* fieldName */ 'user',
-            {
-              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
-              FirstName: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'name'),
-            }
-          ),
+          fieldMap: {
+            superUser: new DynamicField(
+              /* fieldArgs */ undefined,
+              /* fieldName */ 'user',
+              {
+                ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+                FirstName: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'name'),
+              }
+            ),
+          },
+          variables: new Set(),
         });
       });
 
@@ -61,14 +67,17 @@ describe(`DynamicField`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          superUser: new DynamicField(
-            { id: 4 },
-            /* fieldName */ 'user',
-            {
-              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
-              Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
-            },
-          ),
+          fieldMap: {
+            superUser: new DynamicField(
+              { id: 4 },
+              /* fieldName */ 'user',
+              {
+                ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+                Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
+              },
+            ),
+          },
+          variables: new Set(),
         });
       });
 
@@ -82,14 +91,17 @@ describe(`DynamicField`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          superUser: new DynamicField(
-            { id: new VariableArgument('id') },
-            /* fieldName */ 'user',
-            {
-              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
-              Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
-            },
-          ),
+          fieldMap: {
+            superUser: new DynamicField(
+              { id: new VariableArgument('id') },
+              /* fieldName */ 'user',
+              {
+                ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+                Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
+              },
+            ),
+          },
+          variables: new Set(['id']),
         });
       });
 
@@ -110,32 +122,35 @@ describe(`DynamicField`, () => {
         }`);
 
         expect(map).to.deep.eq({
-          shipments: new DynamicField(
-            { first: 2 },
-            /* fieldName */ undefined,
-            {
-              shipmentsInfo: new DynamicField(
-                /* fieldArgs */ undefined,
-                'fields',
-                {
-                  loads: new DynamicField(
-                    /* fieldArgs */ undefined,
-                    'contents',
-                    {
-                      type: new DynamicField(/* fieldArgs */ undefined, 'shipmentItemType'),
-                    }
-                  ),
-                  shipmentSize: new DynamicField(
-                    /* fieldArgs */ undefined,
-                    'dimensions',
-                    {
-                      unit: new DynamicField(/* fieldArgs */ undefined, 'weightUnit'),
-                    }
-                  ),
-                }
-              ),
-            }
-          ),
+          fieldMap: {
+            shipments: new DynamicField(
+              { first: 2 },
+              /* fieldName */ undefined,
+              {
+                shipmentsInfo: new DynamicField(
+                  /* fieldArgs */ undefined,
+                  'fields',
+                  {
+                    loads: new DynamicField(
+                      /* fieldArgs */ undefined,
+                      'contents',
+                      {
+                        type: new DynamicField(/* fieldArgs */ undefined, 'shipmentItemType'),
+                      }
+                    ),
+                    shipmentSize: new DynamicField(
+                      /* fieldArgs */ undefined,
+                      'dimensions',
+                      {
+                        unit: new DynamicField(/* fieldArgs */ undefined, 'weightUnit'),
+                      }
+                    ),
+                  }
+                ),
+              }
+            ),
+          },
+          variables: new Set(),
         });
       });
     });

@@ -23,6 +23,20 @@ export function getOperationOrDie(document: DocumentNode): OperationDefinitionNo
   return operations[0];
 }
 
+/**
+ * Returns the names of all variables declared by the operation.
+ */
+export function variablesInOperation(operation: OperationDefinitionNode): Set<string> {
+  const names = new Set<string>();
+  if (operation.variableDefinitions) {
+    for (const definition of operation.variableDefinitions) {
+      names.add(definition.variable.name.value);
+    }
+  }
+
+  return names;
+}
+
 export interface FragmentMap {
   [Key: string]: FragmentDefinitionNode;
 }

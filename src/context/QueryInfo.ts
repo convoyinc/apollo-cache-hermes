@@ -27,13 +27,18 @@ export class QueryInfo {
    * parameterized arguments, directive
    */
   public readonly dynamicFieldMap?: DynamicFieldMap;
+  /** Variables used within this query. */
+  public readonly variables: Set<string>;
 
   constructor(document: DocumentNode) {
     this.document = document;
     this.operation = getOperationOrDie(document);
     this.operationName = this.operation.name && this.operation.name.value;
     this.fragmentMap = fragmentMapForDocument(document);
-    this.dynamicFieldMap = buildDynamicFieldMap(this.fragmentMap, this.operation.selectionSet);
+
+    const { fieldMap, variables } = buildDynamicFieldMap(this.fragmentMap, this.operation.selectionSet);
+    this.dynamicFieldMap = fieldMap;
+    this.variables = variables;
   }
 
 }

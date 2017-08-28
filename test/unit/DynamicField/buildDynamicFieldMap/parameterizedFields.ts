@@ -16,7 +16,7 @@ describe(`DynamicField`, () => {
 
       it(`returns undefined for selections sets with no parameterized fields`, () => {
         const map = buildFieldMapForOperation(gql`{ foo bar }`);
-        expect(map).to.eq(undefined);
+        expect(map).to.deep.eq({ fieldMap: undefined, variables: new Set() });
       });
 
       it(`handles fragments without parameterized fields`, () => {
@@ -29,7 +29,7 @@ describe(`DynamicField`, () => {
 
           fragment things on Stuff { a b c }
         `);
-        expect(map).to.eq(undefined);
+        expect(map).to.deep.eq({ fieldMap: undefined, variables: new Set() });
       });
     });
 
@@ -41,7 +41,10 @@ describe(`DynamicField`, () => {
             }
           }`);
         expect(map).to.deep.eq({
-          foo: new DynamicField({ id: 123 }),
+          fieldMap: {
+            foo: new DynamicField({ id: 123 }),
+          },
+          variables: new Set(),
         });
       });
 
@@ -55,8 +58,11 @@ describe(`DynamicField`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new DynamicField({ id: 123 }),
-          bar: new DynamicField({ id: 'asdf' }),
+          fieldMap: {
+            foo: new DynamicField({ id: 123 }),
+            bar: new DynamicField({ id: 'asdf' }),
+          },
+          variables: new Set(),
         });
       });
 
@@ -69,11 +75,14 @@ describe(`DynamicField`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: new DynamicField({ id: 123 }, /* fieldName */ undefined, {
-            bar: new DynamicField({ asdf: 'fdsa' }, /* fieldName */ undefined, {
-              baz: new DynamicField({ one: true, two: null }),
+          fieldMap: {
+            foo: new DynamicField({ id: 123 }, /* fieldName */ undefined, {
+              bar: new DynamicField({ asdf: 'fdsa' }, /* fieldName */ undefined, {
+                baz: new DynamicField({ one: true, two: null }),
+              }),
             }),
-          }),
+          },
+          variables: new Set(),
         });
       });
 
@@ -88,13 +97,16 @@ describe(`DynamicField`, () => {
           }
         }`);
         expect(map).to.deep.eq({
-          foo: {
-            fizz: {
-              buzz: {
-                moo: new DynamicField({ val: 1.234 }),
+          fieldMap: {
+            foo: {
+              fizz: {
+                buzz: {
+                  moo: new DynamicField({ val: 1.234 }),
+                },
               },
             },
           },
+          variables: new Set(),
         });
       });
 
@@ -112,9 +124,12 @@ describe(`DynamicField`, () => {
         `);
 
         expect(map).to.deep.eq({
-          stuff: {
-            things: new DynamicField({ count: 5 }),
+          fieldMap: {
+            stuff: {
+              things: new DynamicField({ count: 5 }),
+            },
           },
+          variables: new Set(),
         });
       });
 
@@ -140,22 +155,25 @@ describe(`DynamicField`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new DynamicField({
-            variable: new VariableArgument('variable'),
-            null: null,
-            int: 123,
-            float: 1.23,
-            string: 'foo',
-            list: [new VariableArgument('variable'), null, 123, 1.23, 'foo', { a: 'b' }],
-            object: {
+          fieldMap: {
+            foo: new DynamicField({
               variable: new VariableArgument('variable'),
               null: null,
               int: 123,
               float: 1.23,
               string: 'foo',
               list: [new VariableArgument('variable'), null, 123, 1.23, 'foo', { a: 'b' }],
-            },
-          }),
+              object: {
+                variable: new VariableArgument('variable'),
+                null: null,
+                int: 123,
+                float: 1.23,
+                string: 'foo',
+                list: [new VariableArgument('variable'), null, 123, 1.23, 'foo', { a: 'b' }],
+              },
+            }),
+          },
+          variables: new Set(['variable']),
         });
       });
     });
@@ -169,9 +187,12 @@ describe(`DynamicField`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new DynamicField({
-            id: new VariableArgument('id'),
-          }),
+          fieldMap: {
+            foo: new DynamicField({
+              id: new VariableArgument('id'),
+            }),
+          },
+          variables: new Set(['id']),
         });
       });
 
@@ -184,12 +205,15 @@ describe(`DynamicField`, () => {
           }
         `);
         expect(map).to.deep.eq({
-          foo: new DynamicField({
-            id: new VariableArgument('id'),
-            foo: 'asdf',
-            bar: new VariableArgument('id'),
-            baz: new VariableArgument('val'),
-          }),
+          fieldMap: {
+            foo: new DynamicField({
+              id: new VariableArgument('id'),
+              foo: 'asdf',
+              bar: new VariableArgument('id'),
+              baz: new VariableArgument('val'),
+            }),
+          },
+          variables: new Set(['id', 'val']),
         });
       });
 
