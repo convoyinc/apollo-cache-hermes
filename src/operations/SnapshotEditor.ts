@@ -2,7 +2,7 @@ import { CacheContext } from '../context';
 import {
   DynamicField,
   DynamicFieldMap,
-  DynamicFieldWithParameterizedArguments,
+  DynamicFieldWithArgs,
   expandEdgeArguments,
   isDynamicEdgeWithParameterizedArguments,
 } from '../DynamicField';
@@ -443,7 +443,7 @@ export class SnapshotEditor {
   /**
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], edge: DynamicFieldWithParameterizedArguments, variables: object) {
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], edge: DynamicFieldWithArgs, variables: object) {
     const edgeArguments = expandEdgeArguments(edge.args, variables);
     const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 

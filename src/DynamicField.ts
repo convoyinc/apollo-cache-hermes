@@ -22,7 +22,9 @@ export class DynamicField {
   ) {}
 }
 
-export type DynamicFieldWithParameterizedArguments = DynamicField & { args: FieldArguments };
+export interface DynamicFieldWithArgs extends DynamicField {
+  readonly args: FieldArguments;
+}
 
 /**
  * A recursive map where the keys indicate the path to any edge in a result set
@@ -145,7 +147,7 @@ function _valueFromNode(node: ValueNode): any {
 /**
  * Whether the edge is a DynamicEdgeWithParameterizedArguments
  */
-export function isDynamicEdgeWithParameterizedArguments(edge: any): edge is DynamicFieldWithParameterizedArguments {
+export function isDynamicEdgeWithParameterizedArguments(edge: any): edge is DynamicFieldWithArgs {
   return !!(edge instanceof DynamicField && edge.args);
 }
 
