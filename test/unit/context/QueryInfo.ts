@@ -58,6 +58,10 @@ describe(`context.QueryInfo`, () => {
       });
     });
 
+    it(`collects the variables that are used`, () => {
+      expect(info.variables).to.deep.eq(new Set(['ids']));
+    });
+
   });
 
   describe(`validation`, () => {
