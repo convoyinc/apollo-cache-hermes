@@ -1,7 +1,6 @@
 import { lazyImmutableDeepSet } from '../../../src/util/collection';
 
 describe(`util.collection`, () => {
-
   describe('lazyImmutableDeepSet', () => {
 
     it(`constructs a new object if there is no target or original`, () => {
@@ -135,5 +134,4 @@ describe(`util.collection`, () => {
     });
 
   });
-
 });
