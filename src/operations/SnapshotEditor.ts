@@ -4,7 +4,7 @@ import {
   DynamicFieldMap,
   DynamicFieldWithArgs,
   expandEdgeArguments,
-  isDynamicEdgeWithParameterizedArguments,
+  isDynamicFieldWithArgs,
 } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
@@ -184,7 +184,7 @@ export class SnapshotEditor {
           payloadValue = null;
         }
 
-        if (isDynamicEdgeWithParameterizedArguments(dynamicEdges)) {
+        if (isDynamicFieldWithArgs(dynamicEdges)) {
           const edgeId = this._ensureParameterizedValueSnapshot(containerId, path, dynamicEdges, query.variables!);
           // We walk the values of the parameterized edge like any other entity.
           //

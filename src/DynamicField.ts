@@ -149,10 +149,10 @@ function _valueFromNode(node: ValueNode): any {
 }
 
 /**
- * Whether the edge is a DynamicEdgeWithParameterizedArguments
+ * Whether the field is a DynamicFieldWithParameterizedArguments
  */
-export function isDynamicEdgeWithParameterizedArguments(edge: any): edge is DynamicFieldWithArgs {
-  return !!(edge instanceof DynamicField && edge.args);
+export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArgs {
+  return !!(field instanceof DynamicField && field.args);
 }
 
 /**
