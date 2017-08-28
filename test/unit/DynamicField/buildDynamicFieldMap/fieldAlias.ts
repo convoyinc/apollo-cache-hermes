@@ -6,7 +6,7 @@ import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util'
 
 describe(`DynamicField`, () => {
   describe(`buildDynamicFieldMap`, () => {
-    function buildEdgeMapForOperation(document: DocumentNode) {
+    function buildFieldMapForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
       const fragmentMap = fragmentMapForDocument(document);
       return buildDynamicFieldMap(fragmentMap, operation.selectionSet);
@@ -15,7 +15,7 @@ describe(`DynamicField`, () => {
     describe(`with field alias`, () => {
 
       it(`simple query`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+        const map = buildFieldMapForOperation(gql`{
             user {
               ID: id,
               FirstName: name,
@@ -24,14 +24,14 @@ describe(`DynamicField`, () => {
         `);
         expect(map).to.deep.eq({
           user: {
-            ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'id'),
-            FirstName: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'name'),
+            ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+            FirstName: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'name'),
           },
         });
       });
 
       it(`nested alias`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query getUser {
             superUser: user {
               ID: id
@@ -41,18 +41,18 @@ describe(`DynamicField`, () => {
         `);
         expect(map).to.deep.eq({
           superUser: new DynamicField(
-            /* parameterizedEdgeArgs */ undefined,
+            /* fieldArgs */ undefined,
             /* fieldName */ 'user',
             {
-              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'id'),
-              FirstName: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'name'),
+              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
+              FirstName: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'name'),
             }
           ),
         });
       });
 
       it(`field alias with parameterized field`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query getProfile {
             superUser: user(id: 4) {
               ID: id
@@ -65,7 +65,7 @@ describe(`DynamicField`, () => {
             { id: 4 },
             /* fieldName */ 'user',
             {
-              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'id'),
+              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
               Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
             },
           ),
@@ -73,7 +73,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`field alias with variable parameterized field`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query getProfile ($id: ID!) {
             superUser: user(id: $id) {
               ID: id
@@ -86,7 +86,7 @@ describe(`DynamicField`, () => {
             { id: new VariableArgument('id') },
             /* fieldName */ 'user',
             {
-              ID: new DynamicField(/* parameterizedEdgeArgs */ undefined, /* fieldName */ 'id'),
+              ID: new DynamicField(/* fieldArgs */ undefined, /* fieldName */ 'id'),
               Profile: new DynamicField({ width: 400, height: 200 }, /* fieldName */ 'picture'),
             },
           ),
@@ -94,7 +94,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`complex nested alias`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+        const map = buildFieldMapForOperation(gql`{
           shipments(first: 2) {
             shipmentsInfo: fields {
               id
@@ -115,21 +115,21 @@ describe(`DynamicField`, () => {
             /* fieldName */ undefined,
             {
               shipmentsInfo: new DynamicField(
-                /* parameterizedEdgeArgs */ undefined,
+                /* fieldArgs */ undefined,
                 'fields',
                 {
                   loads: new DynamicField(
-                    /* parameterizedEdgeArgs */ undefined,
+                    /* fieldArgs */ undefined,
                     'contents',
                     {
-                      type: new DynamicField(/* parameterizedEdgeArgs */ undefined, 'shipmentItemType'),
+                      type: new DynamicField(/* fieldArgs */ undefined, 'shipmentItemType'),
                     }
                   ),
                   shipmentSize: new DynamicField(
-                    /* parameterizedEdgeArgs */ undefined,
+                    /* fieldArgs */ undefined,
                     'dimensions',
                     {
-                      unit: new DynamicField(/* parameterizedEdgeArgs */ undefined, 'weightUnit'),
+                      unit: new DynamicField(/* fieldArgs */ undefined, 'weightUnit'),
                     }
                   ),
                 }

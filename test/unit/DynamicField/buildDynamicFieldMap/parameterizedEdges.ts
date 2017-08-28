@@ -6,7 +6,7 @@ import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util'
 
 describe(`DynamicField`, () => {
   describe(`buildDynamicFieldMap`, () => {
-    function buildEdgeMapForOperation(document: DocumentNode) {
+    function buildFieldMapForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
       const fragmentMap = fragmentMapForDocument(document);
       return buildDynamicFieldMap(fragmentMap, operation.selectionSet);
@@ -15,12 +15,12 @@ describe(`DynamicField`, () => {
     describe(`with no parameterized fields`, () => {
 
       it(`returns undefined for selections sets with no parameterized fields`, () => {
-        const map = buildEdgeMapForOperation(gql`{ foo bar }`);
+        const map = buildFieldMapForOperation(gql`{ foo bar }`);
         expect(map).to.eq(undefined);
       });
 
       it(`handles fragments without parameterized fields`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query foo { ...bar }
 
           fragment bar on Foo {
@@ -35,7 +35,7 @@ describe(`DynamicField`, () => {
 
     describe(`with static arguments`, () => {
       it(`parses top level fields`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+        const map = buildFieldMapForOperation(gql`{
             foo(id:123) {
               a b
             }
@@ -46,7 +46,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`parses queries with sibling fields`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+        const map = buildFieldMapForOperation(gql`{
           foo(id: 123) {
             a b
           }
@@ -61,7 +61,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`handles nested fields`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+        const map = buildFieldMapForOperation(gql`{
           foo(id: 123) {
             bar(asdf: "fdsa") {
               baz(one: true, two: null) { a b c }
@@ -78,7 +78,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`properly constructs deeply nested paths`, () => {
-        const map = buildEdgeMapForOperation(gql`{
+        const map = buildFieldMapForOperation(gql`{
           foo {
             fizz {
               buzz {
@@ -99,7 +99,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`handles fields declared via fragment spreads`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           fragment bar on Foo {
             stuff { ...things }
           }
@@ -119,7 +119,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`supports all types of variables`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query typetastic($variable: Custom) {
             foo(
               variable: $variable,
@@ -163,7 +163,7 @@ describe(`DynamicField`, () => {
     describe(`with variables`, () => {
 
       it(`creates placeholder args for variables`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query get($id: ID!) {
             foo(id: $id) { a b c }
           }
@@ -176,7 +176,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`handles a mix of variables and static values`, () => {
-        const map = buildEdgeMapForOperation(gql`
+        const map = buildFieldMapForOperation(gql`
           query get($id: ID!, $val: String) {
             foo(id: $id, foo: "asdf", bar: $id, baz: $val) {
               a b c
