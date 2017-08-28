@@ -36,7 +36,6 @@ export interface DynamicFieldMap {
 
 /**
  * A mapping of argument names to their values.
-
  */
 export type FieldArguments = NestedObject<JsonScalar | VariableArgument>;
 
