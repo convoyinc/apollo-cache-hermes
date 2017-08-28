@@ -12,6 +12,8 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 
 import { JsonValue } from '../primitive';
 
+import { isObject } from './primitive';
+
 /**
  * Extracts the query operation from `document`.
  */
@@ -49,7 +51,9 @@ export function variableDefaultsInOperation(operation: OperationDefinitionNode):
   if (operation.variableDefinitions) {
     for (const definition of operation.variableDefinitions) {
       if (definition.type.kind === 'NonNullType') continue; // Required.
-      defaults[definition.variable.name.value] = definition.defaultValue;
+
+      const { defaultValue } = definition;
+      defaults[definition.variable.name.value] = isObject(defaultValue) ? valueFromNode(defaultValue) : null;
     }
   }
 
