@@ -62,14 +62,14 @@ describe(`context.CacheContext`, () => {
         rootId: 'abc',
         document: gql`
           query stuff {
-              foo {
+            foo {
               __typename
               ...fullFoo
-              }
+            }
           }
 
           fragment fullFoo on Foo { bar }
-        }`,
+        `,
       });
 
       const rootSelection = parsed.info.operation.selectionSet;
