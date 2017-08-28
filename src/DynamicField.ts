@@ -5,7 +5,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 } from 'graphql';
 
 import { JsonScalar, NestedObject } from './primitive';
-import { FragmentMap } from './util';
+import { FragmentMap, valueFromNode } from './util';
 
 /**
  * Represent dynamic information: alias, parameterized arguments, directives
@@ -135,28 +135,10 @@ function _buildFieldArgs(variables: Set<string>, argumentsNode: ArgumentNode[]):
  * Evaluate a ValueNode and yield its value in its natural JS form.
  */
 function _valueFromNode(variables: Set<string>, node: ValueNode): any {
-  switch (node.kind) {
-  case 'Variable':
-    variables.add(node.name.value);
-    return new VariableArgument(node.name.value);
-  case 'NullValue':
-    return null;
-  case 'IntValue':
-    return parseInt(node.value);
-  case 'FloatValue':
-    return parseFloat(node.value);
-  case 'ListValue':
-    return node.values.map(v => _valueFromNode(variables, v));
-  case 'ObjectValue': {
-    const value = {};
-    for (const field of node.fields) {
-      value[field.name.value] = _valueFromNode(variables, field.value);
-    }
-    return value;
-  }
-  default:
-    return node.value;
-  }
+  return valueFromNode(node, ({ name: { value } }) => {
+    variables.add(value);
+    return new VariableArgument(value);
+  });
 }
 
 /**

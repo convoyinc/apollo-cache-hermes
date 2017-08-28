@@ -69,7 +69,7 @@ describe(`context.QueryInfo`, () => {
     let query: DocumentNode, info: QueryInfo;
     beforeAll(() => {
       query = gql`
-        mutation makeCheesy($ids: [ID]!, $name: String = 'Munster', $stinky: Boolean) {
+        mutation makeCheesy($ids: [ID]!, $name: String = "Munster", $stinky: Boolean) {
           updateCheesiness(ids: $ids, name: $name, stinky: $stinky)
         }
       `;
@@ -85,8 +85,8 @@ describe(`context.QueryInfo`, () => {
       expect(info.variableDefaults['name']).to.eq('Munster');
     });
 
-    it(`includes optional arguments as having a default value of undefined`, () => {
-      expect(info.variableDefaults['stinky']).to.eq(undefined);
+    it(`includes optional arguments as having a default value of null`, () => {
+      expect(info.variableDefaults['stinky']).to.eq(null);
     });
 
     it(`excludes required parameters from the defaults`, () => {

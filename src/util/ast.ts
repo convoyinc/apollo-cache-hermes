@@ -1,11 +1,13 @@
 import lodashCloneDeep = require('lodash.clonedeep');
 import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
-  DocumentNode,
   DefinitionNode,
+  DocumentNode,
   FieldNode,
   FragmentDefinitionNode,
   OperationDefinitionNode,
   SelectionSetNode,
+  ValueNode,
+  VariableNode,
 } from 'graphql';
 
 import { JsonValue } from '../primitive';
@@ -54,6 +56,36 @@ export function variableDefaultsInOperation(operation: OperationDefinitionNode):
   return defaults;
 }
 
+export function _defaultValueFromVariable(node: VariableNode) {
+  throw new Error(`Variable nodes are not supported by valueFromNode`);
+}
+
+/**
+ * Evaluate a ValueNode and yield its value in its natural JS form.
+ */
+export function valueFromNode(node: ValueNode, onVariable = _defaultValueFromVariable): any {
+  switch (node.kind) {
+  case 'Variable':
+    return onVariable(node);
+  case 'NullValue':
+    return null;
+  case 'IntValue':
+    return parseInt(node.value);
+  case 'FloatValue':
+    return parseFloat(node.value);
+  case 'ListValue':
+    return node.values.map(v => valueFromNode(v, onVariable));
+  case 'ObjectValue': {
+    const value = {};
+    for (const field of node.fields) {
+      value[field.name.value] = valueFromNode(field.value, onVariable);
+    }
+    return value;
+  }
+  default:
+    return node.value;
+  }
+}
 
 export interface FragmentMap {
   [Key: string]: FragmentDefinitionNode;
