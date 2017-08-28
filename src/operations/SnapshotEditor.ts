@@ -3,7 +3,7 @@ import {
   DynamicField,
   DynamicFieldMap,
   DynamicFieldWithArgs,
-  expandEdgeArguments,
+  expandFieldArguments,
   isDynamicFieldWithArgs,
 } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
@@ -444,7 +444,7 @@ export class SnapshotEditor {
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
   _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], edge: DynamicFieldWithArgs, variables: object) {
-    const edgeArguments = expandEdgeArguments(edge.args, variables);
+    const edgeArguments = expandFieldArguments(edge.args, variables);
     const edgeId = nodeIdForParameterizedValue(containerId, path, edgeArguments);
 
     // We're careful to not edit the container unless we absolutely have to.

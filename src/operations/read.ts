@@ -1,5 +1,5 @@
 import { PathPart } from '../primitive';
-import { expandEdgeArguments, DynamicField, DynamicFieldMap } from '../DynamicField';
+import { expandFieldArguments, DynamicField, DynamicFieldMap } from '../DynamicField';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
@@ -121,7 +121,7 @@ export function _walkAndOverlayDynamicValues(
         fieldName = edge.fieldName ? edge.fieldName : key;
 
         if (edge.args) {
-          const args = expandEdgeArguments(edge.args, query.variables);
+          const args = expandFieldArguments(edge.args, query.variables);
           childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], args);
           const childSnapshot = snapshot.getNodeSnapshot(childId);
           if (childSnapshot) {

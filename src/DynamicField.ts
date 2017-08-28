@@ -156,10 +156,10 @@ export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArg
 }
 
 /**
- * Sub values in for any variables required by an edge's args.
+ * Sub values in for any variables required by an field's args.
  */
-export function expandEdgeArguments(args: FieldArguments, variables: object = {}): object {
-  const edgeArguments = {};
+export function expandFieldArguments(args: FieldArguments, variables: object = {}): object {
+  const expanded = {};
   // TODO: Recurse into objects/arrays.
   for (const key in args) {
     let arg = args[key];
@@ -171,8 +171,8 @@ export function expandEdgeArguments(args: FieldArguments, variables: object = {}
       arg = variables[arg.name];
     }
 
-    edgeArguments[key] = arg;
+    expanded[key] = arg;
   }
 
-  return edgeArguments;
+  return expanded;
 }
