@@ -33,7 +33,7 @@ describe(`operations.write`, () => {
 
   const empty = new GraphSnapshot();
 
-  describe(`parameterized edges`, () => {
+  describe(`parameterized fields`, () => {
 
     describe(`creating a new top level edge`, () => {
 
@@ -71,7 +71,7 @@ describe(`operations.write`, () => {
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
-      it(`does not expose the parameterized edge directly from its container`, () => {
+      it(`does not expose the parameterized field directly from its container`, () => {
         expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
       });
 
@@ -129,7 +129,7 @@ describe(`operations.write`, () => {
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
-      it(`does not expose the parameterized edge directly from its container`, () => {
+      it(`does not expose the parameterized field directly from its container`, () => {
         expect(_.get(snapshot.get(QueryRootId), 'foo.bar.baz')).to.eq(undefined);
       });
 
@@ -233,17 +233,17 @@ describe(`operations.write`, () => {
         expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
       });
 
-      it(`creates an outgoing reference from the parameterized edge to the referenced entity`, () => {
+      it(`creates an outgoing reference from the parameterized field to the referenced entity`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
         expect(values.outbound).to.deep.eq([{ id: '1', path: [] }]);
       });
 
-      it(`creates an incoming reference from the parameterized edge to the referenced entity`, () => {
+      it(`creates an incoming reference from the parameterized field to the referenced entity`, () => {
         const entity = snapshot.getNodeSnapshot('1')!;
         expect(entity.inbound).to.deep.eq([{ id: parameterizedId, path: [] }]);
       });
 
-      it(`does not expose the parameterized edge directly from its container`, () => {
+      it(`does not expose the parameterized field directly from its container`, () => {
         expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
       });
 
@@ -472,7 +472,7 @@ describe(`operations.write`, () => {
       it(`writes an array with the correct length`, () => {
         // This is a bit arcane, but it ensures that _overlayParameterizedValues
         // behaves properly when iterating arrays that contain _only_
-        // parameterized edges.
+        // parameterized fields.
         expect(snapshot.get(containerId)).to.deep.eq([undefined, undefined]);
       });
 

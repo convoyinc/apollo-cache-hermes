@@ -51,7 +51,7 @@ describe(`DynamicField`, () => {
         });
       });
 
-      it(`field alias with parameterized edge`, () => {
+      it(`field alias with parameterized field`, () => {
         const map = buildEdgeMapForOperation(gql`
           query getProfile {
             superUser: user(id: 4) {
@@ -72,7 +72,7 @@ describe(`DynamicField`, () => {
         });
       });
 
-      it(`field alias with variable parameterized edge`, () => {
+      it(`field alias with variable parameterized field`, () => {
         const map = buildEdgeMapForOperation(gql`
           query getProfile ($id: ID!) {
             superUser: user(id: $id) {

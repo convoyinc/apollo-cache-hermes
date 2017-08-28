@@ -186,7 +186,7 @@ export class SnapshotEditor {
 
         if (isDynamicFieldWithArgs(dynamicEdges)) {
           const edgeId = this._ensureParameterizedValueSnapshot(containerId, path, dynamicEdges, query.variables!);
-          // We walk the values of the parameterized edge like any other entity.
+          // We walk the values of the parameterized field like any other entity.
           //
           // EXCEPT: We re-visit the payload, in case it might _directly_
           // reference an entity.  This allows us to build a chain of references
@@ -241,13 +241,13 @@ export class SnapshotEditor {
 
           // We will fill in the values as we walk, but we ensure that the
           // length is accurate, so that we properly handle empty values (e.g. a
-          // value that contains only parameterized edges).
+          // value that contains only parameterized fields).
           const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : new Array(payloadLength);
           this._setValue(containerId, path, newArray);
 
           // Also remove any references contained within any entries we removed:
           //
-          // TODO: Deal with parameterized edges contained by this.
+          // TODO: Deal with parameterized fields contained by this.
           // TODO: Better abstract this.
           if (payloadLength < nodeLength && containerSnapshot && containerSnapshot.outbound) {
             for (const reference of containerSnapshot.outbound) {

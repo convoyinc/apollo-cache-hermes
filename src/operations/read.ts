@@ -63,7 +63,7 @@ class OverlayWalkNode {
 }
 
 /**
- * Walks a parameterized edge map, overlaying values at those paths on top of
+ * Walks a parameterized field map, overlaying values at those paths on top of
  * existing results.
  *
  * Overlaid values are objects with prototypes pointing to the original results,
@@ -77,7 +77,7 @@ export function _walkAndOverlayDynamicValues(
   edges: DynamicFieldMap,
   result: any,
 ): any {
-  // Corner case: We stop walking once we reach a parameterized edge with no
+  // Corner case: We stop walking once we reach a parameterized field with no
   // snapshot, but we should also pre-emptively stop walking if there are no
 
   // dynamic values to be overlaid

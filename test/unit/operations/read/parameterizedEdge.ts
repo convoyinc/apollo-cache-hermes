@@ -15,7 +15,7 @@ describe(`operations.read`, () => {
     stuff
   }`, { id: 1 });
 
-  describe(`parameterized edges`, () => {
+  describe(`parameterized fields`, () => {
 
     describe(`with a complete cache`, () => {
 

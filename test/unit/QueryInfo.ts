@@ -50,7 +50,7 @@ describe(`context.QueryInfo`, () => {
       expect(info.fragmentMap).to.have.all.keys('completeStuff', 'completeThing');
     });
 
-    it(`builds a parameterized edge map`, () => {
+    it(`builds a parameterized field map`, () => {
       expect(info.dynamicEdgeMap).to.deep.eq({
         things: new DynamicField({
           ids: new VariableArgument('ids'),

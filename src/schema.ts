@@ -37,7 +37,7 @@ export interface Query {
   readonly rootId: NodeId;
   /** A parsed GraphQL document, declaring an operation to execute. */
   readonly document: DocumentNode;
-  /** Any variables used by parameterized edges within the selection set. */
+  /** Any variables used by parameterized fields within the selection set. */
   readonly variables?: object;
 }
 
@@ -49,7 +49,7 @@ export interface ParsedQuery {
   readonly rootId: NodeId;
   /** A parsed GraphQL document, declaring an operation to execute. */
   readonly info: QueryInfo;
-  /** Any variables used by parameterized edges within the selection set. */
+  /** Any variables used by parameterized fields within the selection set. */
   readonly variables?: object;
 }
 

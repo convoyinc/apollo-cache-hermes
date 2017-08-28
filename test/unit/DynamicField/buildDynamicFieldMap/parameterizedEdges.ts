@@ -12,14 +12,14 @@ describe(`DynamicField`, () => {
       return buildDynamicFieldMap(fragmentMap, operation.selectionSet);
     }
 
-    describe(`with no parameterized edges`, () => {
+    describe(`with no parameterized fields`, () => {
 
-      it(`returns undefined for selections sets with no parameterized edges`, () => {
+      it(`returns undefined for selections sets with no parameterized fields`, () => {
         const map = buildEdgeMapForOperation(gql`{ foo bar }`);
         expect(map).to.eq(undefined);
       });
 
-      it(`handles fragments without parameterized edges`, () => {
+      it(`handles fragments without parameterized fields`, () => {
         const map = buildEdgeMapForOperation(gql`
           query foo { ...bar }
 
