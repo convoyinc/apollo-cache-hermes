@@ -14,7 +14,7 @@ import { FragmentMap } from './util';
 export class DynamicField {
   constructor(
     /** The map of arguments and their static or variable values. */
-    public readonly args?: ParameterizedEdgeArguments,
+    public readonly args?: FieldArguments,
     /** A field name if exist an alias */
     public readonly fieldName?: string,
     /** Any child edge maps. */
@@ -22,7 +22,7 @@ export class DynamicField {
   ) {}
 }
 
-export type DynamicFieldWithParameterizedArguments = DynamicField & { args: ParameterizedEdgeArguments };
+export type DynamicFieldWithParameterizedArguments = DynamicField & { args: FieldArguments };
 
 /**
  * A recursive map where the keys indicate the path to any edge in a result set
@@ -37,8 +37,8 @@ export interface DynamicFieldMap {
  */
 export type EdgeArgumentScalar = JsonScalar | VariableArgument;
 export interface EdgeArgumentArray extends Array<ParameterizedEdgeArgumentValue> {}
-export interface ParameterizedEdgeArguments { [argumentName: string]: ParameterizedEdgeArgumentValue }
-export type ParameterizedEdgeArgumentValue = EdgeArgumentScalar | EdgeArgumentArray | ParameterizedEdgeArguments;
+export interface FieldArguments { [argumentName: string]: ParameterizedEdgeArgumentValue }
+export type ParameterizedEdgeArgumentValue = EdgeArgumentScalar | EdgeArgumentArray | FieldArguments;
 
 /**
  * Represents the location a variable should be used as an argument to a
@@ -50,6 +50,15 @@ export class VariableArgument {
     public readonly name: string,
   ) {}
 }
+
+export const foo: FieldArguments = {
+  asdf: [new VariableArgument('asdf')],
+  fdsa: {
+    one: {
+      two: [123, new VariableArgument('foo')],
+    },
+  },
+};
 
 /**
  * Walks a selection set, identifying the path to any dynamic edges
@@ -79,7 +88,7 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
       // children. This is to save resources in walking
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
       let currentEdge: DynamicField | DynamicFieldMap | undefined;
-      let parameterizedArguments: ParameterizedEdgeArguments | undefined;
+      let parameterizedArguments: FieldArguments | undefined;
 
       if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
         parameterizedArguments = _buildParameterizedEdgeArgs(selection.arguments);
@@ -108,7 +117,7 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildParameterizedEdgeArgs(argumentsNode: ArgumentNode[]): ParameterizedEdgeArguments {
+function _buildParameterizedEdgeArgs(argumentsNode: ArgumentNode[]): FieldArguments {
   const args = {};
   for (const arg of argumentsNode) {
     // Mapped name of argument to it JS value
@@ -155,7 +164,7 @@ export function isDynamicEdgeWithParameterizedArguments(edge: any): edge is Dyna
 /**
  * Sub values in for any variables required by an edge's args.
  */
-export function expandEdgeArguments(args: ParameterizedEdgeArguments, variables: object = {}): object {
+export function expandEdgeArguments(args: FieldArguments, variables: object = {}): object {
   const edgeArguments = {};
   // TODO: Recurse into objects/arrays.
   for (const key in args) {
