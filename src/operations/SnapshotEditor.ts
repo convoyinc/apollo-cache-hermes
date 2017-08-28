@@ -130,13 +130,13 @@ export class SnapshotEditor {
    */
   private _mergePayloadValues(query: ParsedQuery, fullPayload: object): ReferenceEdit[] {
     const { entityIdForNode } = this._context;
-    const { dynamicEdgeMap } = query.info;
+    const { dynamicFieldMap } = query.info;
 
     const queue: MergeQueueItem[] = [{
       containerId: query.rootId,
       containerPayload: fullPayload,
       visitRoot: false,
-      fields: dynamicEdgeMap,
+      fields: dynamicFieldMap,
     }];
     const referenceEdits: ReferenceEdit[] = [];
     // We have to be careful to break cycles; it's ok for a caller to give us a

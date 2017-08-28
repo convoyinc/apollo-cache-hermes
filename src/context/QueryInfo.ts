@@ -25,14 +25,14 @@ export class QueryInfo {
   /** The field map for the document, if there are any dynamic features:
    *    alias, parameterized arguments, directive
    */
-  public readonly dynamicEdgeMap?: DynamicFieldMap;
+  public readonly dynamicFieldMap?: DynamicFieldMap;
 
   constructor(document: DocumentNode) {
     this.document = document;
     this.operation = getOperationOrDie(document);
     this.operationName = this.operation.name && this.operation.name.value;
     this.fragmentMap = fragmentMapForDocument(document);
-    this.dynamicEdgeMap = buildDynamicFieldMap(this.fragmentMap, this.operation.selectionSet);
+    this.dynamicFieldMap = buildDynamicFieldMap(this.fragmentMap, this.operation.selectionSet);
   }
 
 }

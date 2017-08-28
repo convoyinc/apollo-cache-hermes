@@ -51,7 +51,7 @@ describe(`context.QueryInfo`, () => {
     });
 
     it(`builds a parameterized field map`, () => {
-      expect(info.dynamicEdgeMap).to.deep.eq({
+      expect(info.dynamicFieldMap).to.deep.eq({
         things: new DynamicField({
           ids: new VariableArgument('ids'),
         }),
