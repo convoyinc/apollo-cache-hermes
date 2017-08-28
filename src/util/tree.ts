@@ -10,7 +10,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   SelectionSetNode,
 } from 'graphql';
 
-import { DynamicField, DynamicEdgeMap } from '../DynamicField';
+import { DynamicField, DynamicFieldMap } from '../DynamicField';
 import { PathPart } from '../primitive';
 
 import { fragmentMapForDocument, getOperationOrDie } from './ast';
@@ -26,7 +26,7 @@ class PayloadWalkNode {
     /** The value of the current node at this location in the walk. */
     public readonly node: any,
     /** The value of the edge map at this location in the walk. */
-    public readonly edgeMap: DynamicEdgeMap | DynamicField | undefined,
+    public readonly edgeMap: DynamicFieldMap | DynamicField | undefined,
     /** The depth of the node (allows us to set the path correctly). */
     public readonly depth: number,
     /** The key/index of this node, relative to its parent. */
@@ -42,7 +42,7 @@ export type PayloadVisitor = (
   path: PathPart[],
   payloadValue: any,
   nodeValue: any,
-  dynamicEdge: DynamicField | DynamicEdgeMap | undefined,
+  dynamicEdge: DynamicField | DynamicFieldMap | undefined,
 ) => boolean;
 
 /**
@@ -61,7 +61,7 @@ export type PayloadVisitor = (
 export function walkPayload(
   payload: any,
   node: any,
-  edgeMap: DynamicField | DynamicEdgeMap | undefined,
+  edgeMap: DynamicField | DynamicFieldMap | undefined,
   visitRoot: boolean,
   visitor: PayloadVisitor,
 ) {

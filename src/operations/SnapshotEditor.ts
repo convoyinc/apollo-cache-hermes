@@ -1,7 +1,7 @@
 import { CacheContext } from '../context';
 import {
   DynamicField,
-  DynamicEdgeMap,
+  DynamicFieldMap,
   DynamicEdgeWithParameterizedArguments,
   expandEdgeArguments,
   isDynamicEdgeWithParameterizedArguments,
@@ -36,7 +36,7 @@ interface MergeQueueItem {
   containerId: NodeId;
   containerPayload: any;
   visitRoot: boolean;
-  edges: DynamicField | DynamicEdgeMap | undefined;
+  edges: DynamicField | DynamicFieldMap | undefined;
 }
 
 /**

@@ -3,7 +3,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   OperationDefinitionNode,
 } from 'graphql';
 
-import { DynamicEdgeMap, buildDynamicEdgeMap } from '../DynamicField';
+import { DynamicFieldMap, buildDynamicEdgeMap } from '../DynamicField';
 import { FragmentMap, fragmentMapForDocument, getOperationOrDie } from '../util';
 
 /**
@@ -25,7 +25,7 @@ export class QueryInfo {
   /** The edge map for the document, if there are any dynamic features:
    *    alias, parameterized arguments, directive
    */
-  public readonly dynamicEdgeMap?: DynamicEdgeMap;
+  public readonly dynamicEdgeMap?: DynamicFieldMap;
 
   constructor(document: DocumentNode) {
     this.document = document;

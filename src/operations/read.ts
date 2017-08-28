@@ -1,5 +1,5 @@
 import { PathPart } from '../primitive';
-import { expandEdgeArguments, DynamicField, DynamicEdgeMap } from '../DynamicField';
+import { expandEdgeArguments, DynamicField, DynamicFieldMap } from '../DynamicField';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
@@ -57,7 +57,7 @@ class OverlayWalkNode {
   constructor(
     public readonly value: any,
     public readonly containerId: NodeId,
-    public readonly edgeMap: DynamicEdgeMap,
+    public readonly edgeMap: DynamicFieldMap,
     public readonly path: PathPart[],
   ) {}
 }
@@ -74,7 +74,7 @@ export function _walkAndOverlayDynamicValues(
   query: ParsedQuery,
   context: CacheContext,
   snapshot: GraphSnapshot,
-  edges: DynamicEdgeMap,
+  edges: DynamicFieldMap,
   result: any,
 ): any {
   // Corner case: We stop walking once we reach a parameterized edge with no
@@ -112,7 +112,7 @@ export function _walkAndOverlayDynamicValues(
     }
 
     for (const key in edgeMap) {
-      let edge: DynamicEdgeMap | DynamicField | undefined = edgeMap[key];
+      let edge: DynamicFieldMap | DynamicField | undefined = edgeMap[key];
       let child, childId;
       let fieldName = key;
 
@@ -142,12 +142,12 @@ export function _walkAndOverlayDynamicValues(
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
             child[i] = _wrapValue(child[i]);
-            queue.push(new OverlayWalkNode(child[i], containerId, edge as DynamicEdgeMap, [...path, fieldName, i]));
+            queue.push(new OverlayWalkNode(child[i], containerId, edge as DynamicFieldMap, [...path, fieldName, i]));
           }
 
         } else {
           child = _wrapValue(child);
-          queue.push(new OverlayWalkNode(child, containerId, edge as DynamicEdgeMap, [...path, fieldName]))
+          queue.push(new OverlayWalkNode(child, containerId, edge as DynamicFieldMap, [...path, fieldName]))
         }
       }
 

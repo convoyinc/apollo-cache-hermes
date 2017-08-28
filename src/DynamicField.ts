@@ -18,7 +18,7 @@ export class DynamicField {
     /** A field name if exist an alias */
     public readonly fieldName?: string,
     /** Any child edge maps. */
-    public readonly children?: DynamicEdgeMap,
+    public readonly children?: DynamicFieldMap,
   ) {}
 }
 
@@ -28,8 +28,8 @@ export type DynamicEdgeWithParameterizedArguments = DynamicField & { parameteriz
  * A recursive map where the keys indicate the path to any edge in a result set
  * that contain a parameterized edge.
  */
-export interface DynamicEdgeMap {
-  [Key: string]: DynamicEdgeMap | DynamicField;
+export interface DynamicFieldMap {
+  [Key: string]: DynamicFieldMap | DynamicField;
 }
 
 /**
@@ -56,7 +56,7 @@ export class VariableArgument {
  * which are alias, parameterized arguments, directives
  * TODO: Support for directives (maybe?).
  */
-export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicEdgeMap | undefined {
+export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicFieldMap | undefined {
   if (!selectionSet) return undefined;
 
   let edgeMap;
@@ -78,7 +78,7 @@ export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: Selec
       // of the chidren directly instead of creating indirect DynamicField with
       // children. This is to save resources in walking
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
-      let currentEdge: DynamicField | DynamicEdgeMap | undefined;
+      let currentEdge: DynamicField | DynamicFieldMap | undefined;
       let parameterizedArguments: ParameterizedEdgeArguments | undefined;
 
       if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
