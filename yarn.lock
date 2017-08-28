@@ -1069,9 +1069,9 @@ graphql-tag@^2.4.2:
   version "2.4.2"
   resolved "https://registry.npmjs.org/graphql-tag/-/graphql-tag-2.4.2.tgz#6a63297d8522d03a2b72d26f1b239aab343840cd"
 
-graphql@^0.10.5:
-  version "0.10.5"
-  resolved "https://registry.npmjs.org/graphql/-/graphql-0.10.5.tgz#c9be17ca2bdfdbd134077ffd9bbaa48b8becd298"
+graphql@0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/graphql/-/graphql-0.11.0.tgz#a72561b0b9396a622128228bc34f3801c255fbdb"
   dependencies:
     iterall "^1.1.0"
 
