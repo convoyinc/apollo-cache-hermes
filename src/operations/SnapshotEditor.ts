@@ -186,7 +186,8 @@ export class SnapshotEditor {
 
         if (isDynamicFieldWithArgs(dynamicFields)) {
           const fieldId = this._ensureParameterizedValueSnapshot(containerId, path, dynamicFields, query.variables!);
-          // We walk the values of the parameterized field like any other entity.
+          // We walk the values of the parameterized field like any other
+          // entity.
           //
           // EXCEPT: We re-visit the payload, in case it might _directly_
           // reference an entity.  This allows us to build a chain of references
