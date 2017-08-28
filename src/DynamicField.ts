@@ -4,7 +4,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   ValueNode,
 } from 'graphql';
 
-import { JsonScalar } from './primitive';
+import { JsonScalar, NestedObject } from './primitive';
 import { FragmentMap } from './util';
 
 /**
@@ -33,12 +33,9 @@ export interface DynamicFieldMap {
 }
 
 /**
- * A value that can be expressed as an argument of a parameterized edge.
+ * A mapping of argument names to their values.
  */
-export type EdgeArgumentScalar = JsonScalar | VariableArgument;
-export interface EdgeArgumentArray extends Array<ParameterizedEdgeArgumentValue> {}
-export interface FieldArguments { [argumentName: string]: ParameterizedEdgeArgumentValue }
-export type ParameterizedEdgeArgumentValue = EdgeArgumentScalar | EdgeArgumentArray | FieldArguments;
+export type FieldArguments = NestedObject<JsonScalar | VariableArgument>;
 
 /**
  * Represents the location a variable should be used as an argument to a
@@ -50,15 +47,6 @@ export class VariableArgument {
     public readonly name: string,
   ) {}
 }
-
-export const foo: FieldArguments = {
-  asdf: [new VariableArgument('asdf')],
-  fdsa: {
-    one: {
-      two: [123, new VariableArgument('foo')],
-    },
-  },
-};
 
 /**
  * Walks a selection set, identifying the path to any dynamic edges
