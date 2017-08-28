@@ -1,15 +1,15 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { buildDynamicEdgeMap, DynamicField, VariableArgument } from '../../../../src/DynamicField';
+import { buildDynamicFieldMap, DynamicField, VariableArgument } from '../../../../src/DynamicField';
 import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util';
 
 describe(`util.ast`, () => {
-  describe(`buildDynamicEdgeMap`, () => {
+  describe(`buildDynamicFieldMap`, () => {
     function buildEdgeMapForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
       const fragmentMap = fragmentMapForDocument(document);
-      return buildDynamicEdgeMap(fragmentMap, operation.selectionSet);
+      return buildDynamicFieldMap(fragmentMap, operation.selectionSet);
     }
 
     describe(`with no parameterized edges`, () => {

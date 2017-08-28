@@ -56,7 +56,7 @@ export class VariableArgument {
  * which are alias, parameterized arguments, directives
  * TODO: Support for directives (maybe?).
  */
-export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicFieldMap | undefined {
+export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicFieldMap | undefined {
   if (!selectionSet) return undefined;
 
   let edgeMap;
@@ -68,7 +68,7 @@ export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: Selec
         throw new Error(`Expected fragment ${selection.name.value} to exist in GraphQL document`);
       }
       // TODO: Memoize.
-      const fragmentEdges = buildDynamicEdgeMap(fragments, fragment.selectionSet);
+      const fragmentEdges = buildDynamicFieldMap(fragments, fragment.selectionSet);
       if (fragmentEdges) {
         edgeMap = { ...edgeMap, ...fragmentEdges };
       }
@@ -90,9 +90,9 @@ export function buildDynamicEdgeMap(fragments: FragmentMap, selectionSet?: Selec
       if (parameterizedArguments || selection.alias) {
         currentEdge = new DynamicField(parameterizedArguments,
           selection.alias ? selection.name.value : undefined,
-          buildDynamicEdgeMap(fragments, selection.selectionSet));
+          buildDynamicFieldMap(fragments, selection.selectionSet));
       } else if (selection.selectionSet) {
-        currentEdge = buildDynamicEdgeMap(fragments, selection.selectionSet);
+        currentEdge = buildDynamicFieldMap(fragments, selection.selectionSet);
       }
 
       if (currentEdge) {

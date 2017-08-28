@@ -3,7 +3,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   OperationDefinitionNode,
 } from 'graphql';
 
-import { DynamicFieldMap, buildDynamicEdgeMap } from '../DynamicField';
+import { DynamicFieldMap, buildDynamicFieldMap } from '../DynamicField';
 import { FragmentMap, fragmentMapForDocument, getOperationOrDie } from '../util';
 
 /**
@@ -32,7 +32,7 @@ export class QueryInfo {
     this.operation = getOperationOrDie(document);
     this.operationName = this.operation.name && this.operation.name.value;
     this.fragmentMap = fragmentMapForDocument(document);
-    this.dynamicEdgeMap = buildDynamicEdgeMap(this.fragmentMap, this.operation.selectionSet);
+    this.dynamicEdgeMap = buildDynamicFieldMap(this.fragmentMap, this.operation.selectionSet);
   }
 
 }
