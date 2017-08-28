@@ -4,7 +4,7 @@ import gql from 'graphql-tag';
 import { buildDynamicFieldMap, DynamicField, VariableArgument } from '../../../../src/DynamicField';
 import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util';
 
-describe(`util.ast`, () => {
+describe(`DynamicField`, () => {
   describe(`buildDynamicFieldMap`, () => {
     function buildEdgeMapForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
