@@ -1,5 +1,5 @@
 import { PathPart } from '../primitive';
-import { expandFieldArguments, DynamicField, DynamicFieldMap } from '../DynamicField';
+import { DynamicField, DynamicFieldMap, DynamicFieldMapWithVariables, expandFieldArguments } from '../DynamicField';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
@@ -20,7 +20,7 @@ export interface QueryResultWithNodeIds extends QueryResult {
 }
 
 /**
- * Get you some datas.
+ * Get you some data.
  */
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
@@ -74,11 +74,11 @@ export function _walkAndOverlayDynamicValues(
   query: ParsedQuery,
   context: CacheContext,
   snapshot: GraphSnapshot,
-  fields: DynamicFieldMap,
+  fields: DynamicFieldMapWithVariables,
   result: any,
 ): any {
   // Corner case: We stop walking once we reach a parameterized field with no
-  // snapshot, but we should also pre-emptively stop walking if there are no
+  // snapshot, but we should also preemptively stop walking if there are no
 
   // dynamic values to be overlaid
   const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
