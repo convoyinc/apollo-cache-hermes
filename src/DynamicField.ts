@@ -169,12 +169,3 @@ export function expandFieldArguments(args: FieldArguments, variables: object = {
 
   return expanded;
 }
-
-/**
- *
- */
-export function variablesInDynamicFieldMap(fieldMap: DynamicFieldMap): Set<string> {
-  const names = new Set<string>();
-
-  return names;
-}
