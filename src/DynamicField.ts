@@ -5,7 +5,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 } from 'graphql';
 
 import { JsonScalar, NestedObject } from './primitive';
-import { FragmentMap } from './util';
+import { FragmentMap, valueFromNode } from './util';
 
 /**
  * Represent dynamic information: alias, parameterized arguments, directives
@@ -36,7 +36,6 @@ export interface DynamicFieldMap {
 
 /**
  * A mapping of argument names to their values.
-
  */
 export type FieldArguments = NestedObject<JsonScalar | VariableArgument>;
 
@@ -59,7 +58,18 @@ export class VariableArgument {
  *
  * TODO: Support for directives (maybe?).
  */
-export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: SelectionSetNode): DynamicFieldMap | undefined {
+export function compileDynamicFields(fragments: FragmentMap, selectionSet?: SelectionSetNode) {
+  const variables = new Set<string>();
+  const fieldMap = _buildDynamicFieldMap(variables, fragments, selectionSet);
+
+  return { variables, fieldMap };
+}
+
+function _buildDynamicFieldMap(
+  variables: Set<string>,
+  fragments: FragmentMap,
+  selectionSet?: SelectionSetNode,
+): DynamicFieldMap | undefined {
   if (!selectionSet) return undefined;
 
   let fieldMap;
@@ -71,7 +81,7 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
         throw new Error(`Expected fragment ${selection.name.value} to exist in GraphQL document`);
       }
       // TODO: Memoize.
-      const fragmentFields = buildDynamicFieldMap(fragments, fragment.selectionSet);
+      const fragmentFields = _buildDynamicFieldMap(variables, fragments, fragment.selectionSet);
       if (fragmentFields) {
         fieldMap = { ...fieldMap, ...fragmentFields };
       }
@@ -86,16 +96,16 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
       let parameterizedArguments: FieldArguments | undefined;
 
       if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
-        parameterizedArguments = _buildFieldArgs(selection.arguments);
+        parameterizedArguments = _buildFieldArgs(variables, selection.arguments);
       }
 
       // Is this a dynamic field?
       if (parameterizedArguments || selection.alias) {
         currentField = new DynamicField(parameterizedArguments,
           selection.alias ? selection.name.value : undefined,
-          buildDynamicFieldMap(fragments, selection.selectionSet));
+          _buildDynamicFieldMap(variables, fragments, selection.selectionSet));
       } else if (selection.selectionSet) {
-        currentField = buildDynamicFieldMap(fragments, selection.selectionSet);
+        currentField = _buildDynamicFieldMap(variables, fragments, selection.selectionSet);
       }
 
       if (currentField) {
@@ -111,11 +121,11 @@ export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: Sele
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildFieldArgs(argumentsNode: ArgumentNode[]): FieldArguments {
+function _buildFieldArgs(variables: Set<string>, argumentsNode: ArgumentNode[]): FieldArguments {
   const args = {};
   for (const arg of argumentsNode) {
     // Mapped name of argument to it JS value
-    args[arg.name.value] = _valueFromNode(arg.value);
+    args[arg.name.value] = _valueFromNode(variables, arg.value);
   }
 
   return args;
@@ -124,28 +134,11 @@ function _buildFieldArgs(argumentsNode: ArgumentNode[]): FieldArguments {
 /**
  * Evaluate a ValueNode and yield its value in its natural JS form.
  */
-function _valueFromNode(node: ValueNode): any {
-  switch (node.kind) {
-  case 'Variable':
-    return new VariableArgument(node.name.value);
-  case 'NullValue':
-    return null;
-  case 'IntValue':
-    return parseInt(node.value);
-  case 'FloatValue':
-    return parseFloat(node.value);
-  case 'ListValue':
-    return node.values.map(_valueFromNode);
-  case 'ObjectValue': {
-    const value = {};
-    for (const field of node.fields) {
-      value[field.name.value] = _valueFromNode(field.value);
-    }
-    return value;
-  }
-  default:
-    return node.value;
-  }
+function _valueFromNode(variables: Set<string>, node: ValueNode): any {
+  return valueFromNode(node, ({ name: { value } }) => {
+    variables.add(value);
+    return new VariableArgument(value);
+  });
 }
 
 /**

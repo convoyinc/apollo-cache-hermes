@@ -1,7 +1,7 @@
 import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { CacheContext } from '../../../src/context/CacheContext';
+import { CacheContext } from '../../../../src/context/CacheContext';
 
 describe(`context.CacheContext`, () => {
   describe(`addTypename`, () => {
