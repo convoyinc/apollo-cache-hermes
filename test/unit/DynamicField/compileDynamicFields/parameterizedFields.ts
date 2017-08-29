@@ -1,26 +1,26 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { buildDynamicFieldMap, DynamicField, VariableArgument } from '../../../../src/DynamicField';
+import { compileDynamicFields, DynamicField, VariableArgument } from '../../../../src/DynamicField';
 import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util';
 
 describe(`DynamicField`, () => {
-  describe(`buildDynamicFieldMap`, () => {
-    function buildFieldMapForOperation(document: DocumentNode) {
+  describe(`compileDynamicFields`, () => {
+    function compileDynamicFieldsForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
       const fragmentMap = fragmentMapForDocument(document);
-      return buildDynamicFieldMap(fragmentMap, operation.selectionSet);
+      return compileDynamicFields(fragmentMap, operation.selectionSet);
     }
 
     describe(`with no parameterized fields`, () => {
 
       it(`returns undefined for selections sets with no parameterized fields`, () => {
-        const map = buildFieldMapForOperation(gql`{ foo bar }`);
+        const map = compileDynamicFieldsForOperation(gql`{ foo bar }`);
         expect(map).to.deep.eq({ fieldMap: undefined, variables: new Set() });
       });
 
       it(`handles fragments without parameterized fields`, () => {
-        const map = buildFieldMapForOperation(gql`
+        const map = compileDynamicFieldsForOperation(gql`
           query foo { ...bar }
 
           fragment bar on Foo {
@@ -35,7 +35,7 @@ describe(`DynamicField`, () => {
 
     describe(`with static arguments`, () => {
       it(`parses top level fields`, () => {
-        const map = buildFieldMapForOperation(gql`{
+        const map = compileDynamicFieldsForOperation(gql`{
             foo(id:123) {
               a b
             }
@@ -49,7 +49,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`parses queries with sibling fields`, () => {
-        const map = buildFieldMapForOperation(gql`{
+        const map = compileDynamicFieldsForOperation(gql`{
           foo(id: 123) {
             a b
           }
@@ -67,7 +67,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`handles nested fields`, () => {
-        const map = buildFieldMapForOperation(gql`{
+        const map = compileDynamicFieldsForOperation(gql`{
           foo(id: 123) {
             bar(asdf: "fdsa") {
               baz(one: true, two: null) { a b c }
@@ -87,7 +87,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`properly constructs deeply nested paths`, () => {
-        const map = buildFieldMapForOperation(gql`{
+        const map = compileDynamicFieldsForOperation(gql`{
           foo {
             fizz {
               buzz {
@@ -111,7 +111,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`handles fields declared via fragment spreads`, () => {
-        const map = buildFieldMapForOperation(gql`
+        const map = compileDynamicFieldsForOperation(gql`
           fragment bar on Foo {
             stuff { ...things }
           }
@@ -134,7 +134,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`supports all types of variables`, () => {
-        const map = buildFieldMapForOperation(gql`
+        const map = compileDynamicFieldsForOperation(gql`
           query typetastic($variable: Custom) {
             foo(
               variable: $variable,
@@ -181,7 +181,7 @@ describe(`DynamicField`, () => {
     describe(`with variables`, () => {
 
       it(`creates placeholder args for variables`, () => {
-        const map = buildFieldMapForOperation(gql`
+        const map = compileDynamicFieldsForOperation(gql`
           query get($id: ID!) {
             foo(id: $id) { a b c }
           }
@@ -197,7 +197,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`handles a mix of variables and static values`, () => {
-        const map = buildFieldMapForOperation(gql`
+        const map = compileDynamicFieldsForOperation(gql`
           query get($id: ID!, $val: String) {
             foo(id: $id, foo: "asdf", bar: $id, baz: $val) {
               a b c

@@ -4,7 +4,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   OperationTypeNode,
 } from 'graphql';
 
-import { DynamicFieldMap, buildDynamicFieldMap } from '../DynamicField';
+import { DynamicFieldMap, compileDynamicFields } from '../DynamicField';
 import { JsonValue } from '../primitive';
 import {
   FragmentMap,
@@ -53,7 +53,7 @@ export class QueryInfo {
     this.operationName = this.operation.name && this.operation.name.value;
     this.fragmentMap = fragmentMapForDocument(document);
 
-    const { fieldMap, variables } = buildDynamicFieldMap(this.fragmentMap, this.operation.selectionSet);
+    const { fieldMap, variables } = compileDynamicFields(this.fragmentMap, this.operation.selectionSet);
     this.dynamicFieldMap = fieldMap;
     this.variables = variables;
     this.variableDefaults = variableDefaultsInOperation(this.operation);

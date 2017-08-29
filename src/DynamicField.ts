@@ -58,14 +58,14 @@ export class VariableArgument {
  *
  * TODO: Support for directives (maybe?).
  */
-export function buildDynamicFieldMap(fragments: FragmentMap, selectionSet?: SelectionSetNode) {
+export function compileDynamicFields(fragments: FragmentMap, selectionSet?: SelectionSetNode) {
   const variables = new Set<string>();
   const fieldMap = _buildDynamicFieldMap(variables, fragments, selectionSet);
 
   return { variables, fieldMap };
 }
 
-export function _buildDynamicFieldMap(
+function _buildDynamicFieldMap(
   variables: Set<string>,
   fragments: FragmentMap,
   selectionSet?: SelectionSetNode,

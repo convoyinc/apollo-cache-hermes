@@ -1,21 +1,21 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
-import { buildDynamicFieldMap, DynamicField, VariableArgument } from '../../../../src/DynamicField';
+import { compileDynamicFields, DynamicField, VariableArgument } from '../../../../src/DynamicField';
 import { fragmentMapForDocument, getOperationOrDie } from '../../../../src/util';
 
 describe(`DynamicField`, () => {
-  describe(`buildDynamicFieldMap`, () => {
-    function buildFieldMapForOperation(document: DocumentNode) {
+  describe(`compileDynamicFields`, () => {
+    function compileDynamicFieldsForOperation(document: DocumentNode) {
       const operation = getOperationOrDie(document);
       const fragmentMap = fragmentMapForDocument(document);
-      return buildDynamicFieldMap(fragmentMap, operation.selectionSet);
+      return compileDynamicFields(fragmentMap, operation.selectionSet);
     }
 
     describe(`with field alias`, () => {
 
       it(`simple query`, () => {
-        const map = buildFieldMapForOperation(gql`{
+        const map = compileDynamicFieldsForOperation(gql`{
             user {
               ID: id,
               FirstName: name,
@@ -34,7 +34,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`nested alias`, () => {
-        const map = buildFieldMapForOperation(gql`
+        const map = compileDynamicFieldsForOperation(gql`
           query getUser {
             superUser: user {
               ID: id
@@ -58,7 +58,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`field alias with parameterized field`, () => {
-        const map = buildFieldMapForOperation(gql`
+        const map = compileDynamicFieldsForOperation(gql`
           query getProfile {
             superUser: user(id: 4) {
               ID: id
@@ -82,7 +82,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`field alias with variable parameterized field`, () => {
-        const map = buildFieldMapForOperation(gql`
+        const map = compileDynamicFieldsForOperation(gql`
           query getProfile ($id: ID!) {
             superUser: user(id: $id) {
               ID: id
@@ -106,7 +106,7 @@ describe(`DynamicField`, () => {
       });
 
       it(`complex nested alias`, () => {
-        const map = buildFieldMapForOperation(gql`{
+        const map = compileDynamicFieldsForOperation(gql`{
           shipments(first: 2) {
             shipmentsInfo: fields {
               id
