@@ -4,7 +4,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   OperationTypeNode,
 } from 'graphql';
 
-import { DynamicFieldMap, compileDynamicFields } from '../DynamicField';
+import { compileDynamicFields, DynamicFieldMapWithVariables } from '../DynamicField';
 import { JsonValue } from '../primitive';
 import {
   FragmentMap,
@@ -36,7 +36,7 @@ export class QueryInfo {
    * The field map for the document, if there are any dynamic features: alias,
    * parameterized arguments, directive
    */
-  public readonly dynamicFieldMap?: DynamicFieldMap;
+  public readonly dynamicFieldMap?: DynamicFieldMapWithVariables;
   /** Variables used within this query. */
   public readonly variables: Set<string>;
   /**
