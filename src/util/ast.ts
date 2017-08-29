@@ -60,14 +60,16 @@ export function variableDefaultsInOperation(operation: OperationDefinitionNode):
   return defaults;
 }
 
-export function _defaultValueFromVariable(node: VariableNode) {
+function _defaultValueFromVariable(node: VariableNode) {
   throw new Error(`Variable nodes are not supported by valueFromNode`);
 }
+
+export type VariableValue = (node: VariableNode) => any;
 
 /**
  * Evaluate a ValueNode and yield its value in its natural JS form.
  */
-export function valueFromNode(node: ValueNode, onVariable = _defaultValueFromVariable): any {
+export function valueFromNode(node: ValueNode, onVariable: VariableValue = _defaultValueFromVariable): any {
   switch (node.kind) {
   case 'Variable':
     return onVariable(node);
