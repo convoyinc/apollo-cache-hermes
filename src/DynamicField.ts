@@ -23,10 +23,10 @@ export class DynamicField<TArgTypes extends JsonAndArgs, TChildArgTypes extends 
     public readonly children?: DynamicFieldMap<TChildArgTypes>,
   ) {}
 }
+export interface DynamicFieldWithVariables extends DynamicField<JsonAndArgs, JsonAndArgs> {}
 
 export namespace DynamicField {
   export interface WithoutVariables extends DynamicField<JsonScalar, JsonScalar> {}
-  export interface WithVariables extends DynamicField<JsonAndArgs, JsonAndArgs> {}
   export interface WithArgs extends WithoutVariables {
     readonly args: NestedObject<JsonScalar>;
   }
@@ -39,10 +39,10 @@ export namespace DynamicField {
 export interface DynamicFieldMap<TArgTypes extends JsonAndArgs> {
   [Key: string]: DynamicFieldMap<TArgTypes> | DynamicField<TArgTypes, TArgTypes>;
 }
+export interface DynamicFieldMapWithVariables extends DynamicFieldMap<JsonAndArgs> {}
 
 export namespace DynamicFieldMap {
   export interface WithoutVariables extends DynamicFieldMap<JsonScalar> {}
-  export interface WithVariables extends DynamicFieldMap<JsonAndArgs> {}
 }
 
 // TODO: Can we remove this?
@@ -78,7 +78,7 @@ function _buildDynamicFieldMap(
   variables: Set<string>,
   fragments: FragmentMap,
   selectionSet?: SelectionSetNode,
-): DynamicFieldMap.WithVariables | undefined {
+): DynamicFieldMapWithVariables | undefined {
   if (!selectionSet) return undefined;
 
   let fieldMap;
@@ -101,7 +101,7 @@ function _buildDynamicFieldMap(
       // saves a bit of overhead, and allows us to more cleanly reason about
       // where dynamic fields are in the selection.
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
-      let currentField: DynamicField.WithVariables | DynamicFieldMap.WithVariables | undefined;
+      let currentField: DynamicFieldWithVariables | DynamicFieldMapWithVariables | undefined;
       let parameterizedArguments: FieldArguments | undefined;
 
       if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
@@ -164,7 +164,7 @@ export function isDynamicFieldWithArgs(field: any): field is DynamicField.WithAr
  * This requires that all variables used are provided in `variables`.
  */
 export function expandVariables(
-  map: DynamicFieldMap.WithVariables | undefined,
+  map: DynamicFieldMapWithVariables | undefined,
   variables: JsonObject | undefined,
 ): DynamicFieldMap.WithoutVariables | undefined {
   if (!map) return undefined;
