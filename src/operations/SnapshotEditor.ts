@@ -446,7 +446,7 @@ export class SnapshotEditor {
   /**
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: object) {
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: JsonObject) {
     const args = expandFieldArguments(field.args, variables);
     const fieldId = nodeIdForParameterizedValue(containerId, path, args);
 
@@ -471,7 +471,7 @@ export class SnapshotEditor {
 /**
  * Generate a stable id for a parameterized value.
  */
-export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object | undefined) {
+export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args?: JsonObject) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
 }
 

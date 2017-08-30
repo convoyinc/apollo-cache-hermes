@@ -4,7 +4,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   ValueNode,
 } from 'graphql';
 
-import { JsonScalar, NestedObject } from './primitive';
+import { JsonObject, JsonScalar, NestedObject } from './primitive';
 import { FragmentMap, valueFromNode } from './util';
 
 /**
@@ -151,7 +151,7 @@ export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArg
 /**
  * Sub values in for any variables required by a field's args.
  */
-export function expandFieldArguments(args: FieldArguments, variables: object = {}): object {
+export function expandFieldArguments(args: FieldArguments, variables: JsonObject = {}): JsonObject {
   const expanded = {};
   // TODO: Recurse into objects/arrays.
   for (const key in args) {

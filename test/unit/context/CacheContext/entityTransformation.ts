@@ -1,10 +1,10 @@
-import { JsonObject } from '../../../../src/primitive';
 import * as _ from 'lodash';
 
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read } from '../../../../src/operations/read';
 import { write } from '../../../../src/operations/write';
+import { JsonObject } from '../../../../src/primitive';
 import { Query, StaticNodeId } from '../../../../src/schema';
 import { query } from '../../../helpers';
 
