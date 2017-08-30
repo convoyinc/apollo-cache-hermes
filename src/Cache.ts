@@ -1,4 +1,4 @@
-import { JsonObject } from './primitive';
+import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheSnapshot } from './CacheSnapshot';
@@ -39,7 +39,7 @@ export class Cache implements Queryable {
    * TODO: Can we drop non-optimistic reads?
    * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(query: Query, optimistic?: boolean): { result: any, complete: boolean } {
+  read(query: Query, optimistic?: boolean): { result?: JsonValue, complete: boolean } {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     const snapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;

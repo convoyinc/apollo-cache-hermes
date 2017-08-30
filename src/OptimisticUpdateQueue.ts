@@ -1,6 +1,7 @@
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { SnapshotEditor } from './operations';
+import { JsonObject } from './primitive';
 import { ChangeId, NodeId, QuerySnapshot } from './schema';
 
 /**
@@ -54,7 +55,7 @@ export class OptimisticUpdateQueue {
     const editor = new SnapshotEditor(context, snapshot);
     for (const update of this._updates) {
       for (const delta of update.deltas) {
-        editor.mergePayload(delta.query, delta.payload);
+        editor.mergePayload(delta.query, delta.payload as JsonObject);
       }
     }
 

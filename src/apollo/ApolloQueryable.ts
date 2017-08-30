@@ -44,7 +44,7 @@ export abstract class ApolloQueryable {
   readFragment<FragmentType>(options: interfaces.Cache.ReadFragmentOptions, optimistic?: true): FragmentType | null {
     // TODO: Support nested fragments.
     const query = toQuery(options.fragment, options.variables as JsonObject);
-    return this._queryable.read(query, optimistic).result;
+    return this._queryable.read(query, optimistic).result as any;
   }
 
   writeResult(options: interfaces.Cache.WriteResultOptions): void {

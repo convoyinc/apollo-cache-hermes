@@ -59,5 +59,5 @@ export interface ParsedQuery {
  */
 export interface QuerySnapshot {
   query: Query;
-  payload: any;
+  payload?: JsonObject;
 }

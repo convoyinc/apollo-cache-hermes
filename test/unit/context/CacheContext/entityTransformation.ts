@@ -55,8 +55,8 @@ describe(`context.CacheContext`, () => {
 
       it(`get information through helper methods`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
-        const name = result.viewer.getName();
-        const id = result.viewer.getId();
+        const name = (result as any).viewer.getName();
+        const id = (result as any).viewer.getId();
         expect(name).to.eq('Bob');
         expect(id).to.eq('0');
       });
@@ -164,10 +164,10 @@ describe(`context.CacheContext`, () => {
 
       it(`get information through helper methods`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
-        expect(result.user.getName()).to.eq('Bob');
-        expect(result.user.getId()).to.eq('0');
-        expect(result.user.getJustPhoneNumber()).to.eq(1234);
-        expect(result.user.getCity()).to.eq('AA');
+        expect((result as any).user.getName()).to.eq('Bob');
+        expect((result as any).user.getId()).to.eq('0');
+        expect((result as any).user.getJustPhoneNumber()).to.eq(1234);
+        expect((result as any).user.getCity()).to.eq('AA');
       });
 
       it(`check helper methods exists`, () => {
@@ -280,10 +280,10 @@ describe(`context.CacheContext`, () => {
 
       it(`get information through helper methods`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
-        expect(result.user.getName()).to.eq('Bob');
-        expect(result.user.getId()).to.eq('0');
-        expect(result.user.getJustPhoneNumber()).to.eq(1234);
-        expect(result.user.getCity()).to.eq('AA');
+        expect((result as any).user.getName()).to.eq('Bob');
+        expect((result as any).user.getId()).to.eq('0');
+        expect((result as any).user.getJustPhoneNumber()).to.eq(1234);
+        expect((result as any).user.getCity()).to.eq('AA');
       });
 
       it(`check helper methods exists`, () => {

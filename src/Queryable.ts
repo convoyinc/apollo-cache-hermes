@@ -1,3 +1,4 @@
+import { JsonObject, JsonValue } from './primitive';
 import { Query } from './schema';
 
 /**
@@ -12,11 +13,11 @@ export interface Queryable {
    * TODO: Can we drop non-optimistic reads?
    * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(query: Query, optimistic?: boolean): { result: any, complete: boolean };
+  read(query: Query, optimistic?: boolean): { result?: JsonValue, complete: boolean };
 
   /**
    * Writes values for a selection to the cache.
    */
-  write(query: Query, payload: any): void;
+  write(query: Query, payload: JsonObject): void;
 
 }

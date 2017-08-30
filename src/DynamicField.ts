@@ -4,7 +4,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   ValueNode,
 } from 'graphql';
 
-import { JsonObject, JsonScalar, NestedObject } from './primitive';
+import { JsonObject, JsonScalar, JsonValue, NestedObject } from './primitive';
 import { FragmentMap, valueFromNode } from './util';
 
 /**
@@ -134,7 +134,7 @@ function _buildFieldArgs(variables: Set<string>, argumentsNode: ArgumentNode[]):
 /**
  * Evaluate a ValueNode and yield its value in its natural JS form.
  */
-function _valueFromNode(variables: Set<string>, node: ValueNode): any {
+function _valueFromNode(variables: Set<string>, node: ValueNode): JsonValue {
   return valueFromNode(node, ({ name: { value } }) => {
     variables.add(value);
     return new VariableArgument(value);

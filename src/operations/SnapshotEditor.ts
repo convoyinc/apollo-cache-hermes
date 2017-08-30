@@ -34,7 +34,7 @@ export interface EditedSnapshot {
  */
 interface MergeQueueItem {
   containerId: NodeId;
-  containerPayload: any;
+  containerPayload: JsonObject;
   visitRoot: boolean;
   fields: DynamicField | DynamicFieldMap | undefined;
 }
@@ -159,8 +159,8 @@ export class SnapshotEditor {
       walkPayload(containerPayload, container, fields, visitRoot, (path, payloadValue, nodeValue, dynamicFields) => {
         const payloadIsObject = isObject(payloadValue);
         const nodeIsObject = isObject(nodeValue);
-        let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
-        const prevNodeId = nodeIsObject ? entityIdForNode(nodeValue) : undefined;
+        let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue as JsonObject) : undefined;
+        const prevNodeId = nodeIsObject ? entityIdForNode(nodeValue as JsonObject) : undefined;
         const isReference = nextNodeId || prevNodeId;
         // TODO: Rather than failing on cycles in payload values, we should
         // follow the query's selection set to know how deep to walk.
@@ -193,7 +193,12 @@ export class SnapshotEditor {
           // reference an entity.  This allows us to build a chain of references
           // where the parameterized value points _directly_ to a particular
           // entity node.
-          queue.push({ containerId: fieldId, containerPayload: payloadValue, visitRoot: true, fields: dynamicFields.children });
+          queue.push({
+            containerId: fieldId,
+            containerPayload: payloadValue as JsonObject,
+            visitRoot: true,
+            fields: dynamicFields.children,
+          });
 
           // Stop the walk for this subgraph.
           return true;
@@ -224,7 +229,7 @@ export class SnapshotEditor {
           // subgraph.
           if (nextNodeId) {
             const nextFields = dynamicFields instanceof DynamicField ? dynamicFields.children : dynamicFields;
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, fields: nextFields });
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue as JsonObject, visitRoot: false, fields: nextFields });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -233,7 +238,7 @@ export class SnapshotEditor {
         // contained within the array are the _full_ set of values.
         } else if (Array.isArray(payloadValue)) {
           const payloadLength = payloadValue.length;
-          const nodeLength = nodeValue && nodeValue.length;
+          const nodeLength = Array.isArray(nodeValue) && nodeValue.length;
           // We will walk to each value within the array, so we do not need to
           // process them yet; but because we update them by path, we do need to
           // ensure that the updated entity's array has the same number of

@@ -11,7 +11,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 } from 'graphql';
 
 import { DynamicField, DynamicFieldMap } from '../DynamicField';
-import { PathPart } from '../primitive';
+import { JsonObject, JsonValue, PathPart } from '../primitive';
 
 import { fragmentMapForDocument, getOperationOrDie } from './ast';
 
@@ -22,9 +22,9 @@ import { fragmentMapForDocument, getOperationOrDie } from './ast';
 class PayloadWalkNode {
   constructor(
     /** The value of the payload at this location in the walk. */
-    public readonly payload: any,
+    public readonly payload: JsonValue,
     /** The value of the current node at this location in the walk. */
-    public readonly node: any,
+    public readonly node: JsonValue | undefined,
     /** The value of the field map at this location in the walk. */
     public readonly fieldMap: DynamicFieldMap | DynamicField | undefined,
     /** The depth of the node (allows us to set the path correctly). */
@@ -40,8 +40,8 @@ class PayloadWalkNode {
  */
 export type PayloadVisitor = (
   path: PathPart[],
-  payloadValue: any,
-  nodeValue: any,
+  payloadValue: JsonValue,
+  nodeValue: JsonValue | undefined,
   dynamicField: DynamicField | DynamicFieldMap | undefined,
 ) => boolean;
 
@@ -59,8 +59,8 @@ export type PayloadVisitor = (
  * to the values inside the (homogeneous) array.
  */
 export function walkPayload(
-  payload: any,
-  node: any,
+  payload: JsonValue,
+  node: JsonValue | undefined,
   rootFieldMap: DynamicField | DynamicFieldMap | undefined,
   visitRoot: boolean,
   visitor: PayloadVisitor,
@@ -138,19 +138,19 @@ export function walkPayload(
 class OperationWalkNode {
   constructor(
     public readonly selectionSet: SelectionSetNode,
-    public readonly parent: any,
+    public readonly parent?: JsonValue,
   ) {}
 }
 
 /**
  * Returning true indicates that the walk should STOP.
  */
-export type OperationVisitor = (parent: any, fields: FieldNode[]) => boolean;
+export type OperationVisitor = (parent: JsonValue | undefined, fields: FieldNode[]) => boolean;
 
 /**
  *
  */
-export function walkOperation(document: DocumentNode, result: any, visitor: OperationVisitor) {
+export function walkOperation(document: DocumentNode, result: JsonObject | undefined, visitor: OperationVisitor) {
   const operation = getOperationOrDie(document);
   const fragmentMap = fragmentMapForDocument(document);
 

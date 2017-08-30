@@ -2,7 +2,7 @@ import { CacheSnapshot } from './CacheSnapshot';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
-import { JsonObject } from './primitive';
+import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, Query, QuerySnapshot } from './schema';
 import { addToSet } from './util';
@@ -31,7 +31,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Executes reads against the current values in the transaction.
    */
-  read(query: Query): { result: any, complete: boolean } {
+  read(query: Query): { result?: JsonValue, complete: boolean } {
     return read(this._context, query, this._snapshot.optimistic);
   }
 
