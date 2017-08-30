@@ -1,3 +1,4 @@
+import { JsonObject } from './primitive';
 import { Queryable } from './Queryable';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheSnapshot } from './CacheSnapshot';
@@ -59,7 +60,7 @@ export class Cache implements Queryable {
   /**
    * Writes values for a selection to the cache.
    */
-  write(query: Query, payload: any): void {
+  write(query: Query, payload: JsonObject): void {
     this.transaction(t => t.write(query, payload));
   }
 

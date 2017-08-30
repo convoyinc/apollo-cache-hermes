@@ -4,6 +4,7 @@ import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes';
 import { write } from '../../../../src/operations/write';
+import { JsonArray } from '../../../../src/primitive';
 import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
 import { query } from '../../../helpers';
 
@@ -368,7 +369,7 @@ describe(`operations.write`, () => {
           { id: 3, name: 'Three' },
           { id: 4, name: 'Four' },
           undefined,
-        ],
+        ] as JsonArray,
       }).snapshot;
 
       expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
