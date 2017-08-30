@@ -7,29 +7,29 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 import { JsonObject, JsonScalar, JsonValue, NestedObject, NestedValue } from './primitive';
 import { FragmentMap, isObject, valueFromNode } from './util';
 
+export type JsonAndArgs = JsonScalar | VariableArgument;
+
 /**
  * Represent dynamic information: alias, parameterized arguments, directives
  * (if existed) of NodeSnapshot in GraphSnapshot.
  */
-export class DynamicField<TArgTypes extends JsonScalar | VariableArgument> {
+export class DynamicField<TArgTypes extends JsonAndArgs, TChildArgTypes extends JsonAndArgs> {
   constructor(
     /** The map of arguments and their static or variable values. */
     public readonly args?: NestedObject<TArgTypes>,
     /** A field name if exist an alias */
     public readonly fieldName?: string,
     /** Any children with dynamic fields. */
-    public readonly children?: DynamicFieldMap<JsonScalar | VariableArgument>,
+    public readonly children?: DynamicFieldMap<TChildArgTypes>,
   ) {}
 }
 
 export namespace DynamicField {
-  export interface WithoutVariables extends DynamicField<JsonScalar> {
-    readonly children?: DynamicFieldMap<JsonScalar>;
-  }
-  export interface WithVariables extends DynamicField<JsonScalar | VariableArgument> {}
+  export interface WithoutVariables extends DynamicField<JsonScalar, JsonScalar> {}
+  export interface WithVariables extends DynamicField<JsonAndArgs, JsonAndArgs> {}
   // TODO: should extend WithoutVariables.
   export interface WithArgs extends WithVariables {
-    readonly args: NestedObject<JsonScalar | VariableArgument>;
+    readonly args: NestedObject<JsonAndArgs>;
   }
 }
 
@@ -37,17 +37,17 @@ export namespace DynamicField {
  * A recursive map where the keys indicate the path to any field in a result set
  * that contain a dynamic field.
  */
-export interface DynamicFieldMap<TArgTypes extends JsonScalar | VariableArgument> {
-  [Key: string]: DynamicFieldMap<TArgTypes> | DynamicField<TArgTypes>;
+export interface DynamicFieldMap<TArgTypes extends JsonAndArgs> {
+  [Key: string]: DynamicFieldMap<TArgTypes> | DynamicField<TArgTypes, TArgTypes>;
 }
 
 export namespace DynamicFieldMap {
   export interface WithoutVariables extends DynamicFieldMap<JsonScalar> {}
-  export interface WithVariables extends DynamicFieldMap<JsonScalar | VariableArgument> {}
+  export interface WithVariables extends DynamicFieldMap<JsonAndArgs> {}
 }
 
 // TODO: Can we remove this?
-export type FieldArguments = NestedObject<JsonScalar | VariableArgument>;
+export type FieldArguments = NestedObject<JsonAndArgs>;
 
 /**
  * Represents the location a variable should be used as an argument to a
@@ -191,14 +191,14 @@ export function expandVariables(
  * Sub values in for any variables required by a field's args.
  */
 export function expandFieldArguments(
-  args: NestedValue<JsonScalar | VariableArgument> | undefined,
+  args: NestedValue<JsonAndArgs> | undefined,
   variables: JsonObject | undefined,
 ): JsonObject | undefined {
   return args ? _expandArgument(args, variables) as JsonObject : undefined;
 }
 
 export function _expandArgument(
-  arg: NestedValue<JsonScalar | VariableArgument>,
+  arg: NestedValue<JsonAndArgs>,
   variables: JsonObject | undefined,
 ): JsonValue {
   if (arg instanceof VariableArgument) {
