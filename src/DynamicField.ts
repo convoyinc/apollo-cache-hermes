@@ -4,8 +4,8 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   ValueNode,
 } from 'graphql';
 
-import { JsonObject, JsonScalar, JsonValue, NestedObject } from './primitive';
-import { FragmentMap, valueFromNode } from './util';
+import { JsonObject, JsonScalar, JsonValue, NestedObject, NestedValue } from './primitive';
+import { FragmentMap, isObject, valueFromNode } from './util';
 
 /**
  * Represent dynamic information: alias, parameterized arguments, directives
@@ -159,23 +159,63 @@ export function isDynamicFieldWithArgs(field: any): field is DynamicField.WithAr
 }
 
 /**
- * Sub values in for any variables required by a field's args.
+ * Replace all instances of VariableArgument contained within a DynamicFieldMap
+ * with their actual values.
+ *
+ * This requires that all variables used are provided in `variables`.
  */
-export function expandFieldArguments(args: FieldArguments, variables: JsonObject = {}): JsonObject {
-  const expanded = {};
-  // TODO: Recurse into objects/arrays.
-  for (const key in args) {
-    let arg = args[key];
-    if (arg instanceof VariableArgument) {
-      if (!(arg.name in variables)) {
-        // TODO: Detect optional variables?
-        throw new Error(`Expected variable $${arg.name} to exist for query`);
-      }
-      arg = variables[arg.name];
-    }
+export function expandVariables(
+  map: DynamicFieldMap.WithVariables | undefined,
+  variables: JsonObject | undefined,
+): DynamicFieldMap.WithoutVariables | undefined {
+  if (!map) return undefined;
 
-    expanded[key] = arg;
+  const newMap = {};
+  for (const key in map) {
+    const entry = map[key];
+    if (entry instanceof DynamicField) {
+      newMap[key] = new DynamicField(
+        expandFieldArguments(entry.args, variables),
+        entry.fieldName,
+        expandVariables(entry.children, variables),
+      );
+    } else {
+      newMap[key] = expandVariables(entry, variables);
+    }
   }
 
-  return expanded;
+  return newMap;
+}
+
+/**
+ * Sub values in for any variables required by a field's args.
+ */
+export function expandFieldArguments(
+  args: NestedValue<JsonScalar | VariableArgument> | undefined,
+  variables: JsonObject | undefined,
+): JsonObject | undefined {
+  return args ? _expandArgument(args, variables) as JsonObject : undefined;
+}
+
+export function _expandArgument(
+  arg: NestedValue<JsonScalar | VariableArgument>,
+  variables: JsonObject | undefined,
+): JsonValue {
+  if (arg instanceof VariableArgument) {
+    if (!variables || !(arg.name in variables)) {
+      throw new Error(`Expected variable $${arg.name} to exist for query`);
+    }
+    return variables[arg.name];
+  } else if (Array.isArray(arg)) {
+    return arg.map(v => _expandArgument(v, variables));
+  } else if (isObject(arg)) {
+    const expanded = {};
+    for (const key in arg) {
+      expanded[key] = _expandArgument(arg[key], variables);
+    }
+    return expanded;
+  } else {
+    // TS isn't inferring that arg cannot contain any VariableArgument values.
+    return arg as JsonValue;
+  }
 }
