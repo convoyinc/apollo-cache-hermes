@@ -57,7 +57,7 @@ class OverlayWalkNode {
   constructor(
     public readonly value: JsonObject,
     public readonly containerId: NodeId,
-    public readonly fieldMap: DynamicFieldMap,
+    public readonly fieldMap: DynamicFieldMap.WithVariables,
     public readonly path: PathPart[],
   ) {}
 }
@@ -74,7 +74,7 @@ export function _walkAndOverlayDynamicValues(
   query: ParsedQuery,
   context: CacheContext,
   snapshot: GraphSnapshot,
-  fields: DynamicFieldMap,
+  fields: DynamicFieldMap.WithVariables,
   result: JsonObject,
 ): JsonObject {
   // Corner case: We stop walking once we reach a parameterized field with no
@@ -112,7 +112,7 @@ export function _walkAndOverlayDynamicValues(
     }
 
     for (const key in fieldMap) {
-      let field: DynamicFieldMap | DynamicField | undefined = fieldMap[key];
+      let field: DynamicFieldMap.WithVariables | DynamicField.WithVariables | undefined = fieldMap[key];
       let child, childId;
       let fieldName = key;
 
@@ -142,12 +142,12 @@ export function _walkAndOverlayDynamicValues(
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
             child[i] = _wrapValue(child[i]);
-            queue.push(new OverlayWalkNode(child[i], containerId, field as DynamicFieldMap, [...path, fieldName, i]));
+            queue.push(new OverlayWalkNode(child[i], containerId, field as DynamicFieldMap.WithVariables, [...path, fieldName, i]));
           }
 
         } else {
           child = _wrapValue(child);
-          queue.push(new OverlayWalkNode(child, containerId, field as DynamicFieldMap, [...path, fieldName]))
+          queue.push(new OverlayWalkNode(child, containerId, field as DynamicFieldMap.WithVariables, [...path, fieldName]))
         }
       }
 

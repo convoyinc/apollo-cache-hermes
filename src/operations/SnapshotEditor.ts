@@ -2,7 +2,6 @@ import { CacheContext } from '../context';
 import {
   DynamicField,
   DynamicFieldMap,
-  DynamicFieldWithArgs,
   expandFieldArguments,
   isDynamicFieldWithArgs,
 } from '../DynamicField';
@@ -36,7 +35,7 @@ interface MergeQueueItem {
   containerId: NodeId;
   containerPayload: JsonObject;
   visitRoot: boolean;
-  fields: DynamicField | DynamicFieldMap | undefined;
+  fields: DynamicField.WithVariables | DynamicFieldMap.WithVariables | undefined;
 }
 
 /**
@@ -451,7 +450,7 @@ export class SnapshotEditor {
   /**
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: JsonObject) {
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicField.WithArgs, variables: JsonObject) {
     const args = expandFieldArguments(field.args, variables);
     const fieldId = nodeIdForParameterizedValue(containerId, path, args);
 

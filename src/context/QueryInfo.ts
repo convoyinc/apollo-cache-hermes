@@ -36,7 +36,7 @@ export class QueryInfo {
    * The field map for the document, if there are any dynamic features: alias,
    * parameterized arguments, directive
    */
-  public readonly dynamicFieldMap?: DynamicFieldMap;
+  public readonly dynamicFieldMap?: DynamicFieldMap.WithVariables;
   /** Variables used within this query. */
   public readonly variables: Set<string>;
   /**

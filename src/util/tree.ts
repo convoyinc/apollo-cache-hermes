@@ -26,7 +26,7 @@ class PayloadWalkNode {
     /** The value of the current node at this location in the walk. */
     public readonly node: JsonValue | undefined,
     /** The value of the field map at this location in the walk. */
-    public readonly fieldMap: DynamicFieldMap | DynamicField | undefined,
+    public readonly fieldMap: DynamicFieldMap.WithVariables | DynamicField.WithVariables | undefined,
     /** The depth of the node (allows us to set the path correctly). */
     public readonly depth: number,
     /** The key/index of this node, relative to its parent. */
@@ -42,7 +42,7 @@ export type PayloadVisitor = (
   path: PathPart[],
   payloadValue: JsonValue,
   nodeValue: JsonValue | undefined,
-  dynamicField: DynamicField | DynamicFieldMap | undefined,
+  dynamicField: DynamicField.WithVariables | DynamicFieldMap.WithVariables | undefined,
 ) => boolean;
 
 /**
@@ -61,7 +61,7 @@ export type PayloadVisitor = (
 export function walkPayload(
   payload: JsonValue,
   node: JsonValue | undefined,
-  rootFieldMap: DynamicField | DynamicFieldMap | undefined,
+  rootFieldMap: DynamicField.WithVariables | DynamicFieldMap.WithVariables | undefined,
   visitRoot: boolean,
   visitor: PayloadVisitor,
 ) {
