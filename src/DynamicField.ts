@@ -13,7 +13,7 @@ export type JsonAndArgs = JsonScalar | VariableArgument;
  * Represent dynamic information: alias, parameterized arguments, directives
  * (if existed) of NodeSnapshot in GraphSnapshot.
  */
-export class DynamicField<TArgTypes extends JsonAndArgs, TChildArgTypes extends JsonAndArgs> {
+export class DynamicField<TArgTypes = JsonScalar, TChildArgTypes = JsonScalar> {
   constructor(
     /** The map of arguments and their static or variable values. */
     public readonly args?: NestedObject<TArgTypes>,
@@ -26,8 +26,8 @@ export class DynamicField<TArgTypes extends JsonAndArgs, TChildArgTypes extends 
 export interface DynamicFieldWithVariables extends DynamicField<JsonAndArgs, JsonAndArgs> {}
 
 export namespace DynamicField {
-  export interface WithoutVariables extends DynamicField<JsonScalar, JsonScalar> {}
-  export interface WithArgs extends WithoutVariables {
+  export interface WithoutVariables extends DynamicField {}
+  export interface WithArgs extends DynamicField {
     readonly args: NestedObject<JsonScalar>;
   }
 }
@@ -36,13 +36,13 @@ export namespace DynamicField {
  * A recursive map where the keys indicate the path to any field in a result set
  * that contain a dynamic field.
  */
-export interface DynamicFieldMap<TArgTypes extends JsonAndArgs> {
+export interface DynamicFieldMap<TArgTypes = JsonScalar> {
   [Key: string]: DynamicFieldMap<TArgTypes> | DynamicField<TArgTypes, TArgTypes>;
 }
 export interface DynamicFieldMapWithVariables extends DynamicFieldMap<JsonAndArgs> {}
 
 export namespace DynamicFieldMap {
-  export interface WithoutVariables extends DynamicFieldMap<JsonScalar> {}
+  export interface WithoutVariables extends DynamicFieldMap {}
 }
 
 // TODO: Can we remove this?
