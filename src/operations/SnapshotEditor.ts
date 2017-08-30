@@ -8,7 +8,7 @@ import {
 } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
-import { PathPart } from '../primitive';
+import { JsonObject, PathPart } from '../primitive';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   addNodeReference,
@@ -34,7 +34,7 @@ export interface EditedSnapshot {
  */
 interface MergeQueueItem {
   containerId: NodeId;
-  containerPayload: any;
+  containerPayload: JsonObject;
   visitRoot: boolean;
   fields: DynamicField | DynamicFieldMap | undefined;
 }
@@ -91,7 +91,7 @@ export class SnapshotEditor {
    * Merge a GraphQL payload (query/fragment/etc) into the snapshot, rooted at
    * the node identified by `rootId`.
    */
-  mergePayload(query: Query, payload: object): void {
+  mergePayload(query: Query, payload: JsonObject): void {
     const parsed = this._context.parseQuery(query);
 
     // First, we walk the payload and apply all _scalar_ edits, while collecting
@@ -128,7 +128,7 @@ export class SnapshotEditor {
    * returned to be applied in a second pass (`_mergeReferenceEdits`), once we
    * can guarantee that all edited nodes have been built.
    */
-  private _mergePayloadValues(query: ParsedQuery, fullPayload: object): ReferenceEdit[] {
+  private _mergePayloadValues(query: ParsedQuery, fullPayload: JsonObject): ReferenceEdit[] {
     const { entityIdForNode } = this._context;
     const { dynamicFieldMap } = query.info;
 
@@ -159,8 +159,8 @@ export class SnapshotEditor {
       walkPayload(containerPayload, container, fields, visitRoot, (path, payloadValue, nodeValue, dynamicFields) => {
         const payloadIsObject = isObject(payloadValue);
         const nodeIsObject = isObject(nodeValue);
-        let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue) : undefined;
-        const prevNodeId = nodeIsObject ? entityIdForNode(nodeValue) : undefined;
+        let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue as JsonObject) : undefined;
+        const prevNodeId = nodeIsObject ? entityIdForNode(nodeValue as JsonObject) : undefined;
         const isReference = nextNodeId || prevNodeId;
         // TODO: Rather than failing on cycles in payload values, we should
         // follow the query's selection set to know how deep to walk.
@@ -193,7 +193,12 @@ export class SnapshotEditor {
           // reference an entity.  This allows us to build a chain of references
           // where the parameterized value points _directly_ to a particular
           // entity node.
-          queue.push({ containerId: fieldId, containerPayload: payloadValue, visitRoot: true, fields: dynamicFields.children });
+          queue.push({
+            containerId: fieldId,
+            containerPayload: payloadValue as JsonObject,
+            visitRoot: true,
+            fields: dynamicFields.children,
+          });
 
           // Stop the walk for this subgraph.
           return true;
@@ -224,7 +229,7 @@ export class SnapshotEditor {
           // subgraph.
           if (nextNodeId) {
             const nextFields = dynamicFields instanceof DynamicField ? dynamicFields.children : dynamicFields;
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue, visitRoot: false, fields: nextFields });
+            queue.push({ containerId: nextNodeId, containerPayload: payloadValue as JsonObject, visitRoot: false, fields: nextFields });
           }
           // Stop the walk for this subgraph.
           return true;
@@ -233,7 +238,7 @@ export class SnapshotEditor {
         // contained within the array are the _full_ set of values.
         } else if (Array.isArray(payloadValue)) {
           const payloadLength = payloadValue.length;
-          const nodeLength = nodeValue && nodeValue.length;
+          const nodeLength = Array.isArray(nodeValue) && nodeValue.length;
           // We will walk to each value within the array, so we do not need to
           // process them yet; but because we update them by path, we do need to
           // ensure that the updated entity's array has the same number of
@@ -377,8 +382,10 @@ export class SnapshotEditor {
       if (newSnapshot === undefined) {
         delete snapshots[id];
       } else {
-        // _newNodes only contains EntityNode
-        if (entityTransformer) entityTransformer(this._newNodes[id]!.node);
+        if (entityTransformer) {
+          const { node } = this._newNodes[id] as EntitySnapshot;
+          if (node) entityTransformer(node);
+        }
         snapshots[id] = newSnapshot;
       }
     }
@@ -444,7 +451,7 @@ export class SnapshotEditor {
   /**
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: object) {
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: JsonObject) {
     const args = expandFieldArguments(field.args, variables);
     const fieldId = nodeIdForParameterizedValue(containerId, path, args);
 
@@ -469,7 +476,7 @@ export class SnapshotEditor {
 /**
  * Generate a stable id for a parameterized value.
  */
-export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args: object | undefined) {
+export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args?: JsonObject) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
 }
 

@@ -4,6 +4,7 @@ import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read } from '../../../../src/operations/read';
 import { write } from '../../../../src/operations/write';
+import { JsonObject } from '../../../../src/primitive';
 import { Query, StaticNodeId } from '../../../../src/schema';
 import { query } from '../../../helpers';
 
@@ -31,7 +32,7 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           addTypename: true,
-          entityTransformer: (node: object): void => {
+          entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: { id: string, name: string }) {
                 return this.name;
@@ -54,8 +55,8 @@ describe(`context.CacheContext`, () => {
 
       it(`get information through helper methods`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
-        const name = result.viewer.getName();
-        const id = result.viewer.getId();
+        const name = (result as any).viewer.getName();
+        const id = (result as any).viewer.getId();
         expect(name).to.eq('Bob');
         expect(id).to.eq('0');
       });
@@ -116,7 +117,7 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           addTypename: true,
-          entityTransformer: (node: object): void => {
+          entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: User) {
                 return this.name;
@@ -163,10 +164,10 @@ describe(`context.CacheContext`, () => {
 
       it(`get information through helper methods`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
-        expect(result.user.getName()).to.eq('Bob');
-        expect(result.user.getId()).to.eq('0');
-        expect(result.user.getJustPhoneNumber()).to.eq(1234);
-        expect(result.user.getCity()).to.eq('AA');
+        expect((result as any).user.getName()).to.eq('Bob');
+        expect((result as any).user.getId()).to.eq('0');
+        expect((result as any).user.getJustPhoneNumber()).to.eq(1234);
+        expect((result as any).user.getCity()).to.eq('AA');
       });
 
       it(`check helper methods exists`, () => {
@@ -232,7 +233,7 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           addTypename: true,
-          entityTransformer: (node: object): void => {
+          entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: User) {
                 return this.name;
@@ -279,10 +280,10 @@ describe(`context.CacheContext`, () => {
 
       it(`get information through helper methods`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
-        expect(result.user.getName()).to.eq('Bob');
-        expect(result.user.getId()).to.eq('0');
-        expect(result.user.getJustPhoneNumber()).to.eq(1234);
-        expect(result.user.getCity()).to.eq('AA');
+        expect((result as any).user.getName()).to.eq('Bob');
+        expect((result as any).user.getId()).to.eq('0');
+        expect((result as any).user.getJustPhoneNumber()).to.eq(1234);
+        expect((result as any).user.getCity()).to.eq('AA');
       });
 
       it(`check helper methods exists`, () => {
@@ -310,7 +311,7 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           addTypename: true,
-          entityTransformer: (node: object): void => {
+          entityTransformer: (node: JsonObject): void => {
             Object.freeze(node);
           },
         });

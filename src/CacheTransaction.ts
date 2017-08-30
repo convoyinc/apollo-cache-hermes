@@ -2,6 +2,7 @@ import { CacheSnapshot } from './CacheSnapshot';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
+import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, Query, QuerySnapshot } from './schema';
 import { addToSet } from './util';
@@ -30,7 +31,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Executes reads against the current values in the transaction.
    */
-  read(query: Query): { result: any, complete: boolean } {
+  read(query: Query): { result?: JsonValue, complete: boolean } {
     return read(this._context, query, this._snapshot.optimistic);
   }
 
@@ -41,7 +42,7 @@ export class CacheTransaction implements Queryable {
    * any previous optimistic values.  Otherwise, edits will be made to the
    * baseline state (and any optimistic updates will be replayed over it).
    */
-  write(query: Query, payload: any): void {
+  write(query: Query, payload: JsonObject): void {
     if (this._optimisticChangeId) {
       this._writeOptimistic(query, payload);
     } else {
@@ -80,7 +81,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Merge a payload with the baseline snapshot.
    */
-  private _writeBaseline(query: Query, payload: any) {
+  private _writeBaseline(query: Query, payload: JsonObject) {
     const current = this._snapshot;
 
     const { snapshot: baseline, editedNodeIds } = write(this._context, current.baseline, query, payload);
@@ -107,7 +108,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Merge a payload with the optimistic snapshot.
    */
-  private _writeOptimistic(query: Query, payload: any) {
+  private _writeOptimistic(query: Query, payload: JsonObject) {
     this._deltas.push({ query, payload });
 
     const { snapshot: optimistic, editedNodeIds } = write(this._context, this._snapshot.baseline, query, payload);

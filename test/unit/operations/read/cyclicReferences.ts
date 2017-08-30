@@ -45,7 +45,7 @@ describe(`operations.read`, () => {
 
       it(`can be read`, () => {
         const { result } = read(context, cyclicQuery, snapshot);
-        const foo = result.foo;
+        const foo = (result as any).foo;
         const bar = foo.bar;
 
         expect(foo.id).to.eq(1);
@@ -102,7 +102,7 @@ describe(`operations.read`, () => {
 
       it(`can be read`, () => {
         const { result } = read(context, cyclicQuery, snapshot);
-        const foo = result.foo;
+        const foo = (result as any).foo;
         const bar = foo.bar;
 
         expect(foo.id).to.eq(1);

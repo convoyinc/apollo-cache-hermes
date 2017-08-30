@@ -48,3 +48,5 @@ export interface NestedObject<TValue> { [key: string]: NestedValue<TValue>; }
 
 export type JsonScalar = null | boolean | number | string;
 export type JsonValue = NestedValue<JsonScalar>;
+export type JsonObject = NestedObject<JsonScalar>;
+export type JsonArray = NestedArray<JsonScalar>;

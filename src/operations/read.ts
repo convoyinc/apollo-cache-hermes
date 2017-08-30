@@ -1,4 +1,4 @@
-import { PathPart } from '../primitive';
+import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { expandFieldArguments, DynamicField, DynamicFieldMap } from '../DynamicField';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
@@ -9,7 +9,7 @@ import { isObject } from '../util';
 
 export interface QueryResult {
   /** The value of the root requested by a query. */
-  result: any;
+  result?: JsonObject;
   /** Whether the query's selection set was satisfied. */
   complete: boolean;
 }
@@ -55,7 +55,7 @@ export function read(context: CacheContext, query: Query, snapshot: GraphSnapsho
 
 class OverlayWalkNode {
   constructor(
-    public readonly value: any,
+    public readonly value: JsonObject,
     public readonly containerId: NodeId,
     public readonly fieldMap: DynamicFieldMap,
     public readonly path: PathPart[],
@@ -75,8 +75,8 @@ export function _walkAndOverlayDynamicValues(
   context: CacheContext,
   snapshot: GraphSnapshot,
   fields: DynamicFieldMap,
-  result: any,
-): any {
+  result: JsonObject,
+): JsonObject {
   // Corner case: We stop walking once we reach a parameterized field with no
   // snapshot, but we should also pre-emptively stop walking if there are no
 
@@ -159,10 +159,9 @@ export function _walkAndOverlayDynamicValues(
   return newResult;
 }
 
-function _wrapValue(value: any): any {
+function _wrapValue(value: JsonValue): any {
   if (value === undefined) return {};
   if (Array.isArray(value)) return [...value];
-  // TODO: Switch back to Object.create() once we fix shit
   if (isObject(value)) return { ...value };
   return value;
 }
@@ -173,7 +172,7 @@ function _wrapValue(value: any): any {
 export function _visitSelection(
   query: ParsedQuery,
   context: CacheContext,
-  result: any,
+  result?: JsonObject,
   includeNodeIds?: true,
 ): { complete: boolean, nodeIds?: Set<NodeId> } {
   let complete = true;

@@ -1,6 +1,7 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
 import { QueryInfo } from './context';
+import { JsonObject } from './primitive';
 
 /**
  * Change ids track diffs to the store that may eventually be rolled back.
@@ -38,7 +39,7 @@ export interface Query {
   /** A parsed GraphQL document, declaring an operation to execute. */
   readonly document: DocumentNode;
   /** Any variables used by parameterized fields within the selection set. */
-  readonly variables?: object;
+  readonly variables?: JsonObject;
 }
 
 /**
@@ -50,7 +51,7 @@ export interface ParsedQuery {
   /** A parsed GraphQL document, declaring an operation to execute. */
   readonly info: QueryInfo;
   /** Any variables used by parameterized fields within the selection set. */
-  readonly variables?: object;
+  readonly variables?: JsonObject;
 }
 
 /**
@@ -58,5 +59,5 @@ export interface ParsedQuery {
  */
 export interface QuerySnapshot {
   query: Query;
-  payload: any;
+  payload?: JsonObject;
 }
