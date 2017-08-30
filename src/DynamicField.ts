@@ -27,9 +27,8 @@ export class DynamicField<TArgTypes extends JsonAndArgs, TChildArgTypes extends 
 export namespace DynamicField {
   export interface WithoutVariables extends DynamicField<JsonScalar, JsonScalar> {}
   export interface WithVariables extends DynamicField<JsonAndArgs, JsonAndArgs> {}
-  // TODO: should extend WithoutVariables.
-  export interface WithArgs extends WithVariables {
-    readonly args: NestedObject<JsonAndArgs>;
+  export interface WithArgs extends WithoutVariables {
+    readonly args: NestedObject<JsonScalar>;
   }
 }
 

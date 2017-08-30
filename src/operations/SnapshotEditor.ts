@@ -1,10 +1,5 @@
 import { CacheContext } from '../context';
-import {
-  DynamicField,
-  DynamicFieldMap,
-  expandFieldArguments,
-  isDynamicFieldWithArgs,
-} from '../DynamicField';
+import { DynamicField, DynamicFieldMap, isDynamicFieldWithArgs } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
 import { JsonObject, PathPart } from '../primitive';
@@ -35,7 +30,7 @@ interface MergeQueueItem {
   containerId: NodeId;
   containerPayload: JsonObject;
   visitRoot: boolean;
-  fields: DynamicField.WithVariables | DynamicFieldMap.WithVariables | undefined;
+  fields: DynamicField.WithoutVariables | DynamicFieldMap.WithoutVariables | undefined;
 }
 
 /**
@@ -129,13 +124,12 @@ export class SnapshotEditor {
    */
   private _mergePayloadValues(query: ParsedQuery, fullPayload: JsonObject): ReferenceEdit[] {
     const { entityIdForNode } = this._context;
-    const { dynamicFieldMap } = query.info;
 
     const queue: MergeQueueItem[] = [{
       containerId: query.rootId,
       containerPayload: fullPayload,
       visitRoot: false,
-      fields: dynamicFieldMap,
+      fields: query.dynamicFieldMap,
     }];
     const referenceEdits: ReferenceEdit[] = [];
     // We have to be careful to break cycles; it's ok for a caller to give us a
@@ -451,8 +445,7 @@ export class SnapshotEditor {
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
   _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicField.WithArgs, variables: JsonObject) {
-    const args = expandFieldArguments(field.args, variables);
-    const fieldId = nodeIdForParameterizedValue(containerId, path, args);
+    const fieldId = nodeIdForParameterizedValue(containerId, path, field.args);
 
     // We're careful to not edit the container unless we absolutely have to.
     // (There may be no changes for this parameterized value).
