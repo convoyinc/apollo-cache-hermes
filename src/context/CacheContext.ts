@@ -10,7 +10,7 @@ export namespace CacheContext {
 
   export type EntityIdForNode = (node: any) => EntityId | undefined;
   export type EntityIdMapper = (node: object) => string | number | undefined;
-  export type EntityTransformer = (node: object, ...args: any[]) => void;
+  export type EntityTransformer = (node: object) => void;
   export type LogEmitter = (message: string, ...metadata: any[]) => void;
   export interface Logger {
     warn: LogEmitter;
