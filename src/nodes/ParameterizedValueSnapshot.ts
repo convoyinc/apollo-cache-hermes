@@ -1,4 +1,9 @@
+import { JsonValue, NestedArray, NestedObject } from '../primitive';
+
 import { NodeSnapshot, NodeReference } from './NodeSnapshot';
+
+// Until https://github.com/Microsoft/TypeScript/issues/9944
+export { NestedArray, NestedObject };
 
 /**
  * Maintains a reference to the value of a specific parameterized field
@@ -11,7 +16,7 @@ import { NodeSnapshot, NodeReference } from './NodeSnapshot';
 export class ParameterizedValueSnapshot implements NodeSnapshot {
   constructor(
     /** A reference to the entity this snapshot is about. */
-    public node?: any,
+    public node?: JsonValue,
     /** Other node snapshots that point to this one. */
     public inbound?: NodeReference[],
     /** The node snapshots that this one points to. */
