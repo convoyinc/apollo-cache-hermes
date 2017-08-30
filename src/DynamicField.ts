@@ -37,9 +37,6 @@ export interface DynamicFieldMap<TArgTypes = JsonScalar> {
 }
 export interface DynamicFieldMapWithVariables extends DynamicFieldMap<JsonAndArgs> {}
 
-// TODO: Can we remove this?
-export type FieldArguments = NestedObject<JsonAndArgs>;
-
 /**
  * Represents the location a variable should be used as an argument to a
  * parameterized field.
@@ -94,7 +91,7 @@ function _buildDynamicFieldMap(
       // where dynamic fields are in the selection.
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
       let currentField: DynamicFieldWithVariables | DynamicFieldMapWithVariables | undefined;
-      let parameterizedArguments: FieldArguments | undefined;
+      let parameterizedArguments: NestedObject<JsonAndArgs> | undefined;
 
       if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
         parameterizedArguments = _buildFieldArgs(variables, selection.arguments);
@@ -122,7 +119,7 @@ function _buildDynamicFieldMap(
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildFieldArgs(variables: Set<string>, argumentsNode: ArgumentNode[]): FieldArguments {
+function _buildFieldArgs(variables: Set<string>, argumentsNode: ArgumentNode[]): NestedObject<JsonAndArgs> {
   const args = {};
   for (const arg of argumentsNode) {
     // Mapped name of argument to it JS value
