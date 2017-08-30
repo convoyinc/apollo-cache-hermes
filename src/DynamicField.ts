@@ -24,12 +24,12 @@ export class DynamicField<TArgTypes = JsonScalar, TChildArgTypes = JsonScalar> {
   ) {}
 }
 export interface DynamicFieldWithVariables extends DynamicField<JsonAndArgs, JsonAndArgs> {}
+export interface DynamicFieldWithArgs extends DynamicField {
+  readonly args: NestedObject<JsonScalar>;
+}
 
 export namespace DynamicField {
   export interface WithoutVariables extends DynamicField {}
-  export interface WithArgs extends DynamicField {
-    readonly args: NestedObject<JsonScalar>;
-  }
 }
 
 /**
@@ -153,7 +153,7 @@ function _valueFromNode(variables: Set<string>, node: ValueNode): JsonValue {
 /**
  * Whether the field is a DynamicFieldWithParameterizedArguments
  */
-export function isDynamicFieldWithArgs(field: any): field is DynamicField.WithArgs {
+export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArgs {
   return !!(field instanceof DynamicField && field.args);
 }
 

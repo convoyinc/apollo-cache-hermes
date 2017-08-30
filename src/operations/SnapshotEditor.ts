@@ -1,5 +1,5 @@
 import { CacheContext } from '../context';
-import { DynamicField, DynamicFieldMap, isDynamicFieldWithArgs } from '../DynamicField';
+import { DynamicField, DynamicFieldWithArgs, DynamicFieldMap, isDynamicFieldWithArgs } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
 import { JsonObject, PathPart } from '../primitive';
@@ -444,7 +444,7 @@ export class SnapshotEditor {
   /**
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicField.WithArgs, variables: JsonObject) {
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: JsonObject) {
     const fieldId = nodeIdForParameterizedValue(containerId, path, field.args);
 
     // We're careful to not edit the container unless we absolutely have to.
