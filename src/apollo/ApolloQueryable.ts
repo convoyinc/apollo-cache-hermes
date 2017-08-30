@@ -1,3 +1,4 @@
+import { JsonObject } from '../primitive';
 import { Queryable } from '../Queryable';
 
 import * as interfaces from './interfaces';
@@ -42,23 +43,23 @@ export abstract class ApolloQueryable {
 
   readFragment<FragmentType>(options: interfaces.Cache.ReadFragmentOptions, optimistic?: true): FragmentType | null {
     // TODO: Support nested fragments.
-    const query = toQuery(options.fragment, options.variables);
+    const query = toQuery(options.fragment, options.variables as JsonObject);
     return this._queryable.read(query, optimistic).result;
   }
 
   writeResult(options: interfaces.Cache.WriteResultOptions): void {
-    const query = toQuery(options.document, options.variables, options.dataId);
+    const query = toQuery(options.document, options.variables as JsonObject, options.dataId);
     this._queryable.write(query, options.result);
   }
 
   writeQuery(options: interfaces.Cache.WriteQueryOptions): void {
-    const query = toQuery(options.query, options.variables);
+    const query = toQuery(options.query, options.variables as JsonObject);
     this._queryable.write(query, options.data);
   }
 
   writeFragment(options: interfaces.Cache.WriteFragmentOptions): void {
     // TODO: Support nested fragments.
-    const query = toQuery(options.fragment, options.variables, options.id);
+    const query = toQuery(options.fragment, options.variables as JsonObject, options.id);
     this._queryable.write(query, options.data);
   }
 }
