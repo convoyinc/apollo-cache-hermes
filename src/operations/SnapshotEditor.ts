@@ -30,7 +30,7 @@ interface MergeQueueItem {
   containerId: NodeId;
   containerPayload: JsonObject;
   visitRoot: boolean;
-  fields: DynamicField.WithoutVariables | DynamicFieldMap.WithoutVariables | undefined;
+  fields: DynamicField | DynamicFieldMap | undefined;
 }
 
 /**

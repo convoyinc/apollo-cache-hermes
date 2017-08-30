@@ -28,10 +28,6 @@ export interface DynamicFieldWithArgs extends DynamicField {
   readonly args: NestedObject<JsonScalar>;
 }
 
-export namespace DynamicField {
-  export interface WithoutVariables extends DynamicField {}
-}
-
 /**
  * A recursive map where the keys indicate the path to any field in a result set
  * that contain a dynamic field.
@@ -40,10 +36,6 @@ export interface DynamicFieldMap<TArgTypes = JsonScalar> {
   [Key: string]: DynamicFieldMap<TArgTypes> | DynamicField<TArgTypes, TArgTypes>;
 }
 export interface DynamicFieldMapWithVariables extends DynamicFieldMap<JsonAndArgs> {}
-
-export namespace DynamicFieldMap {
-  export interface WithoutVariables extends DynamicFieldMap {}
-}
 
 // TODO: Can we remove this?
 export type FieldArguments = NestedObject<JsonAndArgs>;
@@ -166,7 +158,7 @@ export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArg
 export function expandVariables(
   map: DynamicFieldMapWithVariables | undefined,
   variables: JsonObject | undefined,
-): DynamicFieldMap.WithoutVariables | undefined {
+): DynamicFieldMap | undefined {
   if (!map) return undefined;
 
   const newMap = {};

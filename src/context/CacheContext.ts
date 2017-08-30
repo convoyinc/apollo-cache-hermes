@@ -1,7 +1,7 @@
-import { expandVariables } from '../DynamicField';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import lodashIsEqual = require('lodash.isequal');
 
+import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
 import { EntityId, ParsedQuery, Query } from '../schema';
 import { addTypenameToDocument, isObject } from '../util';
