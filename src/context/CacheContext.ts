@@ -1,6 +1,7 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import lodashIsEqual = require('lodash.isequal');
 
+import { JsonObject } from '../primitive';
 import { EntityId, ParsedQuery, Query } from '../schema';
 import { addTypenameToDocument, isObject } from '../util';
 
@@ -8,9 +9,9 @@ import { QueryInfo } from './QueryInfo';
 
 export namespace CacheContext {
 
-  export type EntityIdForNode = (node: any) => EntityId | undefined;
-  export type EntityIdMapper = (node: object) => string | number | undefined;
-  export type EntityTransformer = (node: object) => void;
+  export type EntityIdForNode = (node: JsonObject) => EntityId | undefined;
+  export type EntityIdMapper = (node: JsonObject) => string | number | undefined;
+  export type EntityTransformer = (node: JsonObject) => void;
   export type LogEmitter = (message: string, ...metadata: any[]) => void;
   export interface Logger {
     warn: LogEmitter;
@@ -140,7 +141,7 @@ export class CacheContext {
 export function _makeEntityIdMapper(
   mapper: CacheContext.EntityIdMapper = defaultEntityIdMapper,
 ): CacheContext.EntityIdForNode {
-  return function entityIdForNode(node: any) {
+  return function entityIdForNode(node: JsonObject) {
     if (!isObject(node)) return undefined;
 
     // We don't trust upstream implementations.
@@ -151,7 +152,7 @@ export function _makeEntityIdMapper(
   };
 }
 
-export function defaultEntityIdMapper(node: any) {
+export function defaultEntityIdMapper(node: { id?: any }) {
   return node.id;
 }
 

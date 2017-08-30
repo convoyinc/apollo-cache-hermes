@@ -1,3 +1,4 @@
+import { JsonObject } from '../../../../src/primitive';
 import * as _ from 'lodash';
 
 import { CacheContext } from '../../../../src/context';
@@ -31,7 +32,7 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           addTypename: true,
-          entityTransformer: (node: object): void => {
+          entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: { id: string, name: string }) {
                 return this.name;
@@ -116,7 +117,7 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           addTypename: true,
-          entityTransformer: (node: object): void => {
+          entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: User) {
                 return this.name;
@@ -232,7 +233,7 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           addTypename: true,
-          entityTransformer: (node: object): void => {
+          entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: User) {
                 return this.name;
@@ -310,7 +311,7 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           addTypename: true,
-          entityTransformer: (node: object): void => {
+          entityTransformer: (node: JsonObject): void => {
             Object.freeze(node);
           },
         });

@@ -377,8 +377,10 @@ export class SnapshotEditor {
       if (newSnapshot === undefined) {
         delete snapshots[id];
       } else {
-        // _newNodes only contains EntityNode
-        if (entityTransformer) entityTransformer(this._newNodes[id]!.node);
+        if (entityTransformer) {
+          const { node } = this._newNodes[id] as EntitySnapshot;
+          if (node) entityTransformer(node);
+        }
         snapshots[id] = newSnapshot;
       }
     }

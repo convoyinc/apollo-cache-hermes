@@ -53,7 +53,7 @@ export function variableDefaultsInOperation(operation: OperationDefinitionNode):
       if (definition.type.kind === 'NonNullType') continue; // Required.
 
       const { defaultValue } = definition;
-      defaults[definition.variable.name.value] = isObject(defaultValue) ? valueFromNode(defaultValue) : null;
+      defaults[definition.variable.name.value] = isObject(defaultValue) ? valueFromNode(defaultValue as ValueNode) : null;
     }
   }
 

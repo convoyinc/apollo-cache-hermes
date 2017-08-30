@@ -1,4 +1,4 @@
-import { JsonValue, NestedArray, NestedObject } from '../primitive';
+import { JsonObject, NestedArray, NestedObject } from '../primitive';
 
 import { NodeReference, NodeSnapshot } from './NodeSnapshot';
 
@@ -15,7 +15,7 @@ export { NestedArray, NestedObject };
 export class EntitySnapshot implements NodeSnapshot {
   constructor(
     /** A reference to the entity this snapshot is about. */
-    public node?: JsonValue,
+    public node?: JsonObject,
     /** Other node snapshots that point to this one. */
     public inbound?: NodeReference[],
     /** The node snapshots that this one points to. */

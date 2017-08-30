@@ -1,3 +1,4 @@
+import { JsonObject } from '../primitive';
 import { isObject } from '../util';
 
 import { EntitySnapshot } from './EntitySnapshot';
@@ -21,7 +22,7 @@ export function cloneNodeSnapshot(parent: NodeSnapshot) {
   const outbound = parent.outbound ? [...parent.outbound] : undefined;
 
   if (parent instanceof EntitySnapshot) {
-    return new EntitySnapshot(node, inbound, outbound);
+    return new EntitySnapshot(node as JsonObject, inbound, outbound);
   } else if (parent instanceof ParameterizedValueSnapshot) {
     return new ParameterizedValueSnapshot(node, inbound, outbound);
   } else {

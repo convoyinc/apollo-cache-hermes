@@ -21,21 +21,21 @@ describe(`context.CacheContext`, () => {
         expect(context.entityIdForNode({ id: true })).to.eq(undefined);
         expect(context.entityIdForNode({ id: false })).to.eq(undefined);
         expect(context.entityIdForNode({ id: null })).to.eq(undefined);
-        expect(context.entityIdForNode({ id: undefined })).to.eq(undefined);
-        expect(context.entityIdForNode({ id: Symbol.iterator })).to.eq(undefined);
+        expect(context.entityIdForNode({ id: undefined } as any)).to.eq(undefined);
+        expect(context.entityIdForNode({ id: Symbol.iterator } as any)).to.eq(undefined);
         expect(context.entityIdForNode({ id: {} })).to.eq(undefined);
-        expect(context.entityIdForNode({ id() {} })).to.eq(undefined);
+        expect(context.entityIdForNode({ id() {} } as any)).to.eq(undefined);
         expect(context.entityIdForNode({ id: { id: 'hi' } })).to.eq(undefined);
         expect(context.entityIdForNode({ id: [] })).to.eq(undefined);
         expect(context.entityIdForNode({ id: ['hi'] })).to.eq(undefined);
       });
 
       it(`ignores nodes that lack an id property`, () => {
-        expect(context.entityIdForNode(undefined)).to.eq(undefined);
+        expect(context.entityIdForNode(undefined as any)).to.eq(undefined);
         expect(context.entityIdForNode({})).to.eq(undefined);
         expect(context.entityIdForNode({ idd: 'hi' })).to.eq(undefined);
-        expect(context.entityIdForNode([])).to.eq(undefined);
-        expect(context.entityIdForNode(() => {})).to.eq(undefined);
+        expect(context.entityIdForNode([] as any)).to.eq(undefined);
+        expect(context.entityIdForNode((() => {}) as any)).to.eq(undefined);
       });
 
     });
