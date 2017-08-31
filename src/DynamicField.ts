@@ -4,40 +4,38 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   ValueNode,
 } from 'graphql';
 
-import { JsonObject, JsonScalar, JsonValue, NestedObject } from './primitive';
-import { FragmentMap, valueFromNode } from './util';
+import { JsonObject, JsonScalar, JsonValue, NestedObject, NestedValue } from './primitive';
+import { FragmentMap, isObject, valueFromNode } from './util';
+
+export type JsonAndArgs = JsonScalar | VariableArgument;
 
 /**
  * Represent dynamic information: alias, parameterized arguments, directives
  * (if existed) of NodeSnapshot in GraphSnapshot.
  */
-export class DynamicField {
+export class DynamicField<TArgTypes = JsonScalar, TChildArgTypes = JsonScalar> {
   constructor(
     /** The map of arguments and their static or variable values. */
-    public readonly args?: FieldArguments,
+    public readonly args?: NestedObject<TArgTypes>,
     /** A field name if exist an alias */
     public readonly fieldName?: string,
     /** Any children with dynamic fields. */
-    public readonly children?: DynamicFieldMap,
+    public readonly children?: DynamicFieldMap<TChildArgTypes>,
   ) {}
 }
-
+export interface DynamicFieldWithVariables extends DynamicField<JsonAndArgs, JsonAndArgs> {}
 export interface DynamicFieldWithArgs extends DynamicField {
-  readonly args: FieldArguments;
+  readonly args: NestedObject<JsonScalar>;
 }
 
 /**
  * A recursive map where the keys indicate the path to any field in a result set
  * that contain a dynamic field.
  */
-export interface DynamicFieldMap {
-  [Key: string]: DynamicFieldMap | DynamicField;
+export interface DynamicFieldMap<TArgTypes = JsonScalar> {
+  [Key: string]: DynamicFieldMap<TArgTypes> | DynamicField<TArgTypes, TArgTypes>;
 }
-
-/**
- * A mapping of argument names to their values.
- */
-export type FieldArguments = NestedObject<JsonScalar | VariableArgument>;
+export interface DynamicFieldMapWithVariables extends DynamicFieldMap<JsonAndArgs> {}
 
 /**
  * Represents the location a variable should be used as an argument to a
@@ -69,7 +67,7 @@ function _buildDynamicFieldMap(
   variables: Set<string>,
   fragments: FragmentMap,
   selectionSet?: SelectionSetNode,
-): DynamicFieldMap | undefined {
+): DynamicFieldMapWithVariables | undefined {
   if (!selectionSet) return undefined;
 
   let fieldMap;
@@ -92,8 +90,8 @@ function _buildDynamicFieldMap(
       // saves a bit of overhead, and allows us to more cleanly reason about
       // where dynamic fields are in the selection.
       const currentKey: string = selection.alias ? selection.alias.value : selection.name.value;
-      let currentField: DynamicField | DynamicFieldMap | undefined;
-      let parameterizedArguments: FieldArguments | undefined;
+      let currentField: DynamicFieldWithVariables | DynamicFieldMapWithVariables | undefined;
+      let parameterizedArguments: NestedObject<JsonAndArgs> | undefined;
 
       if (selection.kind === 'Field' && selection.arguments && selection.arguments.length) {
         parameterizedArguments = _buildFieldArgs(variables, selection.arguments);
@@ -121,7 +119,7 @@ function _buildDynamicFieldMap(
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildFieldArgs(variables: Set<string>, argumentsNode: ArgumentNode[]): FieldArguments {
+function _buildFieldArgs(variables: Set<string>, argumentsNode: ArgumentNode[]): NestedObject<JsonAndArgs> {
   const args = {};
   for (const arg of argumentsNode) {
     // Mapped name of argument to it JS value
@@ -149,23 +147,63 @@ export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArg
 }
 
 /**
- * Sub values in for any variables required by a field's args.
+ * Replace all instances of VariableArgument contained within a DynamicFieldMap
+ * with their actual values.
+ *
+ * This requires that all variables used are provided in `variables`.
  */
-export function expandFieldArguments(args: FieldArguments, variables: JsonObject = {}): JsonObject {
-  const expanded = {};
-  // TODO: Recurse into objects/arrays.
-  for (const key in args) {
-    let arg = args[key];
-    if (arg instanceof VariableArgument) {
-      if (!(arg.name in variables)) {
-        // TODO: Detect optional variables?
-        throw new Error(`Expected variable $${arg.name} to exist for query`);
-      }
-      arg = variables[arg.name];
-    }
+export function expandVariables(
+  map: DynamicFieldMapWithVariables | undefined,
+  variables: JsonObject | undefined,
+): DynamicFieldMap | undefined {
+  if (!map) return undefined;
 
-    expanded[key] = arg;
+  const newMap = {};
+  for (const key in map) {
+    const entry = map[key];
+    if (entry instanceof DynamicField) {
+      newMap[key] = new DynamicField(
+        expandFieldArguments(entry.args, variables),
+        entry.fieldName,
+        expandVariables(entry.children, variables),
+      );
+    } else {
+      newMap[key] = expandVariables(entry, variables);
+    }
   }
 
-  return expanded;
+  return newMap;
+}
+
+/**
+ * Sub values in for any variables required by a field's args.
+ */
+export function expandFieldArguments(
+  args: NestedValue<JsonAndArgs> | undefined,
+  variables: JsonObject | undefined,
+): JsonObject | undefined {
+  return args ? _expandArgument(args, variables) as JsonObject : undefined;
+}
+
+export function _expandArgument(
+  arg: NestedValue<JsonAndArgs>,
+  variables: JsonObject | undefined,
+): JsonValue {
+  if (arg instanceof VariableArgument) {
+    if (!variables || !(arg.name in variables)) {
+      throw new Error(`Expected variable $${arg.name} to exist for query`);
+    }
+    return variables[arg.name];
+  } else if (Array.isArray(arg)) {
+    return arg.map(v => _expandArgument(v, variables));
+  } else if (isObject(arg)) {
+    const expanded = {};
+    for (const key in arg) {
+      expanded[key] = _expandArgument(arg[key], variables);
+    }
+    return expanded;
+  } else {
+    // TS isn't inferring that arg cannot contain any VariableArgument values.
+    return arg as JsonValue;
+  }
 }

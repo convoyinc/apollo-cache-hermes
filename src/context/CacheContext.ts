@@ -1,6 +1,7 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import lodashIsEqual = require('lodash.isequal');
 
+import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
 import { EntityId, ParsedQuery, Query } from '../schema';
 import { addTypenameToDocument, isObject } from '../util';
@@ -101,10 +102,12 @@ export class CacheContext {
       return parsedQuery;
     }
 
-    // New query.
+    const info = this._queryInfo(query.document);
+    const fullVariables = { ...info.variableDefaults, ...query.variables } as JsonObject;
     const parsedQuery = {
+      info,
       rootId: query.rootId,
-      info: this._queryInfo(query.document),
+      dynamicFieldMap: expandVariables(info.dynamicFieldMap, fullVariables),
       variables: query.variables,
     };
     parsedQueries.push(parsedQuery);

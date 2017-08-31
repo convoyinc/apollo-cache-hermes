@@ -1,5 +1,5 @@
 import { JsonObject, JsonValue, PathPart } from '../primitive';
-import { expandFieldArguments, DynamicField, DynamicFieldMap } from '../DynamicField';
+import { DynamicField, DynamicFieldMap } from '../DynamicField';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
@@ -30,7 +30,7 @@ export function read(context: CacheContext, query: Query, snapshot: GraphSnapsho
   if (!queryResult) {
     let result = snapshot.get(parsed.rootId);
 
-    const { dynamicFieldMap } = parsed.info;
+    const { dynamicFieldMap } = parsed;
     if (dynamicFieldMap) {
       result = _walkAndOverlayDynamicValues(parsed, context, snapshot, dynamicFieldMap, result);
     }
@@ -78,8 +78,7 @@ export function _walkAndOverlayDynamicValues(
   result: JsonObject,
 ): JsonObject {
   // Corner case: We stop walking once we reach a parameterized field with no
-  // snapshot, but we should also pre-emptively stop walking if there are no
-
+  // snapshot, but we should also preemptively stop walking if there are no
   // dynamic values to be overlaid
   const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
 
@@ -121,8 +120,7 @@ export function _walkAndOverlayDynamicValues(
         fieldName = field.fieldName ? field.fieldName : key;
 
         if (field.args) {
-          const args = expandFieldArguments(field.args, query.variables);
-          childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], args);
+          childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], field.args);
           const childSnapshot = snapshot.getNodeSnapshot(childId);
           if (childSnapshot) {
             child = childSnapshot.node;
