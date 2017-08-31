@@ -18,9 +18,7 @@ export function removeNodeReference(
   path?: PathPart[],
 ): boolean {
   const references = snapshot[direction];
-  if (!references) {
-    throw new Error(`Inconsistent GraphSnapshot: Expected snapshot to have ${direction} references`);
-  }
+  if (!references) return true;
 
   const fromIndex = getIndexOfGivenReference(references, id, path);
   references.splice(fromIndex, 1);

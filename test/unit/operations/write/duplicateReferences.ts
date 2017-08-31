@@ -1,7 +1,7 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { write } from '../../../../src/operations/write';
-import { NodeId, StaticNodeId } from '../../../../src/schema';
+import { StaticNodeId } from '../../../../src/schema';
 import { query } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -116,6 +116,9 @@ describe(`operations.write`, () => {
             { id: 'a', bar: { id: 2 } },
             { id: 'b', bar: null },
           ],
+          baz: {
+            id: 'a', bar: { id: 2 },
+          },
         });
       });
 
@@ -123,7 +126,7 @@ describe(`operations.write`, () => {
         expect(snapshot.getNodeSnapshot('a')!.outbound).to.have.deep.members([
           { id: '2', path: ['bar'] },
         ]);
-        expect(snapshot.getNodeSnapshot('b')!.outbound).to.have.deep.members([]);
+        expect(snapshot.getNodeSnapshot('b')!.outbound).to.eq(undefined);
       });
 
       it(`removes unreferenced nodes`, () => {
