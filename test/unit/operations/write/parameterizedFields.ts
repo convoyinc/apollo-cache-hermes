@@ -495,5 +495,91 @@ describe(`operations.write`, () => {
 
     });
 
+    describe(`optional arguments`, () => {
+
+      let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($one: Number, $two: String) {
+          foo(a: $one, b:$two)
+        }`, { one: 1 });
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { a: 1, b: null });
+
+        const result = write(config, empty, parameterizedQuery, { foo: 'hello' });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`writes a node for the field`, () => {
+        expect(snapshot.get(parameterizedId)).to.deep.eq('hello');
+      });
+
+      it(`creates an outgoing reference from the field's container`, () => {
+        const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+      });
+
+      it(`creates an inbound reference to the field's container`, () => {
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+      });
+
+      it(`does not expose the parameterized field directly from its container`, () => {
+        expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
+      });
+
+      it(`marks only the new field as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
+      });
+
+      it(`emits a ParameterizedValueSnapshot`, () => {
+        expect(snapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+      });
+
+    });
+
+    describe(`default arguments`, () => {
+
+      let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+      beforeAll(() => {
+        const parameterizedQuery = query(`query getAFoo($one: Number = 123, $two: String = "stuff") {
+          foo(a: $one, b:$two)
+        }`);
+
+        parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { a: 123, b: 'stuff' });
+
+        const result = write(config, empty, parameterizedQuery, { foo: 'hello' });
+        snapshot = result.snapshot;
+        editedNodeIds = result.editedNodeIds;
+      });
+
+      it(`writes a node for the field`, () => {
+        expect(snapshot.get(parameterizedId)).to.deep.eq('hello');
+      });
+
+      it(`creates an outgoing reference from the field's container`, () => {
+        const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+      });
+
+      it(`creates an inbound reference to the field's container`, () => {
+        const values = snapshot.getNodeSnapshot(parameterizedId)!;
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+      });
+
+      it(`does not expose the parameterized field directly from its container`, () => {
+        expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
+      });
+
+      it(`marks only the new field as edited`, () => {
+        expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
+      });
+
+      it(`emits a ParameterizedValueSnapshot`, () => {
+        expect(snapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+      });
+
+    });
+
   });
 });

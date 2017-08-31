@@ -103,10 +103,11 @@ export class CacheContext {
     }
 
     const info = this._queryInfo(query.document);
+    const fullVariables = { ...info.variableDefaults, ...query.variables } as JsonObject;
     const parsedQuery = {
       info,
       rootId: query.rootId,
-      dynamicFieldMap: expandVariables(info.dynamicFieldMap, query.variables),
+      dynamicFieldMap: expandVariables(info.dynamicFieldMap, fullVariables),
       variables: query.variables,
     };
     parsedQueries.push(parsedQuery);
