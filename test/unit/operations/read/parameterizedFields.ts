@@ -1,13 +1,12 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read, write } from '../../../../src/operations';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 describe(`operations.read`, () => {
-  const context = new CacheContext();
 
+  const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-
   const parameterizedQuery = query(`query getAFoo($id: ID!) {
     user(id: $id, withExtra: true) {
       id name extra
@@ -323,5 +322,7 @@ describe(`operations.read`, () => {
       });
 
     });
+
   });
+
 });

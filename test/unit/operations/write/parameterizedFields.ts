@@ -1,5 +1,4 @@
 import * as _ from 'lodash';
-import * as util from 'util';
 
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
@@ -7,7 +6,7 @@ import { ParameterizedValueSnapshot } from '../../../../src/nodes';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
 import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -16,22 +15,15 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  const config = new CacheContext({
-    logger: {
-      warn(message: string, ...args: any[]) {
-        throw new Error(util.format(message, ...args));
-      },
-    },
-  });
 
+  const context = new CacheContext(strictConfig);
+  const empty = new GraphSnapshot();
   const viewerQuery = query(`{
     viewer {
       id
       name
     }
   }`);
-
-  const empty = new GraphSnapshot();
 
   describe(`parameterized fields`, () => {
 
@@ -47,7 +39,7 @@ describe(`operations.write`, () => {
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
 
-        const result = write(config, empty, parameterizedQuery, {
+        const result = write(context, empty, parameterizedQuery, {
           foo: {
             name: 'Foo',
             extra: false,
@@ -101,7 +93,7 @@ describe(`operations.write`, () => {
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo', 'bar', 'baz'], { id: 1, withExtra: true });
 
-        const result = write(config, empty, parameterizedQuery, {
+        const result = write(context, empty, parameterizedQuery, {
           foo: {
             bar: {
               baz: {
@@ -155,7 +147,7 @@ describe(`operations.write`, () => {
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
 
-        const baselineResult = write(config, empty, parameterizedQuery, {
+        const baselineResult = write(context, empty, parameterizedQuery, {
           foo: {
             name: 'Foo',
             extra: false,
@@ -163,7 +155,7 @@ describe(`operations.write`, () => {
         });
         baseline = baselineResult.snapshot;
 
-        const result = write(config, baseline, parameterizedQuery, {
+        const result = write(context, baseline, parameterizedQuery, {
           foo: {
             name: 'Foo Bar',
           },
@@ -204,7 +196,7 @@ describe(`operations.write`, () => {
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
 
-        const result = write(config, empty, parameterizedQuery, {
+        const result = write(context, empty, parameterizedQuery, {
           foo: {
             id: 1,
             name: 'Foo',
@@ -265,7 +257,7 @@ describe(`operations.write`, () => {
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
 
-        const baselineResult = write(config, empty, parameterizedQuery, {
+        const baselineResult = write(context, empty, parameterizedQuery, {
           foo: [
             { id: 1, name: 'Foo', extra: false },
             { id: 2, name: 'Bar', extra: true },
@@ -274,7 +266,7 @@ describe(`operations.write`, () => {
         });
         baseline = baselineResult.snapshot;
 
-        const result = write(config, baseline, parameterizedQuery, {
+        const result = write(context, baseline, parameterizedQuery, {
           foo: [
             { extra: true },
             { extra: false },
@@ -313,7 +305,7 @@ describe(`operations.write`, () => {
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
 
-        const baselineResult = write(config, empty, parameterizedQuery, {
+        const baselineResult = write(context, empty, parameterizedQuery, {
           foo: {
             id: 1,
             name: 'Foo',
@@ -322,7 +314,7 @@ describe(`operations.write`, () => {
         });
         baseline = baselineResult.snapshot;
 
-        const result = write(config, baseline, parameterizedQuery, {
+        const result = write(context, baseline, parameterizedQuery, {
           foo: {
             id: 1,
             name: 'Foo Bar',
@@ -364,7 +356,7 @@ describe(`operations.write`, () => {
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
 
-        const baselineResult = write(config, empty, parameterizedQuery, {
+        const baselineResult = write(context, empty, parameterizedQuery, {
           foo: {
             id: 1,
             name: 'Foo',
@@ -373,7 +365,7 @@ describe(`operations.write`, () => {
         });
         baseline = baselineResult.snapshot;
 
-        const result = write(config, baseline, viewerQuery, {
+        const result = write(context, baseline, viewerQuery, {
           viewer: {
             id: 1,
             name: 'Foo Bar',
@@ -425,7 +417,7 @@ describe(`operations.write`, () => {
         entry1Id = nodeIdForParameterizedValue(containerId, [0, 'three', 'four'], { extra: true });
         entry2Id = nodeIdForParameterizedValue(containerId, [1, 'three', 'four'], { extra: true });
 
-        snapshot = write(config, empty, nestedQuery, {
+        snapshot = write(context, empty, nestedQuery, {
           one: {
             two: [
               {
@@ -477,7 +469,7 @@ describe(`operations.write`, () => {
       });
 
       it(`allows removal of values containing a field`, () => {
-        const updated = write(config, snapshot, nestedQuery, {
+        const updated = write(context, snapshot, nestedQuery, {
           one: {
             two: [
               null,
@@ -505,7 +497,7 @@ describe(`operations.write`, () => {
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { a: 1, b: null });
 
-        const result = write(config, empty, parameterizedQuery, { foo: 'hello' });
+        const result = write(context, empty, parameterizedQuery, { foo: 'hello' });
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
       });
@@ -548,7 +540,7 @@ describe(`operations.write`, () => {
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { a: 123, b: 'stuff' });
 
-        const result = write(config, empty, parameterizedQuery, { foo: 'hello' });
+        const result = write(context, empty, parameterizedQuery, { foo: 'hello' });
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
       });
@@ -582,4 +574,5 @@ describe(`operations.write`, () => {
     });
 
   });
+
 });

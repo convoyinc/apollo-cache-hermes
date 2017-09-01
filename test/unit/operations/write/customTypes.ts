@@ -1,10 +1,8 @@
-import * as util from 'util';
-
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { write } from '../../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -13,17 +11,10 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  const config = new CacheContext({
-    logger: {
-      warn(message: string, ...args: any[]) {
-        throw new Error(util.format(message, ...args));
-      },
-    },
-  });
 
-  const rootValuesQuery = query(`{ foo bar }`);
-
+  const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
+  const rootValuesQuery = query(`{ foo bar }`);
 
   describe(`custom types with object values`, () => {
 
@@ -31,7 +22,7 @@ describe(`operations.write`, () => {
 
       let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
-        const result = write(config, empty, rootValuesQuery, {
+        const result = write(context, empty, rootValuesQuery, {
           foo: {},
           bar: [],
         });
@@ -56,7 +47,7 @@ describe(`operations.write`, () => {
 
       let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
-        const result = write(config, empty, rootValuesQuery, {
+        const result = write(context, empty, rootValuesQuery, {
           foo: { id: 1 },
           bar: {
             baz: { id: 1 },
@@ -88,4 +79,5 @@ describe(`operations.write`, () => {
     });
 
   });
+
 });

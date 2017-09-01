@@ -1,12 +1,10 @@
-import * as util from 'util';
-
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
 import { Query, StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -15,18 +13,14 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  const config = new CacheContext({
-    logger: {
-      warn(message: string, ...args: any[]) {
-        throw new Error(util.format(message, ...args));
-      },
-    },
-  });
 
+  const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
 
   describe(`field alias`, () => {
+
     describe(`without parameterized arguments`, () => {
+
       describe(`simple query alias on non entityId`, () => {
         let aliasQuery: Query, snapshot: GraphSnapshot;
         beforeAll(() => {
@@ -37,7 +31,7 @@ describe(`operations.write`, () => {
             }
           }`);
 
-          snapshot = write(config, empty, aliasQuery, {
+          snapshot = write(context, empty, aliasQuery, {
             user: {
               id: 0,
               FirstName: 'Foo',
@@ -80,7 +74,7 @@ describe(`operations.write`, () => {
             }
           }`);
 
-          snapshot = write(config, empty, aliasQuery, {
+          snapshot = write(context, empty, aliasQuery, {
             user: {
               userId: 0,
               FirstName: 'Foo',
@@ -124,7 +118,7 @@ describe(`operations.write`, () => {
             }
           }`);
 
-          snapshot = write(config, empty, aliasQuery, {
+          snapshot = write(context, empty, aliasQuery, {
             user: {
               info: {
                 FirstName: 'Foo',
@@ -177,7 +171,7 @@ describe(`operations.write`, () => {
             }
           }
         `);
-        const snapshot = write(config, empty, nestedAliasQuery, {
+        const snapshot = write(context, empty, nestedAliasQuery, {
           fullUserInfo: {
             userId: 0,
             nickName: 'Foo Foo',
@@ -225,7 +219,7 @@ describe(`operations.write`, () => {
             }
           }`);
 
-          snapshot = write(config, empty, aliasQuery, {
+          snapshot = write(context, empty, aliasQuery, {
             shipment: {
               id: 0,
               name: 'ToSeattle',
@@ -302,7 +296,7 @@ describe(`operations.write`, () => {
       describe(`payload with aliases first`, () => {
         let snapshot: GraphSnapshot;
         beforeAll(() => {
-          snapshot = write(config, empty, mixQuery, {
+          snapshot = write(context, empty, mixQuery, {
             fullUserInfo: {
               id: 0,
               FirstName: 'Foo',
@@ -343,7 +337,7 @@ describe(`operations.write`, () => {
       });
 
       it(`payload with non-alias first`, () => {
-        const snapshot = write(config, empty, mixQuery, {
+        const snapshot = write(context, empty, mixQuery, {
           user: {
             id: 0,
             name: 'Foo',
@@ -364,7 +358,7 @@ describe(`operations.write`, () => {
       });
 
       it(`payload with conflict between alias and non-alias`, () => {
-        const snapshot = write(config, empty, mixQuery, {
+        const snapshot = write(context, empty, mixQuery, {
           user: {
             id: 0,
             name: 'Foo',
@@ -395,7 +389,7 @@ describe(`operations.write`, () => {
         }`);
 
         const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
-        const snapshot = write(config, empty, aliasQuery, {
+        const snapshot = write(context, empty, aliasQuery, {
           superUser: {
             ID: 0,
             FirstName: 'Baz',
@@ -419,7 +413,7 @@ describe(`operations.write`, () => {
         `, { id: 4 });
 
         const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
-        const snapshot = write(config, empty, aliasQuery, {
+        const snapshot = write(context, empty, aliasQuery, {
           superUser: {
             ID: 0,
             FirstName: 'Baz',
@@ -448,7 +442,7 @@ describe(`operations.write`, () => {
           }
         }`);
 
-        const snapshot = write(config, empty, nestedAliasQuery, {
+        const snapshot = write(context, empty, nestedAliasQuery, {
           shipments: {
             shipmentsInfo: [
               {
@@ -510,7 +504,7 @@ describe(`operations.write`, () => {
         }`);
         const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
 
-        const snapshot = write(config, empty, aliasQuery, {
+        const snapshot = write(context, empty, aliasQuery, {
           fullUser: {
             ID: 4,
             FirstName: 'Foo',
@@ -547,6 +541,9 @@ describe(`operations.write`, () => {
           },
         });
       });
+
     });
+
   });
+
 });

@@ -1,11 +1,9 @@
-import * as util from 'util';
-
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes';
 import { write } from '../../../../src/operations/write';
 import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -14,15 +12,10 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  const config = new CacheContext({
-    logger: {
-      warn(message: string, ...args: any[]) {
-        throw new Error(util.format(message, ...args));
-      },
-    },
-  });
-  const rootValuesQuery = query(`{ foo bar }`);
 
+  const context = new CacheContext(strictConfig);
+  const empty = new GraphSnapshot();
+  const rootValuesQuery = query(`{ foo bar }`);
   const viewerQuery = query(`{
     viewer {
       id
@@ -30,12 +23,10 @@ describe(`operations.write`, () => {
     }
   }`);
 
-  const empty = new GraphSnapshot();
-
   describe(`write only values to a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const result = write(config, empty, rootValuesQuery, { foo: 123, bar: 'asdf' });
+      const result = write(context, empty, rootValuesQuery, { foo: 123, bar: 'asdf' });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
@@ -60,7 +51,7 @@ describe(`operations.write`, () => {
   describe(`write a new single entity hanging off of a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const result = write(config, empty, viewerQuery, {
+      const result = write(context, empty, viewerQuery, {
         viewer: { id: 123, name: 'Gouda' },
       });
       snapshot = result.snapshot;
@@ -119,7 +110,7 @@ describe(`operations.write`, () => {
     beforeAll(() => {
       falsyValuesQuery = query(`{ null, false, zero, string }`);
 
-      const result = write(config, empty, rootValuesQuery, { null: null, false: false, zero: 0, string: '' });
+      const result = write(context, empty, rootValuesQuery, { null: null, false: false, zero: 0, string: '' });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
@@ -133,14 +124,14 @@ describe(`operations.write`, () => {
 
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baselineResult = write(config, empty, rootValuesQuery, {
+      const baselineResult = write(context, empty, rootValuesQuery, {
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar' },
       });
       baseline = baselineResult.snapshot;
 
       const innerNodeQuery = query(`{ name extra }`, undefined, '1');
-      const result = write(config, baseline, innerNodeQuery, {
+      const result = write(context, baseline, innerNodeQuery, {
         name: 'moo',
         extra: true,
       });
@@ -167,4 +158,5 @@ describe(`operations.write`, () => {
     });
 
   });
+
 });
