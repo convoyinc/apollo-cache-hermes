@@ -2,16 +2,14 @@ import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read, write } from '../../../../src/operations';
 import { Query, StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.read`, () => {
 
-  const context = new CacheContext();
-
+  const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-
   const viewerQuery = query(`{
     viewer {
       id
@@ -178,4 +176,5 @@ describe(`operations.read`, () => {
     });
 
   });
+
 });

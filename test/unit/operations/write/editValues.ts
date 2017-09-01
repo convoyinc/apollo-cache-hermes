@@ -4,7 +4,7 @@ import { EntitySnapshot } from '../../../../src/nodes';
 import { write } from '../../../../src/operations/write';
 import { JsonArray } from '../../../../src/primitive';
 import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
-import { query, strictConfig } from '../../../helpers';
+import { query, silentConfig, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -13,23 +13,19 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  const config = new CacheContext(strictConfig);
-  const silentConfig = new CacheContext({
-    logger: {
-      warn: jest.fn(),
-      error: jest.fn(),
-    },
-  });
-  const rootValuesQuery = query(`{ foo bar }`);
+
+  const context = new CacheContext(strictConfig);
+  const silentContext = new CacheContext(silentConfig);
   const empty = new GraphSnapshot();
+  const rootValuesQuery = query(`{ foo bar }`);
 
   describe(`edit leaf values of a root`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baselineResult = write(config, empty, rootValuesQuery, { foo: 123, bar: { baz: 'asdf' } });
+      const baselineResult = write(context, empty, rootValuesQuery, { foo: 123, bar: { baz: 'asdf' } });
       baseline = baselineResult.snapshot;
 
-      const result = write(config, baseline, rootValuesQuery, { foo: 321 });
+      const result = write(context, baseline, rootValuesQuery, { foo: 321 });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
@@ -65,13 +61,13 @@ describe(`operations.write`, () => {
 
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baselineResult = write(config, empty, rootValuesQuery, {
+      const baselineResult = write(context, empty, rootValuesQuery, {
         foo: [{ value: 1 }, { value: 2 }, { value: 3 }],
         bar: { baz: 'asdf' },
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(config, baseline, rootValuesQuery, {
+      const result = write(context, baseline, rootValuesQuery, {
         foo: [{ value: -1 }, { extra: true }],
         bar: {
           baz: 'fdsa',
@@ -120,13 +116,13 @@ describe(`operations.write`, () => {
 
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baselineResult = write(config, empty, rootValuesQuery, {
+      const baselineResult = write(context, empty, rootValuesQuery, {
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar' },
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(config, baseline, rootValuesQuery, {
+      const result = write(context, baseline, rootValuesQuery, {
         foo: { id: 1, name: 'Foo Boo' },
         bar: { id: 2, extra: true },
       });
@@ -178,13 +174,13 @@ describe(`operations.write`, () => {
 
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baselineResult = write(config, empty, rootValuesQuery, {
+      const baselineResult = write(context, empty, rootValuesQuery, {
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar' },
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(config, baseline, rootValuesQuery, {
+      const result = write(context, baseline, rootValuesQuery, {
         foo: { id: 2 },
         bar: { id: 1 },
       });
@@ -240,7 +236,7 @@ describe(`operations.write`, () => {
         things { id name }
       }`);
 
-      snapshot = write(config, empty, arrayQuery, {
+      snapshot = write(context, empty, arrayQuery, {
         things: [
           { id: 1, name: 'One' },
           { id: 2, name: 'Two' },
@@ -262,7 +258,7 @@ describe(`operations.write`, () => {
     });
 
     it(`lets you reorder references`, () => {
-      const updated = write(config, snapshot, arrayQuery, {
+      const updated = write(context, snapshot, arrayQuery, {
         things: [
           { id: 5, name: 'Five' },
           { id: 2, name: 'Two' },
@@ -282,7 +278,7 @@ describe(`operations.write`, () => {
     });
 
     it(`drops references when the array shrinks`, () => {
-      const updated = write(config, snapshot, arrayQuery, {
+      const updated = write(context, snapshot, arrayQuery, {
         things: [
           { id: 1, name: 'One' },
           { id: 2, name: 'Two' },
@@ -296,7 +292,7 @@ describe(`operations.write`, () => {
     });
 
     it(`supports multiple references to the same node`, () => {
-      const updated = write(config, snapshot, arrayQuery, {
+      const updated = write(context, snapshot, arrayQuery, {
         things: [
           { id: 1, name: 'One' },
           { id: 2, name: 'Two' },
@@ -326,7 +322,7 @@ describe(`operations.write`, () => {
     });
 
     it(`supports holes`, () => {
-      const updated = write(config, snapshot, arrayQuery, {
+      const updated = write(context, snapshot, arrayQuery, {
         things: [
           null,
           null,
@@ -353,7 +349,7 @@ describe(`operations.write`, () => {
     });
 
     it(`treats blanks in sparse arrays as null`, () => {
-      const updated = write(silentConfig, snapshot, arrayQuery, {
+      const updated = write(silentContext, snapshot, arrayQuery, {
         things: [
           undefined,
           undefined,
@@ -378,5 +374,7 @@ describe(`operations.write`, () => {
         ],
       });
     });
+
   });
+
 });

@@ -11,7 +11,8 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  const config = new CacheContext(strictConfig);
+
+  const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
 
   describe(`cyclic references`, () => {
@@ -33,7 +34,7 @@ describe(`operations.write`, () => {
           }
         }`);
 
-        const result = write(config, empty, cyclicQuery, {
+        const result = write(context, empty, cyclicQuery, {
           foo: {
             id: 1,
             name: 'Foo',
@@ -90,7 +91,7 @@ describe(`operations.write`, () => {
           }
         }`);
 
-        const baselineResult = write(config, empty, cyclicQuery, {
+        const baselineResult = write(context, empty, cyclicQuery, {
           foo: {
             id: 1,
             name: 'Foo',
@@ -104,7 +105,7 @@ describe(`operations.write`, () => {
         });
         baseline = baselineResult.snapshot;
 
-        const result = write(config, baseline, cyclicQuery, {
+        const result = write(context, baseline, cyclicQuery, {
           foo: {
             bar: {
               name: 'Barrington',
@@ -166,7 +167,7 @@ describe(`operations.write`, () => {
           }
         }`);
 
-        const baselineResult = write(config, empty, cyclicQuery, {
+        const baselineResult = write(context, empty, cyclicQuery, {
           foo: {
             id: 1,
             name: 'Foo',
@@ -180,7 +181,7 @@ describe(`operations.write`, () => {
         });
         baseline = baselineResult.snapshot;
 
-        const result = write(config, baseline, cyclicQuery, {
+        const result = write(context, baseline, cyclicQuery, {
           foo: {
             bar: {
               fizz: null,
@@ -243,7 +244,7 @@ describe(`operations.write`, () => {
           }
         }`);
 
-        const baselineResult = write(config, empty, cyclicQuery, {
+        const baselineResult = write(context, empty, cyclicQuery, {
           foo: {
             id: 1,
             name: 'Foo',
@@ -257,7 +258,7 @@ describe(`operations.write`, () => {
         });
         baseline = baselineResult.snapshot;
 
-        const result = write(config, baseline, cyclicQuery, {
+        const result = write(context, baseline, cyclicQuery, {
           foo: null,
         });
         snapshot = result.snapshot;
@@ -314,7 +315,7 @@ describe(`operations.write`, () => {
         const bar = { id: 2, name: 'Bar', foo };
         foo.bar = bar;
 
-        const result = write(config, empty, cyclicQuery, { foo, baz: null });
+        const result = write(context, empty, cyclicQuery, { foo, baz: null });
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
       });
@@ -332,7 +333,7 @@ describe(`operations.write`, () => {
         // A common case is to update an existing graph by shallow cloning it.
         const root = snapshot.get(QueryRootId);
 
-        const result = write(config, snapshot, cyclicQuery, { ...root, baz: 'hello' });
+        const result = write(context, snapshot, cyclicQuery, { ...root, baz: 'hello' });
         expect(result.snapshot.get(QueryRootId).baz).to.eq('hello');
       });
 
@@ -359,7 +360,7 @@ describe(`operations.write`, () => {
         const bar = { name: 'Bar', foo };
         foo.bar = bar;
 
-        const result = write(config, empty, cyclicQuery, { foo, baz: null });
+        const result = write(context, empty, cyclicQuery, { foo, baz: null });
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
       });
@@ -383,9 +384,12 @@ describe(`operations.write`, () => {
         // A common case is to update an existing graph by shallow cloning it.
         const root = snapshot.get(QueryRootId);
 
-        const result = write(config, snapshot, cyclicQuery, { ...root, baz: 'hello' });
+        const result = write(context, snapshot, cyclicQuery, { ...root, baz: 'hello' });
         expect(result.snapshot.get(QueryRootId).baz).to.eq('hello');
       });
+
     });
+
   });
+
 });

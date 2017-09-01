@@ -11,20 +11,21 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  const config = new CacheContext(strictConfig);
-  const rootValuesQuery = query(`{ foo bar }`);
+
+  const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
+  const rootValuesQuery = query(`{ foo bar }`);
 
   describe(`merge unidentifiable payloads with previously known nodes`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baselineResult = write(config, empty, rootValuesQuery, {
+      const baselineResult = write(context, empty, rootValuesQuery, {
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar' },
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(config, baseline, rootValuesQuery, {
+      const result = write(context, baseline, rootValuesQuery, {
         foo: { name: 'Foo Boo' },
         bar: { extra: true },
       });
@@ -65,4 +66,5 @@ describe(`operations.write`, () => {
     });
 
   });
+
 });
