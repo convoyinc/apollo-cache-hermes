@@ -21,6 +21,7 @@ import {
 export interface EditedSnapshot {
   snapshot: GraphSnapshot;
   editedNodeIds: Set<NodeId>;
+  writtenQueries: Set<ParsedQuery>;
 }
 
 /**
@@ -74,6 +75,9 @@ export class SnapshotEditor {
    */
   private _rebuiltNodeIds = new Set<NodeId>();
 
+  /** The queries that were written, and should now be considered complete. */
+  private _writtenQueries = new Set<ParsedQuery>();
+
   constructor(
     /** The configuration/context to use when editing snapshots. */
     private _context: CacheContext,
@@ -109,6 +113,9 @@ export class SnapshotEditor {
 
     // Remove (garbage collect) orphaned subgraphs.
     this._removeOrphanedNodes(orphanedNodeIds);
+
+    // The query should now be considered complete for future reads.
+    this._writtenQueries.add(parsed);
   }
 
   /**
@@ -386,6 +393,7 @@ export class SnapshotEditor {
     return {
       snapshot: new GraphSnapshot(snapshots),
       editedNodeIds: this._editedNodeIds,
+      writtenQueries: this._writtenQueries,
     };
   }
 

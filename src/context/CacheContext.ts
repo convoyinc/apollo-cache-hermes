@@ -4,7 +4,7 @@ import lodashIsEqual = require('lodash.isequal');
 import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
 import { EntityId, ParsedQuery, Query } from '../schema';
-import { addTypenameToDocument, isObject } from '../util';
+import { addToSet, addTypenameToDocument, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
 
@@ -58,7 +58,7 @@ export class CacheContext {
   /** Retrieve the EntityId for a given node, if any. */
   readonly entityIdForNode: CacheContext.EntityIdForNode;
 
-  /** Run transformation on changed entity node, if any */
+  /** Run transformation on changed entity node, if any. */
   readonly entityTransformer: CacheContext.EntityTransformer | undefined;
 
   /** Whether __typename should be injected into nodes in queries. */
@@ -67,6 +67,8 @@ export class CacheContext {
   private readonly _queryInfoMap = new Map<string, QueryInfo>();
   /** All currently known & parsed queries, for identity mapping. */
   private readonly _parsedQueriesMap = new Map<string, ParsedQuery[]>();
+  /** All queries that have been successfully written to the cache. */
+  private readonly _writtenQueries = new Set<ParsedQuery>();
   /** The logger we should use. */
   private readonly _logger: CacheContext.Logger;
 
@@ -129,6 +131,24 @@ export class CacheContext {
    */
   error(message: string, ...metadata: any[]): void {
     this._logger.error(message, ...metadata);
+  }
+
+  /**
+   * Mark a query as having been successfully written into the graph.
+   */
+  markQueriesWritten(parsed: Iterable<ParsedQuery>): void {
+    addToSet(this._writtenQueries, parsed);
+  }
+
+  /**
+   * Whether we've previously written a query to the cache (and that reads
+   * against it should be considered complete).
+   *
+   * Once written, it's impossible for a read of that same query to be
+   * considered incomplete (we never remove reachable nodes in the graph).
+   */
+  wasQueryWritten(parsed: ParsedQuery): boolean {
+    return this._writtenQueries.has(parsed);
   }
 
   /**

@@ -77,10 +77,12 @@ export class Cache implements Queryable {
    *
    * If a changeId is provided, the transaction will be recorded as an
    * optimistic update.
+   *
+   * Returns whether the transaction was successful.
    */
-  transaction(callback: TransactionCallback): void;
-  transaction(changeIdOrCallback: ChangeId, callback: TransactionCallback): void;
-  transaction(changeIdOrCallback: ChangeId | TransactionCallback, callback?: TransactionCallback): void {
+  transaction(callback: TransactionCallback): boolean;
+  transaction(changeIdOrCallback: ChangeId, callback: TransactionCallback): boolean;
+  transaction(changeIdOrCallback: ChangeId | TransactionCallback, callback?: TransactionCallback): boolean {
     let changeId;
     if (typeof callback !== 'function') {
       callback = changeIdOrCallback as TransactionCallback;
@@ -93,11 +95,14 @@ export class Cache implements Queryable {
       callback(transaction);
     } catch (error) {
       this._context.error(`Rolling back transaction due to error:`, error);
-      return;
+      return false;
     }
 
-    const { snapshot, editedNodeIds } = transaction.commit();
+    const { snapshot, editedNodeIds, writtenQueries } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
+    this._context.markQueriesWritten(writtenQueries);
+
+    return true;
   }
 
   /**
