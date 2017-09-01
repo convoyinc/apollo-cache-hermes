@@ -4,7 +4,7 @@ import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, Query, QuerySnapshot } from './schema';
+import { ChangeId, NodeId, ParsedQuery, Query, QuerySnapshot } from './schema';
 import { addToSet } from './util';
 
 /**
@@ -21,6 +21,9 @@ export class CacheTransaction implements Queryable {
 
   /** All edits made throughout the transaction. */
   private _deltas: QuerySnapshot[] = [];
+
+  /** All queries written during the transaction. */
+  private _writtenQueries = new Set<ParsedQuery>();
 
   constructor(
     private _context: CacheContext,
@@ -66,7 +69,7 @@ export class CacheTransaction implements Queryable {
    * Complete the transaction, returning the new snapshot and the ids of any
    * nodes that were edited.
    */
-  commit(): { snapshot: CacheSnapshot, editedNodeIds: Set<NodeId> } {
+  commit(): { snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>, writtenQueries: Set<ParsedQuery> } {
     let snapshot = this._snapshot;
     if (this._optimisticChangeId) {
       snapshot = {
@@ -75,7 +78,7 @@ export class CacheTransaction implements Queryable {
       };
     }
 
-    return { snapshot, editedNodeIds: this._editedNodeIds };
+    return { snapshot, editedNodeIds: this._editedNodeIds, writtenQueries: this._writtenQueries };
   }
 
   /**
@@ -84,8 +87,9 @@ export class CacheTransaction implements Queryable {
   private _writeBaseline(query: Query, payload: JsonObject) {
     const current = this._snapshot;
 
-    const { snapshot: baseline, editedNodeIds } = write(this._context, current.baseline, query, payload);
+    const { snapshot: baseline, editedNodeIds, writtenQueries } = write(this._context, current.baseline, query, payload);
     addToSet(this._editedNodeIds, editedNodeIds);
+    addToSet(this._writtenQueries, writtenQueries);
 
     const optimistic = this._buildOptimisticSnapshot(baseline);
 
@@ -111,7 +115,8 @@ export class CacheTransaction implements Queryable {
   private _writeOptimistic(query: Query, payload: JsonObject) {
     this._deltas.push({ query, payload });
 
-    const { snapshot: optimistic, editedNodeIds } = write(this._context, this._snapshot.baseline, query, payload);
+    const { snapshot: optimistic, editedNodeIds, writtenQueries } = write(this._context, this._snapshot.baseline, query, payload);
+    addToSet(this._writtenQueries, writtenQueries);
     addToSet(this._editedNodeIds, editedNodeIds);
 
     this._snapshot = { ...this._snapshot, optimistic };

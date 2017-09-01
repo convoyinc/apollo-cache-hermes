@@ -20,7 +20,7 @@ export interface QueryResultWithNodeIds extends QueryResult {
 }
 
 /**
- * Get you some datas.
+ * Get you some data.
  */
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
 export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
@@ -35,7 +35,20 @@ export function read(context: CacheContext, query: Query, snapshot: GraphSnapsho
       result = _walkAndOverlayDynamicValues(parsed, context, snapshot, dynamicFieldMap, result);
     }
 
-    const { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
+    let { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
+
+    // This should NEVER be true.
+    //
+    // TODO: Once we've nailed down all the bugs; consider skipping
+    // _visitSelection for known complete queries (and drop nodeIds tracking?)
+    if (!complete && context.wasQueryWritten(parsed)) {
+      context.error(`Hermes BUG: the most recently written query was marked incomplete`, {
+        queryName: parsed.info.operationName,
+        query: parsed.info.operationSource,
+      });
+      // Recover in this case.
+      complete = true;
+    }
 
     queryResult = { result, complete, nodeIds };
     snapshot.readCache.set(parsed, queryResult as QueryResult);

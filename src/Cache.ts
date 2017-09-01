@@ -27,10 +27,6 @@ export class Cache implements Queryable {
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
-  /** The most recently written query; used to detect bugs in the cache. */
-  private _latestWrite?: Query;
-  private _latestPayload?: JsonObject;
-
   constructor(config?: CacheContext.Configuration) {
     const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
@@ -47,20 +43,7 @@ export class Cache implements Queryable {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     const snapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
-    const result = read(this._context, query, snapshot);
-
-    // This should NEVER be true.
-    if (!result.complete && query === this._latestWrite) {
-      this._context.error(`Hermes BUG: the most recently written query was marked incomplete`, {
-        query: this._latestWrite,
-        readResult: result.result,
-        writePayload: this._latestPayload,
-      });
-      // Recover in this case.
-      result.complete = true;
-    }
-
-    return result;
+    return read(this._context, query, snapshot);
   }
 
   /**
@@ -85,10 +68,7 @@ export class Cache implements Queryable {
    * Writes values for a selection to the cache.
    */
   write(query: Query, payload: JsonObject): void {
-    if (this.transaction(t => t.write(query, payload))) {
-      this._latestWrite = query;
-      this._latestPayload = payload;
-    }
+    this.transaction(t => t.write(query, payload));
   }
 
   /**
@@ -118,8 +98,9 @@ export class Cache implements Queryable {
       return false;
     }
 
-    const { snapshot, editedNodeIds } = transaction.commit();
+    const { snapshot, editedNodeIds, writtenQueries } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
+    this._context.markQueriesWritten(writtenQueries);
 
     return true;
   }

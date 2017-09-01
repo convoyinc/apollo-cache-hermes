@@ -30,6 +30,8 @@ export class QueryInfo {
   public readonly operationType: OperationTypeNode;
   /** The name of the operation. */
   public readonly operationName?: string;
+  /** The GQL source of the operation */
+  public readonly operationSource?: string;
   /** All fragments in the document, indexed by name. */
   public readonly fragmentMap: FragmentMap;
   /**
@@ -51,6 +53,7 @@ export class QueryInfo {
     this.operation = getOperationOrDie(document);
     this.operationType = this.operation.operation;
     this.operationName = this.operation.name && this.operation.name.value;
+    this.operationSource = this.operation.loc && this.operation.loc.source.body;
     this.fragmentMap = fragmentMapForDocument(document);
 
     const { fieldMap, variables } = compileDynamicFields(this.fragmentMap, this.operation.selectionSet);
