@@ -23,13 +23,13 @@
     "clean": "./scripts/clean.sh",
     "compile": "./scripts/compile.sh",
     "dev": "./scripts/dev.sh",
-    "fix:style": "./scripts/fix:style.sh",
+    "fix:style": "./scripts/fix-style.sh",
     "release": "./scripts/release.sh",
     "test": "./scripts/test.sh",
-    "test:compile": "./scripts/test:compile.sh",
-    "test:style": "./scripts/test:style.sh",
-    "test:unit": "./scripts/test:unit.sh",
-    "test:unit:coverage": "./scripts/test:unit:coverage.sh"
+    "test:compile": "./scripts/test-compile.sh",
+    "test:style": "./scripts/test-style.sh",
+    "test:unit": "./scripts/test-unit.sh",
+    "test:unit:coverage": "./scripts/test-unit-coverage.sh"
   },
   "devDependencies": {
     "@types/chai": "^4.0.1",

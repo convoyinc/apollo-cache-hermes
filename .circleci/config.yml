@@ -27,7 +27,7 @@ jobs:
       - checkout
       - restore_cache:
           key: deps-{{ checksum "yarn.lock" }}
-      - run: ./scripts/install:ci.sh
+      - run: ./scripts/install-ci.sh
       - save_cache:
           key: deps-{{ checksum "yarn.lock" }}
           paths:
