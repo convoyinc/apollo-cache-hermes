@@ -8,9 +8,9 @@ job_common: &job_common
     - <<: *base_image
   working_directory: ~/sandbox/code
 
-attach: &attach
-  attach_workspace:
-    at: ~/sandbox
+restore: &restore
+  restore_cache:
+    key: code-{{ .Revision }}
 
 store_artifacts: &store_artifacts
   store_artifacts:
@@ -36,23 +36,22 @@ jobs:
           paths:
             - ~/sandbox/code/node_modules
       - run: yarn run compile
-      - persist_to_workspace:
-          root: ~/sandbox
-          paths: code
+      - save_cache:
+          key: code-{{ .Revision }}
+          paths:
+            - code
 
   test:style:
     <<: *job_common
     steps:
-      - checkout
-      - <<: *attach
+      - <<: *restore
       - run: yarn run test:style
       - <<: *store_artifacts
 
   test:unit:
     <<: *job_common
     steps:
-      - checkout
-      - <<: *attach
+      - <<: *restore
       - run: ls -R src test
       - run: yarn run test:unit:coverage
       - <<: *store_artifacts
@@ -61,8 +60,7 @@ jobs:
   release:
     <<: *job_common
     steps:
-      - checkout
-      - <<: *attach
+      - <<: *restore
       - run: yarn config set registry https://registry.npmjs.org/
       - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - run: git config --global user.email "donvoy@convoy.com"
