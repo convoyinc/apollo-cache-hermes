@@ -58,6 +58,7 @@ jobs:
     <<: *job_common
     steps:
       - <<: *restore
+      - run: mkdir -p ~/.ssh
       - run: echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
       - run: yarn config set registry https://registry.npmjs.org/
       - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
