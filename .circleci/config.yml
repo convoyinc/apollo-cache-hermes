@@ -6,7 +6,6 @@ base_image: &base_image
 job_common: &job_common
   docker:
     - <<: *base_image
-  working_directory: ~/sandbox/code
 
 restore: &restore
   restore_cache:
@@ -14,19 +13,18 @@ restore: &restore
 
 store_artifacts: &store_artifacts
   store_artifacts:
-    path: ~/sandbox/code/output
+    path: output
     destination: /
 
 store_test_results: &store_test_results
   store_test_results:
-    path: ~/sandbox/code/output
+    path: output
 
 jobs:
   build:
     <<: *job_common
     steps:
-      - checkout:
-          path: ~/sandbox/code
+      - checkout
       - restore_cache:
           key: dependencies-{{ checksum "yarn.lock" }}
       - run: yarn run greenkeeper:lockfile
@@ -34,12 +32,12 @@ jobs:
       - save_cache:
           key: dependencies-{{ checksum "yarn.lock" }}
           paths:
-            - ~/sandbox/code/node_modules
+            - node_modules
       - run: yarn run compile
       - save_cache:
           key: code-{{ .Revision }}
           paths:
-            - code
+            - .
 
   test:style:
     <<: *job_common
