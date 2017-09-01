@@ -2,13 +2,13 @@ import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { write } from '../../../../src/operations/write';
 import { StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.write`, () => {
 
-  const context = new CacheContext();
+  const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
   const listQuery = query(`{
     foo {

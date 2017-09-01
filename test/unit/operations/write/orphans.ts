@@ -1,10 +1,8 @@
-import * as util from 'util';
-
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { write } from '../../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -13,16 +11,8 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  const config = new CacheContext({
-    logger: {
-      warn(message: string, ...args: any[]) {
-        throw new Error(util.format(message, ...args));
-      },
-    },
-  });
-
+  const config = new CacheContext(strictConfig);
   const rootValuesQuery = query(`{ foo bar }`);
-
   const empty = new GraphSnapshot();
 
   describe(`when orphaning a node`, () => {

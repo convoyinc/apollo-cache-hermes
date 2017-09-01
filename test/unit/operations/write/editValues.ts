@@ -1,12 +1,10 @@
-import * as util from 'util';
-
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes';
 import { write } from '../../../../src/operations/write';
 import { JsonArray } from '../../../../src/primitive';
 import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -15,23 +13,16 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  const config = new CacheContext({
-    logger: {
-      warn(message: string, ...args: any[]) {
-        throw new Error(util.format(message, ...args));
-      },
-    },
-  });
-
+  const config = new CacheContext(strictConfig);
   const silentConfig = new CacheContext({
     logger: {
       warn: jest.fn(),
+      error: jest.fn(),
     },
   });
-
   const rootValuesQuery = query(`{ foo bar }`);
-
   const empty = new GraphSnapshot();
+
   describe(`edit leaf values of a root`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
