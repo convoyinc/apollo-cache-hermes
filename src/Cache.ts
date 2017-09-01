@@ -47,6 +47,13 @@ export class Cache implements Queryable {
   }
 
   /**
+   * Retrieves the current value of the entity identified by `id`.
+   */
+  getEntity(id: NodeId) {
+    return this._snapshot.optimistic.get(id);
+  }
+
+  /**
    * Registers a callback that should be triggered any time the nodes selected
    * by a particular query have changed.
    */
@@ -82,7 +89,13 @@ export class Cache implements Queryable {
     }
 
     const transaction = new CacheTransaction(this._context, this._snapshot, changeId);
-    callback(transaction);
+    try {
+      callback(transaction);
+    } catch (error) {
+      this._context.error(`Rolling back transaction due to error:`, error);
+      return;
+    }
+
     const { snapshot, editedNodeIds } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
   }
