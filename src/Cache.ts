@@ -27,6 +27,10 @@ export class Cache implements Queryable {
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
+  /** The most recently written query; used to detect bugs in the cache. */
+  private _latestWrite?: Query;
+  private _latestPayload?: JsonObject;
+
   constructor(config?: CacheContext.Configuration) {
     const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
@@ -43,7 +47,20 @@ export class Cache implements Queryable {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     const snapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
-    return read(this._context, query, snapshot);
+    const result = read(this._context, query, snapshot);
+
+    // This should NEVER be true.
+    if (!result.complete && query === this._latestWrite) {
+      this._context.error(`Hermes BUG: the most recently written query was marked incomplete`, {
+        query: this._latestWrite,
+        readResult: result.result,
+        writePayload: this._latestPayload,
+      });
+      // Recover in this case.
+      result.complete = true;
+    }
+
+    return result;
   }
 
   /**
@@ -68,7 +85,10 @@ export class Cache implements Queryable {
    * Writes values for a selection to the cache.
    */
   write(query: Query, payload: JsonObject): void {
-    this.transaction(t => t.write(query, payload));
+    if (this.transaction(t => t.write(query, payload))) {
+      this._latestWrite = query;
+      this._latestPayload = payload;
+    }
   }
 
   /**
@@ -77,10 +97,12 @@ export class Cache implements Queryable {
    *
    * If a changeId is provided, the transaction will be recorded as an
    * optimistic update.
+   *
+   * Returns whether the transaction was successful.
    */
-  transaction(callback: TransactionCallback): void;
-  transaction(changeIdOrCallback: ChangeId, callback: TransactionCallback): void;
-  transaction(changeIdOrCallback: ChangeId | TransactionCallback, callback?: TransactionCallback): void {
+  transaction(callback: TransactionCallback): boolean;
+  transaction(changeIdOrCallback: ChangeId, callback: TransactionCallback): boolean;
+  transaction(changeIdOrCallback: ChangeId | TransactionCallback, callback?: TransactionCallback): boolean {
     let changeId;
     if (typeof callback !== 'function') {
       callback = changeIdOrCallback as TransactionCallback;
@@ -93,11 +115,13 @@ export class Cache implements Queryable {
       callback(transaction);
     } catch (error) {
       this._context.error(`Rolling back transaction due to error:`, error);
-      return;
+      return false;
     }
 
     const { snapshot, editedNodeIds } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
+
+    return true;
   }
 
   /**

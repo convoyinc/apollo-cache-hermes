@@ -58,7 +58,7 @@ export class CacheContext {
   /** Retrieve the EntityId for a given node, if any. */
   readonly entityIdForNode: CacheContext.EntityIdForNode;
 
-  /** Run transformation on changed entity node, if any */
+  /** Run transformation on changed entity node, if any. */
   readonly entityTransformer: CacheContext.EntityTransformer | undefined;
 
   /** Whether __typename should be injected into nodes in queries. */
