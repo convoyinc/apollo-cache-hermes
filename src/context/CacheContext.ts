@@ -16,6 +16,7 @@ export namespace CacheContext {
   export type LogEmitter = (message: string, ...metadata: any[]) => void;
   export interface Logger {
     warn: LogEmitter;
+    error: LogEmitter;
   }
 
   /**
@@ -74,7 +75,8 @@ export class CacheContext {
     this.entityIdForNode = _makeEntityIdMapper(config.entityIdForNode);
     this.entityTransformer = config.entityTransformer;
     this._logger = config.logger || {
-      warn: console.warn ? console.warn.bind(console) : console.log.bind(console), // eslint-disable-line no-console
+      warn:  console.warn  ? console.warn.bind(console)  : console.log.bind(console), // eslint-disable-line no-console
+      error: console.error ? console.error.bind(console) : console.log.bind(console), // eslint-disable-line no-console
     };
   }
 
@@ -120,6 +122,13 @@ export class CacheContext {
    */
   warn(message: string, ...metadata: any[]): void {
     this._logger.warn(message, ...metadata);
+  }
+
+  /**
+   * Emit a non-blocking error.
+   */
+  error(message: string, ...metadata: any[]): void {
+    this._logger.error(message, ...metadata);
   }
 
   /**
