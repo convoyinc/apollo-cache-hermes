@@ -89,7 +89,13 @@ export class Cache implements Queryable {
     }
 
     const transaction = new CacheTransaction(this._context, this._snapshot, changeId);
-    callback(transaction);
+    try {
+      callback(transaction);
+    } catch (error) {
+      this._context.error(`Rolling back transaction due to error:`, error);
+      return;
+    }
+
     const { snapshot, editedNodeIds } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
   }

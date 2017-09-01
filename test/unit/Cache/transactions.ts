@@ -14,13 +14,12 @@ describe(`Cache`, () => {
       }
     }`);
 
-    let cache: Cache;
+    let cache: Cache, warn: jest.Mock<any>, error: jest.Mock<any>;
     beforeEach(() => {
+      warn = jest.fn();
+      error = jest.fn();
       cache = new Cache({
-        logger: {
-          warn: jest.fn(),
-          error: jest.fn(),
-        },
+        logger: { warn, error },
       });
     });
 
@@ -42,7 +41,23 @@ describe(`Cache`, () => {
     });
 
     it(`rolls back on error`, () => {
+      cache.transaction((transaction) => {
+        transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hi' } });
+        throw new Error(`bewm`);
+      });
+
       expect(cache.getEntity(QueryRootId)).to.eq(undefined);
+    });
+
+    it(`logs on error`, () => {
+      const exception = new Error(`bewm`);
+      cache.transaction((transaction) => {
+        transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hi' } });
+        throw exception;
+      });
+
+      expect(error.mock.calls.length).to.eq(1);
+      expect(error.mock.calls[0]).to.include(exception);
     });
 
   });
