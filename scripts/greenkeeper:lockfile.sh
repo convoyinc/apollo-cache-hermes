@@ -5,7 +5,7 @@ set -e
 [[ ! "${CIRCLE_BRANCH}" =~ ^greenkeeper/ ]] && exit 0
 
 # We must run this _before_ we yarn install.
-yarn global add greenkeeper-lockfile
+sudo yarn global add greenkeeper-lockfile
 
 greenkeeper-lockfile-update
 greenkeeper-lockfile-upload
