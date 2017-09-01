@@ -24,7 +24,6 @@
     "compile": "./scripts/compile.sh",
     "dev": "./scripts/dev.sh",
     "fix:style": "./scripts/fix:style.sh",
-    "greenkeeper:lockfile": "./scripts/greenkeeper:lockfile.sh",
     "release": "./scripts/release.sh",
     "test": "./scripts/test.sh",
     "test:compile": "./scripts/test:compile.sh",

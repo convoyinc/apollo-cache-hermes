@@ -27,8 +27,7 @@ jobs:
       - checkout
       - restore_cache:
           key: dependencies-{{ checksum "yarn.lock" }}
-      - run: yarn run greenkeeper:lockfile
-      - run: yarn install --frozen-lockfile
+      - run: ./scripts/install:ci.sh
       - save_cache:
           key: dependencies-{{ checksum "yarn.lock" }}
           paths:
