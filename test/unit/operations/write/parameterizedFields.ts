@@ -573,6 +573,46 @@ describe(`operations.write`, () => {
 
     });
 
+    describe(`removing array nodes that contain parameterized values`, () => {
+
+      let rootedQuery: Query, snapshot: GraphSnapshot, value1Id: NodeId, value2Id: NodeId;
+      beforeAll(() => {
+        rootedQuery = query(`{
+          foo {
+            bar(extra: true) {
+              baz { id }
+            }
+          }
+        }`);
+
+        value1Id = nodeIdForParameterizedValue(QueryRootId, ['foo', 0, 'bar'], { extra: true });
+        value2Id = nodeIdForParameterizedValue(QueryRootId, ['foo', 1, 'bar'], { extra: true });
+
+        const { snapshot: baseSnapshot } = write(context, empty, rootedQuery, {
+          foo: [
+            { bar: { baz: { id: 1 } } },
+            { bar: { baz: { id: 2 } } },
+          ],
+        });
+
+        const result = write(context, baseSnapshot, rootedQuery, {
+          foo: [
+            { bar: { baz: { id: 1 } } },
+          ],
+        });
+        snapshot = result.snapshot;
+      });
+
+      it(`doesn't contain the orphaned parameterized value`, () => {
+        expect(snapshot.allNodeIds()).to.not.include(value2Id);
+      });
+
+      it(`doesn't contain transitively orphaned nodes`, () => {
+        expect(snapshot.allNodeIds()).to.not.include('2');
+      });
+
+    });
+
   });
 
 });
