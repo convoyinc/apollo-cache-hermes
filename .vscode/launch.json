@@ -7,7 +7,7 @@
       "protocol": "legacy",
       "console": "integratedTerminal",
       "name": "test:unit",
-      "runtimeExecutable": "${workspaceRoot}/scripts/test:unit.sh",
+      "runtimeExecutable": "${workspaceRoot}/scripts/test-unit.sh",
       "runtimeArgs": [
         "--runInBand"
       ]
