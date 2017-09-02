@@ -185,7 +185,7 @@ export class SnapshotEditor {
         }
 
         if (isDynamicFieldWithArgs(dynamicFields)) {
-          const fieldId = this._ensureParameterizedValueSnapshot(containerId, path, dynamicFields, query.variables!);
+          const fieldId = this._ensureParameterizedValueSnapshot(containerId, [...path], dynamicFields, query.variables!);
           // We walk the values of the parameterized field like any other
           // entity.
           //
@@ -257,7 +257,6 @@ export class SnapshotEditor {
           // TODO: Better abstract this.
           if (payloadLength < nodeLength && containerSnapshot && containerSnapshot.outbound) {
             for (const reference of containerSnapshot.outbound) {
-              if (!reference.path) continue;
               if (!pathBeginsWith(reference.path, path)) continue;
               const index = reference.path[path.length];
               if (typeof index !== 'number') continue;
@@ -338,10 +337,10 @@ export class SnapshotEditor {
     while (queue.length) {
       const nodeId = queue.pop()!;
       const snapshot = this.getNodeSnapshot(nodeId);
+      if (snapshot instanceof ParameterizedValueSnapshot) continue;
       if (!snapshot || !snapshot.inbound) continue;
 
       for (const { id, path } of snapshot.inbound) {
-        if (!path) continue;
         this._setValue(id, path, snapshot.node, false);
         if (this._rebuiltNodeIds.has(id)) continue;
 
@@ -462,16 +461,15 @@ export class SnapshotEditor {
     // We're careful to not edit the container unless we absolutely have to.
     // (There may be no changes for this parameterized value).
     const containerSnapshot = this.getNodeSnapshot(containerId);
-    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', fieldId)) {
+    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', fieldId, path)) {
       // We need to construct a new snapshot otherwise.
       const newSnapshot = new ParameterizedValueSnapshot();
-      addNodeReference('inbound', newSnapshot, containerId);
+      addNodeReference('inbound', newSnapshot, containerId, path);
       this._newNodes[fieldId] = newSnapshot;
 
       // Ensure that the container points to it.
-      addNodeReference('outbound', this._ensureNewSnapshot(containerId), fieldId);
+      addNodeReference('outbound', this._ensureNewSnapshot(containerId), fieldId, path);
     }
-
 
     return fieldId;
   }
