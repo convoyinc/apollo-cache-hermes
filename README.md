@@ -23,13 +23,3 @@ npm install
 # feedback on compile and test results for the files you're touching.
 npm run dev
 ```
-
-### Forks
-
-This repo is fork- and git-friendly!
-
-```json
-"apollo-cache-hermes": "convoyinc/apollo-cache-hermes#master"
-```
-
-If you depend on a specific git branch or commit, the package [will compile itself](scripts/postinstall.sh) during install.  This makes it easy to test out pull requests before they're merged into `master`.
