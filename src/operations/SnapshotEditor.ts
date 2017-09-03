@@ -2,7 +2,7 @@ import { CacheContext } from '../context';
 import { DynamicField, DynamicFieldWithArgs, DynamicFieldMap, isDynamicFieldWithArgs } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
-import { JsonObject, PathPart } from '../primitive';
+import { JsonObject, PathPart, JsonScalar, NestedObject } from '../primitive';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   addNodeReference,
@@ -278,7 +278,11 @@ export class SnapshotEditor {
         // TODO: Rather than detecting empty objects directly (which should
         // never occur for GraphQL results, and only for custom types), we
         // should be walking the selection set of the query.
-        } else if (payloadIsObject && !Object.keys(payloadValue).length && (!nodeIsObject || Object.keys(payloadValue).length)) {
+        } else if (
+          payloadIsObject &&
+          !Object.keys((payloadValue as NestedObject<JsonScalar>)).length &&
+          (!nodeIsObject || Object.keys((payloadValue as NestedObject<JsonScalar>)).length)
+        ) {
           this._setValue(containerId, path, payloadValue);
         }
 
