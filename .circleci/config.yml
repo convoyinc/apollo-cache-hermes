@@ -26,10 +26,10 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps-{{ checksum "yarn.lock" }}
+          key: deps-{{ checksum "package.json" }}
       - run: ./scripts/install-ci.sh
       - save_cache:
-          key: deps-{{ checksum "yarn.lock" }}
+          key: deps-{{ checksum "package.json" }}
           paths:
             - node_modules
       - run: yarn run compile
