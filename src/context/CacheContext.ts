@@ -3,7 +3,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 
 import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
-import { EntityId, ParsedQuery, Query, RawQuery } from '../schema';
+import { EntityId, ParsedQuery, Query } from '../schema';
 import { addToSet, addTypenameToDocument, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
