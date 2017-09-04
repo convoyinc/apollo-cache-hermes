@@ -57,6 +57,8 @@ export interface ParsedQuery {
   readonly variables?: JsonObject;
 }
 
+export type Query = RawQuery | ParsedQuery;
+
 /**
  * Represents a single query and a set of values that match its selection.
  */

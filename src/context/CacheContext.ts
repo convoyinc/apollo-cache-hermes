@@ -3,7 +3,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 
 import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
-import { EntityId, ParsedQuery, RawQuery } from '../schema';
+import { EntityId, ParsedQuery, Query, RawQuery } from '../schema';
 import { addToSet, addTypenameToDocument, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
@@ -88,7 +88,9 @@ export class CacheContext {
    * To aid in various cache lookups, the result is memoized by all of its
    * values, and can be used as an identity for a specific query.
    */
-  parseQuery(query: RawQuery): ParsedQuery {
+  parseQuery(query: Query): ParsedQuery {
+    if (isParsedQuery(query)) return query;
+
     // It appears like Apollo or someone upstream is cloning or otherwise
     // modifying the queries that are passed down.  Thus, the query source is a
     // more reliable cache key…
@@ -190,4 +192,8 @@ export function defaultEntityIdMapper(node: { id?: any }) {
 
 export function queryCacheKey(document: DocumentNode) {
   return document.loc!.source.body;
+}
+
+export function isParsedQuery(query: Query): query is ParsedQuery {
+  return 'info' in query;
 }
