@@ -4,7 +4,7 @@ import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, ParsedQuery, RawQuery } from '../schema';
+import { NodeId, ParsedQuery, Query } from '../schema';
 import { isObject } from '../util';
 
 export interface QueryResult {
@@ -22,9 +22,9 @@ export interface QueryResultWithNodeIds extends QueryResult {
 /**
  * Get you some data.
  */
-export function read(context: CacheContext, query: RawQuery, snapshot: GraphSnapshot): QueryResult;
-export function read(context: CacheContext, query: RawQuery, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
-export function read(context: CacheContext, query: RawQuery, snapshot: GraphSnapshot, includeNodeIds?: true) {
+export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
+export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
+export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
   const parsed = context.parseQuery(query);
   let queryResult = snapshot.readCache.get(parsed) as Partial<QueryResultWithNodeIds>;
   if (!queryResult) {
