@@ -6,7 +6,7 @@ import { read } from '../../../../src/operations/read';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
 import { JsonObject } from '../../../../src/primitive';
-import { Query, StaticNodeId } from '../../../../src/schema';
+import { RawQuery, StaticNodeId } from '../../../../src/schema';
 import { query } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -45,7 +45,7 @@ describe(`context.CacheContext`, () => {
     });
 
     describe(`mixin additional helper on simple query`, () => {
-      let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`{
           viewer {
@@ -100,7 +100,7 @@ describe(`context.CacheContext`, () => {
     });
 
     describe(`mixin additional helper on nested query`, () => {
-      let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
           query GetUser {
@@ -216,7 +216,7 @@ describe(`context.CacheContext`, () => {
     });
 
     describe(`mixin additional helper on nested alias query`, () => {
-      let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
           query GetUser {
@@ -332,7 +332,7 @@ describe(`context.CacheContext`, () => {
     });
 
     describe(`freeze an object`, () => {
-      let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`{
           viewer {

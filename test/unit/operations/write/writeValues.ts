@@ -2,7 +2,7 @@ import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes';
 import { write } from '../../../../src/operations/write';
-import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
+import { NodeId, RawQuery, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -106,7 +106,7 @@ describe(`operations.write`, () => {
   });
 
   describe(`write falsy values`, () => {
-    let falsyValuesQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    let falsyValuesQuery: RawQuery, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       falsyValuesQuery = query(`{ null, false, zero, string }`);
 

@@ -1,7 +1,7 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read, write } from '../../../../src/operations';
-import { Query, StaticNodeId } from '../../../../src/schema';
+import { RawQuery, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -101,7 +101,7 @@ describe(`operations.read`, () => {
 
   describe(`with a null subgraphs`, () => {
 
-    let nestedQuery: Query, snapshot: GraphSnapshot;
+    let nestedQuery: RawQuery, snapshot: GraphSnapshot;
     beforeAll(() => {
       nestedQuery = query(`{
         one {

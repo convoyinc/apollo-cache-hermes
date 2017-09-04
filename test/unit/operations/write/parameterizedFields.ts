@@ -5,7 +5,7 @@ import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { ParameterizedValueSnapshot } from '../../../../src/nodes';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
-import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
+import { NodeId, RawQuery, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -399,7 +399,7 @@ describe(`operations.write`, () => {
 
     describe(`writing nested indirect fields contained in an array`, () => {
 
-      let nestedQuery: Query, snapshot: GraphSnapshot, containerId: NodeId, entry1Id: NodeId, entry2Id: NodeId;
+      let nestedQuery: RawQuery, snapshot: GraphSnapshot, containerId: NodeId, entry1Id: NodeId, entry2Id: NodeId;
       beforeAll(() => {
         nestedQuery = query(`query nested($id: ID!) {
           one {
@@ -645,7 +645,7 @@ describe(`operations.write`, () => {
 
     describe.skip(`removing array nodes that contain parameterized values`, () => {
 
-      let rootedQuery: Query, snapshot: GraphSnapshot, value1Id: NodeId, value2Id: NodeId;
+      let rootedQuery: RawQuery, snapshot: GraphSnapshot, value1Id: NodeId, value2Id: NodeId;
       beforeAll(() => {
         rootedQuery = query(`{
           foo {
