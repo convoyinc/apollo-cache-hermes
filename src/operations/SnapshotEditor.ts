@@ -255,7 +255,6 @@ export class SnapshotEditor {
 
           // Also remove any references contained within any entries we removed:
           //
-          // TODO: Deal with parameterized fields contained by this.
           // TODO: Better abstract this.  It has a lot of similarity with
           // _mergeReferenceEdits.
           if (payloadLength < nodeLength && containerSnapshot && containerSnapshot.outbound) {
@@ -343,7 +342,7 @@ export class SnapshotEditor {
     while (queue.length) {
       const nodeId = queue.pop()!;
       const snapshot = this.getNodeSnapshot(nodeId);
-      if (snapshot instanceof ParameterizedValueSnapshot) continue;
+      if (!(snapshot instanceof EntitySnapshot)) continue;
       if (!snapshot || !snapshot.inbound) continue;
 
       for (const { id, path } of snapshot.inbound) {
