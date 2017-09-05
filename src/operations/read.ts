@@ -107,7 +107,7 @@ export function _walkAndOverlayDynamicValues(
   // each node, rather than walking the result set.  We'd have to store the path
   // on parameterized value nodes to make that happen.
 
-  const newResult = _wrapValue(result);
+  const newResult = _wrapValue(result, context);
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
   // schema.  Can we layer that on in such a way that we can support uses w/ and
   // w/o a schema compilation step?
@@ -152,12 +152,12 @@ export function _walkAndOverlayDynamicValues(
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
-            child[i] = _wrapValue(child[i]);
+            child[i] = _wrapValue(child[i], context);
             queue.push(new OverlayWalkNode(child[i], containerId, field as DynamicFieldMap, [...path, fieldName, i]));
           }
 
         } else {
-          child = _wrapValue(child);
+          child = _wrapValue(child, context);
           queue.push(new OverlayWalkNode(child, containerId, field as DynamicFieldMap, [...path, fieldName]))
         }
       }
@@ -170,29 +170,17 @@ export function _walkAndOverlayDynamicValues(
   return newResult;
 }
 
-function _wrapValue(value: JsonValue): any {
+function _wrapValue(value: JsonValue, context: CacheContext): any {
   if (value === undefined) return {};
   if (Array.isArray(value)) return [...value];
   if (isObject(value)) {
     const newValue = { ...value };
-    _setPrototypeOf(newValue, _getPrototypeOf(value));
-    newValue.__proto__ = value.__proto__;
+    if (context.entityTransformer && context.entityIdForNode(value)) {
+      context.entityTransformer(newValue);
+    }
     return newValue;
   }
   return value;
-}
-
-function _getPrototypeOf(obj: { __proto__?: object } ): object {
-  // Object.getPrototypeOf is only available in ES5 and beyond
-  return Object.getPrototypeOf ? Object.getPrototypeOf(obj) : obj.__proto__;
-}
-
-function _setPrototypeOf(obj: { __proto__?: object }, proto: object): void {
-  if (Object.setPrototypeOf) {
-    Object.setPrototypeOf(obj, proto);
-  } else {
-    obj.__proto__ = proto;
-  }
 }
 
 /**
