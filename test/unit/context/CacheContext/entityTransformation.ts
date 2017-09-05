@@ -1,6 +1,7 @@
 import * as _ from 'lodash';
 
 import { CacheContext } from '../../../../src/context';
+import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read } from '../../../../src/operations/read';
 import { write } from '../../../../src/operations/write';
@@ -330,5 +331,61 @@ describe(`context.CacheContext`, () => {
         expect(snapshot.get('0')).to.be.frozen;
       });
     });
+
+    describe(`Mixing additional helper on parameterized query`, () => {
+      let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      beforeAll(() => {
+        viewerQuery = query(`
+        query getViwer($id:ID!) {
+          viewer(id:$id) {
+            id
+            name
+          }
+        }`, { id: '4' });
+
+        function mixinHelperMethods(obj: object, proto: object | null): void {
+          if (obj['__typename'] === 'viewer') {
+            const newPrototype = _.clone(Object.getPrototypeOf(obj));
+            Object.assign(newPrototype, proto);
+            Object.setPrototypeOf(obj, newPrototype);
+          }
+        }
+
+        entityTransformerContext = new CacheContext({
+          addTypename: true,
+          entityTransformer: (node: JsonObject): void => {
+            mixinHelperMethods(node, {
+              getName(this: { id: string, name: string }) {
+                return this.name;
+              },
+              getId(this: { id: string, name: string }) {
+                return this.id;
+              },
+            });
+          },
+        });
+        const empty = new GraphSnapshot();
+        snapshot = write(entityTransformerContext, empty, viewerQuery, {
+          viewer: {
+            __typename: 'viewer',
+            name: 'Bob',
+            id: '4',
+          },
+        }).snapshot;
+      });
+
+      it(`get information through helper methods`, () => {
+        const { result } = read(entityTransformerContext, viewerQuery, snapshot);
+        const name = (result as any).viewer.getName();
+        const id = (result as any).viewer.getId();
+        expect(name).to.eq('Bob');
+        expect(id).to.eq('4');
+      });
+
+      it(`check helper methods exists`, () => {
+        const viewerParameterizedId = nodeIdForParameterizedValue(QueryRootId, ['viewer'], { id: '4' });
+        expect(Object.getPrototypeOf(snapshot.get(viewerParameterizedId))).to.include.all.keys(['getName', 'getId']);
+      });
+    })
   });
 });
