@@ -314,8 +314,20 @@ export class SnapshotEditor {
    * Commits the transaction, returning a new immutable snapshot.
    */
   commit(): EditedSnapshot {
+    return {
+      snapshot: this._buildNewSnapshot(),
+      editedNodeIds: this._editedNodeIds,
+      writtenQueries: this._writtenQueries,
+    };
+  }
+
+  /**
+   * Collect all our pending changes into a new GraphSnapshot.
+   */
+  _buildNewSnapshot() {
     const { entityTransformer } = this._context;
     const snapshots = { ...this._parent._values };
+
     for (const id in this._newNodes) {
       const newSnapshot = this._newNodes[id];
       // Drop snapshots that were garbage collected.
@@ -330,11 +342,7 @@ export class SnapshotEditor {
       }
     }
 
-    return {
-      snapshot: new GraphSnapshot(snapshots),
-      editedNodeIds: this._editedNodeIds,
-      writtenQueries: this._writtenQueries,
-    };
+    return new GraphSnapshot(snapshots);
   }
 
   /**
