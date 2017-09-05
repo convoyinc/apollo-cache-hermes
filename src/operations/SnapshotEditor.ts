@@ -96,14 +96,15 @@ export class SnapshotEditor {
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
-    const referenceEdits = this._mergePayloadValues(parsed, payload);
+    const { referenceEdits, orphanedNodeIds } = this._mergePayloadValues(parsed, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
     //
     // In addition, this performs bookkeeping the inboundReferences of affected
     // nodes, and collects all newly orphaned nodes.
-    const orphanedNodeIds = this._mergeReferenceEdits(referenceEdits);
+    const moreOrphanedNodeIds = this._mergeReferenceEdits(referenceEdits);
+    addToSet(orphanedNodeIds, moreOrphanedNodeIds);
 
     // At this point, every node that has had any of its properties change now
     // exists in _newNodes.  In order to preserve immutability, we need to walk
@@ -129,7 +130,7 @@ export class SnapshotEditor {
    * returned to be applied in a second pass (`_mergeReferenceEdits`), once we
    * can guarantee that all edited nodes have been built.
    */
-  private _mergePayloadValues(query: ParsedQuery, fullPayload: JsonObject): ReferenceEdit[] {
+  private _mergePayloadValues(query: ParsedQuery, fullPayload: JsonObject) {
     const { entityIdForNode } = this._context;
 
     const queue: MergeQueueItem[] = [{
@@ -139,6 +140,7 @@ export class SnapshotEditor {
       fields: query.dynamicFieldMap,
     }];
     const referenceEdits: ReferenceEdit[] = [];
+    const orphanedNodeIds: Set<NodeId> = new Set();
     // We have to be careful to break cycles; it's ok for a caller to give us a
     // cyclic payload.
     const visitedNodes = new Set<object>();
@@ -185,7 +187,7 @@ export class SnapshotEditor {
         }
 
         if (isDynamicFieldWithArgs(dynamicFields)) {
-          const fieldId = this._ensureParameterizedValueSnapshot(containerId, path, dynamicFields, query.variables!);
+          const fieldId = this._ensureParameterizedValueSnapshot(containerId, [...path], dynamicFields, query.variables!);
           // We walk the values of the parameterized field like any other
           // entity.
           //
@@ -253,11 +255,10 @@ export class SnapshotEditor {
 
           // Also remove any references contained within any entries we removed:
           //
-          // TODO: Deal with parameterized fields contained by this.
-          // TODO: Better abstract this.
+          // TODO: Better abstract this.  It has a lot of similarity with
+          // _mergeReferenceEdits.
           if (payloadLength < nodeLength && containerSnapshot && containerSnapshot.outbound) {
             for (const reference of containerSnapshot.outbound) {
-              if (!reference.path) continue;
               if (!pathBeginsWith(reference.path, path)) continue;
               const index = reference.path[path.length];
               if (typeof index !== 'number') continue;
@@ -267,6 +268,9 @@ export class SnapshotEditor {
                 removeNodeReference('outbound', newContainerSnapshot, reference.id, path);
                 const prevTarget = this._ensureNewSnapshot(reference.id);
                 removeNodeReference('inbound', prevTarget, containerId, path);
+                if (!prevTarget.inbound) {
+                  orphanedNodeIds.add(reference.id);
+                }
               }
             }
           }
@@ -290,7 +294,7 @@ export class SnapshotEditor {
       });
     }
 
-    return referenceEdits;
+    return { referenceEdits, orphanedNodeIds };
   }
 
   /**
@@ -299,7 +303,7 @@ export class SnapshotEditor {
    *
    * Returns the set of node ids that are newly orphaned by these edits.
    */
-  private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]): Set<NodeId> {
+  private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]) {
     const orphanedNodeIds: Set<NodeId> = new Set();
 
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
@@ -331,17 +335,17 @@ export class SnapshotEditor {
    * Transitively walks the inbound references of all edited nodes, rewriting
    * those references to point to the newly edited versions.
    */
-  private _rebuildInboundReferences(): void {
+  private _rebuildInboundReferences() {
     const queue = Array.from(this._editedNodeIds);
     addToSet(this._rebuiltNodeIds, queue);
 
     while (queue.length) {
       const nodeId = queue.pop()!;
       const snapshot = this.getNodeSnapshot(nodeId);
+      if (!(snapshot instanceof EntitySnapshot)) continue;
       if (!snapshot || !snapshot.inbound) continue;
 
       for (const { id, path } of snapshot.inbound) {
-        if (!path) continue;
         this._setValue(id, path, snapshot.node, false);
         if (this._rebuiltNodeIds.has(id)) continue;
 
@@ -354,7 +358,7 @@ export class SnapshotEditor {
   /**
    * Transitively removes all orphaned nodes from the graph.
    */
-  private _removeOrphanedNodes(nodeIds: Set<NodeId>): void {
+  private _removeOrphanedNodes(nodeIds: Set<NodeId>) {
     const queue = Array.from(nodeIds);
     while (queue.length) {
       const nodeId = queue.pop()!;
@@ -462,16 +466,15 @@ export class SnapshotEditor {
     // We're careful to not edit the container unless we absolutely have to.
     // (There may be no changes for this parameterized value).
     const containerSnapshot = this.getNodeSnapshot(containerId);
-    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', fieldId)) {
+    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', fieldId, path)) {
       // We need to construct a new snapshot otherwise.
       const newSnapshot = new ParameterizedValueSnapshot();
-      addNodeReference('inbound', newSnapshot, containerId);
+      addNodeReference('inbound', newSnapshot, containerId, path);
       this._newNodes[fieldId] = newSnapshot;
 
       // Ensure that the container points to it.
-      addNodeReference('outbound', this._ensureNewSnapshot(containerId), fieldId);
+      addNodeReference('outbound', this._ensureNewSnapshot(containerId), fieldId, path);
     }
-
 
     return fieldId;
   }
