@@ -6,8 +6,8 @@
       "request": "launch",
       "protocol": "legacy",
       "console": "integratedTerminal",
-      "name": "test:unit",
-      "runtimeExecutable": "${workspaceRoot}/scripts/test:unit.sh",
+      "name": "test-unit",
+      "runtimeExecutable": "${workspaceRoot}/scripts/test-unit.sh",
       "runtimeArgs": [
         "--runInBand"
       ]
