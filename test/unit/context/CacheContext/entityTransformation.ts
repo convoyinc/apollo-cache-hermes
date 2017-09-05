@@ -13,6 +13,37 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`context.CacheContext`, () => {
   describe(`entity transformation`, () => {
+    describe(`no entity transformer`, () => {
+      let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      beforeAll(() => {
+        viewerQuery = query(`
+        query getViwer($id:ID!) {
+          viewer(id:$id) {
+            id
+            name
+          }
+        }`, { id: '4' });
+
+        entityTransformerContext = new CacheContext({
+          addTypename: true,
+          entityTransformer: undefined,
+        });
+        const empty = new GraphSnapshot();
+        snapshot = write(entityTransformerContext, empty, viewerQuery, {
+          viewer: {
+            __typename: 'viewer',
+            id: '4',
+            name: 'Bob',
+          },
+        }).snapshot;
+      });
+
+      it(`check helper methods does not exist`, () => {
+        const viewerParameterizedId = nodeIdForParameterizedValue(QueryRootId, ['viewer'], { id: '4' });
+        expect(Object.getPrototypeOf(snapshot.get(viewerParameterizedId))).to.not.include.all.keys(['getName', 'getId']);
+      });
+    });
+
     describe(`mixin additional helper on simple query`, () => {
       let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
