@@ -148,7 +148,7 @@ export class SnapshotEditor {
 
     while (queue.length) {
       const { containerId, containerPayload, visitRoot, fields } = queue.pop()!;
-      const containerSnapshot = this.getNodeSnapshot(containerId);
+      const containerSnapshot = this._getNodeSnapshot(containerId);
       const container = containerSnapshot ? containerSnapshot.node : undefined;
 
       // Break cycles in referenced nodes from the payload.
@@ -286,7 +286,7 @@ export class SnapshotEditor {
     const orphanedNodeIds: Set<NodeId> = new Set();
 
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
-      const target = nextNodeId ? this.getDataNodeOfNodeSnapshot(nextNodeId) : null;
+      const target = nextNodeId ? this._get(nextNodeId) : null;
       this._setValue(containerId, path, target);
       const container = this._ensureNewSnapshot(containerId);
 
@@ -320,7 +320,7 @@ export class SnapshotEditor {
 
     while (queue.length) {
       const nodeId = queue.pop()!;
-      const snapshot = this.getNodeSnapshot(nodeId);
+      const snapshot = this._getNodeSnapshot(nodeId);
       if (!(snapshot instanceof EntitySnapshot)) continue;
       if (!snapshot || !snapshot.inbound) continue;
 
@@ -341,7 +341,7 @@ export class SnapshotEditor {
     const queue = Array.from(nodeIds);
     while (queue.length) {
       const nodeId = queue.pop()!;
-      const node = this.getNodeSnapshot(nodeId);
+      const node = this._getNodeSnapshot(nodeId);
       if (!node) continue;
 
       this._newNodes[nodeId] = undefined;
@@ -385,18 +385,18 @@ export class SnapshotEditor {
   }
 
   /**
-   * Retrieve the _latest_ version of a node.
+   * Retrieve the _latest_ version of a node snapshot.
    */
-  private getDataNodeOfNodeSnapshot(id: NodeId) {
-    const snapshot = this.getNodeSnapshot(id);
-    return snapshot ? snapshot.node : undefined;
+  private _getNodeSnapshot(id: NodeId) {
+    return id in this._newNodes ? this._newNodes[id] : this._parent.getNodeSnapshot(id);
   }
 
   /**
-   * Retrieve the _latest_ version of a node snapshot.
+   * Retrieve the _latest_ version of a node.
    */
-  private getNodeSnapshot(id: NodeId) {
-    return id in this._newNodes ? this._newNodes[id] : this._parent.getNodeSnapshot(id);
+  private _get(id: NodeId) {
+    const snapshot = this._getNodeSnapshot(id);
+    return snapshot ? snapshot.node : undefined;
   }
 
   /**
@@ -444,7 +444,7 @@ export class SnapshotEditor {
 
     // We're careful to not edit the container unless we absolutely have to.
     // (There may be no changes for this parameterized value).
-    const containerSnapshot = this.getNodeSnapshot(containerId);
+    const containerSnapshot = this._getNodeSnapshot(containerId);
     if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', fieldId, path)) {
       // We need to construct a new snapshot otherwise.
       const newSnapshot = new ParameterizedValueSnapshot();
