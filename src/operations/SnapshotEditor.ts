@@ -311,6 +311,33 @@ export class SnapshotEditor {
   }
 
   /**
+   * Commits the transaction, returning a new immutable snapshot.
+   */
+  commit(): EditedSnapshot {
+    const { entityTransformer } = this._context;
+    const snapshots = { ...this._parent._values };
+    for (const id in this._newNodes) {
+      const newSnapshot = this._newNodes[id];
+      // Drop snapshots that were garbage collected.
+      if (newSnapshot === undefined) {
+        delete snapshots[id];
+      } else {
+        if (entityTransformer) {
+          const { node } = this._newNodes[id] as EntitySnapshot;
+          if (node) entityTransformer(node);
+        }
+        snapshots[id] = newSnapshot;
+      }
+    }
+
+    return {
+      snapshot: new GraphSnapshot(snapshots),
+      editedNodeIds: this._editedNodeIds,
+      writtenQueries: this._writtenQueries,
+    };
+  }
+
+  /**
    * Transitively walks the inbound references of all edited nodes, rewriting
    * those references to point to the newly edited versions.
    */
@@ -355,33 +382,6 @@ export class SnapshotEditor {
         }
       }
     }
-  }
-
-  /**
-   * Commits the transaction, returning a new immutable snapshot.
-   */
-  commit(): EditedSnapshot {
-    const { entityTransformer } = this._context;
-    const snapshots = { ...this._parent._values };
-    for (const id in this._newNodes) {
-      const newSnapshot = this._newNodes[id];
-      // Drop snapshots that were garbage collected.
-      if (newSnapshot === undefined) {
-        delete snapshots[id];
-      } else {
-        if (entityTransformer) {
-          const { node } = this._newNodes[id] as EntitySnapshot;
-          if (node) entityTransformer(node);
-        }
-        snapshots[id] = newSnapshot;
-      }
-    }
-
-    return {
-      snapshot: new GraphSnapshot(snapshots),
-      editedNodeIds: this._editedNodeIds,
-      writtenQueries: this._writtenQueries,
-    };
   }
 
   /**
