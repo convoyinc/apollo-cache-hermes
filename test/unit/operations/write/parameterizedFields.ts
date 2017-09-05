@@ -55,12 +55,12 @@ describe(`operations.write`, () => {
 
       it(`creates an outgoing reference from the field's container`, () => {
         const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: ['foo'] }]);
       });
 
       it(`creates an inbound reference to the field's container`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
-        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: ['foo'] }]);
       });
 
       it(`does not expose the parameterized field directly from its container`, () => {
@@ -113,12 +113,12 @@ describe(`operations.write`, () => {
 
       it(`creates an outgoing reference from the field's container`, () => {
         const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: ['foo', 'bar', 'baz'] }]);
       });
 
       it(`creates an inbound reference to the field's container`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
-        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: ['foo', 'bar', 'baz'] }]);
       });
 
       it(`does not expose the parameterized field directly from its container`, () => {
@@ -217,12 +217,12 @@ describe(`operations.write`, () => {
 
       it(`creates an outgoing reference from the field's container`, () => {
         const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: ['foo'] }]);
       });
 
       it(`creates an inbound reference to the field's container`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
-        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: ['foo'] }]);
       });
 
       it(`creates an outgoing reference from the parameterized field to the referenced entity`, () => {
@@ -448,16 +448,16 @@ describe(`operations.write`, () => {
         const entry1 = snapshot.getNodeSnapshot(entry1Id)!;
         const entry2 = snapshot.getNodeSnapshot(entry2Id)!;
 
-        expect(entry1.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
-        expect(entry2.inbound).to.have.deep.members([{ id: containerId, path: undefined }]);
+        expect(entry1.inbound).to.have.deep.members([{ id: containerId, path: [0, 'three', 'four'] }]);
+        expect(entry2.inbound).to.have.deep.members([{ id: containerId, path: [1, 'three', 'four'] }]);
       });
 
       it(`references the children from the parent`, () => {
         const container = snapshot.getNodeSnapshot(containerId)!;
 
         expect(container.outbound).to.have.deep.members([
-          { id: entry1Id, path: undefined },
-          { id: entry2Id, path: undefined },
+          { id: entry1Id, path: [0, 'three', 'four'] },
+          { id: entry2Id, path: [1, 'three', 'four'] },
         ]);
       });
 
@@ -508,12 +508,12 @@ describe(`operations.write`, () => {
 
       it(`creates an outgoing reference from the field's container`, () => {
         const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: ['foo'] }]);
       });
 
       it(`creates an inbound reference to the field's container`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
-        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: ['foo'] }]);
       });
 
       it(`does not expose the parameterized field directly from its container`, () => {
@@ -551,12 +551,12 @@ describe(`operations.write`, () => {
 
       it(`creates an outgoing reference from the field's container`, () => {
         const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: undefined }]);
+        expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: ['foo'] }]);
       });
 
       it(`creates an inbound reference to the field's container`, () => {
         const values = snapshot.getNodeSnapshot(parameterizedId)!;
-        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: undefined }]);
+        expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: ['foo'] }]);
       });
 
       it(`does not expose the parameterized field directly from its container`, () => {
@@ -569,6 +569,46 @@ describe(`operations.write`, () => {
 
       it(`emits a ParameterizedValueSnapshot`, () => {
         expect(snapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+      });
+
+    });
+
+    describe(`removing array nodes that contain parameterized values`, () => {
+
+      let rootedQuery: Query, snapshot: GraphSnapshot, value1Id: NodeId, value2Id: NodeId;
+      beforeAll(() => {
+        rootedQuery = query(`{
+          foo {
+            bar(extra: true) {
+              baz { id }
+            }
+          }
+        }`);
+
+        value1Id = nodeIdForParameterizedValue(QueryRootId, ['foo', 0, 'bar'], { extra: true });
+        value2Id = nodeIdForParameterizedValue(QueryRootId, ['foo', 1, 'bar'], { extra: true });
+
+        const { snapshot: baseSnapshot } = write(context, empty, rootedQuery, {
+          foo: [
+            { bar: { baz: { id: 1 } } },
+            { bar: { baz: { id: 2 } } },
+          ],
+        });
+
+        const result = write(context, baseSnapshot, rootedQuery, {
+          foo: [
+            { bar: { baz: { id: 1 } } },
+          ],
+        });
+        snapshot = result.snapshot;
+      });
+
+      it(`doesn't contain the orphaned parameterized value`, () => {
+        expect(snapshot.allNodeIds()).to.not.include(value2Id);
+      });
+
+      it(`doesn't contain transitively orphaned nodes`, () => {
+        expect(snapshot.allNodeIds()).to.not.include('2');
       });
 
     });
