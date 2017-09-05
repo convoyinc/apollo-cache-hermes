@@ -15,7 +15,7 @@ export function removeNodeReference(
   direction: ReferenceDirection,
   snapshot: NodeSnapshot,
   id: NodeId,
-  path?: PathPart[],
+  path: PathPart[],
 ): boolean {
   const references = snapshot[direction];
   if (!references) return true;
@@ -37,7 +37,7 @@ export function addNodeReference(
   direction: ReferenceDirection,
   snapshot: NodeSnapshot,
   id: NodeId,
-  path?: PathPart[],
+  path: PathPart[],
 ): boolean {
   let references = snapshot[direction];
   if (!references) {
@@ -60,7 +60,7 @@ export function hasNodeReference(
   snapshot: NodeSnapshot,
   type: ReferenceDirection,
   id: NodeId,
-  path?: PathPart[],
+  path: PathPart[],
 ): boolean {
   const references = snapshot[type];
   if (!references || getIndexOfGivenReference(references, id, path) === -1) return false;
@@ -71,7 +71,7 @@ export function hasNodeReference(
  * Return index of { id, path } reference in references array.
  * Otherwise, return -1.
  */
-function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path?: PathPart[]): number {
+function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path: PathPart[]): number {
   return references.findIndex((reference) => {
     return reference.id === id && lodashIsEqual(reference.path, path);
   });
