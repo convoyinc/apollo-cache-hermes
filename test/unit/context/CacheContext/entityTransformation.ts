@@ -1,9 +1,9 @@
 import * as _ from 'lodash';
 
 import { CacheContext } from '../../../../src/context';
-import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read } from '../../../../src/operations/read';
+import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
 import { JsonObject } from '../../../../src/primitive';
 import { Query, StaticNodeId } from '../../../../src/schema';
@@ -386,6 +386,6 @@ describe(`context.CacheContext`, () => {
         const viewerParameterizedId = nodeIdForParameterizedValue(QueryRootId, ['viewer'], { id: '4' });
         expect(Object.getPrototypeOf(snapshot.get(viewerParameterizedId))).to.include.all.keys(['getName', 'getId']);
       });
-    })
+    });
   });
 });
