@@ -173,8 +173,26 @@ export function _walkAndOverlayDynamicValues(
 function _wrapValue(value: JsonValue): any {
   if (value === undefined) return {};
   if (Array.isArray(value)) return [...value];
-  if (isObject(value)) return { ...value };
+  if (isObject(value)) {
+    const newValue = { ...value };
+    _setPrototypeOf(newValue, _getPrototypeOf(value));
+    newValue.__proto__ = value.__proto__;
+    return newValue;
+  }
   return value;
+}
+
+function _getPrototypeOf(obj: { __proto__?: object } ): object {
+  // Object.getPrototypeOf is only available in ES5 and beyond
+  return Object.getPrototypeOf ? Object.getPrototypeOf(obj) : obj.__proto__;
+}
+
+function _setPrototypeOf(obj: { __proto__?: object }, proto: object): void {
+  if (Object.setPrototypeOf) {
+    Object.setPrototypeOf(obj, proto);
+  } else {
+    obj.__proto__ = proto;
+  }
 }
 
 /**
