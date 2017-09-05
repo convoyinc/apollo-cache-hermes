@@ -334,6 +334,7 @@ export class SnapshotEditor {
       if (newSnapshot === undefined) {
         delete snapshots[id];
       } else {
+        // TODO: This should not be run for PArameterizedValueSnapshots
         if (entityTransformer) {
           const { node } = this._newNodes[id] as EntitySnapshot;
           if (node) entityTransformer(node);
