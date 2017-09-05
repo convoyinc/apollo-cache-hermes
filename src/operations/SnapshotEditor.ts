@@ -108,12 +108,6 @@ export class SnapshotEditor {
     // nodes, and collects all newly orphaned nodes.
     const orphanedNodeIds = this._mergeReferenceEdits(referenceEdits);
 
-    // At this point, every node that has had any of its properties change now
-    // exists in _newNodes.  In order to preserve immutability, we need to walk
-    // all nodes that transitively reference an edited node, and update their
-    // references to point to the new version.
-    this._rebuildInboundReferences();
-
     // Remove (garbage collect) orphaned subgraphs.
     this._removeOrphanedNodes(orphanedNodeIds);
 
@@ -314,6 +308,12 @@ export class SnapshotEditor {
    * Commits the transaction, returning a new immutable snapshot.
    */
   commit(): EditedSnapshot {
+    // At this point, every node that has had any of its properties change now
+    // exists in _newNodes.  In order to preserve immutability, we need to walk
+    // all nodes that transitively reference an edited node, and update their
+    // references to point to the new version.
+    this._rebuildInboundReferences();
+
     return {
       snapshot: this._buildNewSnapshot(),
       editedNodeIds: this._editedNodeIds,
@@ -334,7 +334,7 @@ export class SnapshotEditor {
       if (newSnapshot === undefined) {
         delete snapshots[id];
       } else {
-        // TODO: This should not be run for PArameterizedValueSnapshots
+        // TODO: This should not be run for ParameterizedValueSnapshots
         if (entityTransformer) {
           const { node } = this._newNodes[id] as EntitySnapshot;
           if (node) entityTransformer(node);
