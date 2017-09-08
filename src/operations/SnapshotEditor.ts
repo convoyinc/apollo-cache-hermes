@@ -96,15 +96,14 @@ export class SnapshotEditor {
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
-    const { referenceEdits, orphanedNodeIds } = this._mergePayloadValues(parsed, payload);
+    const { referenceEdits } = this._mergePayloadValues(parsed, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
     //
     // In addition, this performs bookkeeping the inboundReferences of affected
     // nodes, and collects all newly orphaned nodes.
-    const moreOrphanedNodeIds = this._mergeReferenceEdits(referenceEdits);
-    addToSet(orphanedNodeIds, moreOrphanedNodeIds);
+    const orphanedNodeIds = this._mergeReferenceEdits(referenceEdits);
 
     // At this point, every node that has had any of its properties change now
     // exists in _newNodes.  In order to preserve immutability, we need to walk
@@ -140,7 +139,6 @@ export class SnapshotEditor {
       fields: query.dynamicFieldMap,
     }];
     const referenceEdits: ReferenceEdit[] = [];
-    const orphanedNodeIds: Set<NodeId> = new Set();
     // We have to be careful to break cycles; it's ok for a caller to give us a
     // cyclic payload.
     const visitedNodes = new Set<object>();
@@ -253,28 +251,6 @@ export class SnapshotEditor {
           const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : new Array(payloadLength);
           this._setValue(containerId, path, newArray);
 
-          // Also remove any references contained within any entries we removed:
-          //
-          // TODO: Better abstract this.  It has a lot of similarity with
-          // _mergeReferenceEdits.
-          if (payloadLength < nodeLength && containerSnapshot && containerSnapshot.outbound) {
-            for (const reference of containerSnapshot.outbound) {
-              if (!pathBeginsWith(reference.path, path)) continue;
-              const index = reference.path[path.length];
-              if (typeof index !== 'number') continue;
-              // This reference exists in the part of the array that we removed.
-              if (index >= payloadLength) {
-                const newContainerSnapshot = this._ensureNewSnapshot(containerId);
-                removeNodeReference('outbound', newContainerSnapshot, reference.id, path);
-                const prevTarget = this._ensureNewSnapshot(reference.id);
-                removeNodeReference('inbound', prevTarget, containerId, path);
-                if (!prevTarget.inbound) {
-                  orphanedNodeIds.add(reference.id);
-                }
-              }
-            }
-          }
-
         // All else we care about are updated scalar values.
         } else if (isScalar(payloadValue) && payloadValue !== nodeValue) {
           this._setValue(containerId, path, payloadValue);
@@ -294,7 +270,7 @@ export class SnapshotEditor {
       });
     }
 
-    return { referenceEdits, orphanedNodeIds };
+    return { referenceEdits };
   }
 
   /**
@@ -485,12 +461,4 @@ export class SnapshotEditor {
  */
 export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args?: JsonObject) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
-}
-
-function pathBeginsWith(target: PathPart[], prefix: PathPart[]) {
-  if (target.length < prefix.length) return false;
-  for (let i = 0; i < prefix.length; i++) {
-    if (prefix[i] !== target[i]) return false;
-  }
-  return true;
 }
