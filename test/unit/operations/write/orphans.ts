@@ -64,7 +64,7 @@ describe(`operations.write`, () => {
 
   });
 
-  describe(`orphane a node`, () => {
+  describe(`orphan a node`, () => {
 
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
@@ -112,7 +112,7 @@ describe(`operations.write`, () => {
     });
   });
 
-  describe(`orphane a subgraph`, () => {
+  describe(`orphan a subgraph`, () => {
 
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
