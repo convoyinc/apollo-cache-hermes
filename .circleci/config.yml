@@ -26,7 +26,9 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: deps-{{ checksum "package.json" }}
+          keys: 
+            - deps-{{ checksum "package.json" }}
+            - deps-
       - run: ./scripts/install-ci.sh
       - save_cache:
           key: deps-{{ checksum "package.json" }}
