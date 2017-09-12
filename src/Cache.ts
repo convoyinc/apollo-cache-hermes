@@ -1,11 +1,11 @@
-import { JsonObject, JsonValue } from './primitive';
-import { Queryable } from './Queryable';
-import { CacheTransaction } from './CacheTransaction';
 import { CacheSnapshot } from './CacheSnapshot';
+import { CacheTransaction } from './CacheTransaction';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { QueryObserver, read } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
+import { JsonObject, JsonValue } from './primitive';
+import { Queryable } from './Queryable';
 import { ChangeId, NodeId, Query } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;

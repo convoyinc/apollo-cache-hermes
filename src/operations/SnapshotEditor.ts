@@ -48,6 +48,9 @@ interface ReferenceEdit {
   nextNodeId: NodeId | undefined;
 }
 
+// https://github.com/nzakas/eslint-plugin-typescript/issues/69
+type NodeSnapshotMap = { [Key in NodeId]?: NodeSnapshot };
+
 /**
  * Builds a set of changes to apply on top of an existing `GraphSnapshot`.
  *
@@ -59,7 +62,7 @@ export class SnapshotEditor {
   /**
    * Tracks all node snapshots that have changed vs the parent snapshot.
    */
-  private _newNodes: { [Key in NodeId]: NodeSnapshot | undefined } = Object.create(null);
+  private _newNodes: NodeSnapshotMap = Object.create(null);
 
   /**
    * Tracks the nodes that have new _values_ vs the parent snapshot.
