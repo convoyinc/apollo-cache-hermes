@@ -67,6 +67,7 @@ rules:
   no-useless-return: error
   no-void: error
   no-with: error
+  prefer-const: error
   radix: [error, as-needed]
   wrap-iife: [error, outside]
   yoda: error
