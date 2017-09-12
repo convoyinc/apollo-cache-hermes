@@ -27,8 +27,8 @@ export class Cache implements Queryable {
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
-  constructor(config?: CacheContext.Configuration) {
-    const initialGraphSnapshot = new GraphSnapshot();
+  constructor(config?: CacheContext.Configuration, initialState?: GraphSnapshot) {
+    const initialGraphSnapshot = initialState ? initialState : new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
     this._context = new CacheContext(config);
   }
@@ -57,7 +57,7 @@ export class Cache implements Queryable {
    * Registers a callback that should be triggered any time the nodes selected
    * by a particular query have changed.
    */
-  watch(query: Query, callback: () => void): () => void {
+  watch(query: Query, callback: (newData: any) => void): () => void {
     const observer = new QueryObserver(this._context, query, this._snapshot.optimistic, callback);
     this._observers.push(observer);
 
@@ -110,6 +110,10 @@ export class Cache implements Queryable {
    */
   rollback(changeId: ChangeId) {
     this.transaction(t => t.rollback(changeId));
+  }
+
+  getSnapshot(): CacheSnapshot {
+    return this._snapshot;
   }
 
   /**

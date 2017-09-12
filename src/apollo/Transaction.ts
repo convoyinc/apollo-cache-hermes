@@ -1,18 +1,28 @@
+/* eslint-disable class-methods-use-this */
+import { ApolloCache, Cache, Transaction } from 'apollo-cache-core';
+
 import { CacheTransaction } from '../CacheTransaction';
 
-import { ApolloQueryable } from './ApolloQueryable';
-import * as interfaces from './interfaces';
+import { ApolloQueryable } from './Queryable';
 
 /**
  * Apollo-specific transaction interface.
  */
-export class ApolloTransaction extends ApolloQueryable implements interfaces.Cache {
+export class ApolloTransaction extends ApolloQueryable implements ApolloCache {
 
   constructor(
     /** The underlying transaction. */
     protected _queryable: CacheTransaction,
   ) {
     super();
+  }
+
+  getData() {
+    throw new Error(`getData() is not allowed within a transaction`);
+  }
+
+  getOptimisticData() {
+    throw new Error(`getOptimisticData() is not allowed within a transaction`);
   }
 
   reset(): Promise<void> { // eslint-disable-line class-methods-use-this
@@ -23,15 +33,15 @@ export class ApolloTransaction extends ApolloQueryable implements interfaces.Cac
     throw new Error(`removeOptimistic() is not allowed within a transaction`);
   }
 
-  performTransaction(transaction: interfaces.Cache.Transaction): void {
+  performTransaction(transaction: Transaction): void {
     transaction(this);
   }
 
-  recordOptimisticTransaction(transaction: interfaces.Cache.Transaction, id: string): void { // eslint-disable-line class-methods-use-this
+  recordOptimisticTransaction(transaction: Transaction, id: string): void { // eslint-disable-line class-methods-use-this
     throw new Error(`recordOptimisticTransaction() is not allowed within a transaction`);
   }
 
-  watch(query: interfaces.Cache.WatchOptions, callback: interfaces.Cache.Callback): interfaces.Cache.Callback { // eslint-disable-line class-methods-use-this, max-len
+  watch(query: Cache.WatchOptions): () => void { // eslint-disable-line class-methods-use-this, max-len
     throw new Error(`watch() is not allowed within a transaction`);
   }
 

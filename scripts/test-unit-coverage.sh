@@ -13,7 +13,7 @@ fi
 run test:unit -- --coverage "${OPTIONS[@]}"
 
 if [[ "${CI}" == "" ]]; then
-  open ./output/test:unit/index.html
+  open ./output/test-unit/index.html
 else
-  codecov --file=./output/test:unit/lcov.info
+  codecov --file=./output/test-unit/lcov.info
 fi

@@ -1,5 +1,5 @@
+import { isEqual } from 'apollo-utilities';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
-import lodashIsEqual = require('lodash.isequal');
 
 import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
@@ -102,7 +102,7 @@ export class CacheContext {
     // Do we already have a copy of this guy?
     for (const parsedQuery of parsedQueries) {
       if (parsedQuery.rootId !== query.rootId) continue;
-      if (!lodashIsEqual(parsedQuery.variables, query.variables)) continue;
+      if (!isEqual(parsedQuery.variables, query.variables)) continue;
       return parsedQuery;
     }
 

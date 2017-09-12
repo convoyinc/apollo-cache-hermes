@@ -34,6 +34,7 @@
   "devDependencies": {
     "@types/chai": "^4.0.1",
     "@types/chai-as-promised": "^0.0.31",
+    "@types/graphql": "^0.10.2",
     "@types/lodash": "^4.14.71",
     "@types/lodash.clonedeep": "^4.5.3",
     "@types/lodash.get": "^4.4.3",
@@ -51,14 +52,12 @@
     "jest": "^21.0.1",
     "jest-junit": "^3.0.0",
     "rimraf": "^2.6.1",
+    "tslib": "^1.7.0",
     "typescript": "^2.5.2",
     "typescript-eslint-parser": "^7.0.0"
   },
   "dependencies": {
-    "@types/graphql": "^0.10.2",
-    "lodash.clonedeep": "^4.5.0",
-    "lodash.get": "^4.4.2",
-    "lodash.isequal": "^4.5.0",
-    "tslib": "^1.7.0"
+    "apollo-cache-core": "^0.2.0-alpha.9",
+    "apollo-utilities": "^0.2.0-alpha.6"
   }
 }
