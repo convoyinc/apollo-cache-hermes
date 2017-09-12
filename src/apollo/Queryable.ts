@@ -2,7 +2,7 @@
 import {
   DataProxy,
   Cache,
-} from 'apollo-cache-core';
+} from 'apollo-cache';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
 import { JsonObject } from '../primitive';

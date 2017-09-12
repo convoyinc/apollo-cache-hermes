@@ -2,7 +2,7 @@ import {
   Transaction,
   Cache as CacheInterface,
   ApolloCache,
-} from 'apollo-cache-core';
+} from 'apollo-cache';
 
 import { Cache } from '../Cache';
 import { CacheContext } from '../context';
