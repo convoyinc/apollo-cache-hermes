@@ -316,6 +316,17 @@ export class SnapshotEditor {
               // Object.freeze anyway
               this._setValue(containerId, [...currentPath, fieldName], nodeValue);
             }
+            else {
+              // This field contains nested selectionSet so recursively walking the sub-fields
+              // Check if payload is a object, throw an error if it isn't
+              const childPayload = currentPayload[fieldName];
+              if (!isObject(childPayload)) {
+                // TODO(yuisu): sentry?
+                throw new Error(`Hermes Error: At field-${fieldName}, expected an object as a payload but get ${JSON.stringify(childPayload)}`);
+              }
+              this._walkSelectionSets(selection.selectionSet, currentPayload[fieldName],
+                [...currentPath, fieldName], containerId, fragmensMap);
+            }
             break;
           case "FragmentSpread":
             break;
