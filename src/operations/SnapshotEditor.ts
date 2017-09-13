@@ -1,10 +1,17 @@
+import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+  SelectionSetNode,
+} from 'graphql';
+
+import * as _ from 'lodash';
+
 import { CacheContext } from '../context';
 import { DynamicField, DynamicFieldWithArgs, DynamicFieldMap, isDynamicFieldWithArgs } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
-import { JsonObject, PathPart, JsonScalar, NestedObject } from '../primitive';
+import { JsonObject, JsonValue, PathPart, JsonScalar, NestedObject } from '../primitive';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
+  FragmentMap,
   addNodeReference,
   addToSet,
   hasNodeReference,
@@ -96,7 +103,8 @@ export class SnapshotEditor {
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
-    const { referenceEdits } = this._mergePayloadValues(parsed, payload);
+    // const { referenceEdits } = this._mergePayloadValues(parsed, payload);
+    const { referenceEdits } = this._mergePayloadValuesUsingSelectionSetAsGuide(parsed, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -104,6 +112,8 @@ export class SnapshotEditor {
     // In addition, this performs bookkeeping the inboundReferences of affected
     // nodes, and collects all newly orphaned nodes.
     const orphanedNodeIds = this._mergeReferenceEdits(referenceEdits);
+    // TODO (yuisu): remove this.
+    this._mergePayloadValues;
 
     // At this point, every node that has had any of its properties change now
     // exists in _newNodes.  In order to preserve immutability, we need to walk
@@ -271,6 +281,50 @@ export class SnapshotEditor {
     }
 
     return { referenceEdits };
+  }
+
+  private _mergePayloadValuesUsingSelectionSetAsGuide(query: ParsedQuery, fullPayload: JsonObject) {
+    const referenceEdits: ReferenceEdit[] = [];
+    this._walkSelectionSets(query.info.operation.selectionSet, fullPayload, [], query.rootId, query.info.fragmentMap);
+    return { referenceEdits };
+  }
+
+  private _walkSelectionSets(currentSelectionSets: SelectionSetNode,
+    currentPayload: JsonValue, currentPath: string[], containerId: string, fragmensMap: FragmentMap): void {
+      if (!currentPayload) {
+        return;
+      }
+      // TODO (yuisu): parameterized field
+      for (const selection of currentSelectionSets.selections) {
+        switch(selection.kind) {
+          case "Field":
+            /**
+             * if there is no child -> copy the value of the payload
+             * if there exist a child selections -> walk
+             */
+            // TODO (yuisu): Missing Entity definition property ?
+            const fieldName = selection.name.value;
+            if (!selection.selectionSet) {
+              // This field is a leaf field and does not contain any nested selection sets
+              // just copy payload value to the graph snapshot node.
+              let nodeValue = currentPayload[fieldName];
+              if (!nodeValue) {
+                nodeValue = null;
+              }
+              else if (isObject(nodeValue)){
+                // If it is an object, make a new copy
+                // TODO(yuisu): May be we won't need to create copy ? (Apollo doesn't seem to do so)
+                nodeValue = _.cloneDeep(nodeValue);
+              }
+              this._setValue(containerId, [...currentPath, fieldName], nodeValue);
+            }
+            break;
+          case "FragmentSpread":
+            break;
+          case "InlineFragment":
+            break;
+        }
+      }
   }
 
   /**
