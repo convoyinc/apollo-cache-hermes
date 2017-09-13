@@ -2,8 +2,6 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   SelectionSetNode,
 } from 'graphql';
 
-import * as _ from 'lodash';
-
 import { CacheContext } from '../context';
 import { DynamicField, DynamicFieldWithArgs, DynamicFieldMap, isDynamicFieldWithArgs } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
@@ -289,6 +287,7 @@ export class SnapshotEditor {
     return { referenceEdits };
   }
 
+  // TODO (yuisu) : consider nest this function into _mergePayloadValuesUsingSelectionSetAsGuide
   private _walkSelectionSets(currentSelectionSets: SelectionSetNode,
     currentPayload: JsonValue, currentPath: string[], containerId: string, fragmensMap: FragmentMap): void {
       if (!currentPayload) {
@@ -302,6 +301,7 @@ export class SnapshotEditor {
              * if there is no child -> copy the value of the payload
              * if there exist a child selections -> walk
              */
+            // TODO (yuisu): update containerId when seeing entity
             // TODO (yuisu): Missing Entity definition property ?
             const fieldName = selection.name.value;
             if (!selection.selectionSet) {
@@ -311,11 +311,9 @@ export class SnapshotEditor {
               if (!nodeValue) {
                 nodeValue = null;
               }
-              else if (isObject(nodeValue)){
-                // If it is an object, make a new copy
-                // TODO(yuisu): May be we won't need to create copy ? (Apollo doesn't seem to do so)
-                nodeValue = _.cloneDeep(nodeValue);
-              }
+
+              // Note: we intensionally do not deep copy the nodeValue as Apollo will then perform
+              // Object.freeze anyway
               this._setValue(containerId, [...currentPath, fieldName], nodeValue);
             }
             break;
