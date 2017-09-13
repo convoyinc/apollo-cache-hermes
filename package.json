@@ -26,15 +26,15 @@
     "fix:style": "./scripts/fix-style.sh",
     "release": "./scripts/release.sh",
     "test": "./scripts/test.sh",
-    "test:compile": "./scripts/test-compile.sh",
-    "test:style": "./scripts/test-style.sh",
-    "test:unit": "./scripts/test-unit.sh",
-    "test:unit:coverage": "./scripts/test-unit-coverage.sh"
+    "test-compile": "./scripts/test-compile.sh",
+    "test-style": "./scripts/test-style.sh",
+    "test-unit": "./scripts/test-unit.sh",
+    "test-unit-coverage": "./scripts/test-unit-coverage.sh"
   },
   "devDependencies": {
     "@types/chai": "^4.0.1",
-    "@types/chai-as-promised": "^0.0.31",
     "@types/graphql": "^0.10.2",
+    "@types/chai-as-promised": "^7.1.0",
     "@types/lodash": "^4.14.71",
     "@types/lodash.clonedeep": "^4.5.3",
     "@types/lodash.get": "^4.4.3",
@@ -52,12 +52,12 @@
     "jest": "^21.0.1",
     "jest-junit": "^3.0.0",
     "rimraf": "^2.6.1",
-    "tslib": "^1.7.0",
     "typescript": "^2.5.2",
-    "typescript-eslint-parser": "^7.0.0"
+    "typescript-eslint-parser": "^8.0.0"
   },
   "dependencies": {
-    "apollo-cache": "^0.2.0-alpha.12",
-    "apollo-utilities": "^0.2.0-alpha.6"
+    "apollo-cache": "^0.2.0-alpha.13",
+    "apollo-utilities": "^0.2.0-alpha.6",
+    "tslib": "^1.7.0"
   }
 }

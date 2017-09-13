@@ -1,4 +1,3 @@
-/* eslint-disable class-methods-use-this */
 import {
   DataProxy,
   Cache,
@@ -17,7 +16,7 @@ export abstract class ApolloQueryable implements DataProxy {
   /** The underlying Hermes cache. */
   protected abstract _queryable: Queryable;
 
-  diff<T = any>(options: Cache.DiffOptions): Cache.DiffResult<T | any> {
+  diff<T>(options: Cache.DiffOptions): Cache.DiffResult<T | any> {
     const query = toQuery(options.query, options.variables);
     const { result, complete } = this._queryable.read(query, options.optimistic);
     if (options.returnPartialData === false && !complete) {
@@ -69,12 +68,13 @@ export abstract class ApolloQueryable implements DataProxy {
     this._queryable.write(query, options.data);
   }
 
-
+  // eslint-disable-next-line class-methods-use-this
   transformDocument(doc: DocumentNode): DocumentNode {
     return doc;
   }
 
-  evict(query: Cache.EvictOptions): Cache.EvictionResult {
-    throw new Error(`evict() is not implemented`);
+  evict(options: Cache.EvictOptions): Cache.EvictionResult {
+    const query = toQuery(options.query, options.variables);
+    return this._queryable.evict(query);
   }
 }

@@ -15,22 +15,23 @@ import { toQuery } from './util';
 /**
  * Apollo-specific interface to the cache.
  */
-export class Hermes extends ApolloQueryable implements ApolloCache {
-
+export class Hermes extends ApolloQueryable implements ApolloCache<GraphSnapshot> {
   /** The underlying Hermes cache. */
   protected _queryable: Cache;
 
-  constructor(configuration?: CacheContext, intitialState?: GraphSnapshot) {
+  constructor(configuration?: CacheContext) {
     super();
-    this._queryable = new Cache(configuration, intitialState);
+    this._queryable = new Cache(configuration);
   }
 
-  getData(): any {
+  restore(data: GraphSnapshot): ApolloCache<GraphSnapshot> {
+    this._queryable.restore(data);
+    return this;
+  }
+
+  extract(optimistic: boolean = false): GraphSnapshot {
+    if (optimistic) return this._queryable.getSnapshot().optimistic;
     return this._queryable.getSnapshot().baseline;
-  }
-
-  getOptimisticData(): any {
-    return this._queryable.getSnapshot().optimistic;
   }
 
   reset(): Promise<void> {
@@ -41,11 +42,11 @@ export class Hermes extends ApolloQueryable implements ApolloCache {
     this._queryable.rollback(id);
   }
 
-  performTransaction(transaction: Transaction): void {
+  performTransaction(transaction: Transaction<GraphSnapshot>): void {
     this._queryable.transaction(t => transaction(new ApolloTransaction(t)));
   }
 
-  recordOptimisticTransaction(transaction: Transaction, id: string): void {
+  recordOptimisticTransaction(transaction: Transaction<GraphSnapshot>, id: string): void {
     this._queryable.transaction(id, t => transaction(new ApolloTransaction(t)));
   }
 
@@ -53,5 +54,4 @@ export class Hermes extends ApolloQueryable implements ApolloCache {
     const query = toQuery(options.query, options.variables, options.rootId);
     return this._queryable.watch(query, options.callback);
   }
-
 }

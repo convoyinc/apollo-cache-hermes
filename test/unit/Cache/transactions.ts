@@ -5,31 +5,6 @@ import { query } from '../../helpers';
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`Cache`, () => {
-  describe(`constructor`, () => {
-    const simpleQuery = query(`{
-      foo {
-        bar
-        baz
-      }
-    }`);
-
-    const cache = new Cache();
-
-    cache.transaction((transaction) => {
-      transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hi' } });
-    });
-
-    expect(cache.getEntity(QueryRootId)).to.deep.eq({
-      foo: { bar: 1, baz: 'hi' },
-    });
-
-    const state = cache.getSnapshot().baseline;
-    const newCache = new Cache({}, state);
-
-    expect(newCache.getEntity(QueryRootId)).to.deep.eq({
-      foo: { bar: 1, baz: 'hi' },
-    });
-  });
   describe(`transactions`, () => {
 
     const simpleQuery = query(`{

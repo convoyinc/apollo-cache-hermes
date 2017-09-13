@@ -1,11 +1,13 @@
-import { JsonObject, JsonValue } from './primitive';
-import { Queryable } from './Queryable';
-import { CacheTransaction } from './CacheTransaction';
+import { Cache as CacheInterface } from 'apollo-cache';
+
 import { CacheSnapshot } from './CacheSnapshot';
+import { CacheTransaction } from './CacheTransaction';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { QueryObserver, read } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
+import { JsonObject, JsonValue } from './primitive';
+import { Queryable } from './Queryable';
 import { ChangeId, NodeId, Query } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
@@ -27,10 +29,22 @@ export class Cache implements Queryable {
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
-  constructor(config?: CacheContext.Configuration, initialState?: GraphSnapshot) {
-    const initialGraphSnapshot = initialState ? initialState : new GraphSnapshot();
+  constructor(config?: CacheContext.Configuration, ) {
+    const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
     this._context = new CacheContext(config);
+  }
+
+  restore(data: GraphSnapshot): Cache {
+    throw new Error('restore() is not implemented on Cache');
+  }
+
+  extract() {
+    throw new Error('extract() is not implemented on Cache');
+  }
+
+  evict(query: Query): { success: boolean } {
+    throw new Error(`evict() is not implemented on Cache`);    
   }
 
   /**
@@ -57,7 +71,7 @@ export class Cache implements Queryable {
    * Registers a callback that should be triggered any time the nodes selected
    * by a particular query have changed.
    */
-  watch(query: Query, callback: (newData: any) => void): () => void {
+  watch(query: Query, callback: CacheInterface.WatchCallback): () => void {
     const observer = new QueryObserver(this._context, query, this._snapshot.optimistic, callback);
     this._observers.push(observer);
 

@@ -113,7 +113,7 @@ rules:
   no-bitwise: error
   no-lonely-if: error
   no-mixed-operators: error
-  no-multiple-empty-lines: error
+  no-multiple-empty-lines: [error, { max: 1 }]
   no-new-object: error
   no-tabs: error
   no-trailing-spaces: error

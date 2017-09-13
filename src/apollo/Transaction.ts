@@ -2,27 +2,20 @@
 import { ApolloCache, Cache, Transaction } from 'apollo-cache';
 
 import { CacheTransaction } from '../CacheTransaction';
+import { GraphSnapshot } from '../GraphSnapshot';
 
 import { ApolloQueryable } from './Queryable';
 
 /**
  * Apollo-specific transaction interface.
  */
-export class ApolloTransaction extends ApolloQueryable implements ApolloCache {
+export class ApolloTransaction extends ApolloQueryable implements ApolloCache<GraphSnapshot> {
 
   constructor(
     /** The underlying transaction. */
     protected _queryable: CacheTransaction,
   ) {
     super();
-  }
-
-  getData() {
-    throw new Error(`getData() is not allowed within a transaction`);
-  }
-
-  getOptimisticData() {
-    throw new Error(`getOptimisticData() is not allowed within a transaction`);
   }
 
   reset(): Promise<void> { // eslint-disable-line class-methods-use-this
@@ -33,16 +26,24 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache {
     throw new Error(`removeOptimistic() is not allowed within a transaction`);
   }
 
-  performTransaction(transaction: Transaction): void {
+  performTransaction(transaction: Transaction<GraphSnapshot>): void {
     transaction(this);
   }
 
-  recordOptimisticTransaction(transaction: Transaction, id: string): void { // eslint-disable-line class-methods-use-this
+  recordOptimisticTransaction(transaction: Transaction<GraphSnapshot>, id: string): void { // eslint-disable-line class-methods-use-this
     throw new Error(`recordOptimisticTransaction() is not allowed within a transaction`);
   }
 
   watch(query: Cache.WatchOptions): () => void { // eslint-disable-line class-methods-use-this, max-len
     throw new Error(`watch() is not allowed within a transaction`);
+  }
+
+  restore(data: GraphSnapshot): ApolloCache<GraphSnapshot> {
+    throw new Error(`restore() is not allowed within a transaction`);
+  }
+
+  extract(optimistic: boolean = false): GraphSnapshot {
+    throw new Error(`extract() is not allowed within a transaction`);
   }
 
 }
