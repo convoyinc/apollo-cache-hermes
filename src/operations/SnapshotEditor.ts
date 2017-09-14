@@ -281,7 +281,9 @@ export class SnapshotEditor {
 
   private _mergePayloadValuesUsingSelectionSetAsGuide(query: ParsedQuery, fullPayload: JsonObject) {
     const referenceEdits: ReferenceEdit[] = [];
-    this._walkSelectionSets(query.info.operation.selectionSet, fullPayload, [], query.rootId, query.info.fragmentMap, referenceEdits);
+    this._walkSelectionSets(query.info.operation.selectionSet, fullPayload,
+      /* currentPath */ [], query.rootId, query.dynamicFieldMap,
+      query.info.fragmentMap, referenceEdits);
     return { referenceEdits };
   }
 
@@ -290,6 +292,7 @@ export class SnapshotEditor {
     currentPayload: JsonValue,
     currentPath: string[],
     containerId: string,
+    dynamicFieldMap: DynamicFieldMap | undefined,
     fragmensMap: FragmentMap,
     referenceEdits: ReferenceEdit[]): void {
       if (!currentPayload) {

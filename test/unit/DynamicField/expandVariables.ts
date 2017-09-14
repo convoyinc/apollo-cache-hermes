@@ -6,7 +6,7 @@ import { DynamicField, expandVariables } from '../../../src/DynamicField';
 describe(`DynamicField.expandVariables`, () => {
 
   function makeFieldMap(query: string) {
-    return new QueryInfo(gql(query)).dynamicFieldMap;
+    return new QueryInfo(gql(query)).rawDynamicFieldMap;
   }
 
   it(`passes undefined through`, () => {

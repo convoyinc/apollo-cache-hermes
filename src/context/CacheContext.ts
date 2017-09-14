@@ -111,7 +111,7 @@ export class CacheContext {
     const parsedQuery = {
       info,
       rootId: query.rootId,
-      dynamicFieldMap: expandVariables(info.dynamicFieldMap, fullVariables),
+      dynamicFieldMap: expandVariables(info.rawDynamicFieldMap, fullVariables),
       variables: query.variables,
     };
     parsedQueries.push(parsedQuery);
