@@ -43,7 +43,7 @@ export class Cache implements Queryable {
     throw new Error('extract() is not implemented on Cache');
   }
 
-  evict(query: Query): { success: boolean } {
+  evict(query: RawQuery): { success: boolean } {
     throw new Error(`evict() is not implemented on Cache`);
   }
 

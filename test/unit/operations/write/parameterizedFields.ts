@@ -489,7 +489,7 @@ describe(`operations.write`, () => {
 
     describe(`with nested entities in an array`, () => {
 
-      let nestedQuery: Query, snapshot: GraphSnapshot, containerId: NodeId;
+      let nestedQuery: RawQuery, snapshot: GraphSnapshot, containerId: NodeId;
       beforeAll(() => {
         nestedQuery = query(`query nested($id: ID!) {
           one {

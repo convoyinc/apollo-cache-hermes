@@ -14,7 +14,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 describe(`context.CacheContext`, () => {
   describe(`entity transformation`, () => {
     describe(`no entity transformer`, () => {
-      let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
         query getViwer($id:ID!) {
@@ -364,7 +364,7 @@ describe(`context.CacheContext`, () => {
     });
 
     describe(`Mixing additional helper on parameterized query`, () => {
-      let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
         query getViwer($id:ID!) {

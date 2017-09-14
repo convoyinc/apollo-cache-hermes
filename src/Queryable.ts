@@ -23,6 +23,6 @@ export interface Queryable {
   /**
    * Removes values for a selection to the cache
    */
-  evict(query: Query): { success: boolean };
+  evict(query: RawQuery): { success: boolean };
 
 }
