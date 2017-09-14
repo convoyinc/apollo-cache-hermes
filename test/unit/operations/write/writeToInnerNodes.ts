@@ -14,7 +14,16 @@ describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const rootValuesQuery = query(`{ foo bar }`);
+  const rootValuesQuery = query(`{
+    foo {
+      id
+      name
+    }
+    bar {
+      id
+      name
+    }
+  }`);
 
   describe(`write to inner nodes`, () => {
 
