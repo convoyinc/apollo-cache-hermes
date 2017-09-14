@@ -77,6 +77,10 @@ export function walkPayload(
   //      city: "A",   -> path = ["user", "address", "city"]
   //      state: "AB", -> path = ["user", "address", "state"]
   //    },
+  //    info: {
+  //      id: 0,       -> path = ["id"]
+  //      prop1: "hi"  -> path = ["prop1"]
+  //    },
   //    phone: ["1234", -> path = ["user", 0]
   //            "5678"] -> path = ["user", 1]
   //  }
