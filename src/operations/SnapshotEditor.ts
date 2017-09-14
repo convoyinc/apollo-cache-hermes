@@ -322,7 +322,7 @@ export class SnapshotEditor {
               const childPayload = currentPayload[fieldName];
               if (!isObject(childPayload)) {
                 // TODO(yuisu): sentry?
-                throw new Error(`Hermes Error: At field-${fieldName}, expected an object as a payload but get ${JSON.stringify(childPayload)}`);
+                throw new Error(`Hermes Error: At field-"${fieldName}", expected an object as a payload but get "${JSON.stringify(currentPayload)}"`);
               }
               this._walkSelectionSets(selection.selectionSet, currentPayload[fieldName],
                 [...currentPath, fieldName], containerId, fragmensMap);
