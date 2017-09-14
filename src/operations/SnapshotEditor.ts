@@ -101,8 +101,8 @@ export class SnapshotEditor {
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
-    // const { referenceEdits } = this._mergePayloadValues(parsed, payload);
-    const { referenceEdits } = this._mergePayloadValuesUsingSelectionSetAsGuide(parsed, payload);
+    // const { referenceEdits } = this._mergePayloadValues(parsed, payload);this._mergePayloadValuesUsingSelectionSetAsGuide;
+    const { referenceEdits } = this._mergePayloadValuesUsingSelectionSetAsGuide(parsed, payload); this._mergePayloadValues;
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -110,8 +110,6 @@ export class SnapshotEditor {
     // In addition, this performs bookkeeping the inboundReferences of affected
     // nodes, and collects all newly orphaned nodes.
     const orphanedNodeIds = this._mergeReferenceEdits(referenceEdits);
-    // TODO (yuisu): remove this.
-    this._mergePayloadValues;
 
     // At this point, every node that has had any of its properties change now
     // exists in _newNodes.  In order to preserve immutability, we need to walk
@@ -283,13 +281,17 @@ export class SnapshotEditor {
 
   private _mergePayloadValuesUsingSelectionSetAsGuide(query: ParsedQuery, fullPayload: JsonObject) {
     const referenceEdits: ReferenceEdit[] = [];
-    this._walkSelectionSets(query.info.operation.selectionSet, fullPayload, [], query.rootId, query.info.fragmentMap);
+    this._walkSelectionSets(query.info.operation.selectionSet, fullPayload, [], query.rootId, query.info.fragmentMap, referenceEdits);
     return { referenceEdits };
   }
 
   // TODO (yuisu) : consider nest this function into _mergePayloadValuesUsingSelectionSetAsGuide
   private _walkSelectionSets(currentSelectionSets: SelectionSetNode,
-    currentPayload: JsonValue, currentPath: string[], containerId: string, fragmensMap: FragmentMap): void {
+    currentPayload: JsonValue,
+    currentPath: string[],
+    containerId: string,
+    fragmensMap: FragmentMap,
+    referenceEdits: ReferenceEdit[]): void {
       if (!currentPayload) {
         return;
       }
@@ -304,6 +306,7 @@ export class SnapshotEditor {
             // TODO (yuisu): update containerId when seeing entity
             // TODO (yuisu): Missing Entity definition property ?
             const fieldName = selection.name.value;
+            const updatePath = [...currentPath, fieldName];
             if (!selection.selectionSet) {
               // This field is a leaf field and does not contain any nested selection sets
               // just copy payload value to the graph snapshot node.
@@ -314,18 +317,38 @@ export class SnapshotEditor {
 
               // Note: we intensionally do not deep copy the nodeValue as Apollo will then perform
               // Object.freeze anyway
-              this._setValue(containerId, [...currentPath, fieldName], nodeValue);
+              this._setValue(containerId, updatePath, nodeValue);
             }
             else {
               // This field contains nested selectionSet so recursively walking the sub-fields
               // Check if payload is a object, throw an error if it isn't
               const childPayload = currentPayload[fieldName];
               if (!isObject(childPayload)) {
-                // TODO(yuisu): sentry?
+                // TODO(yuisu): sentry? should we continue and just write null ?
                 throw new Error(`Hermes Error: At field-"${fieldName}", expected an object as a payload but get "${JSON.stringify(currentPayload)}"`);
               }
-              this._walkSelectionSets(selection.selectionSet, currentPayload[fieldName],
-                [...currentPath, fieldName], containerId, fragmensMap);
+
+              let nextNodeId = this._context.entityIdForNode(childPayload);
+              if (nextNodeId) {
+                // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
+                const containerSnapshot = this.getNodeSnapshot(containerId);
+                const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
+                const prevNodeId = isObject(containerNode) ? this._context.entityIdForNode(containerNode) : undefined;
+                // TODO(yuisu): ERROR
+                if (!nextNodeId && currentPayload) {
+                  nextNodeId = prevNodeId;
+                }
+
+                if (prevNodeId !== nextNodeId) {
+                  referenceEdits.push({ containerId, path: updatePath, prevNodeId, nextNodeId });
+                }
+                this._walkSelectionSets(selection.selectionSet, childPayload,
+                  [], nextNodeId!, fragmensMap, referenceEdits);
+              }
+              else {
+                this._walkSelectionSets(selection.selectionSet, childPayload,
+                  updatePath, containerId, fragmensMap, referenceEdits);
+              }
             }
             break;
           case "FragmentSpread":
