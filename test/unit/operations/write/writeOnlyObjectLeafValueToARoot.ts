@@ -17,7 +17,7 @@ describe(`operations.write`, () => {
   const empty = new GraphSnapshot();
   const rootValuesQuery = query(`{ foo bar }`);
 
-  describe(`write only object leaf value to a root`, () => {
+  describe(`non-entity object leaf-value to a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     let fooValue: {}, barValue: {};
     beforeAll(() => {
@@ -88,6 +88,60 @@ describe(`operations.write`, () => {
 
     it(`emits the root as an EntitySnapshot`, () => {
       expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+    });
+  });
+
+  describe(`an empty object leaf-value`, () => {
+    let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const result = write(context, empty, rootValuesQuery, {
+        foo: {},
+        bar: [],
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
+    });
+
+    it(`stores the values`, () => {
+      expect(snapshot.get(QueryRootId)).to.deep.eq({
+        foo: {},
+        bar: [],
+      });
+    });
+
+    it(`marks the container as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+    });
+  });
+
+  describe(`non-entity object leaf-value with id fields in it`, () => {
+    let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    beforeAll(() => {
+      const result = write(context, empty, rootValuesQuery, {
+        foo: { id: 1 },
+        bar: {
+          baz: { id: 1 },
+        },
+      });
+      snapshot = result.snapshot;
+      editedNodeIds = result.editedNodeIds;
+    });
+
+    it(`stores the values`, () => {
+      expect(snapshot.get(QueryRootId)).to.deep.eq({
+        foo: { id: 1 },
+        bar: {
+          baz: { id: 1 },
+        },
+      });
+    });
+
+    it(`does not normalize the values of the object leaf-value`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+    });
+
+    it(`marks the container as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
     });
   });
 
