@@ -300,8 +300,8 @@ export class SnapshotEditor {
         switch(selection.kind) {
           case "Field":
             /**
-             * if there is no child -> copy the value of the payload
-             * if there exist a child selections -> walk
+             * if there is no sub-selectionSet, threat the value as leaf and just point to the payload value.
+             * if there exist a child, walk the sub-selectionSet
              */
             // TODO (yuisu): update containerId when seeing entity
             // TODO (yuisu): Missing Entity definition property ?
@@ -311,7 +311,8 @@ export class SnapshotEditor {
               // This field is a leaf field and does not contain any nested selection sets
               // just copy payload value to the graph snapshot node.
               let nodeValue = currentPayload[fieldName];
-              if (!nodeValue) {
+              // Explicitly check for "undefined" as we should persist other falsy value (see: "writeFalsyValues" test)
+              if (nodeValue === undefined) {
                 nodeValue = null;
               }
 
@@ -330,11 +331,10 @@ export class SnapshotEditor {
 
               let nextNodeId = this._context.entityIdForNode(childPayload);
               if (nextNodeId) {
-                // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
                 const containerSnapshot = this.getNodeSnapshot(containerId);
                 const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
                 const prevNodeId = isObject(containerNode) ? this._context.entityIdForNode(containerNode) : undefined;
-                // TODO(yuisu): ERROR
+                // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
                 if (!nextNodeId && currentPayload) {
                   nextNodeId = prevNodeId;
                 }
