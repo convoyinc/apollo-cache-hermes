@@ -17,7 +17,7 @@ describe(`operations.write`, () => {
   const empty = new GraphSnapshot();
   const rootValuesQuery = query(`{ foo bar }`);
 
-  describe(`write only object value to a root`, () => {
+  describe(`write only object leaf value to a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     let fooValue: {}, barValue: {};
     beforeAll(() => {
