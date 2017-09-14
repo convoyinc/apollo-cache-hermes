@@ -26,13 +26,14 @@
     "fix:style": "./scripts/fix-style.sh",
     "release": "./scripts/release.sh",
     "test": "./scripts/test.sh",
-    "test:compile": "./scripts/test-compile.sh",
-    "test:style": "./scripts/test-style.sh",
-    "test:unit": "./scripts/test-unit.sh",
-    "test:unit:coverage": "./scripts/test-unit-coverage.sh"
+    "test-compile": "./scripts/test-compile.sh",
+    "test-style": "./scripts/test-style.sh",
+    "test-unit": "./scripts/test-unit.sh",
+    "test-unit-coverage": "./scripts/test-unit-coverage.sh"
   },
   "devDependencies": {
     "@types/chai": "^4.0.1",
+    "@types/graphql": "^0.10.2",
     "@types/chai-as-promised": "^7.1.0",
     "@types/lodash": "^4.14.71",
     "@types/lodash.clonedeep": "^4.5.3",
@@ -55,10 +56,8 @@
     "typescript-eslint-parser": "^8.0.0"
   },
   "dependencies": {
-    "@types/graphql": "^0.10.2",
-    "lodash.clonedeep": "^4.5.0",
-    "lodash.get": "^4.4.2",
-    "lodash.isequal": "^4.5.0",
+    "apollo-cache": "^0.2.0-alpha.13",
+    "apollo-utilities": "^0.2.0-alpha.6",
     "tslib": "^1.7.0"
   }
 }

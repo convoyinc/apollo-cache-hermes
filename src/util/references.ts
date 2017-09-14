@@ -1,4 +1,4 @@
-import lodashIsEqual = require('lodash.isequal');
+import { isEqual } from 'apollo-utilities';
 
 import { NodeReference, NodeSnapshot } from '../nodes';
 import { PathPart } from '../primitive';
@@ -73,6 +73,6 @@ export function hasNodeReference(
  */
 function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path: PathPart[]): number {
   return references.findIndex((reference) => {
-    return reference.id === id && lodashIsEqual(reference.path, path);
+    return reference.id === id && isEqual(reference.path, path);
   });
 }

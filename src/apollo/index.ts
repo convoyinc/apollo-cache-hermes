@@ -1,1 +1,3 @@
-export { ApolloCache } from './ApolloCache';
+import { Hermes } from './Hermes';
+export { Hermes };
+

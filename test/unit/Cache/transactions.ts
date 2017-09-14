@@ -31,6 +31,7 @@ describe(`Cache`, () => {
       expect(cache.getEntity(QueryRootId)).to.deep.eq({
         foo: { bar: 1, baz: 'hi' },
       });
+      expect(cache.getSnapshot().baseline).to.deep.eq(cache.getSnapshot().optimistic);
     });
 
     it(`doesn't modify the cache until completion`, () => {

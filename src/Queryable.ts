@@ -20,4 +20,9 @@ export interface Queryable {
    */
   write(query: Query, payload: JsonObject): void;
 
+  /**
+   * Removes values for a selection to the cache
+   */
+  evict(query: Query): { success: boolean };
+
 }
