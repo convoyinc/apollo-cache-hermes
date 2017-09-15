@@ -281,21 +281,24 @@ export class SnapshotEditor {
 
   private _mergePayloadValuesUsingSelectionSetAsGuide(query: ParsedQuery, fullPayload: JsonObject) {
     const referenceEdits: ReferenceEdit[] = [];
-    this._walkSelectionSets(query.info.operation.selectionSet, fullPayload,
-      /* currentPath */ [], query.rootId, query.dynamicFieldMap,
-      query.info.fragmentMap, referenceEdits);
+    this._walkSelectionSets(query.info.operation.selectionSet,
+      fullPayload,
+      /* currentPath */ [],
+      query.rootId,
+      query.info.fragmentMap,
+      referenceEdits
+    );
     return { referenceEdits };
   }
 
   // TODO (yuisu) : consider nest this function into _mergePayloadValuesUsingSelectionSetAsGuide
   private _walkSelectionSets(currentSelectionSets: SelectionSetNode,
-    currentPayload: JsonValue,
-    currentPath: string[],
+    prevPayload: JsonValue,
+    prevPath: string[],
     containerId: string,
-    dynamicFieldMap: DynamicFieldMap | undefined,
     fragmensMap: FragmentMap,
     referenceEdits: ReferenceEdit[]): void {
-      if (!currentPayload) {
+      if (!prevPayload) {
         return;
       }
       // TODO (yuisu): parameterized field
@@ -306,51 +309,75 @@ export class SnapshotEditor {
              * if there is no sub-selectionSet, threat the value as leaf and just point to the payload value.
              * if there exist a child, walk the sub-selectionSet
              */
-            // TODO (yuisu): update containerId when seeing entity
-            // TODO (yuisu): Missing Entity definition property ?
-            const fieldName = selection.name.value;
-            const updatePath = [...currentPath, fieldName];
+
+            // TODO(yuisu): should we be worry about both alias and real field name have payload value?
+            const cacheKey = selection.name.value;
+            const payloadKey = selection.alias ? selection.alias.value : cacheKey;
+
+            // TODO(yuisu): check for missing property
             if (!selection.selectionSet) {
               // This field is a leaf field and does not contain any nested selection sets
-              // just copy payload value to the graph snapshot node.
-              let nodeValue = currentPayload[fieldName];
+              // just reference payload value in the graph snapshot node.
+
+              let nodeValue = prevPayload[payloadKey];
               // Explicitly check for "undefined" as we should persist other falsy value (see: "writeFalsyValues" test)
               if (nodeValue === undefined) {
                 nodeValue = null;
               }
 
-              // Note: we intensionally do not deep copy the nodeValue as Apollo will then perform
-              // Object.freeze anyway
-              this._setValue(containerId, updatePath, nodeValue);
+              // We intensionally do not deep copy the nodeValue as Apollo will then perform
+              // Object.freeze anyway. So any change in the payload value afterward will be reflect
+              // in the graph as well.
+              // We use selection.name.value instead of payloadKey so that we always write
+              // to cache using real field name rather than alias name.
+              this._setValue(containerId, [...prevPath, cacheKey], nodeValue);
             }
             else {
-              // This field contains nested selectionSet so recursively walking the sub-fields
-              // Check if payload is a object, throw an error if it isn't
-              const childPayload = currentPayload[fieldName];
-              if (!isObject(childPayload)) {
+              // This field contains nested selectionSet so recursively walking the sub-selectionSets.
+              // We expect to have an object as a payload value. If not the payload cannot have matching shape
+              // as the sub-selectionSets. Check if payload is a object, throw an error if it isn't
+              const currentPayload = prevPayload[payloadKey];
+
+              if (!isObject(currentPayload)) {
                 // TODO(yuisu): sentry? should we continue and just write null ?
-                throw new Error(`Hermes Error: At field-"${fieldName}", expected an object as a payload but get "${JSON.stringify(currentPayload)}"`);
+                throw new Error(`Hermes Error: At field-"${payloadKey}", expected an object as a payload but get "${JSON.stringify(currentPayload)}"`);
               }
 
-              let nextNodeId = this._context.entityIdForNode(childPayload);
+              let nextNodeId = this._context.entityIdForNode(currentPayload);
               if (nextNodeId) {
                 const containerSnapshot = this.getNodeSnapshot(containerId);
                 const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
                 const prevNodeId = isObject(containerNode) ? this._context.entityIdForNode(containerNode) : undefined;
+
                 // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
-                if (!nextNodeId && currentPayload) {
+                if (!nextNodeId && prevPayload) {
                   nextNodeId = prevNodeId;
                 }
 
                 if (prevNodeId !== nextNodeId) {
-                  referenceEdits.push({ containerId, path: updatePath, prevNodeId, nextNodeId });
+                  referenceEdits.push({
+                    containerId: containerId,
+                    path: [...prevPath, cacheKey],
+                    prevNodeId,
+                    nextNodeId,
+                  });
                 }
-                this._walkSelectionSets(selection.selectionSet, childPayload,
-                  [], nextNodeId!, fragmensMap, referenceEdits);
+                this._walkSelectionSets(selection.selectionSet,
+                  currentPayload,
+                  /* currentPath */[],
+                  nextNodeId!,
+                  fragmensMap,
+                  referenceEdits
+                );
               }
               else {
-                this._walkSelectionSets(selection.selectionSet, childPayload,
-                  updatePath, containerId, fragmensMap, referenceEdits);
+                this._walkSelectionSets(selection.selectionSet,
+                  currentPayload,
+                  [...prevPath, cacheKey],
+                  containerId,
+                  fragmensMap,
+                  referenceEdits
+                );
               }
             }
             break;

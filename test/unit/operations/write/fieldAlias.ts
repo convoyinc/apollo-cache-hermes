@@ -21,7 +21,7 @@ describe(`operations.write`, () => {
 
     describe(`without parameterized arguments`, () => {
 
-      describe(`simple query alias on non entityId`, () => {
+      describe(`simple query alias on a leaf field`, () => {
         let aliasQuery: Query, snapshot: GraphSnapshot;
         beforeAll(() => {
           aliasQuery = query(`{
