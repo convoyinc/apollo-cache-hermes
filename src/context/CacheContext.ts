@@ -89,6 +89,8 @@ export class CacheContext {
    * values, and can be used as an identity for a specific query.
    */
   parseQuery(query: Query): ParsedQuery {
+    if (isParsedQuery(query)) return query;
+
     // It appears like Apollo or someone upstream is cloning or otherwise
     // modifying the queries that are passed down.  Thus, the query source is a
     // more reliable cache key…
@@ -190,4 +192,8 @@ export function defaultEntityIdMapper(node: { id?: any }) {
 
 export function queryCacheKey(document: DocumentNode) {
   return document.loc!.source.body;
+}
+
+export function isParsedQuery(query: Query): query is ParsedQuery {
+  return 'info' in query;
 }

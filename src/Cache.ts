@@ -8,7 +8,7 @@ import { QueryObserver, read } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, Query } from './schema';
+import { ChangeId, NodeId, RawQuery } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
 
@@ -43,8 +43,8 @@ export class Cache implements Queryable {
     throw new Error('extract() is not implemented on Cache');
   }
 
-  evict(query: Query): { success: boolean } {
-    throw new Error(`evict() is not implemented on Cache`);    
+  evict(query: RawQuery): { success: boolean } {
+    throw new Error(`evict() is not implemented on Cache`);
   }
 
   /**
@@ -53,7 +53,7 @@ export class Cache implements Queryable {
    * TODO: Can we drop non-optimistic reads?
    * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(query: Query, optimistic?: boolean): { result?: JsonValue, complete: boolean } {
+  read(query: RawQuery, optimistic?: boolean): { result?: JsonValue, complete: boolean } {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     const snapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
@@ -71,7 +71,7 @@ export class Cache implements Queryable {
    * Registers a callback that should be triggered any time the nodes selected
    * by a particular query have changed.
    */
-  watch(query: Query, callback: CacheInterface.WatchCallback): () => void {
+  watch(query: RawQuery, callback: CacheInterface.WatchCallback): () => void {
     const observer = new QueryObserver(this._context, query, this._snapshot.optimistic, callback);
     this._observers.push(observer);
 
@@ -81,7 +81,7 @@ export class Cache implements Queryable {
   /**
    * Writes values for a selection to the cache.
    */
-  write(query: Query, payload: JsonObject): void {
+  write(query: RawQuery, payload: JsonObject): void {
     this.transaction(t => t.write(query, payload));
   }
 

@@ -3,7 +3,7 @@ import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes';
 import { write } from '../../../../src/operations/write';
 import { JsonArray } from '../../../../src/primitive';
-import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
+import { NodeId, RawQuery, StaticNodeId } from '../../../../src/schema';
 import { query, silentConfig, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -230,7 +230,7 @@ describe(`operations.write`, () => {
   });
 
   describe(`edit references in an array`, () => {
-    let arrayQuery: Query, snapshot: GraphSnapshot;
+    let arrayQuery: RawQuery, snapshot: GraphSnapshot;
     beforeAll(() => {
       arrayQuery = query(`{
         things { id name }
