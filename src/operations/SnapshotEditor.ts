@@ -18,6 +18,7 @@ import {
   lazyImmutableDeepSet,
   removeNodeReference,
   walkPayload,
+  get,
 } from '../util';
 
 /**
@@ -191,7 +192,7 @@ export class SnapshotEditor {
         }
 
         if (isDynamicFieldWithArgs(dynamicFields)) {
-          const fieldId = this._ensureParameterizedValueSnapshot(containerId, [...path], dynamicFields, query.variables!);
+          const fieldId = this._ensureParameterizedValueSnapshot(containerId, [...path], dynamicFields);
           // We walk the values of the parameterized field like any other
           // entity.
           //
@@ -284,6 +285,7 @@ export class SnapshotEditor {
     this._walkSelectionSets(query.info.operation.selectionSet,
       fullPayload,
       /* currentPath */ [],
+      query.dynamicFieldMap,
       query.rootId,
       query.info.fragmentMap,
       referenceEdits
@@ -295,6 +297,7 @@ export class SnapshotEditor {
   private _walkSelectionSets(currentSelectionSets: SelectionSetNode,
     prevPayload: JsonValue,
     prevPath: string[],
+    prevDynamicFieldMap: DynamicFieldMap | undefined,
     containerId: string,
     fragmensMap: FragmentMap,
     referenceEdits: ReferenceEdit[]): void {
@@ -313,24 +316,81 @@ export class SnapshotEditor {
             // TODO(yuisu): should we be worry about both alias and real field name have payload value?
             const cacheKey = selection.name.value;
             const payloadKey = selection.alias ? selection.alias.value : cacheKey;
+            const containerSnapshot = this.getNodeSnapshot(containerId);
+            const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
+            const currentDynamicFieldMap = get(prevDynamicFieldMap, payloadKey);
+            const isContainerIdParameterized = nodeIdIsParameterized(containerId);
+            // If it is parameterized edge, we will want to reprocess it as such first
+            // so that we can set container ID to be parameterized container ID.
+            if (isDynamicFieldWithArgs(currentDynamicFieldMap)) {
+              const nextNodeId = this._ensureParameterizedValueSnapshot(containerId,
+                [...prevPath, cacheKey],
+                currentDynamicFieldMap
+              );
+              // Re-entry so that we will create entity correctly
+              this._walkSelectionSets(currentSelectionSets,
+                prevPayload,
+                /* currentPath */[],
+                currentDynamicFieldMap.children,
+                nextNodeId,
+                fragmensMap,
+                referenceEdits
+              );
+              break;
+            }
 
-            // TODO(yuisu): check for missing property
             if (!selection.selectionSet) {
               // This field is a leaf field and does not contain any nested selection sets
               // just reference payload value in the graph snapshot node.
 
               let nodeValue = prevPayload[payloadKey];
-              // Explicitly check for "undefined" as we should persist other falsy value (see: "writeFalsyValues" test)
-              if (nodeValue === undefined) {
-                nodeValue = null;
-              }
+              // Explicitly check for "undefined" as we should
+              // persist other falsy value (see: "writeFalsyValues" test).
+              if (nodeValue !== undefined || (nodeValue === undefined && !containerNode)) {
+                // Write the value if the following:
+                //    1) exist a value
+                //    2) missing value but this is the first write
+                //      (containerNode doesn't exist)
 
-              // We intensionally do not deep copy the nodeValue as Apollo will then perform
-              // Object.freeze anyway. So any change in the payload value afterward will be reflect
-              // in the graph as well.
-              // We use selection.name.value instead of payloadKey so that we always write
-              // to cache using real field name rather than alias name.
-              this._setValue(containerId, [...prevPath, cacheKey], nodeValue);
+                // We intensionally do not deep copy the nodeValue as Apollo will then perform
+                // Object.freeze anyway. So any change in the payload value afterward will be reflect
+                // in the graph as well.
+                // We use selection.name.value instead of payloadKey so that we always write
+                // to cache using real field name rather than alias name.
+                let newPath: string[];
+                if (isContainerIdParameterized) {
+                  // If the prevPath length is greater than zero, it means that
+                  // the selection in nested inside some parameterized field
+                  // e.g.
+                  //    message(count: $count) {
+                  //      title
+                  //      body
+                  //    }
+                  // The prevPath length is zero means that the current selection is a
+                  // parameterized itself.
+                  // e.g : message(count: $count)
+                  // In the latter case, we just want to store the value directly on the node.
+                  // Note: in the case of entity parameterized node,
+                  // the containerId will be the Id itself not
+                  // parameterized one.
+                  if (prevPath.length > 0) {
+                    newPath = prevPath.slice();
+                    newPath.splice(prevPath.length-1);
+                    newPath.push(cacheKey);
+                  }
+                  else {
+                    newPath = [];
+                  }
+                }
+                else {
+                  newPath = [...prevPath, cacheKey];
+                }
+
+                this._setValue(containerId,
+                  newPath,
+                  nodeValue !== undefined ? nodeValue : null);
+                // TODO(yuisu): check for missing property
+              }
             }
             else {
               // This field contains nested selectionSet so recursively walking the sub-selectionSets.
@@ -338,15 +398,16 @@ export class SnapshotEditor {
               // as the sub-selectionSets. Check if payload is a object, throw an error if it isn't
               const currentPayload = prevPayload[payloadKey];
 
-              if (!isObject(currentPayload)) {
+              if (isScalar(currentPayload)) {
                 // TODO(yuisu): sentry? should we continue and just write null ?
                 throw new Error(`Hermes Error: At field-"${payloadKey}", expected an object as a payload but get "${JSON.stringify(currentPayload)}"`);
               }
 
               let nextNodeId = this._context.entityIdForNode(currentPayload);
+              // It is still possible to DynamicField in the case of alias
+              const childDynamicMap = currentDynamicFieldMap instanceof DynamicField ?
+                currentDynamicFieldMap.children : currentDynamicFieldMap;
               if (nextNodeId) {
-                const containerSnapshot = this.getNodeSnapshot(containerId);
-                const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
                 const prevNodeId = isObject(containerNode) ? this._context.entityIdForNode(containerNode) : undefined;
 
                 // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
@@ -357,7 +418,7 @@ export class SnapshotEditor {
                 if (prevNodeId !== nextNodeId) {
                   referenceEdits.push({
                     containerId: containerId,
-                    path: [...prevPath, cacheKey],
+                    path: isContainerIdParameterized ? [...prevPath] : [...prevPath, cacheKey],
                     prevNodeId,
                     nextNodeId,
                   });
@@ -365,15 +426,18 @@ export class SnapshotEditor {
                 this._walkSelectionSets(selection.selectionSet,
                   currentPayload,
                   /* currentPath */[],
+                  childDynamicMap,
                   nextNodeId!,
                   fragmensMap,
                   referenceEdits
                 );
               }
               else {
+                // Not an entity so we didn't reset the path
                 this._walkSelectionSets(selection.selectionSet,
                   currentPayload,
                   [...prevPath, cacheKey],
+                  childDynamicMap,
                   containerId,
                   fragmensMap,
                   referenceEdits
@@ -552,7 +616,7 @@ export class SnapshotEditor {
   /**
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: JsonObject) {
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs) {
     const fieldId = nodeIdForParameterizedValue(containerId, path, field.args);
 
     // We're careful to not edit the container unless we absolutely have to.
@@ -577,4 +641,9 @@ export class SnapshotEditor {
  */
 export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args?: JsonObject) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
+}
+
+const parameterizedRegexp = /[\s\S]*❖[\s\S]*❖[\s\S]*/;
+function nodeIdIsParameterized(nodeId: NodeId) {
+  return parameterizedRegexp.test(nodeId)
 }

@@ -208,7 +208,7 @@ export function walkOperation(document: DocumentNode, result: JsonObject | undef
   }
 }
 
-function get(value: any, key: PathPart) {
+export function get(value: any, key: PathPart) {
   // Remember: arrays are typeof 'object', too.
   return value !== null && typeof value === 'object' ? value[key] : undefined;
 }
