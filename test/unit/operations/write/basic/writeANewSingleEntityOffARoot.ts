@@ -26,7 +26,10 @@ describe(`operations.write`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const result = write(context, empty, viewerQuery, {
-        viewer: { id: 123, name: 'Gouda' },
+        viewer: {
+          id: 123,
+          name: 'Gouda'
+        },
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
@@ -34,13 +37,17 @@ describe(`operations.write`, () => {
 
     it(`creates the query root, referencing the entity`, () => {
       expect(snapshot.get(QueryRootId)).to.deep.eq({
-        viewer: { id: 123, name: 'Gouda' },
+        viewer: {
+          id: 123,
+          name: 'Gouda'
+        },
       });
     });
 
     it(`indexes the entity`, () => {
       expect(snapshot.get('123')).to.deep.eq({
-        id: 123, name: 'Gouda',
+        id: 123,
+        name: 'Gouda',
       });
     });
 
