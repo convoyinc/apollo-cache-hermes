@@ -1,7 +1,7 @@
-import { CacheContext } from '../../../../src/context';
-import { GraphSnapshot } from '../../../../src/GraphSnapshot';
-import { write } from '../../../../src/operations/write';
-import { query, strictConfig } from '../../../helpers';
+import { CacheContext } from '../../../../../src/context';
+import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
+import { write } from '../../../../../src/operations/write';
+import { query, strictConfig } from '../../../../helpers';
 
 // These are really more like integration tests, given the underlying machinery.
 //
@@ -22,7 +22,8 @@ describe(`operations.write`, () => {
     it(`creates the query root, with the values`, () => {
       expect(() => { write(context, empty, rootValuesQuery, {
         bar: "THIS IS A STRING NOT OBJECT"
-      }) }).to.throw('Hermes Error: At field-"bar", expected an object as a payload but get "{"bar":"THIS IS A STRING NOT OBJECT"}"');
+      }) }).to.throw(`Hermes Error: At field-"bar", \
+expected an object as a payload but get ""THIS IS A STRING NOT OBJECT""`);
     });
   });
 
