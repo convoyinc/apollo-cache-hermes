@@ -363,49 +363,47 @@ export class SnapshotEditor {
               let nodeValue = prevPayload[payloadKey];
               // Explicitly check for "undefined" as we should
               // persist other falsy value (see: "writeFalsyValues" test).
-              if (nodeValue !== undefined || (nodeValue === undefined && !containerNode)) {
-                // Write the value if the following:
-                //    1) exist a value
-                //    2) missing value but this is the first write
-                //      (containerNode doesn't exist)
-
-                // We intensionally do not deep copy the nodeValue as Apollo will then perform
-                // Object.freeze anyway. So any change in the payload value afterward will be reflect
-                // in the graph as well.
-                // We use selection.name.value instead of payloadKey so that we always write
-                // to cache using real field name rather than alias name.
-                let newPath: string[];
-
-                if (!prevPath) {
-                  // If The prevPath is undefined means that
-                  // the current selection is a parameterized itself.
-                  // e.g : message(count: $count) -> prevPath = undefined
-                  //
-                  // we just want to store the value directly on the node
-                  // because the parameterized key is unique to a
-                  // particular value.
-                  newPath = [];
-                }
-                else {
-                  // If the prevPath length is greater than zero, then
-                  // the selection is a non-parameterized field
-                  // either nested in side other non-parameterized
-                  // or parameterized field
-                  //   e.g.
-                  //     message(count: $count) {
-                  //       title -> prevPath = [title]
-                  //     }
-                  //     message {
-                  //       title -> prevPath = [message, title]
-                  //     }
-                  newPath = [...prevPath, cacheKey];
-                }
-
-                this._setValue(containerId,
-                  newPath,
-                  nodeValue !== undefined ? nodeValue : null);
-                // TODO(yuisu): check for missing property
+              if (nodeValue === undefined) {
+                // The currentPayload doesn't have the value.
+                // Look into containerNode (which can be previous snapshot)
+                // for possible reuse value.
+                nodeValue = containerNode && containerNode[cacheKey] !== undefined ?
+                  containerNode[cacheKey] : null;
               }
+
+              let newPath: string[];
+              if (!prevPath) {
+                // If The prevPath is undefined means that
+                // the current selection is a parameterized itself.
+                // e.g : message(count: $count) -> prevPath = undefined
+                //
+                // we just want to store the value directly on the node
+                // because the parameterized key is unique to a
+                // particular value.
+                newPath = [];
+              }
+              else {
+                // If the prevPath length is greater than zero, then
+                // the selection is a non-parameterized field
+                // either nested in side other non-parameterized
+                // or parameterized field
+                //   e.g.
+                //     message(count: $count) {
+                //       title -> prevPath = [title]
+                //     }
+                //     message {
+                //       title -> prevPath = [message, title]
+                //     }
+                newPath = [...prevPath, cacheKey];
+              }
+
+              // We intensionally do not deep copy the nodeValue as Apollo will then perform
+              // Object.freeze anyway. So any change in the payload value afterward will be reflect
+              // in the graph as well.
+              // We use selection.name.value instead of payloadKey so that we always write
+              // to cache using real field name rather than alias name.
+              this._setValue(containerId, newPath, nodeValue);
+              // TODO(yuisu): check for missing property
               break;
             }
 
