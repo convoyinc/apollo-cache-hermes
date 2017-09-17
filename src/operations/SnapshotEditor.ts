@@ -296,7 +296,7 @@ export class SnapshotEditor {
   // TODO (yuisu) : consider nest this function into _mergePayloadValuesUsingSelectionSetAsGuide
   private _walkSelectionSets(currentSelectionSets: SelectionSetNode,
     prevPayload: JsonValue,
-    prevPath: string[],
+    prevPath: string[] | undefined,
     prevDynamicFieldMap: DynamicFieldMap | undefined,
     containerId: string,
     fragmensMap: FragmentMap,
@@ -314,23 +314,41 @@ export class SnapshotEditor {
              */
 
             // TODO(yuisu): should we be worry about both alias and real field name have payload value?
+            // cacheKey is unalias field name
             const cacheKey = selection.name.value;
             const payloadKey = selection.alias ? selection.alias.value : cacheKey;
             const containerSnapshot = this.getNodeSnapshot(containerId);
             const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
-            const currentDynamicFieldMap = get(prevDynamicFieldMap, payloadKey);
-            const isContainerIdParameterized = nodeIdIsParameterized(containerId);
-            // If it is parameterized edge, we will want to reprocess it as such first
+            // If prevPath is undefined, we are in the first recursion of the
+            // parameterized field with updated containerId. Therefore, do not update
+            // currentDynamicFieldMap as it is already updated in the caller.
+            // e.g.
+            // we encounter below selectionSets
+            //   message(count: $count) {
+            //     Title: title
+            //   }
+            // At the selection "message(count: $count)", process it as
+            //  paramterized field and recurse the function with
+            //    - paramterized containerId;
+            //    - prevPath : undefined;
+            //    - prevDynamicFieldMap : {
+            //        Title: DynamicField(alias: "title"....)
+            //      }
+            //    - prevPayload: { message: { Title: "Hello world" } }
+            const currentDynamicFieldMap = prevPath ?
+              get(prevDynamicFieldMap, payloadKey) : prevDynamicFieldMap;
+
+            // If it is parameterized edge, we will want to reprocess it first
             // so that we can set container ID to be parameterized container ID.
             if (isDynamicFieldWithArgs(currentDynamicFieldMap)) {
               const nextNodeId = this._ensureParameterizedValueSnapshot(containerId,
-                [...prevPath, cacheKey],
+                prevPath ? [...prevPath, cacheKey] : [cacheKey],
                 currentDynamicFieldMap
               );
               // Re-entry so that we will create entity correctly
               this._walkSelectionSets(currentSelectionSets,
                 prevPayload,
-                /* currentPath */[],
+                /* currentPath */ undefined,
                 currentDynamicFieldMap.children,
                 nextNodeId,
                 fragmensMap,
@@ -339,10 +357,9 @@ export class SnapshotEditor {
               break;
             }
 
+            // This field is a leaf field and does not contain any nested selection sets
+            // just reference payload value in the graph snapshot node.
             if (!selection.selectionSet) {
-              // This field is a leaf field and does not contain any nested selection sets
-              // just reference payload value in the graph snapshot node.
-
               let nodeValue = prevPayload[payloadKey];
               // Explicitly check for "undefined" as we should
               // persist other falsy value (see: "writeFalsyValues" test).
@@ -358,31 +375,29 @@ export class SnapshotEditor {
                 // We use selection.name.value instead of payloadKey so that we always write
                 // to cache using real field name rather than alias name.
                 let newPath: string[];
-                if (isContainerIdParameterized) {
-                  // If the prevPath length is greater than zero, it means that
-                  // the selection in nested inside some parameterized field
-                  // e.g.
-                  //    message(count: $count) {
-                  //      title
-                  //      body
-                  //    }
-                  // The prevPath length is zero means that the current selection is a
-                  // parameterized itself.
-                  // e.g : message(count: $count)
-                  // In the latter case, we just want to store the value directly on the node.
-                  // Note: in the case of entity parameterized node,
-                  // the containerId will be the Id itself not
-                  // parameterized one.
-                  if (prevPath.length > 0) {
-                    newPath = prevPath.slice();
-                    newPath.splice(prevPath.length-1);
-                    newPath.push(cacheKey);
-                  }
-                  else {
-                    newPath = [];
-                  }
+
+                if (!prevPath) {
+                  // If The prevPath is undefined means that
+                  // the current selection is a parameterized itself.
+                  // e.g : message(count: $count) -> prevPath = undefined
+                  //
+                  // we just want to store the value directly on the node
+                  // because the parameterized key is unique to a
+                  // particular value.
+                  newPath = [];
                 }
                 else {
+                  // If the prevPath length is greater than zero, then
+                  // the selection is a non-parameterized field
+                  // either nested in side other non-parameterized
+                  // or parameterized field
+                  //   e.g.
+                  //     message(count: $count) {
+                  //       title -> prevPath = [title]
+                  //     }
+                  //     message {
+                  //       title -> prevPath = [message, title]
+                  //     }
                   newPath = [...prevPath, cacheKey];
                 }
 
@@ -391,58 +406,72 @@ export class SnapshotEditor {
                   nodeValue !== undefined ? nodeValue : null);
                 // TODO(yuisu): check for missing property
               }
+              break;
             }
-            else {
-              // This field contains nested selectionSet so recursively walking the sub-selectionSets.
-              // We expect to have an object as a payload value. If not the payload cannot have matching shape
-              // as the sub-selectionSets. Check if payload is a object, throw an error if it isn't
-              const currentPayload = prevPayload[payloadKey];
 
-              if (isScalar(currentPayload)) {
-                // TODO(yuisu): sentry? should we continue and just write null ?
-                throw new Error(`Hermes Error: At field-"${payloadKey}", expected an object as a payload but get "${JSON.stringify(currentPayload)}"`);
+            // This field contains nested selectionSet so recursively walking the sub-selectionSets.
+            // We expect to have an object as a payload value. If not the payload cannot have matching shape
+            // as the sub-selectionSets. Check if payload is a object, throw an error if it isn't
+            const currentPayload = prevPayload[payloadKey];
+
+            if (isScalar(currentPayload)) {
+              // TODO(yuisu): sentry? should we continue and just write null ?
+              throw new Error(`Hermes Error: At field-"${payloadKey}",
+expected an object or array as a payload but get "${JSON.stringify(currentPayload)}"`);
+            }
+
+            const entityIdOfCurrentPayload = this._context.entityIdForNode(currentPayload);
+            let nextNodeId = entityIdOfCurrentPayload;
+            const prevNodeId = isObject(containerNode) ? this._context.entityIdForNode(containerNode) : undefined;
+            // It is still possible to DynamicField in the case of alias
+            const childDynamicMap = currentDynamicFieldMap instanceof DynamicField ?
+              currentDynamicFieldMap.children : currentDynamicFieldMap;
+
+            if (nextNodeId || prevNodeId) {
+              // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
+              if (!nextNodeId && prevPayload) {
+                nextNodeId = prevNodeId;
               }
 
-              let nextNodeId = this._context.entityIdForNode(currentPayload);
-              // It is still possible to DynamicField in the case of alias
-              const childDynamicMap = currentDynamicFieldMap instanceof DynamicField ?
-                currentDynamicFieldMap.children : currentDynamicFieldMap;
-              if (nextNodeId) {
-                const prevNodeId = isObject(containerNode) ? this._context.entityIdForNode(containerNode) : undefined;
-
-                // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
-                if (!nextNodeId && prevPayload) {
-                  nextNodeId = prevNodeId;
-                }
-
-                if (prevNodeId !== nextNodeId) {
-                  referenceEdits.push({
-                    containerId: containerId,
-                    path: isContainerIdParameterized ? [...prevPath] : [...prevPath, cacheKey],
-                    prevNodeId,
-                    nextNodeId,
-                  });
-                }
-                this._walkSelectionSets(selection.selectionSet,
-                  currentPayload,
-                  /* currentPath */[],
-                  childDynamicMap,
-                  nextNodeId!,
-                  fragmensMap,
-                  referenceEdits
-                );
+              // TODO(yuisu): understand this peice
+              let newPath: string[];
+              if (prevPath) {
+                newPath = [...prevPath, cacheKey];
               }
               else {
-                // Not an entity so we didn't reset the path
-                this._walkSelectionSets(selection.selectionSet,
-                  currentPayload,
-                  [...prevPath, cacheKey],
-                  childDynamicMap,
-                  containerId,
-                  fragmensMap,
-                  referenceEdits
-                );
+                newPath = [];
               }
+              if (prevNodeId !== nextNodeId) {
+                referenceEdits.push({
+                  containerId: containerId,
+                  path: newPath,
+                  prevNodeId,
+                  nextNodeId,
+                });
+              }
+            }
+
+            // CurrentPayload is considered as an entity.
+            if (entityIdOfCurrentPayload !== undefined) {
+              this._walkSelectionSets(selection.selectionSet,
+                currentPayload,
+                /* currentPath */[],
+                childDynamicMap,
+                nextNodeId!,
+                fragmensMap,
+                referenceEdits
+              );
+            }
+            else {
+              // CurrentPayload isnot an entity so we didn't reset the path
+              this._walkSelectionSets(selection.selectionSet,
+                currentPayload,
+                prevPath ? [...prevPath, cacheKey] : [],
+                childDynamicMap,
+                containerId,
+                fragmensMap,
+                referenceEdits
+              );
             }
             break;
           case "FragmentSpread":
@@ -641,9 +670,4 @@ export class SnapshotEditor {
  */
 export function nodeIdForParameterizedValue(containerId: NodeId, path: PathPart[], args?: JsonObject) {
   return `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`;
-}
-
-const parameterizedRegexp = /[\s\S]*❖[\s\S]*❖[\s\S]*/;
-function nodeIdIsParameterized(nodeId: NodeId) {
-  return parameterizedRegexp.test(nodeId)
 }
