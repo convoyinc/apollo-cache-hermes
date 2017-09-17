@@ -14,7 +14,17 @@ describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const rootValuesQuery = query(`{ foo bar }`);
+  const rootValuesQuery = query(`{
+    foo {
+      id
+      name
+    }
+    bar {
+      id
+      name
+      extra
+    }
+  }`);
 
   describe(`merge unidentifiable payloads with previously known nodes`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
@@ -26,20 +36,28 @@ describe(`operations.write`, () => {
       baseline = baselineResult.snapshot;
 
       const result = write(context, baseline, rootValuesQuery, {
-        foo: { name: 'Foo Boo' },
-        bar: { extra: true },
+        foo: { id: 1, name: 'Foo Boo' },
+        bar: { id: 2, extra: true },
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
 
-    it(`doesn't mutate the previous versions`, () => {
-      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
-      expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
-      expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
-      expect(baseline.get(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo' },
-        bar: { id: 2, name: 'Bar' },
+    describe(`doesn't mutate the previous versions`, () => {
+      it(`baseline's QueryRootId is not modified`, () => {
+        expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
+      });
+
+      it(`baseline's entity node is not modified`, () => {
+        expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
+        expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
+      });
+
+      it(`baseline's queryRoot has unmodified value`, () => {
+        expect(baseline.get(QueryRootId)).to.deep.eq({
+          foo: { id: 1, name: 'Foo' },
+          bar: { id: 2, name: 'Bar', extra: null},
+        });
       });
     });
 
