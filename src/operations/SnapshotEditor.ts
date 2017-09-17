@@ -318,7 +318,7 @@ export class SnapshotEditor {
             const cacheKey = selection.name.value;
             const payloadKey = selection.alias ? selection.alias.value : cacheKey;
             const containerSnapshot = this.getNodeSnapshot(containerId);
-            const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
+            let containerNode = containerSnapshot ? containerSnapshot.node : undefined;
             // If prevPath is undefined, we are in the first recursion of the
             // parameterized field with updated containerId. Therefore, do not update
             // currentDynamicFieldMap as it is already updated in the caller.
@@ -408,8 +408,9 @@ export class SnapshotEditor {
             }
 
             // This field contains nested selectionSet so recursively walking the sub-selectionSets.
-            // We expect to have an object as a payload value. If not the payload cannot have matching shape
-            // as the sub-selectionSets. Check if payload is a object, throw an error if it isn't
+            // We expect to have an object or an array as a payload value. If not, the payload cannot
+            // have matching shape as the sub-selectionSets.
+            // Check if payload is a object or array, throw an error if it isn't.
             const currentPayload = prevPayload[payloadKey];
 
             if (isScalar(currentPayload)) {
@@ -420,7 +421,45 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
 
             const entityIdOfCurrentPayload = this._context.entityIdForNode(currentPayload);
             let nextNodeId = entityIdOfCurrentPayload;
-            const prevNodeId = isObject(containerNode) ? this._context.entityIdForNode(containerNode) : undefined;
+
+            // A parameterized graph node, the node-value under the
+            // parameterized key will be a direct reference to a
+            // node value of the corresponding entity GraphNodeSnapshot.
+            // e.g.
+            //   "ROOT_QUERY❖[\"foo\"]❖{\"id\":1,\"withExtra\":true}"
+            //     (node value is a direct reference to node value of "1")
+            //   "1": { id: 1, ...}
+            // This is because parameterized key can only have one value so
+            // there is no need to store another indirection like
+            // non-parameterized node
+            //
+            // A non-parameterized graph node, the node-value under the
+            // RootQueryId will be an object in which each key is the
+            // selection name with the value be either
+            //   - a direct reference to a node value of corresponding
+            //     entity GraphNodeSnapshot
+            //   - an object (in the case of non-entity).
+            // e.g.
+            //   "ROOT_QUERY"
+            //     node : {
+            //      "1": <reference to node value of entity "1">
+            //      "2": { ...<some prop of the non-entity> }
+            //   "1": { id: 1, ...}
+            //
+            // Thus, when the prevPath is undefined indicating
+            // we just reenter the function with parameterized
+            // containerId, we can look directly for prevsousNodeId.
+            // For non-parameterized, we will have to do redirection.
+            let prevNodeId: NodeId | undefined;
+            if (!prevPath) {
+              prevNodeId = isObject(containerNode) ?
+                this._context.entityIdForNode(containerNode) : undefined;
+            }
+            else {
+              prevNodeId = containerNode && isObject(containerNode[cacheKey]) ?
+                this._context.entityIdForNode(containerNode[cacheKey]) : undefined;
+            }
+
             // It is still possible to DynamicField in the case of alias
             const childDynamicMap = currentDynamicFieldMap instanceof DynamicField ?
               currentDynamicFieldMap.children : currentDynamicFieldMap;
