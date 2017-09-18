@@ -301,7 +301,7 @@ export class SnapshotEditor {
     containerId: string,
     fragmentsMap: FragmentMap,
     referenceEdits: ReferenceEdit[]): void {
-      if (!prevPayload) {
+      if (prevPayload === undefined) {
         return;
       }
       // TODO (yuisu): parameterized field
@@ -357,7 +357,7 @@ export class SnapshotEditor {
               break;
             }
 
-            let currentPayload = prevPayload[payloadKey];
+            let currentPayload = prevPayload === null ? prevPayload : prevPayload[payloadKey];
 
             // If The prevPath is undefined means that
             // the current selection is a parameterized itself.
@@ -378,40 +378,6 @@ export class SnapshotEditor {
             //       title -> prevPath = [message, title]
             //     }
             const newPath = prevPath ? [...prevPath, cacheKey] : [];
-
-            // This field is a leaf field and does not contain any nested selection sets
-            // just reference payload value in the graph snapshot node.
-            if (!selection.selectionSet) {
-              // Explicitly check for "undefined" as we should
-              // persist other falsy value (see: "writeFalsyValues" test).
-              if (currentPayload === undefined) {
-                // The currentPayload doesn't have the value.
-                // Look into containerNode (which can be previous snapshot)
-                // for possible reuse value.
-                currentPayload = containerNode && containerNode[cacheKey] !== undefined ?
-                  containerNode[cacheKey] : null;
-              }
-
-              // We intensionally do not deep copy the nodeValue as Apollo will then perform
-              // Object.freeze anyway. So any change in the payload value afterward will be reflect
-              // in the graph as well.
-              // We use selection.name.value instead of payloadKey so that we always write
-              // to cache using real field name rather than alias name.
-              this._setValue(containerId, newPath, currentPayload);
-              // TODO(yuisu): check for missing property
-              break;
-            }
-
-            // This field contains nested selectionSet so recursively walking the sub-selectionSets.
-            // We expect to have an object or an array as a payload value. If not, the payload cannot
-            // have matching shape as the sub-selectionSets.
-            // Check if payload is a object or array, throw an error if it isn't.
-
-            if (isScalar(currentPayload)) {
-              // TODO(yuisu): sentry? should we continue and just write null ?
-              throw new Error(`Hermes Error: At field-"${payloadKey}",
-expected an object or array as a payload but get "${JSON.stringify(currentPayload)}"`);
-            }
 
             // A parameterized graph node, the node-value under the
             // parameterized key will be a direct reference to a
@@ -437,11 +403,10 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
             //      "2": { ...<some prop of the non-entity> }
             //   "1": { id: 1, ...}
             //
-            // Thus, when the prevPath is undefined indicating
+            // Thus, when the prevPath is undefined indicating that
             // we just reenter the function with parameterized
-            // containerId, we can look directly for prevsousNodeId.
+            // containerId, we can look directly for prevsousNodeValue.
             // For non-parameterized, we will have to do redirection.
-            let previousNodeId: NodeId | undefined;
             let previousNodeValue: typeof containerNode;
             if (!prevPath) {
               previousNodeValue = containerNode;
@@ -449,100 +414,150 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
             else {
               previousNodeValue = containerNode && containerNode[cacheKey];
             }
-            previousNodeId = isObject(previousNodeValue) ?
-              this._context.entityIdForNode(previousNodeValue) : undefined;
 
-            // It is still possible to DynamicField in the case of alias
-            const childDynamicMap = currentDynamicFieldMap instanceof DynamicField ?
-              currentDynamicFieldMap.children : currentDynamicFieldMap;
+            // This field is a leaf field and does not contain any nested selection sets
+            // just reference payload value in the graph snapshot node.
+            // Or we have 'null' in payload so there are nothing to recurse on.
+            // Then, just write out the value.
+            if (previousNodeValue !== currentPayload &&
+              (currentPayload === null || !selection.selectionSet)) {
+              // Explicitly check for "undefined" as we should
+              // persist other falsy value (see: "writeFalsyValues" test).
+              if (currentPayload === undefined) {
+                // The currentPayload doesn't have the value.
+                // Look into containerNode (which can be previous snapshot)
+                // for possible reuse value.
+                currentPayload = containerNode && containerNode[cacheKey] !== undefined ?
+                  containerNode[cacheKey] : null;
+              }
 
-            if (Array.isArray(currentPayload)) {
-              // TODO (yuisu) : check consistentcy in the array. e.g all element are enetity or non-entity
-              const payloadLength = currentPayload.length
-              const previousLength = Array.isArray(previousNodeValue) ?
-                previousNodeValue.length : 0;
+              // We intensionally do not deep copy the nodeValue as Apollo will then perform
+              // Object.freeze anyway. So any change in the payload value afterward will be reflect
+              // in the graph as well.
+              // We use selection.name.value instead of payloadKey so that we always write
+              // to cache using real field name rather than alias name.
+              this._setValue(containerId, newPath, currentPayload);
+              // TODO(yuisu): check for missing property
+              break;
+            }
 
-              if (payloadLength === previousLength) break;
+            // This field contains nested selectionSet so recursively walking the sub-selectionSets.
+            // We expect to have an object or an array as a payload value. If not, the payload cannot
+            // have matching shape as the sub-selectionSets.
+            // Check if payload is a object or array, throw an error if it isn't.
+            else if (selection.selectionSet) {
+              if (isScalar(currentPayload)) {
+                // TODO(yuisu): sentry? should we continue and just write null ?
+                throw new Error(`Hermes Error: At field-"${payloadKey}",
+  expected an object or array as a payload but get "${JSON.stringify(currentPayload)}"`);
+              }
 
-              const newArray = Array.isArray(previousNodeValue) ?
-                previousNodeValue.slice(0, previousLength) : new Array(payloadLength);
+              // It is still possible to DynamicField in the case of alias
+              const childDynamicMap = currentDynamicFieldMap instanceof DynamicField ?
+                currentDynamicFieldMap.children : currentDynamicFieldMap;
 
-              this._setValue(containerId, prevPath ? [...prevPath, cacheKey] : [], newArray);
-              for (let idx = 0; idx < payloadLength; ++idx) {
-                const newContainerId = this._context.entityIdForNode(currentPayload[idx]);
-                const newPath = prevPath ? [...prevPath, cacheKey, idx] : [cacheKey, idx];
-                if (newContainerId) {
-                  this._walkSelectionSets(
-                    selection.selectionSet,
-                    currentPayload[idx],
-                    [],
-                    childDynamicMap,
-                    newContainerId || containerId,
-                    fragmentsMap,
-                    referenceEdits
-                  )
+              if (Array.isArray(currentPayload)) {
+                // TODO (yuisu) : check consistentcy in the array. e.g all element are enetity or non-entity
+                const payloadLength = currentPayload.length
+                const previousLength = Array.isArray(previousNodeValue) ?
+                  previousNodeValue.length : 0;
+
+                if (payloadLength !== previousLength) {
+                  const newArray = Array.isArray(previousNodeValue) ?
+                    previousNodeValue.slice(0, previousLength) : new Array(payloadLength);
+
+                  this._setValue(containerId, prevPath ? [...prevPath, cacheKey] : [], newArray);
+                }
+
+                for (let idx = 0; idx < payloadLength; ++idx) {
+                  const element = currentPayload[idx];
+                  const nextNodeId = this._context.entityIdForNode(element);
+                  const previousNodeAtIdx = get(previousNodeValue, idx);
+                  const previousNodeId = isObject(previousNodeAtIdx) ?
+                    this._context.entityIdForNode(previousNodeAtIdx) : undefined;
+
+                  const newPath = prevPath ? [...prevPath, cacheKey, idx] : [idx];
+
+                  if (nextNodeId) {
+                    this._walkSelectionSets(
+                      selection.selectionSet,
+                      element,
+                      [],
+                      childDynamicMap,
+                      nextNodeId,
+                      fragmentsMap,
+                      referenceEdits
+                    )
+                  }
+                  else {
+                    // TODO (Yuisu): comment about null
+                    this._walkSelectionSets(
+                      selection.selectionSet,
+                      element,
+                      newPath,
+                      childDynamicMap,
+                      containerId,
+                      fragmentsMap,
+                      referenceEdits
+                    );
+                  }
+
+                  // TODO(yuisu): comment
+                  if (previousNodeId !== nextNodeId) {
+                    referenceEdits.push({
+                      containerId,
+                      path: newPath,
+                      prevNodeId: previousNodeId,
+                      nextNodeId: nextNodeId,
+                    });
+                  }
+                }
+                break;
+              }
+
+              const entityIdOfCurrentPayload = this._context.entityIdForNode(currentPayload);
+              let nextNodeId = entityIdOfCurrentPayload;
+              const previousNodeId = isObject(previousNodeValue) ?
+                this._context.entityIdForNode(previousNodeValue) : undefined;
+
+              if (nextNodeId || previousNodeId) {
+                // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
+                if (!nextNodeId && prevPayload) {
+                  nextNodeId = previousNodeId;
+                }
+
+                if (previousNodeId !== nextNodeId) {
                   referenceEdits.push({
                     containerId,
                     path: newPath,
                     prevNodeId: previousNodeId,
-                    nextNodeId: newContainerId,
+                    nextNodeId,
                   });
                 }
-                else {
-                  this._walkSelectionSets(
-                    selection.selectionSet,
-                    currentPayload[idx],
-                    newPath,
-                    childDynamicMap,
-                    newContainerId || containerId,
-                    fragmentsMap,
-                    referenceEdits
-                  );
-                }
-              }
-              break;
-            }
-
-            const entityIdOfCurrentPayload = this._context.entityIdForNode(currentPayload);
-            let nextNodeId = entityIdOfCurrentPayload;
-
-            if (nextNodeId || previousNodeId) {
-              // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
-              if (!nextNodeId && prevPayload) {
-                nextNodeId = previousNodeId;
               }
 
-              if (previousNodeId !== nextNodeId) {
-                referenceEdits.push({
+              // CurrentPayload is considered as an entity.
+              if (entityIdOfCurrentPayload !== undefined) {
+                this._walkSelectionSets(selection.selectionSet,
+                  currentPayload,
+                  /* currentPath */[],
+                  childDynamicMap,
+                  nextNodeId!,
+                  fragmentsMap,
+                  referenceEdits
+                );
+              }
+              else {
+                // CurrentPayload isnot an entity so we didn't reset the path
+                this._walkSelectionSets(selection.selectionSet,
+                  currentPayload,
+                  prevPath ? [...prevPath, cacheKey] : [],
+                  childDynamicMap,
                   containerId,
-                  path: newPath,
-                  prevNodeId: previousNodeId,
-                  nextNodeId,
-                });
+                  fragmentsMap,
+                  referenceEdits
+                );
               }
-            }
-
-            // CurrentPayload is considered as an entity.
-            if (entityIdOfCurrentPayload !== undefined) {
-              this._walkSelectionSets(selection.selectionSet,
-                currentPayload,
-                /* currentPath */[],
-                childDynamicMap,
-                nextNodeId!,
-                fragmentsMap,
-                referenceEdits
-              );
-            }
-            else {
-              // CurrentPayload isnot an entity so we didn't reset the path
-              this._walkSelectionSets(selection.selectionSet,
-                currentPayload,
-                prevPath ? [...prevPath, cacheKey] : [],
-                childDynamicMap,
-                containerId,
-                fragmentsMap,
-                referenceEdits
-              );
             }
             break;
           case "FragmentSpread":
