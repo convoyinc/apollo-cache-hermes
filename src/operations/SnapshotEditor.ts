@@ -418,9 +418,6 @@ export class SnapshotEditor {
 expected an object or array as a payload but get "${JSON.stringify(currentPayload)}"`);
             }
 
-            const entityIdOfCurrentPayload = this._context.entityIdForNode(currentPayload);
-            let nextNodeId = entityIdOfCurrentPayload;
-
             // A parameterized graph node, the node-value under the
             // parameterized key will be a direct reference to a
             // node value of the corresponding entity GraphNodeSnapshot.
@@ -449,32 +446,70 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
             // we just reenter the function with parameterized
             // containerId, we can look directly for prevsousNodeId.
             // For non-parameterized, we will have to do redirection.
-            let prevNodeId: NodeId | undefined;
+            let previousNodeId: NodeId | undefined;
+            let previousNodeValue: typeof containerNode;
             if (!prevPath) {
-              prevNodeId = isObject(containerNode) ?
-                this._context.entityIdForNode(containerNode) : undefined;
+              previousNodeValue = containerNode;
             }
             else {
-              prevNodeId = containerNode && isObject(containerNode[cacheKey]) ?
-                this._context.entityIdForNode(containerNode[cacheKey]) : undefined;
+              previousNodeValue = containerNode && containerNode[cacheKey];
             }
-
+            previousNodeId = isObject(previousNodeValue) ?
+              this._context.entityIdForNode(previousNodeValue) : undefined;
             // It is still possible to DynamicField in the case of alias
             const childDynamicMap = currentDynamicFieldMap instanceof DynamicField ?
               currentDynamicFieldMap.children : currentDynamicFieldMap;
 
-            if (nextNodeId || prevNodeId) {
+            if (Array.isArray(currentPayload)) {
+              // TODO (yuisu) : check consistentcy
+              const payloadLength = currentPayload.length
+              const previousLength = Array.isArray(previousNodeValue) ?
+                previousNodeValue.length : 0;
+              if (payloadLength === previousLength) break;
+              const newArray = Array.isArray(previousNodeValue) ?
+                previousNodeValue.slice(0, previousLength) : new Array(payloadLength);
+
+              this._setValue(containerId, prevPath ? [...prevPath, cacheKey] : [], newArray);
+
+              for (let idx = 0; idx < payloadLength; ++idx) {
+                const newContainerId = this._context.entityIdForNode(currentPayload[idx]);
+                if (newContainerId) {
+                  this._walkSelectionSets(
+                    selection.selectionSet,
+                    currentPayload[idx],
+                    [],
+                    childDynamicMap,
+                    newContainerId || containerId,
+                    fragmentsMap,
+                    referenceEdits
+                  )
+                  referenceEdits.push({
+                    containerId,
+                    path: prevPath ? [...prevPath, cacheKey, idx] : [cacheKey, idx],
+                    prevNodeId: previousNodeId,
+                    nextNodeId: newContainerId,
+                  });
+                }
+              }
+              break;
+            }
+
+            const entityIdOfCurrentPayload = this._context.entityIdForNode(currentPayload);
+            let nextNodeId = entityIdOfCurrentPayload;
+
+            if (nextNodeId || previousNodeId) {
               // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
               if (!nextNodeId && prevPayload) {
-                nextNodeId = prevNodeId;
+                nextNodeId = previousNodeId;
               }
 
               // TODO(yuisu): understand this peice
               const newPath = prevPath ? [...prevPath, cacheKey] : [];
+              if (previousNodeId !== nextNodeId) {
                 referenceEdits.push({
-                  containerId: containerId,
+                  containerId,
                   path: newPath,
-                  prevNodeId,
+                  prevNodeId: previousNodeId,
                   nextNodeId,
                 });
               }
