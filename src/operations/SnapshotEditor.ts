@@ -402,13 +402,13 @@ export class SnapshotEditor {
             const previousNodeValue = isParameterizedField ?
               containerNode : containerNode && containerNode[cacheKey];
 
+            if (previousNodeValue === currentPayload) break;
 
             // This field is a leaf field and does not contain any nested selection sets
             // just reference payload value in the graph snapshot node.
             // Or we have 'null' in payload so there are nothing to recurse on.
             // Then, just write out the value.
-            if (previousNodeValue !== currentPayload &&
-              (currentPayload === null || !selection.selectionSet)) {
+            if (currentPayload === null || !selection.selectionSet) {
               // Explicitly check for "undefined" as we should
               // persist other falsy value (see: "writeFalsyValues" test).
               if (currentPayload === undefined) {
