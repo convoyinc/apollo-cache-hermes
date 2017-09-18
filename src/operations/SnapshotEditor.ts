@@ -296,10 +296,10 @@ export class SnapshotEditor {
   // TODO (yuisu) : consider nest this function into _mergePayloadValuesUsingSelectionSetAsGuide
   private _walkSelectionSets(currentSelectionSets: SelectionSetNode,
     prevPayload: JsonValue,
-    prevPath: string[] | undefined,
+    prevPath: PathPart[] | undefined,
     prevDynamicFieldMap: DynamicFieldMap | undefined,
     containerId: string,
-    fragmensMap: FragmentMap,
+    fragmentsMap: FragmentMap,
     referenceEdits: ReferenceEdit[]): void {
       if (!prevPayload) {
         return;
@@ -351,7 +351,7 @@ export class SnapshotEditor {
                 /* currentPath */ undefined,
                 currentDynamicFieldMap.children,
                 nextNodeId,
-                fragmensMap,
+                fragmentsMap,
                 referenceEdits
               );
               break;
@@ -371,7 +371,7 @@ export class SnapshotEditor {
                   containerNode[cacheKey] : null;
               }
 
-              let newPath: string[];
+              let newPath: PathPart[];
               if (!prevPath) {
                 // If The prevPath is undefined means that
                 // the current selection is a parameterized itself.
@@ -471,14 +471,7 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
               }
 
               // TODO(yuisu): understand this peice
-              let newPath: string[];
-              if (prevPath) {
-                newPath = [...prevPath, cacheKey];
-              }
-              else {
-                newPath = [];
-              }
-              if (prevNodeId !== nextNodeId) {
+              const newPath = prevPath ? [...prevPath, cacheKey] : [];
                 referenceEdits.push({
                   containerId: containerId,
                   path: newPath,
@@ -495,7 +488,7 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
                 /* currentPath */[],
                 childDynamicMap,
                 nextNodeId!,
-                fragmensMap,
+                fragmentsMap,
                 referenceEdits
               );
             }
@@ -506,7 +499,7 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
                 prevPath ? [...prevPath, cacheKey] : [],
                 childDynamicMap,
                 containerId,
-                fragmensMap,
+                fragmentsMap,
                 referenceEdits
               );
             }
