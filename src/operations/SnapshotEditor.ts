@@ -358,6 +358,27 @@ export class SnapshotEditor {
             }
 
             let currentPayload = prevPayload[payloadKey];
+
+            // If The prevPath is undefined means that
+            // the current selection is a parameterized itself.
+            // e.g : message(count: $count) -> prevPath = undefined
+            //
+            // we just want to store the value directly on the node
+            // because the parameterized key is unique to a
+            // particular value.
+            // If the prevPath length is greater than zero, then
+            // the selection is a non-parameterized field
+            // either nested in side other non-parameterized
+            // or parameterized field
+            //   e.g.
+            //     message(count: $count) {
+            //       title -> prevPath = [title]
+            //     }
+            //     message {
+            //       title -> prevPath = [message, title]
+            //     }
+            const newPath = prevPath ? [...prevPath, cacheKey] : [];
+
             // This field is a leaf field and does not contain any nested selection sets
             // just reference payload value in the graph snapshot node.
             if (!selection.selectionSet) {
@@ -369,32 +390,6 @@ export class SnapshotEditor {
                 // for possible reuse value.
                 currentPayload = containerNode && containerNode[cacheKey] !== undefined ?
                   containerNode[cacheKey] : null;
-              }
-
-              let newPath: PathPart[];
-              if (!prevPath) {
-                // If The prevPath is undefined means that
-                // the current selection is a parameterized itself.
-                // e.g : message(count: $count) -> prevPath = undefined
-                //
-                // we just want to store the value directly on the node
-                // because the parameterized key is unique to a
-                // particular value.
-                newPath = [];
-              }
-              else {
-                // If the prevPath length is greater than zero, then
-                // the selection is a non-parameterized field
-                // either nested in side other non-parameterized
-                // or parameterized field
-                //   e.g.
-                //     message(count: $count) {
-                //       title -> prevPath = [title]
-                //     }
-                //     message {
-                //       title -> prevPath = [message, title]
-                //     }
-                newPath = [...prevPath, cacheKey];
               }
 
               // We intensionally do not deep copy the nodeValue as Apollo will then perform
@@ -456,6 +451,7 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
             }
             previousNodeId = isObject(previousNodeValue) ?
               this._context.entityIdForNode(previousNodeValue) : undefined;
+
             // It is still possible to DynamicField in the case of alias
             const childDynamicMap = currentDynamicFieldMap instanceof DynamicField ?
               currentDynamicFieldMap.children : currentDynamicFieldMap;
@@ -503,8 +499,6 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
                 nextNodeId = previousNodeId;
               }
 
-              // TODO(yuisu): understand this peice
-              const newPath = prevPath ? [...prevPath, cacheKey] : [];
               if (previousNodeId !== nextNodeId) {
                 referenceEdits.push({
                   containerId,
