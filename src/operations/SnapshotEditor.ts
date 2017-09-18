@@ -318,7 +318,7 @@ export class SnapshotEditor {
             const cacheKey = selection.name.value;
             const payloadKey = selection.alias ? selection.alias.value : cacheKey;
             const containerSnapshot = this.getNodeSnapshot(containerId);
-            let containerNode = containerSnapshot ? containerSnapshot.node : undefined;
+            const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
             // If prevPath is undefined, we are in the first recursion of the
             // parameterized field with updated containerId. Therefore, do not update
             // currentDynamicFieldMap as it is already updated in the caller.
@@ -357,17 +357,17 @@ export class SnapshotEditor {
               break;
             }
 
+            let currentPayload = prevPayload[payloadKey];
             // This field is a leaf field and does not contain any nested selection sets
             // just reference payload value in the graph snapshot node.
             if (!selection.selectionSet) {
-              let nodeValue = prevPayload[payloadKey];
               // Explicitly check for "undefined" as we should
               // persist other falsy value (see: "writeFalsyValues" test).
-              if (nodeValue === undefined) {
+              if (currentPayload === undefined) {
                 // The currentPayload doesn't have the value.
                 // Look into containerNode (which can be previous snapshot)
                 // for possible reuse value.
-                nodeValue = containerNode && containerNode[cacheKey] !== undefined ?
+                currentPayload = containerNode && containerNode[cacheKey] !== undefined ?
                   containerNode[cacheKey] : null;
               }
 
@@ -402,7 +402,7 @@ export class SnapshotEditor {
               // in the graph as well.
               // We use selection.name.value instead of payloadKey so that we always write
               // to cache using real field name rather than alias name.
-              this._setValue(containerId, newPath, nodeValue);
+              this._setValue(containerId, newPath, currentPayload);
               // TODO(yuisu): check for missing property
               break;
             }
@@ -411,7 +411,6 @@ export class SnapshotEditor {
             // We expect to have an object or an array as a payload value. If not, the payload cannot
             // have matching shape as the sub-selectionSets.
             // Check if payload is a object or array, throw an error if it isn't.
-            const currentPayload = prevPayload[payloadKey];
 
             if (isScalar(currentPayload)) {
               // TODO(yuisu): sentry? should we continue and just write null ?
