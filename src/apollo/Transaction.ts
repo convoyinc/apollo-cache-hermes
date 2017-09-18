@@ -38,11 +38,11 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
     throw new Error(`watch() is not allowed within a transaction`);
   }
 
-  restore(data: GraphSnapshot): ApolloCache<GraphSnapshot> {
+  restore(data: GraphSnapshot): ApolloCache<GraphSnapshot> { // eslint-disable-line class-methods-use-this
     throw new Error(`restore() is not allowed within a transaction`);
   }
 
-  extract(optimistic: boolean = false): GraphSnapshot {
+  extract(optimistic: boolean = false): GraphSnapshot { // eslint-disable-line class-methods-use-this
     throw new Error(`extract() is not allowed within a transaction`);
   }
 
