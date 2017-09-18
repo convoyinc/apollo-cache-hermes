@@ -457,18 +457,20 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
               currentDynamicFieldMap.children : currentDynamicFieldMap;
 
             if (Array.isArray(currentPayload)) {
-              // TODO (yuisu) : check consistentcy
+              // TODO (yuisu) : check consistentcy in the array. e.g all element are enetity or non-entity
               const payloadLength = currentPayload.length
               const previousLength = Array.isArray(previousNodeValue) ?
                 previousNodeValue.length : 0;
+
               if (payloadLength === previousLength) break;
+
               const newArray = Array.isArray(previousNodeValue) ?
                 previousNodeValue.slice(0, previousLength) : new Array(payloadLength);
 
               this._setValue(containerId, prevPath ? [...prevPath, cacheKey] : [], newArray);
-
               for (let idx = 0; idx < payloadLength; ++idx) {
                 const newContainerId = this._context.entityIdForNode(currentPayload[idx]);
+                const newPath = prevPath ? [...prevPath, cacheKey, idx] : [cacheKey, idx];
                 if (newContainerId) {
                   this._walkSelectionSets(
                     selection.selectionSet,
@@ -481,10 +483,21 @@ expected an object or array as a payload but get "${JSON.stringify(currentPayloa
                   )
                   referenceEdits.push({
                     containerId,
-                    path: prevPath ? [...prevPath, cacheKey, idx] : [cacheKey, idx],
+                    path: newPath,
                     prevNodeId: previousNodeId,
                     nextNodeId: newContainerId,
                   });
+                }
+                else {
+                  this._walkSelectionSets(
+                    selection.selectionSet,
+                    currentPayload[idx],
+                    newPath,
+                    childDynamicMap,
+                    newContainerId || containerId,
+                    fragmentsMap,
+                    referenceEdits
+                  );
                 }
               }
               break;
