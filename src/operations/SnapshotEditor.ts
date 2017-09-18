@@ -402,7 +402,8 @@ export class SnapshotEditor {
             const previousNodeValue = isParameterizedField ?
               containerNode : containerNode && containerNode[cacheKey];
 
-            if (previousNodeValue === currentPayload) break;
+            if (previousNodeValue !== undefined &&
+              previousNodeValue === currentPayload) break;
 
             // This field is a leaf field and does not contain any nested selection sets
             // just reference payload value in the graph snapshot node.
