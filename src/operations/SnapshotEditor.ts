@@ -414,25 +414,34 @@ export class SnapshotEditor {
               previousNodeValue = containerNode && containerNode[cacheKey];
             }
 
-            if (previousNodeValue !== undefined &&
-              previousNodeValue === currentPayload) break;
+            const previousNodeId = isObject(previousNodeValue) ?
+              this._context.entityIdForNode(previousNodeValue) : undefined;
+
+            if (previousNodeValue !== undefined && previousNodeValue === currentPayload) break;
+
+            // Explicitly check for "undefined" as we should
+            // persist other falsy value (see: "writeFalsyValues" test).
+            if (currentPayload === undefined) {
+              // The currentPayload doesn't have the value.
+              // Look into containerNode (which can be previous snapshot)
+              // for possible reuse value. We explictily check for undefined
+              // as it indicates that the value doesn't exist.
+              currentPayload = previousNodeValue !== undefined ?
+                previousNodeValue : null;
+            }
 
             // This field is a leaf field and does not contain any nested selection sets
             // just reference payload value in the graph snapshot node.
-            // Or we have 'null' in payload so there are nothing to recurse on.
-            // Then, just write out the value.
             if (currentPayload === null || !selection.selectionSet) {
-              // Explicitly check for "undefined" as we should
-              // persist other falsy value (see: "writeFalsyValues" test).
-              if (currentPayload === undefined) {
-                // The currentPayload doesn't have the value.
-                // Look into containerNode (which can be previous snapshot)
-                // for possible reuse value. We explictily check for undefined
-                // as it indicates that the value doesn't exist.
-                currentPayload = previousNodeValue !== undefined ?
-                  previousNodeValue : null;
+              // Fix references
+              if (previousNodeId) {
+                referenceEdits.push({
+                  containerId,
+                  path: currentPath,
+                  prevNodeId: previousNodeId,
+                  nextNodeId: undefined,
+                })
               }
-
               // We intensionally do not deep copy the nodeValue as Apollo will then perform
               // Object.freeze anyway. So any change in the payload value afterward will be reflect
               // in the graph as well.
@@ -520,8 +529,6 @@ export class SnapshotEditor {
 
               const entityIdOfCurrentPayload = this._context.entityIdForNode(currentPayload);
               let nextNodeId = entityIdOfCurrentPayload;
-              const previousNodeId = isObject(previousNodeValue) ?
-                this._context.entityIdForNode(previousNodeValue) : undefined;
 
               if (nextNodeId || previousNodeId) {
                 // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
