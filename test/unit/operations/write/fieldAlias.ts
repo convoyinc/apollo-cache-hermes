@@ -20,7 +20,6 @@ describe(`operations.write`, () => {
   describe(`field alias`, () => {
 
     describe(`without parameterized arguments`, () => {
-
       describe(`simple query alias on a leaf field`, () => {
         let aliasQuery: Query, snapshot: GraphSnapshot;
         beforeAll(() => {
@@ -484,7 +483,7 @@ describe(`operations.write`, () => {
       it(`alias and non-alias`, () => {
         const aliasQuery = query(`{
           fullUser: user(id: 4) {
-            ID: id
+            id
             FirstName: name
             contact: contactInfo {
               shortAddress: address {
@@ -495,7 +494,7 @@ describe(`operations.write`, () => {
             }
           }
           shortUser: user (id: 4) {
-            ID: id
+            id
             FirstName: name
             contact: contactInfo {
               phone
@@ -510,7 +509,7 @@ describe(`operations.write`, () => {
 
         const snapshot = write(context, empty, aliasQuery, {
           fullUser: {
-            ID: 4,
+            id: 4,
             FirstName: 'Foo',
             contact: {
               shortAddress: {
@@ -521,7 +520,7 @@ describe(`operations.write`, () => {
             },
           },
           shortUser: {
-            ID: 4,
+            id: 4,
             FirstName: 'Foo',
             contact: {
               phone: '555-555-5555',
