@@ -1,5 +1,6 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
+import { EntitySnapshot } from '../../../../src/nodes/EntitySnapshot';
 import { write } from '../../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
@@ -81,6 +82,12 @@ describe(`operations.write`, () => {
 
     it(`contains the correct nodes`, () => {
       expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
+    });
+
+    it(`emits the edited nodes as an EntitySnapshot`, () => {
+      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot('1')).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot('2')).to.be.an.instanceOf(EntitySnapshot);
     });
 
   });
