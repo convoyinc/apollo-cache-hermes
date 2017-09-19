@@ -107,7 +107,9 @@ describe(`operations.write`, () => {
 
         const result = write(context, baseline, cyclicQuery, {
           foo: {
+            id: 1,
             bar: {
+              id: 2,
               name: 'Barrington',
             },
           },
@@ -145,13 +147,12 @@ describe(`operations.write`, () => {
       });
 
       it(`only marks the edited node`, () => {
-        expect(Array.from(editedNodeIds)).to.have.members(['2']);
+        expect(Array.from(editedNodeIds)).to.have.members(['1', '2']);
       });
 
     });
 
     describe(`when removing some inbound references`, () => {
-
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         const cyclicQuery = query(`{
@@ -183,7 +184,9 @@ describe(`operations.write`, () => {
 
         const result = write(context, baseline, cyclicQuery, {
           foo: {
+            id: 1,
             bar: {
+              id: 2,
               fizz: null,
               buzz: null,
             },
@@ -222,13 +225,12 @@ describe(`operations.write`, () => {
       });
 
       it(`only marks the edited node`, () => {
-        expect(Array.from(editedNodeIds)).to.have.members(['2']);
+        expect(Array.from(editedNodeIds)).to.have.members(['1', '2']);
       });
 
     });
 
     describe(`when orphaning a cyclic subgraph`, () => {
-
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         const cyclicQuery = query(`{
@@ -295,7 +297,6 @@ describe(`operations.write`, () => {
     });
 
     describe(`cyclic references in payloads`, () => {
-
       let cyclicQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         cyclicQuery = query(`{
@@ -339,11 +340,8 @@ describe(`operations.write`, () => {
 
     });
 
-    describe.skip(`cyclic values in payloads`, () => {
-
-      let cyclicQuery: Query, snapshot: GraphSnapshot;
-      // Jest ALWAYS runs beforeAll…
-      /*
+    describe(`cyclic values in payloads`, () => {
+      let cyclicQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>
       beforeAll(() => {
         cyclicQuery = query(`{
           foo {
@@ -364,7 +362,6 @@ describe(`operations.write`, () => {
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
       });
-       */
 
       it(`can construct a graph from a cyclic payload`, () => {
         // Note that we explicitly DO NOT construct graph cycles for
@@ -377,6 +374,7 @@ describe(`operations.write`, () => {
               foo: { name: 'Foo' },
             },
           },
+          baz: null,
         });
       });
 
