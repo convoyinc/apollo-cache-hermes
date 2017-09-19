@@ -284,7 +284,7 @@ export class SnapshotEditor {
     const referenceEdits: ReferenceEdit[] = [];
     this._walkSelectionSets(query.info.operation.selectionSet,
       fullPayload,
-      /* currentPath */ [],
+      /* prevPath */ [],
       query.dynamicFieldMap,
       query.rootId,
       query.info.fragmentMap,
@@ -319,6 +319,7 @@ export class SnapshotEditor {
 
             const cacheKey = selection.name.value;
             const payloadKey = selection.alias ? selection.alias.value : cacheKey;
+            let currentPayload = prevPayload === null ? prevPayload : prevPayload[payloadKey];
             const currentDynamicFieldMap = get(prevDynamicFieldMap, payloadKey);
 
             // For non-parameterized field, we simply append current cacheKey to create
@@ -345,31 +346,7 @@ export class SnapshotEditor {
             //            "5678"] -> newPath = ["user", 1]
             //  }
             // }
-            let newPath = [...prevPath, cacheKey];
-
-            // If it is parameterized edge, we will want to reprocess it first
-            // so that we can set container ID to be parameterized container ID.
-            const isParameterizedField = isDynamicFieldWithArgs(currentDynamicFieldMap);
-            if (isParameterizedField) {
-              containerId = this._ensureParameterizedValueSnapshot(containerId,
-                [...prevPath, cacheKey],
-                currentDynamicFieldMap);
-              // We reset the path to current field because parameterized
-              // field is its own entity node in the graph.
-              // If the current parameterized field is a leaf, we will store
-              // the value directly on the node because the parameterized key
-              // is unique to a particular value.
-              // e.g :
-              //    message(count: $count) -> newPath = []
-              //    detailMessage(count: $count) {
-              //       title -> newPath = [title]
-              //    }
-              newPath = [];
-            }
-
-            const containerSnapshot = this.getNodeSnapshot(containerId);
-            const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
-            let currentPayload = prevPayload === null ? prevPayload : prevPayload[payloadKey];
+            let currentPath: PathPart[];
 
             // A parameterized graph node, the node-value under the
             // parameterized key will be a direct reference to a
@@ -399,8 +376,43 @@ export class SnapshotEditor {
             // we just reenter the function with parameterized
             // containerId, we can look directly for prevsousNodeValue.
             // For non-parameterized, we will have to do redirection.
-            const previousNodeValue = isParameterizedField ?
-              containerNode : containerNode && containerNode[cacheKey];
+            let previousNodeValue: JsonValue | undefined;
+
+            // If it is parameterized edge, we will want to reprocess it first
+            // so that we can set container ID to be parameterized container ID.
+            const isParameterizedField = isDynamicFieldWithArgs(currentDynamicFieldMap);
+            if (isParameterizedField) {
+              containerId = this._ensureParameterizedValueSnapshot(containerId,
+                [...prevPath, cacheKey],
+                currentDynamicFieldMap);
+              // We reset the path to current field because parameterized
+              // field is its own entity node in the graph.
+              // If the current parameterized field is a leaf, we will store
+              // the value directly on the node because the parameterized key
+              // is unique to a particular value.
+              // e.g :
+              //    message(count: $count) -> newPath = []
+              //    detailMessage(count: $count) {
+              //       title -> newPath = [title]
+              //    }
+              currentPath = [];
+              const containerSnapshot = this.getNodeSnapshot(containerId);
+              const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
+              previousNodeValue = containerNode;
+            }
+            else {
+              // This payload is an array element
+              if (typeof prevPath[prevPath.length - 1] === 'number' && currentPayload === null) {
+                currentPath = [...prevPath];
+              }
+              else {
+                currentPath = [...prevPath, cacheKey];
+              }
+
+              const containerSnapshot = this.getNodeSnapshot(containerId);
+              const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
+              previousNodeValue = containerNode && containerNode[cacheKey];
+            }
 
             if (previousNodeValue !== undefined &&
               previousNodeValue === currentPayload) break;
@@ -415,9 +427,10 @@ export class SnapshotEditor {
               if (currentPayload === undefined) {
                 // The currentPayload doesn't have the value.
                 // Look into containerNode (which can be previous snapshot)
-                // for possible reuse value.
-                currentPayload = containerNode && containerNode[cacheKey] !== undefined ?
-                  containerNode[cacheKey] : null;
+                // for possible reuse value. We explictily check for undefined
+                // as it indicates that the value doesn't exist.
+                currentPayload = previousNodeValue !== undefined ?
+                  previousNodeValue : null;
               }
 
               // We intensionally do not deep copy the nodeValue as Apollo will then perform
@@ -425,7 +438,7 @@ export class SnapshotEditor {
               // in the graph as well.
               // We use selection.name.value instead of payloadKey so that we always write
               // to cache using real field name rather than alias name.
-              this._setValue(containerId, newPath, currentPayload);
+              this._setValue(containerId, currentPath, currentPayload);
               // TODO(yuisu): check for missing property
               break;
             }
@@ -455,7 +468,7 @@ export class SnapshotEditor {
                   const newArray = Array.isArray(previousNodeValue) ?
                     previousNodeValue.slice(0, previousLength) : new Array(payloadLength);
 
-                  this._setValue(containerId, newPath, newArray);
+                  this._setValue(containerId, currentPath, newArray);
                 }
 
                 for (let idx = 0; idx < payloadLength; ++idx) {
@@ -465,8 +478,8 @@ export class SnapshotEditor {
                   const previousNodeId = isObject(previousNodeAtIdx) ?
                     this._context.entityIdForNode(previousNodeAtIdx) : undefined;
 
-                 const elementPath = [...newPath];
-                 elementPath.push(idx);
+                  const elementPath = [...currentPath];
+                  elementPath.push(idx);
 
                   if (nextNodeId) {
                     this._walkSelectionSets(
@@ -519,7 +532,7 @@ export class SnapshotEditor {
                 if (previousNodeId !== nextNodeId) {
                   referenceEdits.push({
                     containerId,
-                    path: newPath,
+                    path: currentPath,
                     prevNodeId: previousNodeId,
                     nextNodeId,
                   });
@@ -541,7 +554,7 @@ export class SnapshotEditor {
                 // CurrentPayload isnot an entity so we didn't reset the path
                 this._walkSelectionSets(selection.selectionSet,
                   currentPayload,
-                  newPath,
+                  currentPath,
                   childDynamicMap,
                   containerId,
                   fragmentsMap,
