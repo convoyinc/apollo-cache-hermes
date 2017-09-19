@@ -22,8 +22,7 @@ describe(`operations.write`, () => {
     it(`creates the query root, with the values`, () => {
       expect(() => { write(context, empty, rootValuesQuery, {
         bar: "THIS IS A STRING NOT OBJECT"
-      }) }).to.throw(`Hermes Error: At field-"bar",
-expected an object or array as a payload but get ""THIS IS A STRING NOT OBJECT""`);
+      }) }).to.throw(`Hermes Error: At field-"bar",\n  expected an object or array as a payload but get ""THIS IS A STRING NOT OBJECT""`);
     });
   });
 

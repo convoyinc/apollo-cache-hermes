@@ -58,7 +58,6 @@ describe(`operations.write`, () => {
     });
 
     it(`check the query root after modify payload`,() => {
-      // Modifying fooValue, barValue to make sure that the write operation create deep copy of the object
       fooValue["addingMoreStuff"] = 42;
       barValue["value"] = "New value";
       barValue["extraProp"] = {} as any;
