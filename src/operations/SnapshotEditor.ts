@@ -414,7 +414,14 @@ export class SnapshotEditor {
               previousNodeValue = containerNode && containerNode[cacheKey];
             }
 
-            const previousNodeId = isObject(previousNodeValue) ?
+            // Only trying to get previousNodeId if the current select is expect
+            // to be an object and possible should be treat as entity
+            // e.g
+            //  query: { foo }
+            //  previous: { foo: { id: 0, name: 'Foo' } }
+            //  current: null
+            // We don't want to treat previousValue as an entity for at above case and get its Id.
+             const previousNodeId = isObject(previousNodeValue) && selection.selectionSet ?
               this._context.entityIdForNode(previousNodeValue) : undefined;
 
             if (previousNodeValue !== undefined && previousNodeValue === currentPayload) break;
@@ -571,8 +578,19 @@ export class SnapshotEditor {
             }
             break;
           case "FragmentSpread":
+            const fragmentNode = fragmentsMap[selection.name.value]
+            this._walkSelectionSets(
+              fragmentNode.selectionSet,
+              prevPayload,
+              prevPath,
+              prevDynamicFieldMap,
+              containerId,
+              fragmentsMap,
+              referenceEdits
+            )
             break;
           case "InlineFragment":
+            this._context.warn(`Hermes Error: InlineFragment is not yet support`);
             break;
         }
       }
