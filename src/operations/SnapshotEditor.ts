@@ -299,7 +299,7 @@ export class SnapshotEditor {
     prevPayload: JsonValue,
     prevPath: PathPart[],
     prevDynamicFieldMap: DynamicFieldMap | undefined,
-    containerId: string,
+    originalContainerId: string,
     fragmentsMap: FragmentMap,
     referenceEdits: ReferenceEdit[]): void {
       if (prevPayload === undefined) {
@@ -308,6 +308,7 @@ export class SnapshotEditor {
 
       // TODO (yuisu): parameterized field
       for (const selection of currentGraphqlNode.selections) {
+        let currentContainerId = originalContainerId;
         switch(selection.kind) {
           case "Field":
             /**
@@ -382,7 +383,7 @@ export class SnapshotEditor {
             // so that we can set container ID to be parameterized container ID.
             const isParameterizedField = isDynamicFieldWithArgs(currentDynamicFieldMap);
             if (isParameterizedField) {
-              containerId = this._ensureParameterizedValueSnapshot(containerId,
+              currentContainerId = this._ensureParameterizedValueSnapshot(currentContainerId,
                 [...prevPath, cacheKey],
                 currentDynamicFieldMap);
               // We reset the path to current field because parameterized
@@ -396,7 +397,7 @@ export class SnapshotEditor {
               //       title -> newPath = [title]
               //    }
               currentPath = [];
-              const containerSnapshot = this.getNodeSnapshot(containerId);
+              const containerSnapshot = this.getNodeSnapshot(currentContainerId);
               const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
               previousNodeValue = containerNode;
             }
@@ -409,7 +410,7 @@ export class SnapshotEditor {
                 currentPath = [...prevPath, cacheKey];
               }
 
-              const containerSnapshot = this.getNodeSnapshot(containerId);
+              const containerSnapshot = this.getNodeSnapshot(currentContainerId);
               const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
               previousNodeValue = containerNode && containerNode[cacheKey];
             }
@@ -426,6 +427,7 @@ export class SnapshotEditor {
 
             if (previousNodeValue !== undefined && previousNodeValue === currentPayload) break;
 
+            // Check for missing payload value.
             // Explicitly check for "undefined" as we should
             // persist other falsy value (see: "writeFalsyValues" test).
             if (currentPayload === undefined) {
@@ -441,9 +443,11 @@ export class SnapshotEditor {
             // just reference payload value in the graph snapshot node.
             if (currentPayload === null || !selection.selectionSet) {
               // Fix references
+              // Fix references. This can happen when we orphan node
+              // TODO (yuisu): add example
               if (previousNodeId) {
                 referenceEdits.push({
-                  containerId,
+                  containerId: currentContainerId,
                   path: currentPath,
                   prevNodeId: previousNodeId,
                   nextNodeId: undefined,
@@ -454,16 +458,15 @@ export class SnapshotEditor {
               // in the graph as well.
               // We use selection.name.value instead of payloadKey so that we always write
               // to cache using real field name rather than alias name.
-              this._setValue(containerId, currentPath, currentPayload);
+              this._setValue(currentContainerId, currentPath, currentPayload);
               // TODO(yuisu): check for missing property
-              break;
             }
-
-            // This field contains nested selectionSet so recursively walking the sub-selectionSets.
-            // We expect to have an object or an array as a payload value. If not, the payload cannot
-            // have matching shape as the sub-selectionSets.
-            // Check if payload is a object or array, throw an error if it isn't.
             else if (selection.selectionSet) {
+              // This field contains nested selectionSet so recursively walking the sub-selectionSets.
+              // We expect to have an object or an array as a payload value. If not, the payload cannot
+              // have matching shape as the sub-selectionSets.
+              // Check if payload is a object or array, throw an error if it isn't.
+
               if (isScalar(currentPayload)) {
                 // TODO(yuisu): sentry? should we continue and just write null ?
                 throw new Error(`Hermes Error: At field-"${payloadKey}",
@@ -478,13 +481,13 @@ export class SnapshotEditor {
                 // TODO (yuisu) : check consistentcy in the array. e.g all element are enetity or non-entity
                 const payloadLength = currentPayload.length
                 const previousLength = Array.isArray(previousNodeValue) ?
-                  previousNodeValue.length : 0;
+                  previousNodeValue.length : -1;
 
                 if (payloadLength !== previousLength) {
                   const newArray = Array.isArray(previousNodeValue) ?
                     previousNodeValue.slice(0, previousLength) : new Array(payloadLength);
 
-                  this._setValue(containerId, currentPath, newArray);
+                  this._setValue(currentContainerId, currentPath, newArray);
                 }
 
                 for (let idx = 0; idx < payloadLength; ++idx) {
@@ -515,7 +518,7 @@ export class SnapshotEditor {
                       element,
                       elementPath,
                       childDynamicMap,
-                      containerId,
+                      currentContainerId,
                       fragmentsMap,
                       referenceEdits
                     );
@@ -524,7 +527,7 @@ export class SnapshotEditor {
                   // TODO(yuisu): comment
                   if (previousNodeId !== nextNodeId) {
                     referenceEdits.push({
-                      containerId,
+                      containerId: currentContainerId,
                       path: elementPath,
                       prevNodeId: previousNodeId,
                       nextNodeId: nextNodeId,
@@ -545,7 +548,7 @@ export class SnapshotEditor {
 
                 if (previousNodeId !== nextNodeId) {
                   referenceEdits.push({
-                    containerId,
+                    containerId: currentContainerId,
                     path: currentPath,
                     prevNodeId: previousNodeId,
                     nextNodeId,
@@ -570,7 +573,7 @@ export class SnapshotEditor {
                   currentPayload,
                   currentPath,
                   childDynamicMap,
-                  containerId,
+                  currentContainerId,
                   fragmentsMap,
                   referenceEdits
                 );
@@ -584,7 +587,7 @@ export class SnapshotEditor {
               prevPayload,
               prevPath,
               prevDynamicFieldMap,
-              containerId,
+              currentContainerId,
               fragmentsMap,
               referenceEdits
             )
