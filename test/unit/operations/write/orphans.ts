@@ -14,7 +14,16 @@ describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const rootValuesQuery = query(`{ foo bar }`);
+  const rootValuesQuery = query(`{
+    foo {
+      id
+      name
+    }
+    bar {
+      id
+      name
+    }
+  }`);
 
   describe(`when orphaning a node`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
@@ -113,10 +122,33 @@ describe(`operations.write`, () => {
   });
 
   describe(`orphan a subgraph`, () => {
-
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baselineResult = write(context, empty, rootValuesQuery, {
+      const subgraphQuery = query(`{
+        foo {
+          id
+          name
+          two {
+            id
+          }
+        }
+        bar {
+          id
+          one {
+            id
+          }
+          two {
+            id
+          }
+          three {
+            id
+            foo {
+              id
+            }
+          }
+        }
+      }`);
+      const baselineResult = write(context, empty, subgraphQuery, {
         foo: {
           id: 1,
           name: 'Foo',
@@ -134,8 +166,11 @@ describe(`operations.write`, () => {
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(context, baseline, rootValuesQuery, {
-        foo: { two: null },
+      const result = write(context, baseline, subgraphQuery, {
+        foo: {
+          id: 1,
+          two: null
+        },
         bar: null,
       });
       snapshot = result.snapshot;
@@ -167,7 +202,11 @@ describe(`operations.write`, () => {
 
     it(`replaces the reference with null`, () => {
       expect(snapshot.get(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo', two: null },
+        foo: {
+          id: 1,
+          name: 'Foo',
+          two: null
+        },
         bar: null,
       });
     });
