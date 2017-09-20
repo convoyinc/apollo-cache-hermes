@@ -8,7 +8,7 @@ describe(`operations.read`, () => {
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
 
-  describe.skip(`cyclic payload`, () => {
+  describe(`cyclic payload`, () => {
     let readResult: QueryResult;
     beforeAll(() => {
       const cyclicQuery = query(`{
@@ -20,12 +20,16 @@ describe(`operations.read`, () => {
             name
             fizz { id }
             buzz { id }
+            foo {
+              id
+              name
+            }
           }
         }
       }`);
 
-      const foo = { name: 'Foo', bar: null as any };
-      const bar = { name: 'Bar', foo };
+      const foo = { id: 0, name: 'Foo', bar: null as any };
+      const bar = { id: 1, name: 'Bar', foo };
       foo.bar = bar;
 
       const { snapshot } = write(context, empty, cyclicQuery, { foo, baz: null });
@@ -39,15 +43,20 @@ describe(`operations.read`, () => {
     it(`verify that read result is correct`, () => {
       // Note that we explicitly DO NOT construct graph cycles for
       // non-references!
-      expect(readResult.result).to.deep.eq({
-        foo: {
-          name: 'Foo',
-          bar: {
-            name: 'Bar',
-            foo: { name: 'Foo' },
-          },
-        },
-      });
+      const foo = {
+        id: 0,
+        name: 'Foo',
+      }
+      const bar = {
+        id: 1,
+        name: 'Bar',
+        fizz: null,
+        buzz: null,
+        foo
+      }
+      foo["bar"] = bar;
+
+      expect(readResult.result).to.deep.eq({ foo });
     });
   });
 
