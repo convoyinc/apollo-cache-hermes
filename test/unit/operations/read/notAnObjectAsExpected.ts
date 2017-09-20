@@ -1,6 +1,6 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
-import { QueryResult, read, write } from '../../../../src/operations';
+import { read, write, QueryResult } from '../../../../src/operations';
 import { query, strictConfig } from '../../../helpers';
 
 describe(`operations.read`, () => {
@@ -26,9 +26,9 @@ describe(`operations.read`, () => {
 
   describe.skip(`not an object as expected`, () => {
 
-    let readResult: QueryResult;
+    let readResult: QueryResult, snapshot: GraphSnapshot;
     beforeAll(() => {
-      const snapshot = write(context, empty, shipmentsQuery, {
+      snapshot = write(context, empty, shipmentsQuery, {
         shipments: [
           {
             id: '0',
@@ -66,14 +66,13 @@ describe(`operations.read`, () => {
           },
         ],
       }).snapshot;
-      readResult = read(context, shipmentsQuery, snapshot);
     });
 
     it(`verify that error is reported`, () => {
-      // TODO (yuisu): think what to do for failure case
-      // this is to force fail so that we get failure
-      expect(false).to.eq(true);
+      expect(() => { read(context, shipmentsQuery, snapshot) }).to.throw(
+        `Hermes Error: At field-"messages",\n  expected an object or array as a payload but get ""string""`);
     })
+
 
     it(`verify that read result is complete`, () => {
       expect(readResult.complete).to.eq(true);
@@ -115,7 +114,5 @@ describe(`operations.read`, () => {
         ],
       });
     });
-
   });
-
 });
