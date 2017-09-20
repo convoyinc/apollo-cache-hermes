@@ -2,7 +2,7 @@ import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes';
 import { write } from '../../../../src/operations/write';
-import { NodeId, RawQuery, StaticNodeId } from '../../../../src/schema';
+import { NodeId, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -15,7 +15,6 @@ describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const rootValuesQuery = query(`{ foo bar }`);
   const rootEntityQuery = query(`{
     foo {
       id
@@ -26,6 +25,7 @@ describe(`operations.write`, () => {
       name
     }
   }`);
+  const rootValuesQuery = query(`{ foo bar }`);
   const viewerQuery = query(`{
     viewer {
       id
@@ -62,7 +62,10 @@ describe(`operations.write`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const result = write(context, empty, viewerQuery, {
-        viewer: { id: 123, name: 'Gouda' },
+        viewer: {
+          id: 123,
+          name: 'Gouda'
+        },
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
@@ -70,13 +73,17 @@ describe(`operations.write`, () => {
 
     it(`creates the query root, referencing the entity`, () => {
       expect(snapshot.get(QueryRootId)).to.deep.eq({
-        viewer: { id: 123, name: 'Gouda' },
+        viewer: {
+          id: 123,
+          name: 'Gouda'
+        },
       });
     });
 
     it(`indexes the entity`, () => {
       expect(snapshot.get('123')).to.deep.eq({
-        id: 123, name: 'Gouda',
+        id: 123,
+        name: 'Gouda',
       });
     });
 
@@ -116,9 +123,9 @@ describe(`operations.write`, () => {
   });
 
   describe(`write falsy values`, () => {
-    let falsyValuesQuery: RawQuery, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      falsyValuesQuery = query(`{ null, false, zero, string }`);
+      const falsyValuesQuery = query(`{ null, false, zero, string }`);
 
       const result = write(context, empty, falsyValuesQuery, { null: null, false: false, zero: 0, string: '' });
       snapshot = result.snapshot;
