@@ -272,7 +272,6 @@ export class SnapshotEditor {
         ) {
           this._setValue(containerId, path, payloadValue);
         }
-
         return false;
       });
     }
@@ -295,6 +294,18 @@ export class SnapshotEditor {
   }
 
   // TODO (yuisu) : consider nest this function into _mergePayloadValuesUsingSelectionSetAsGuide
+  /**
+   * A helper function that will walk query selection sets recursively and write values into
+   * the graph snapshot.
+   *
+   * @param currentGraphqlNode a current graphql selection node we are visiting
+   * @param prevPayload a JSON payload with the shape matching current graphql node
+   * @param prevPath a array of PathPart that lead to current graphql selection
+   * @param prevDynamicFieldMap
+   * @param originalContainerId
+   * @param fragmentsMap
+   * @param referenceEdits
+   */
   private _walkSelectionSets(
     currentGraphqlNode: SelectionSetNode,
     prevPayload: JsonValue,
@@ -307,7 +318,6 @@ export class SnapshotEditor {
         return;
       }
 
-      // TODO (yuisu): parameterized field
       for (const selection of currentGraphqlNode.selections) {
         let currentContainerId = originalContainerId;
         switch(selection.kind) {
@@ -318,7 +328,6 @@ export class SnapshotEditor {
              */
 
             // TODO(yuisu): should we be worry about both alias and real field name have payload value?
-
             const cacheKey = selection.name.value;
             const payloadKey = selection.alias ? selection.alias.value : cacheKey;
             let currentPayload = prevPayload === null ? prevPayload : prevPayload[payloadKey];
@@ -443,9 +452,9 @@ export class SnapshotEditor {
             // This field is a leaf field and does not contain any nested selection sets
             // just reference payload value in the graph snapshot node.
             if (currentPayload === null || !selection.selectionSet) {
-              // Fix references
-              // Fix references. This can happen when we orphan node
-              // TODO (yuisu): add example
+              // Fix references. See: orphan node tests on "orphan a subgraph"
+              // The new value is null and the old value is an entity. We will
+              // want to remove reference to such entity
               if (previousNodeId) {
                 referenceEdits.push({
                   containerId: currentContainerId,
@@ -460,7 +469,6 @@ export class SnapshotEditor {
               // We use selection.name.value instead of payloadKey so that we always write
               // to cache using real field name rather than alias name.
               this._setValue(currentContainerId, currentPath, currentPayload);
-              // TODO(yuisu): check for missing property
             }
             else if (selection.selectionSet) {
               // This field contains nested selectionSet so recursively walking the sub-selectionSets.
@@ -502,15 +510,16 @@ export class SnapshotEditor {
                   const elementPath = [...currentPath];
                   elementPath.push(idx);
 
-                  // TODO (Yuisu): comment about null / undefined
-                  // (see : edit references in an array › treats blanks in sparse arrays as null)
-                  // (see : read test parameterized -> in an array with holes › returns the selected values, overlaid on the underlying data)
-                  // TODO(yuisu): comment
-                  if (element === null && newArray) {
+                  // If an element in an array is 'undefined' (sparse array)
+                  // or 'null' (holes), we want to simply write out null in
+                  // the newArray otherwise recurse so we patch up an existed
+                  // array.
+                  // For example see: "treats blanks in sparse arrays as null"
+                  // and "returns the selected values, overlaid on the underlying data"
+                  if (!element && newArray) {
                     newArray[idx] = null
                   }
-
-                  if (nextNodeId) {
+                  else if (nextNodeId) {
                     this._walkSelectionSets(
                       selection.selectionSet,
                       element,
@@ -533,7 +542,7 @@ export class SnapshotEditor {
                     );
                   }
 
-                  // TODO(yuisu): comment
+                  // The reference between old and new one change, so update the reference
                   if (previousNodeId !== nextNodeId) {
                     referenceEdits.push({
                       containerId: currentContainerId,
@@ -570,7 +579,7 @@ export class SnapshotEditor {
                 this._walkSelectionSets(
                   selection.selectionSet,
                   currentPayload,
-                  /* currentPath */[],
+                  /* prevPath */[],
                   childDynamicMap,
                   nextNodeId!,
                   fragmentsMap,
