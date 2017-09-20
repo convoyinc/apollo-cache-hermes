@@ -282,7 +282,8 @@ export class SnapshotEditor {
 
   private _mergePayloadValuesUsingSelectionSetAsGuide(query: ParsedQuery, fullPayload: JsonObject) {
     const referenceEdits: ReferenceEdit[] = [];
-    this._walkSelectionSets(query.info.operation.selectionSet,
+    this._walkSelectionSets(
+      query.info.operation.selectionSet,
       fullPayload,
       /* prevPath */ [],
       query.dynamicFieldMap,
@@ -347,7 +348,6 @@ export class SnapshotEditor {
             //            "5678"] -> newPath = ["user", 1]
             //  }
             // }
-            let currentPath: PathPart[];
 
             // A parameterized graph node, the node-value under the
             // parameterized key will be a direct reference to a
@@ -378,14 +378,16 @@ export class SnapshotEditor {
             // containerId, we can look directly for prevsousNodeValue.
             // For non-parameterized, we will have to do redirection.
             let previousNodeValue: JsonValue | undefined;
-
+            let currentPath: PathPart[];
             // If it is parameterized edge, we will want to reprocess it first
             // so that we can set container ID to be parameterized container ID.
             const isParameterizedField = isDynamicFieldWithArgs(currentDynamicFieldMap);
             if (isParameterizedField) {
-              currentContainerId = this._ensureParameterizedValueSnapshot(currentContainerId,
+              currentContainerId = this._ensureParameterizedValueSnapshot(
+                currentContainerId,
                 [...prevPath, cacheKey],
-                currentDynamicFieldMap);
+                currentDynamicFieldMap
+              );
               // We reset the path to current field because parameterized
               // field is its own entity node in the graph.
               // If the current parameterized field is a leaf, we will store
@@ -409,7 +411,6 @@ export class SnapshotEditor {
               else {
                 currentPath = [...prevPath, cacheKey];
               }
-
               const containerSnapshot = this.getNodeSnapshot(currentContainerId);
               const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
               previousNodeValue = containerNode && containerNode[cacheKey];
@@ -483,8 +484,9 @@ export class SnapshotEditor {
                 const previousLength = Array.isArray(previousNodeValue) ?
                   previousNodeValue.length : -1;
 
+                let newArray: Array<JsonValue> | undefined;
                 if (payloadLength !== previousLength) {
-                  const newArray = Array.isArray(previousNodeValue) ?
+                  newArray = Array.isArray(previousNodeValue) ?
                     previousNodeValue.slice(0, previousLength) : new Array(payloadLength);
 
                   this._setValue(currentContainerId, currentPath, newArray);
@@ -500,6 +502,14 @@ export class SnapshotEditor {
                   const elementPath = [...currentPath];
                   elementPath.push(idx);
 
+                  // TODO (Yuisu): comment about null / undefined
+                  // (see : edit references in an array › treats blanks in sparse arrays as null)
+                  // (see : read test parameterized -> in an array with holes › returns the selected values, overlaid on the underlying data)
+                  // TODO(yuisu): comment
+                  if (element === null && newArray) {
+                    newArray[idx] = null
+                  }
+
                   if (nextNodeId) {
                     this._walkSelectionSets(
                       selection.selectionSet,
@@ -512,7 +522,6 @@ export class SnapshotEditor {
                     )
                   }
                   else {
-                    // TODO (Yuisu): comment about null
                     this._walkSelectionSets(
                       selection.selectionSet,
                       element,
@@ -558,7 +567,8 @@ export class SnapshotEditor {
 
               // CurrentPayload is considered as an entity.
               if (entityIdOfCurrentPayload !== undefined) {
-                this._walkSelectionSets(selection.selectionSet,
+                this._walkSelectionSets(
+                  selection.selectionSet,
                   currentPayload,
                   /* currentPath */[],
                   childDynamicMap,
@@ -569,7 +579,8 @@ export class SnapshotEditor {
               }
               else {
                 // CurrentPayload isnot an entity so we didn't reset the path
-                this._walkSelectionSets(selection.selectionSet,
+                this._walkSelectionSets(
+                  selection.selectionSet,
                   currentPayload,
                   currentPath,
                   childDynamicMap,
