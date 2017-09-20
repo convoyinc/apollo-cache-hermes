@@ -5,7 +5,7 @@ import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { ParameterizedValueSnapshot } from '../../../../src/nodes';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
-import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
+import { NodeId, RawQuery, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -408,7 +408,7 @@ describe(`operations.write`, () => {
     });
 
     describe(`writing an entity with nested indirect fields`, () => {
-      let nestedQuery: Query, snapshot: GraphSnapshot, parameterizedRootId: NodeId, parameterizedFieldId: NodeId, entityId: NodeId;
+      let nestedQuery: RawQuery, snapshot: GraphSnapshot, parameterizedRootId: NodeId, parameterizedFieldId: NodeId, entityId: NodeId;
       beforeAll(() => {
         nestedQuery = query(`query nested($id: ID!) {
           one {
@@ -489,7 +489,7 @@ describe(`operations.write`, () => {
 
     describe(`writing an entity with nested indirect fields in an array`, () => {
 
-      let nestedQuery: Query, snapshot: GraphSnapshot, parameterizedRootId: NodeId;
+      let nestedQuery: RawQuery, snapshot: GraphSnapshot, parameterizedRootId: NodeId;
       let entityId1: NodeId, entityId2: NodeId;
       let parameterizedIdInEntity1: NodeId, parameterizedIdInEntity2: NodeId;
       beforeAll(() => {
@@ -603,7 +603,7 @@ describe(`operations.write`, () => {
 
     describe(`writing nested indirect fields contained in an array`, () => {
 
-      let nestedQuery: Query, snapshot: GraphSnapshot, containerId: NodeId;
+      let nestedQuery: RawQuery, snapshot: GraphSnapshot, containerId: NodeId;
       beforeAll(() => {
         nestedQuery = query(`query nested($id: ID!) {
           one {
@@ -686,7 +686,7 @@ describe(`operations.write`, () => {
 
     describe(`with nested entities in an array`, () => {
 
-      let nestedQuery: Query, snapshot: GraphSnapshot, containerId: NodeId;
+      let nestedQuery: RawQuery, snapshot: GraphSnapshot, containerId: NodeId;
       beforeAll(() => {
         nestedQuery = query(`query nested($id: ID!) {
           one {
@@ -844,7 +844,7 @@ describe(`operations.write`, () => {
 
     describe.skip(`removing array nodes that contain parameterized values`, () => {
 
-      let rootedQuery: Query, snapshot: GraphSnapshot, entityBarId0: NodeId, entityBarId1: NodeId;
+      let rootedQuery: RawQuery, snapshot: GraphSnapshot, entityBarId0: NodeId, entityBarId1: NodeId;
       beforeAll(() => {
         rootedQuery = query(`{
           foo {

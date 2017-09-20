@@ -23,4 +23,4 @@ done <"${tsc_fifo}"
 cat "${tsc_fifo}" >&1 &
 
 # Let jest own our process & stdin.
-run test:unit -- --watch --notify
+run test-unit -- --watch --notify

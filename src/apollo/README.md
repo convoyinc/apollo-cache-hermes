@@ -1,5 +1,7 @@
 # Wait, What
 
+This folder is the front facing Cache client for Apollo usage. The Hermes Cache is what is exported to be used in the constructor of Apollo client. 
+
 Wait, isn't this an Apollo-centric repo?  Why the separation of Apollo-isms!?
 
 For a couple reasons:

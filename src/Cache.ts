@@ -1,12 +1,14 @@
-import { JsonObject, JsonValue } from './primitive';
-import { Queryable } from './Queryable';
-import { CacheTransaction } from './CacheTransaction';
+import { Cache as CacheInterface } from 'apollo-cache';
+
 import { CacheSnapshot } from './CacheSnapshot';
+import { CacheTransaction } from './CacheTransaction';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { QueryObserver, read } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
-import { ChangeId, NodeId, Query } from './schema';
+import { JsonObject, JsonValue } from './primitive';
+import { Queryable } from './Queryable';
+import { ChangeId, NodeId, RawQuery } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
 
@@ -27,10 +29,22 @@ export class Cache implements Queryable {
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
-  constructor(config?: CacheContext.Configuration) {
+  constructor(config?: CacheContext.Configuration, ) {
     const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
     this._context = new CacheContext(config);
+  }
+
+  restore(data: GraphSnapshot): Cache {
+    throw new Error('restore() is not implemented on Cache');
+  }
+
+  extract() {
+    throw new Error('extract() is not implemented on Cache');
+  }
+
+  evict(query: RawQuery): { success: boolean } {
+    throw new Error(`evict() is not implemented on Cache`);
   }
 
   /**
@@ -39,7 +53,7 @@ export class Cache implements Queryable {
    * TODO: Can we drop non-optimistic reads?
    * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(query: Query, optimistic?: boolean): { result?: JsonValue, complete: boolean } {
+  read(query: RawQuery, optimistic?: boolean): { result?: JsonValue, complete: boolean } {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     const snapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
@@ -57,7 +71,7 @@ export class Cache implements Queryable {
    * Registers a callback that should be triggered any time the nodes selected
    * by a particular query have changed.
    */
-  watch(query: Query, callback: () => void): () => void {
+  watch(query: RawQuery, callback: CacheInterface.WatchCallback): () => void {
     const observer = new QueryObserver(this._context, query, this._snapshot.optimistic, callback);
     this._observers.push(observer);
 
@@ -67,7 +81,7 @@ export class Cache implements Queryable {
   /**
    * Writes values for a selection to the cache.
    */
-  write(query: Query, payload: JsonObject): void {
+  write(query: RawQuery, payload: JsonObject): void {
     this.transaction(t => t.write(query, payload));
   }
 
@@ -110,6 +124,10 @@ export class Cache implements Queryable {
    */
   rollback(changeId: ChangeId) {
     this.transaction(t => t.rollback(changeId));
+  }
+
+  getSnapshot(): CacheSnapshot {
+    return this._snapshot;
   }
 
   /**

@@ -54,6 +54,9 @@ interface ReferenceEdit {
   nextNodeId: NodeId | undefined;
 }
 
+// https://github.com/nzakas/eslint-plugin-typescript/issues/69
+type NodeSnapshotMap = { [Key in NodeId]?: NodeSnapshot };
+
 /**
  * Builds a set of changes to apply on top of an existing `GraphSnapshot`.
  *
@@ -65,7 +68,7 @@ export class SnapshotEditor {
   /**
    * Tracks all node snapshots that have changed vs the parent snapshot.
    */
-  private _newNodes: { [Key in NodeId]: NodeSnapshot | undefined } = Object.create(null);
+  private _newNodes: NodeSnapshotMap = Object.create(null);
 
   /**
    * Tracks the nodes that have new _values_ vs the parent snapshot.
@@ -112,12 +115,6 @@ export class SnapshotEditor {
     // nodes, and collects all newly orphaned nodes.
     const orphanedNodeIds = this._mergeReferenceEdits(referenceEdits);
 
-    // At this point, every node that has had any of its properties change now
-    // exists in _newNodes.  In order to preserve immutability, we need to walk
-    // all nodes that transitively reference an edited node, and update their
-    // references to point to the new version.
-    this._rebuildInboundReferences();
-
     // Remove (garbage collect) orphaned subgraphs.
     this._removeOrphanedNodes(orphanedNodeIds);
 
@@ -152,7 +149,7 @@ export class SnapshotEditor {
 
     while (queue.length) {
       const { containerId, containerPayload, visitRoot, fields } = queue.pop()!;
-      const containerSnapshot = this.getNodeSnapshot(containerId);
+      const containerSnapshot = this._getNodeSnapshot(containerId);
       const container = containerSnapshot ? containerSnapshot.node : undefined;
 
       // Break cycles in referenced nodes from the payload.
@@ -399,7 +396,7 @@ export class SnapshotEditor {
               //       title -> newPath = [title]
               //    }
               currentPath = [];
-              const containerSnapshot = this.getNodeSnapshot(currentContainerId);
+              const containerSnapshot = this._getNodeSnapshot(currentContainerId);
               const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
               previousNodeValue = containerNode;
             }
@@ -411,7 +408,7 @@ export class SnapshotEditor {
               else {
                 currentPath = [...prevPath, cacheKey];
               }
-              const containerSnapshot = this.getNodeSnapshot(currentContainerId);
+              const containerSnapshot = this._getNodeSnapshot(currentContainerId);
               const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
               previousNodeValue = containerNode && containerNode[cacheKey];
             }
@@ -620,7 +617,7 @@ export class SnapshotEditor {
     const orphanedNodeIds: Set<NodeId> = new Set();
 
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
-      const target = nextNodeId ? this.getDataNodeOfNodeSnapshot(nextNodeId) : null;
+      const target = nextNodeId ? this._get(nextNodeId) : null;
       this._setValue(containerId, path, target);
       const container = this._ensureNewSnapshot(containerId);
 
@@ -645,6 +642,48 @@ export class SnapshotEditor {
   }
 
   /**
+   * Commits the transaction, returning a new immutable snapshot.
+   */
+  commit(): EditedSnapshot {
+    // At this point, every node that has had any of its properties change now
+    // exists in _newNodes.  In order to preserve immutability, we need to walk
+    // all nodes that transitively reference an edited node, and update their
+    // references to point to the new version.
+    this._rebuildInboundReferences();
+
+    return {
+      snapshot: this._buildNewSnapshot(),
+      editedNodeIds: this._editedNodeIds,
+      writtenQueries: this._writtenQueries,
+    };
+  }
+
+  /**
+   * Collect all our pending changes into a new GraphSnapshot.
+   */
+  _buildNewSnapshot() {
+    const { entityTransformer } = this._context;
+    const snapshots = { ...this._parent._values };
+
+    for (const id in this._newNodes) {
+      const newSnapshot = this._newNodes[id];
+      // Drop snapshots that were garbage collected.
+      if (newSnapshot === undefined) {
+        delete snapshots[id];
+      } else {
+        // TODO: This should not be run for ParameterizedValueSnapshots
+        if (entityTransformer) {
+          const { node } = this._newNodes[id] as EntitySnapshot;
+          if (node) entityTransformer(node);
+        }
+        snapshots[id] = newSnapshot;
+      }
+    }
+
+    return new GraphSnapshot(snapshots);
+  }
+
+  /**
    * Transitively walks the inbound references of all edited nodes, rewriting
    * those references to point to the newly edited versions.
    */
@@ -654,7 +693,7 @@ export class SnapshotEditor {
 
     while (queue.length) {
       const nodeId = queue.pop()!;
-      const snapshot = this.getNodeSnapshot(nodeId);
+      const snapshot = this._getNodeSnapshot(nodeId);
       if (!(snapshot instanceof EntitySnapshot)) continue;
       if (!snapshot || !snapshot.inbound) continue;
 
@@ -675,7 +714,7 @@ export class SnapshotEditor {
     const queue = Array.from(nodeIds);
     while (queue.length) {
       const nodeId = queue.pop()!;
-      const node = this.getNodeSnapshot(nodeId);
+      const node = this._getNodeSnapshot(nodeId);
       if (!node) continue;
 
       this._newNodes[nodeId] = undefined;
@@ -692,45 +731,18 @@ export class SnapshotEditor {
   }
 
   /**
-   * Commits the transaction, returning a new immutable snapshot.
+   * Retrieve the _latest_ version of a node snapshot.
    */
-  commit(): EditedSnapshot {
-    const { entityTransformer } = this._context;
-    const snapshots = { ...this._parent._values };
-    for (const id in this._newNodes) {
-      const newSnapshot = this._newNodes[id];
-      // Drop snapshots that were garbage collected.
-      if (newSnapshot === undefined) {
-        delete snapshots[id];
-      } else {
-        if (entityTransformer) {
-          const { node } = this._newNodes[id] as EntitySnapshot;
-          if (node) entityTransformer(node);
-        }
-        snapshots[id] = newSnapshot;
-      }
-    }
-
-    return {
-      snapshot: new GraphSnapshot(snapshots),
-      editedNodeIds: this._editedNodeIds,
-      writtenQueries: this._writtenQueries,
-    };
+  private _getNodeSnapshot(id: NodeId) {
+    return id in this._newNodes ? this._newNodes[id] : this._parent.getNodeSnapshot(id);
   }
 
   /**
    * Retrieve the _latest_ version of a node.
    */
-  private getDataNodeOfNodeSnapshot(id: NodeId) {
-    const snapshot = this.getNodeSnapshot(id);
+  private _get(id: NodeId) {
+    const snapshot = this._getNodeSnapshot(id);
     return snapshot ? snapshot.node : undefined;
-  }
-
-  /**
-   * Retrieve the _latest_ version of a node snapshot.
-   */
-  private getNodeSnapshot(id: NodeId) {
-    return id in this._newNodes ? this._newNodes[id] : this._parent.getNodeSnapshot(id);
   }
 
   /**
@@ -778,7 +790,7 @@ export class SnapshotEditor {
 
     // We're careful to not edit the container unless we absolutely have to.
     // (There may be no changes for this parameterized value).
-    const containerSnapshot = this.getNodeSnapshot(containerId);
+    const containerSnapshot = this._getNodeSnapshot(containerId);
     if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', fieldId, path)) {
       // We need to construct a new snapshot otherwise.
       const newSnapshot = new ParameterizedValueSnapshot();

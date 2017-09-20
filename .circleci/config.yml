@@ -42,7 +42,7 @@ jobs:
     <<: *job_common
     steps:
       - <<: *restore
-      - run: yarn run test:style
+      - run: yarn run test-style
       - <<: *store_artifacts
 
   test:unit:
@@ -50,7 +50,7 @@ jobs:
     steps:
       - <<: *restore
       - run: ls -R src test
-      - run: yarn run test:unit:coverage
+      - run: yarn run test-unit-coverage
       - <<: *store_artifacts
       - <<: *store_test_results
 

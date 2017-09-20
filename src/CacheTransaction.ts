@@ -4,7 +4,7 @@ import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, ParsedQuery, Query, QuerySnapshot } from './schema';
+import { ChangeId, NodeId, ParsedQuery, RawQuery, QuerySnapshot } from './schema';
 import { addToSet } from './util';
 
 /**
@@ -34,7 +34,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Executes reads against the current values in the transaction.
    */
-  read(query: Query): { result?: JsonValue, complete: boolean } {
+  read(query: RawQuery): { result?: JsonValue, complete: boolean } {
     return read(this._context, query, this._snapshot.optimistic);
   }
 
@@ -45,7 +45,7 @@ export class CacheTransaction implements Queryable {
    * any previous optimistic values.  Otherwise, edits will be made to the
    * baseline state (and any optimistic updates will be replayed over it).
    */
-  write(query: Query, payload: JsonObject): void {
+  write(query: RawQuery, payload: JsonObject): void {
     if (this._optimisticChangeId) {
       this._writeOptimistic(query, payload);
     } else {
@@ -63,6 +63,14 @@ export class CacheTransaction implements Queryable {
     const optimistic = this._buildOptimisticSnapshot(current.baseline);
 
     this._snapshot = { ...current, optimistic, optimisticQueue };
+  }
+
+  /**
+   * Removes values from the current transaction
+   */
+  // eslint-disable-next-line class-methods-use-this
+  evict(query: RawQuery): { success: boolean } {
+    throw new Error('evict() is not implemented on CacheTransaction');
   }
 
   /**
@@ -84,7 +92,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Merge a payload with the baseline snapshot.
    */
-  private _writeBaseline(query: Query, payload: JsonObject) {
+  private _writeBaseline(query: RawQuery, payload: JsonObject) {
     const current = this._snapshot;
 
     const { snapshot: baseline, editedNodeIds, writtenQueries } = write(this._context, current.baseline, query, payload);
@@ -112,7 +120,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Merge a payload with the optimistic snapshot.
    */
-  private _writeOptimistic(query: Query, payload: JsonObject) {
+  private _writeOptimistic(query: RawQuery, payload: JsonObject) {
     this._deltas.push({ query, payload });
 
     const { snapshot: optimistic, editedNodeIds, writtenQueries } = write(this._context, this._snapshot.baseline, query, payload);

@@ -36,7 +36,7 @@ for option in "${OPTIONS_FLAGS[@]}"; do
 done
 
 # For jest-junit
-export JEST_SUITE_NAME="test:unit"
-export JEST_JUNIT_OUTPUT=./output/test:unit/report.xml
+export JEST_SUITE_NAME="test-unit"
+export JEST_JUNIT_OUTPUT=./output/test-unit/report.xml
 
 node "${NODE_OPTIONS[@]}" ./node_modules/.bin/jest "${OPTIONS[@]}" "${FILES[@]}"

@@ -1,7 +1,7 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { write } from '../../../../src/operations/write';
-import { NodeId, Query, StaticNodeId } from '../../../../src/schema';
+import { NodeId, RawQuery, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -297,7 +297,8 @@ describe(`operations.write`, () => {
     });
 
     describe(`cyclic references in payloads`, () => {
-      let cyclicQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+
+      let cyclicQuery: RawQuery, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         cyclicQuery = query(`{
           foo {
@@ -341,7 +342,7 @@ describe(`operations.write`, () => {
     });
 
     describe(`cyclic values in payloads`, () => {
-      let cyclicQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>
+      let cyclicQuery: RawQuery, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>
       beforeAll(() => {
         cyclicQuery = query(`{
           foo {

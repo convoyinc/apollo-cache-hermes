@@ -1,17 +1,22 @@
+import {
+  DataProxy,
+  Cache,
+} from 'apollo-cache';
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+
 import { JsonObject } from '../primitive';
 import { Queryable } from '../Queryable';
 
-import * as interfaces from './interfaces';
 import { toQuery } from './util';
 
 /**
  * Apollo-specific interface to the cache.
  */
-export abstract class ApolloQueryable {
+export abstract class ApolloQueryable implements DataProxy {
   /** The underlying Hermes cache. */
   protected abstract _queryable: Queryable;
 
-  diffQuery(options: interfaces.Cache.DiffQueryOptions): interfaces.Cache.DiffResult {
+  diff<T>(options: Cache.DiffOptions): Cache.DiffResult<T | any> {
     const query = toQuery(options.query, options.variables);
     const { result, complete } = this._queryable.read(query, options.optimistic);
     if (options.returnPartialData === false && !complete) {
@@ -19,10 +24,10 @@ export abstract class ApolloQueryable {
       throw new Error(`diffQuery not satisfied by the cache.`);
     }
 
-    return { result, isMissing: !complete };
+    return { result, complete };
   }
 
-  read(options: interfaces.Cache.ReadOptions): any {
+  read(options: Cache.ReadOptions): any {
     const query = toQuery(options.query, options.variables, options.rootId);
     const { result, complete } = this._queryable.read(query, options.optimistic);
     if (!complete) {
@@ -33,7 +38,7 @@ export abstract class ApolloQueryable {
     return result;
   }
 
-  readQuery<QueryType>(options: interfaces.Cache.ReadQueryOptions, optimistic?: true): QueryType {
+  readQuery<QueryType>(options: DataProxy.Query, optimistic?: true): QueryType {
     return this.read({
       query: options.query,
       variables: options.variables,
@@ -41,25 +46,35 @@ export abstract class ApolloQueryable {
     });
   }
 
-  readFragment<FragmentType>(options: interfaces.Cache.ReadFragmentOptions, optimistic?: true): FragmentType | null {
+  readFragment<FragmentType>(options: DataProxy.Fragment, optimistic?: true): FragmentType | null {
     // TODO: Support nested fragments.
     const query = toQuery(options.fragment, options.variables as JsonObject);
     return this._queryable.read(query, optimistic).result as any;
   }
 
-  writeResult(options: interfaces.Cache.WriteResultOptions): void {
-    const query = toQuery(options.document, options.variables as JsonObject, options.dataId);
+  write(options: Cache.WriteOptions): void {
+    const query = toQuery(options.query, options.variables as JsonObject, options.dataId);
     this._queryable.write(query, options.result);
   }
 
-  writeQuery(options: interfaces.Cache.WriteQueryOptions): void {
+  writeQuery(options: Cache.WriteQueryOptions): void {
     const query = toQuery(options.query, options.variables as JsonObject);
     this._queryable.write(query, options.data);
   }
 
-  writeFragment(options: interfaces.Cache.WriteFragmentOptions): void {
+  writeFragment(options: Cache.WriteFragmentOptions): void {
     // TODO: Support nested fragments.
     const query = toQuery(options.fragment, options.variables as JsonObject, options.id);
     this._queryable.write(query, options.data);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  transformDocument(doc: DocumentNode): DocumentNode {
+    return doc;
+  }
+
+  evict(options: Cache.EvictOptions): Cache.EvictionResult {
+    const query = toQuery(options.query, options.variables);
+    return this._queryable.evict(query);
   }
 }
