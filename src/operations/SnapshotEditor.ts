@@ -401,8 +401,18 @@ export class SnapshotEditor {
               previousNodeValue = containerNode;
             }
             else {
-              // This payload is an array element
-              if (typeof prevPath[prevPath.length - 1] === 'number' && currentPayload === null) {
+              // If this is the prevPayload is a top element in the array and is null,
+              // just write out 'null' as an element instead of wrapping it in the object
+              // e.g
+              //    articles: [
+              //      null,  -> when visiting this element, selection will be 'title'
+              //      {
+              //        title: 10,
+              //        body: 'hello',
+              //      }
+              //    ]
+              // Snapshot values should be : [null, { title: 10, body: 'hello' }]
+              if (typeof prevPath[prevPath.length - 1] === 'number' && prevPayload === null) {
                 currentPath = [...prevPath];
               }
               else {
