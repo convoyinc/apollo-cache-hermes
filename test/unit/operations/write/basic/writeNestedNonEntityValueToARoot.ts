@@ -29,10 +29,10 @@ describe(`operations.write`, () => {
       const result = write(context, empty, rootValuesQuery, {
         bar: {
           value: 42,
-          prop1: "hello",
+          prop1: 'hello',
           prop2: {
             nestedProp1: 1000,
-            nestedProp2: "world",
+            nestedProp2: 'world',
           },
         },
       });
@@ -45,12 +45,12 @@ describe(`operations.write`, () => {
       expect(snapshot.get(QueryRootId)).to.deep.eq({
         bar: {
           value: 42,
-          prop1: "hello",
+          prop1: 'hello',
           prop2: {
             nestedProp1: 1000,
-            nestedProp2: "world",
+            nestedProp2: 'world',
           },
-        }, 
+        },
       });
     });
 

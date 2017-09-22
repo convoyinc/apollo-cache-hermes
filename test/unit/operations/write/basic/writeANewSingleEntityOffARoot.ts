@@ -28,7 +28,7 @@ describe(`operations.write`, () => {
       const result = write(context, empty, viewerQuery, {
         viewer: {
           id: 123,
-          name: 'Gouda'
+          name: 'Gouda',
         },
       });
       snapshot = result.snapshot;
@@ -39,7 +39,7 @@ describe(`operations.write`, () => {
       expect(snapshot.get(QueryRootId)).to.deep.eq({
         viewer: {
           id: 123,
-          name: 'Gouda'
+          name: 'Gouda',
         },
       });
     });

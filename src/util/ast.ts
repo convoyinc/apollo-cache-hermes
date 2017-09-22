@@ -71,25 +71,25 @@ export type VariableValue = (node: VariableNode) => any;
  */
 export function valueFromNode(node: ValueNode, onVariable: VariableValue = _defaultValueFromVariable): any {
   switch (node.kind) {
-  case 'Variable':
-    return onVariable(node);
-  case 'NullValue':
-    return null;
-  case 'IntValue':
-    return parseInt(node.value);
-  case 'FloatValue':
-    return parseFloat(node.value);
-  case 'ListValue':
-    return node.values.map(v => valueFromNode(v, onVariable));
-  case 'ObjectValue': {
-    const value = {};
-    for (const field of node.fields) {
-      value[field.name.value] = valueFromNode(field.value, onVariable);
+    case 'Variable':
+      return onVariable(node);
+    case 'NullValue':
+      return null;
+    case 'IntValue':
+      return parseInt(node.value);
+    case 'FloatValue':
+      return parseFloat(node.value);
+    case 'ListValue':
+      return node.values.map(v => valueFromNode(v, onVariable));
+    case 'ObjectValue': {
+      const value = {};
+      for (const field of node.fields) {
+        value[field.name.value] = valueFromNode(field.value, onVariable);
+      }
+      return value;
     }
-    return value;
-  }
-  default:
-    return node.value;
+    default:
+      return node.value;
   }
 }
 

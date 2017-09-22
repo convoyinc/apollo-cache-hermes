@@ -341,7 +341,7 @@ describe(`operations.write`, () => {
     });
 
     describe(`cyclic values in payloads`, () => {
-      let cyclicQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>
+      let cyclicQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         cyclicQuery = query(`{
           foo {

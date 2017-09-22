@@ -33,7 +33,7 @@ describe(`operations.read`, () => {
       foo.bar = bar;
 
       const { snapshot } = write(context, empty, cyclicQuery, { foo, baz: null });
-      readResult = read(context, cyclicQuery, snapshot)
+      readResult = read(context, cyclicQuery, snapshot);
     });
 
     it(`verify that read result is complete`, () => {
@@ -46,15 +46,15 @@ describe(`operations.read`, () => {
       const foo = {
         id: 0,
         name: 'Foo',
-      }
+      };
       const bar = {
         id: 1,
         name: 'Bar',
         fizz: null,
         buzz: null,
-        foo
-      }
-      foo["bar"] = bar;
+        foo,
+      };
+      foo['bar'] = bar;
 
       expect(readResult.result).to.deep.eq({ foo });
     });

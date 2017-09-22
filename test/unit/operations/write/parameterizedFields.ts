@@ -478,7 +478,7 @@ describe(`operations.write`, () => {
       it(`allows removal of values containing a field`, () => {
         const updated = write(context, snapshot, nestedQuery, {
           one: {
-            two: null
+            two: null,
           },
         }).snapshot;
 
@@ -581,10 +581,10 @@ describe(`operations.write`, () => {
         // parameterized fields.
         expect(snapshot.get(parameterizedRootId)).to.deep.eq([
           {
-            three: { id: 31 }
+            three: { id: 31 },
           },
           {
-            three: { id: 32 }
+            three: { id: 32 },
           },
         ]);
       });
@@ -592,7 +592,7 @@ describe(`operations.write`, () => {
       it(`allows removal of values containing a field`, () => {
         const updated = write(context, snapshot, nestedQuery, {
           one: {
-            two: null
+            two: null,
           },
         }).snapshot;
 
@@ -678,7 +678,7 @@ describe(`operations.write`, () => {
             three: {
               threeValue: 'second',
             },
-          }
+          },
         ]);
       });
 

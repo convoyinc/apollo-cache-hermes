@@ -105,7 +105,7 @@ describe(`operations.write`, () => {
           );
         });
 
-        it (`check there is only one entity node, RootQuery`, () => {
+        it(`check there is only one entity node, RootQuery`, () => {
           expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
         });
       });

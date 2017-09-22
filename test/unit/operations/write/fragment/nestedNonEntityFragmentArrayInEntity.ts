@@ -47,18 +47,18 @@ describe(`operations.write`, () => {
               createAt: '10/01',
               title: 'Hello',
               details: {
-                body: "Hello - body",
-                ref: "Hello-ref",
-              }
+                body: 'Hello - body',
+                ref: 'Hello-ref',
+              },
             },
             {
               createAt: '10/02',
               title: null,
               details: {
-                body: "world - body",
+                body: 'world - body',
                 ref: null
                 ,
-              }
+              },
             },
           ],
         },
@@ -77,18 +77,18 @@ describe(`operations.write`, () => {
               createAt: '10/01',
               title: 'Hello',
               details: {
-                body: "Hello - body",
-                ref: "Hello-ref",
-              }
+                body: 'Hello - body',
+                ref: 'Hello-ref',
+              },
             },
             {
               createAt: '10/02',
               title: null,
               details: {
-                body: "world - body",
+                body: 'world - body',
                 ref: null
                 ,
-              }
+              },
             },
           ],
         },
@@ -104,18 +104,18 @@ describe(`operations.write`, () => {
             createAt: '10/01',
             title: 'Hello',
             details: {
-              body: "Hello - body",
-              ref: "Hello-ref",
-            }
+              body: 'Hello - body',
+              ref: 'Hello-ref',
+            },
           },
           {
             createAt: '10/02',
             title: null,
             details: {
-              body: "world - body",
+              body: 'world - body',
               ref: null
               ,
-            }
+            },
           },
         ],
       });

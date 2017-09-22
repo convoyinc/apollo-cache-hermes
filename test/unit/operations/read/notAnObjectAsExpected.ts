@@ -22,7 +22,7 @@ describe(`operations.read`, () => {
         type
       }
     }
-  }`)
+  }`);
 
   describe.skip(`not an object as expected`, () => {
 
@@ -35,7 +35,7 @@ describe(`operations.read`, () => {
             driver: {
               name: 'Joe',
               id: 'Joe-d1',
-              messages: "string",
+              messages: 'string',
             },
             stopEtaSummary: [
               {
@@ -45,8 +45,8 @@ describe(`operations.read`, () => {
               {
                 id: 'eta1',
                 type: 'warning',
-              }
-            ]
+              },
+            ],
           },
           {
             id: '1',
@@ -62,16 +62,18 @@ describe(`operations.read`, () => {
                 id: 'eta0',
                 type: 'warning',
               },
-            ]
+            ],
           },
         ],
       }).snapshot;
     });
 
     it(`verify that error is reported`, () => {
-      expect(() => { read(context, shipmentsQuery, snapshot) }).to.throw(
+      expect(() => {
+        read(context, shipmentsQuery, snapshot);
+      }).to.throw(
         `Hermes Error: At field-"messages",\n  expected an object or array as a payload but get ""string""`);
-    })
+    });
 
 
     it(`verify that read result is complete`, () => {
@@ -83,7 +85,7 @@ describe(`operations.read`, () => {
         shipments: [
           {
             id: '0',
-            driver: null, 
+            driver: null,
             stopEtaSummary: [
               {
                 id: 'eta0',
@@ -92,8 +94,8 @@ describe(`operations.read`, () => {
               {
                 id: 'eta1',
                 type: 'warning',
-              }
-            ]
+              },
+            ],
           },
           {
             id: '1',
@@ -109,8 +111,8 @@ describe(`operations.read`, () => {
                 id: 'eta0',
                 type: 'warning',
               },
-            ]
-          }, 
+            ],
+          },
         ],
       });
     });

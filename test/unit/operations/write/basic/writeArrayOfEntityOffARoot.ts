@@ -29,11 +29,11 @@ describe(`operations.write`, () => {
         viewer: [
           {
             id: 123,
-            name: 'Gouda'
+            name: 'Gouda',
           },
           {
             id: 456,
-            name: 'Brie'
+            name: 'Brie',
           },
         ],
       });
@@ -46,11 +46,11 @@ describe(`operations.write`, () => {
         viewer: [
           {
             id: 123,
-            name: 'Gouda'
+            name: 'Gouda',
           },
           {
             id: 456,
-            name: 'Brie'
+            name: 'Brie',
           },
         ],
       });
@@ -90,7 +90,7 @@ describe(`operations.write`, () => {
 
     it(`records the outbound and inbound reference from the query root`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.deep.eq([ { id: '123', path: ['viewer', 0] }, { id: '456', path: ['viewer', 1] } ]);
+      expect(queryRoot.outbound).to.deep.eq([{ id: '123', path: ['viewer', 0] }, { id: '456', path: ['viewer', 1] }]);
       expect(queryRoot.inbound).to.eq(undefined);
     });
 

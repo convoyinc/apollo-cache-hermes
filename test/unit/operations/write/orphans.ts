@@ -169,7 +169,7 @@ describe(`operations.write`, () => {
       const result = write(context, baseline, subgraphQuery, {
         foo: {
           id: 1,
-          two: null
+          two: null,
         },
         bar: null,
       });
@@ -205,7 +205,7 @@ describe(`operations.write`, () => {
         foo: {
           id: 1,
           name: 'Foo',
-          two: null
+          two: null,
         },
         bar: null,
       });

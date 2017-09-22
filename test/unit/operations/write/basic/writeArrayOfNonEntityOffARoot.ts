@@ -29,11 +29,11 @@ describe(`operations.write`, () => {
         viewer: [
           {
             postal: 123,
-            name: 'Gouda'
+            name: 'Gouda',
           },
           {
             postal: 456,
-            name: 'Brie'
+            name: 'Brie',
           },
         ],
       });
@@ -46,11 +46,11 @@ describe(`operations.write`, () => {
         viewer: [
           {
             postal: 123,
-            name: 'Gouda'
+            name: 'Gouda',
           },
           {
             postal: 456,
-            name: 'Brie'
+            name: 'Brie',
           },
         ],
       });
@@ -64,7 +64,7 @@ describe(`operations.write`, () => {
       const queryRoot = snapshot.get(QueryRootId);
       expect(queryRoot.viewer[0]).to.deep.eq({
         postal: 123,
-        name: 'Gouda'
+        name: 'Gouda',
       });
     });
 

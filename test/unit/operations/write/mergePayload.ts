@@ -57,7 +57,7 @@ describe(`operations.write`, () => {
       it(`baseline's queryRoot has unmodified value`, () => {
         expect(baseline.get(QueryRootId)).to.deep.eq({
           foo: { id: 1, name: 'Foo' },
-          bar: { id: 2, name: 'Bar', extra: null},
+          bar: { id: 2, name: 'Bar', extra: null },
         });
       });
     });

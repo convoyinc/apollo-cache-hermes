@@ -56,7 +56,7 @@ describe(`operations.write`, () => {
           address: {
             city: 'seattle',
             postal: '98090',
-          }, 
+          },
         },
       });
     });

@@ -22,7 +22,7 @@ describe(`operations.read`, () => {
         type
       }
     }
-  }`)
+  }`);
 
   describe.skip(`incomplete payload`, () => {
 
@@ -50,9 +50,9 @@ describe(`operations.read`, () => {
               {
                 id: 'eta1',
                 type: 'warning',
-              }
+              },
             ],
-            extraProp: "Oh mind!",
+            extraProp: 'Oh mind!',
           },
           {
             id: '1',
@@ -71,7 +71,7 @@ describe(`operations.read`, () => {
             ],
           },
           {
-            extraObject: "WAT!!!",
+            extraObject: 'WAT!!!',
             driver: {
             },
           },
@@ -105,8 +105,8 @@ describe(`operations.read`, () => {
               {
                 id: 'eta1',
                 type: 'warning',
-              }
-            ]
+              },
+            ],
           },
           {
             id: '1',
@@ -122,7 +122,7 @@ describe(`operations.read`, () => {
                 id: 'eta0',
                 type: 'warning',
               },
-            ]
+            ],
           },
           {
             id: null,
@@ -132,7 +132,7 @@ describe(`operations.read`, () => {
               messages: null,
             },
             stopEtaSummary: null,
-          }
+          },
         ],
       });
     });
