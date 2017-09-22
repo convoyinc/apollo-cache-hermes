@@ -17,7 +17,7 @@ describe(`context.CacheContext`, () => {
       let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
-        query getViwer($id:ID!) {
+        query getViewer($id:ID!) {
           viewer(id:$id) {
             id
             name
@@ -367,7 +367,7 @@ describe(`context.CacheContext`, () => {
       let viewerQuery: Query, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
-        query getViwer($id:ID!) {
+        query getViewer($id:ID!) {
           viewer(id:$id) {
             id
             name

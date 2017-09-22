@@ -220,7 +220,7 @@ export class SnapshotEditor {
           //
           // Thus, when the prevPath is undefined indicating that
           // we just reenter the function with parameterized
-          // containerId, we can look directly for prevsousNodeValue.
+          // containerId, we can look directly for previousNodeValue.
           // For non-parameterized, we will have to do redirection.
           let previousNodeValue: JsonValue | undefined;
           let currentPath: PathPart[];
@@ -294,7 +294,7 @@ export class SnapshotEditor {
           if (currentPayload === undefined) {
           // The currentPayload doesn't have the value.
           // Look into containerNode (which can be previous snapshot)
-          // for possible reuse value. We explictily check for undefined
+          // for possible reuse value. We explicitly check for undefined
           // as it indicates that the value doesn't exist.
             currentPayload = previousNodeValue !== undefined
               ? previousNodeValue : null;
@@ -315,7 +315,7 @@ export class SnapshotEditor {
                 nextNodeId: undefined,
               });
             }
-            // We intensionally do not deep copy the nodeValue as Apollo will
+            // We intentionally do not deep copy the nodeValue as Apollo will
             // then perform Object.freeze anyway. So any change in the payload
             // value afterward will be reflect in the graph as well.
             //
@@ -341,8 +341,8 @@ export class SnapshotEditor {
               ? currentDynamicFieldMap.children : currentDynamicFieldMap;
 
             if (Array.isArray(currentPayload)) {
-            // TODO(yuisu): check consistentcy in the array. e.g all element are
-            // enetity or non-entity
+              // TODO(yuisu): check consistency of the array.  E.g all elements
+              // are entities, or none are.
               const payloadLength = currentPayload.length;
               const previousLength = Array.isArray(previousNodeValue)
                 ? previousNodeValue.length : -1;
@@ -414,7 +414,7 @@ export class SnapshotEditor {
             let nextNodeId = entityIdOfCurrentPayload;
 
             if (nextNodeId || previousNodeId) {
-            // TODO(yuisu): error when there is an inconsitent of being entity
+            // TODO(yuisu): error when there is an inconsistent of being entity
             // between new node and previous node
               if (!nextNodeId && prevPayload) {
                 nextNodeId = previousNodeId;
@@ -442,7 +442,7 @@ export class SnapshotEditor {
                   referenceEdits
               );
             } else {
-            // CurrentPayload isnot an entity so we didn't reset the path
+            // CurrentPayload is not an entity so we didn't reset the path
               this._walkSelectionSets(
                 selection.selectionSet,
                 currentPayload,

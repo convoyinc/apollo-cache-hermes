@@ -107,7 +107,7 @@ describe(`operations.write`, () => {
       expect(snapshot.get(QueryRootId).foo[0]).to.deep.eq({ value: -1 });
     });
 
-    it(`no mergeing of new values in array elements as we copy leaf value`, () => {
+    it(`no merging of new values in array elements as we copy leaf value`, () => {
       expect(snapshot.get(QueryRootId).foo[1]).to.deep.eq({ extra: true });
     });
 
@@ -147,7 +147,7 @@ describe(`operations.write`, () => {
       expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
     });
 
-    it(`previous vaersions still have original value`, () => {
+    it(`previous versions still have original value`, () => {
       expect(baseline.get(QueryRootId)).to.deep.eq({
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar' },

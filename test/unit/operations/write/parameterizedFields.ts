@@ -554,7 +554,7 @@ describe(`operations.write`, () => {
         expect(entry2.inbound).to.have.deep.members([{ id: entityId2, path: ['four'] }]);
       });
 
-      it(`references the paramterized field children from the parent entity`, () => {
+      it(`references the parameterized field children from the parent entity`, () => {
         const entity1 = snapshot.getNodeSnapshot(entityId1)!;
         expect(entity1.outbound).to.have.deep.members([
           { id: parameterizedIdInEntity1, path: ['four'] },

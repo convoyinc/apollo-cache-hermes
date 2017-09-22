@@ -36,7 +36,7 @@ export class QueryInfo {
   public readonly fragmentMap: FragmentMap;
   /**
    * The field map for the document, if there are any dynamic features: alias,
-   * parameterized arguments, directive. This fieldmap is a raw filed map with
+   * parameterized arguments, directive. This field map is a raw filed map with
    * NO variables substituted.
    */
   public readonly rawDynamicFieldMap?: DynamicFieldMapWithVariables;
