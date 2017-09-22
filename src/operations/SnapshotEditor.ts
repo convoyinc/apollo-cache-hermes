@@ -297,18 +297,13 @@ export class SnapshotEditor {
   /**
    * A helper function that will walk query selection sets recursively and write values into
    * the graph snapshot.
-   *
-   * @param currentGraphqlNode a current graphql selection node we are visiting
-   * @param prevPayload a JSON payload with the shape matching current graphql node
-   * @param prevPath a array of PathPart that lead to current graphql selection
-   * @param prevDynamicFieldMap
-   * @param originalContainerId
-   * @param fragmentsMap
-   * @param referenceEdits
    */
   private _walkSelectionSets(
+    // a current graphql selection node we are visiting
     currentGraphqlNode: SelectionSetNode,
+    // a JSON payload with the shape matching current graphql node
     prevPayload: JsonValue,
+    // a array of PathPart that lead to current graphql selection
     prevPath: PathPart[],
     prevDynamicFieldMap: DynamicFieldMap | undefined,
     originalContainerId: string,
