@@ -1,4 +1,3 @@
-/* eslint-disable class-methods-use-this */
 import { ApolloCache, Cache, Transaction } from 'apollo-cache';
 
 import { CacheTransaction } from '../CacheTransaction';
