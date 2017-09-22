@@ -11,10 +11,12 @@ describe(`operations.write`, () => {
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
   const rootValuesQuery = query(`{
-    bar {
-      value
-      prop1
-      prop2
+    foo {
+      bar {
+        value
+        prop1
+        prop2
+      }
     }
   }`);
 
@@ -22,9 +24,11 @@ describe(`operations.write`, () => {
     it(`creates the query root, with the values`, () => {
       expect(() => {
         write(context, empty, rootValuesQuery, {
-          bar: 'THIS IS A STRING NOT OBJECT',
+          foo: {
+            bar: 'THIS IS A STRING NOT OBJECT',
+          },
         });
-      }).to.throw(`Hermes Error: At field-"bar",\n  expected an object or array as a payload but get ""THIS IS A STRING NOT OBJECT""`);
+      }).to.throw(/scalar.*foo\.bar/);
     });
   });
 

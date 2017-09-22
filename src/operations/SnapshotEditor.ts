@@ -331,9 +331,8 @@ export class SnapshotEditor {
           // an error if it isn't.
 
             if (isScalar(currentPayload)) {
-            // TODO(yuisu): sentry? should we continue and just write null ?
-              throw new Error(`Hermes Error: At field-"${payloadKey}",
-  expected an object or array as a payload but get "${JSON.stringify(currentPayload)}"`);
+              const path = `${[...prevPath, payloadKey].join('.')}`;
+              throw new Error(`Received a scalar value for a field that should be a complex object at ${path}`);
             }
 
             // It is still possible to be a DynamicField in the case of alias
