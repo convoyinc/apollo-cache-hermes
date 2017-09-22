@@ -12,7 +12,8 @@ trap 'trap - SIGTERM && kill 0' SIGINT SIGTERM EXIT
 tsc_fifo=$(mktemp -u)
 mkfifo "${tsc_fifo}"
 
-run compile -- --watch >"${tsc_fifo}" 2>&1 &
+run clean
+run compile --watch >"${tsc_fifo}" 2>&1 &
 while read -r line; do
   echo "${line}"
   if [[ "${line}" =~ "Compilation complete" ]]; then
@@ -23,4 +24,4 @@ done <"${tsc_fifo}"
 cat "${tsc_fifo}" >&1 &
 
 # Let jest own our process & stdin.
-run test:unit -- --watch --notify
+run test:unit --watch --notify
