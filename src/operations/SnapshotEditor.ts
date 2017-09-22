@@ -469,8 +469,8 @@ export class SnapshotEditor {
           );
           break;
         }
-        case 'InlineFragment': {
-          this._context.warn(`Hermes Error: InlineFragment is not yet support`);
+        default: {
+          this._context.warn(`${selection.kind} selection set nodes are not supported`);
           break;
         }
       }
