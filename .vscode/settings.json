@@ -15,5 +15,6 @@
   "eslint.validate": [
     "typescript",
     "typescriptreact"
-  ]
+  ],
+  "todohighlight.keywordsPattern": "TODO(\\(\\w+\\))?:"
 }
