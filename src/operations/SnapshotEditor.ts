@@ -131,7 +131,7 @@ export class SnapshotEditor {
    * A helper function that will walk query selection sets recursively and write
    * values into the graph snapshot.
    *
-   * TODO(yuisu): consider nest this function into
+   * TODO(yuisu): consider nesting this function into
    * _mergePayloadValuesUsingSelectionSetAsGuide
    */
   private _walkSelectionSets(
@@ -152,22 +152,20 @@ export class SnapshotEditor {
     for (const selection of currentGraphqlNode.selections) {
       let currentContainerId = originalContainerId;
       switch (selection.kind) {
+        // If this is a leaf node (no child selection set), the payload's value
+        // is treated as a raw value of the graph (even if it's an object).
+        //
+        // Otherwise, we walk the child selections.
         case 'Field': {
-          /**
-           * if there is no sub-selectionSet, threat the value as leaf and just
-           * point to the payload value. if there exist a child, walk the
-           * sub-selectionSet
-           */
-
-          // TODO(yuisu): should we be worry about both alias and real field
-          // name have payload value?
+          // TODO(yuisu): should we be worried about cases where there are
+          // payload values for both the aliased name and the real name?
           const cacheKey = selection.name.value;
           const payloadKey = selection.alias ? selection.alias.value : cacheKey;
           let currentPayload = prevPayload === null ? prevPayload : prevPayload[payloadKey];
           const currentDynamicFieldMap = get(prevDynamicFieldMap, payloadKey);
 
-          // For non-parameterized field, we simply append current cacheKey to
-          // create a new path to the field.
+          // For static fields, we append the current cacheKey to create a new
+          // path to the field.
           //
           //   user: {
           //     name: 'Bob',   -> newPath: ['user', 'name']
@@ -179,12 +177,12 @@ export class SnapshotEditor {
           //       id: 0,       -> newPath: ['id']
           //       prop1: 'hi'  -> newPath: ['prop1']
           //     },
-          //     prevAddress: [
+          //     history: [
           //       {
-          //         postal: 123 -> newPath: ['user', 'prevAddress', 0, postal]
+          //         postal: 123 -> newPath: ['user', 'history', 0, 'postal']
           //       },
           //       {
-          //         postal: 456 -> newPath: ['user', 'prevAddress', 1, postal]
+          //         postal: 456 -> newPath: ['user', 'history', 1, 'postal']
           //       }
           //     ],
           //     phone: [
@@ -194,16 +192,37 @@ export class SnapshotEditor {
           //   },
           //
 
-          // A parameterized graph node, the node-value under the
-          // parameterized key will be a direct reference to a
-          // node value of the corresponding entity GraphNodeSnapshot.
-          // e.g.
-          //   'ROOT_QUERY❖["foo"]❖{"id":1,"withExtra":true}'
-          //     (node value is a direct reference to node value at key '1')
-          //   1: { id: 1, ...}
-          // This is because parameterized key can only have one value so
-          // there is no need to store another indirection like
-          // non-parameterized node
+          // Something to keep in mind is that parameterized nodes (instances of
+          // ParameterizedValueSnapshot) can have direct references to an
+          // entity node's value.
+          //
+          // For example, with the query:
+          //
+          //   foo(id: 1) { id, name }
+          //
+          // The cache would have:
+          //
+          //   1: {
+          //     node: { id: 1, name: 'Foo' },
+          //   },
+          //   'ROOT_QUERY❖["foo"]❖{"id":1}': {
+          //     node: // a direct reference to the node of entity '1'.
+          //   },
+          //
+          // This allows us to rely on standard behavior for entity references:
+          // If node '1' is edited, the parameterized node must also be edited.
+          // Similarly, the parameterized node contains an outbound reference to
+          // the entity node, for garbage collection.
+
+          // TODO(yuisu): ianm is confused by this comment, and doesn't follow:
+          //
+          //   * for any regular (entity) node, the value of its `node` property
+          //     is an object - but that object can refer to any type of value
+          //     in its keys (keys 1 & 2 can be scalars in your example below)
+          //
+          //   * I'm confused about the use of undefined for previousNodeValue.
+          //
+          // ---
           //
           // A non-parameterized graph node, the node-value under the
           // RootQueryId will be an object in which each key is the
@@ -224,7 +243,7 @@ export class SnapshotEditor {
           // For non-parameterized, we will have to do redirection.
           let previousNodeValue: JsonValue | undefined;
           let currentPath: PathPart[];
-          // If it is parameterized edge, we will want to reprocess it first
+          // If it is parameterized field, we will want to reprocess it first
           // so that we can set container ID to be parameterized container ID.
           const isParameterizedField = isDynamicFieldWithArgs(currentDynamicFieldMap);
           if (isParameterizedField) {
@@ -233,12 +252,15 @@ export class SnapshotEditor {
               [...prevPath, cacheKey],
               currentDynamicFieldMap
             );
-            // We reset the path to current field because parameterized
-            // field is its own entity node in the graph.
+            // We reset the path to current field because parameterized fields
+            // are explicit nodes in the graph.
             //
-            // If the current parameterized field is a leaf, we will store
-            // the value directly on the node because the parameterized key
-            // is unique to a particular value.  E.g.
+            // TODO(ianm): This isn't specific to parameterized fields.  We want
+            // this behavior for entity nodes, too.
+            //
+            // If the current parameterized field is a leaf, we will store the
+            // value directly on the node because the parameterized key is
+            // unique to a particular value.  E.g.
             //
             //   message(count: $count) -> newPath = []
             //     detailMessage(count: $count) {
@@ -251,19 +273,22 @@ export class SnapshotEditor {
             const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
             previousNodeValue = containerNode;
           } else {
-          // If this is the prevPayload is a top element in the array and is
-          // null, just write out 'null' as an element instead of wrapping it in
-          // the object.  E.g.
-          //
-          //   articles: [
-          //     null, -> selection will be 'title' when visiting this element
-          //     {
-          //       title: 10,
-          //       body: 'hello',
-          //     },
-          //   ],
-          //
-          // Snapshot values should be : [null, { title: 10, body: 'hello' }]
+            // TODO(ianm): Can we handle missing/null values sooner, so we're
+            // not special casing prevPath & currentPath like this?
+            //
+            // If the prevPayload value is a top element in the array and is
+            // null, just write out 'null' as an element instead of wrapping it
+            // in the object.  E.g.
+            //
+            //   articles: [
+            //     null, -> selection will be 'title' when visiting this element
+            //     {
+            //       title: 10,
+            //       body: 'hello',
+            //     },
+            //   ],
+            //
+            // Snapshot values should be : [null, { title: 10, body: 'hello' }]
             if (typeof prevPath[prevPath.length - 1] === 'number' && prevPayload === null) {
               currentPath = [...prevPath];
             } else {
@@ -304,9 +329,9 @@ export class SnapshotEditor {
           // selection sets just reference payload value in the graph snapshot
           // node.
           if (currentPayload === null || !selection.selectionSet) {
-          // Fix references. See: orphan node tests on "orphan a subgraph"
-          // The new value is null and the old value is an entity. We will
-          // want to remove reference to such entity
+            // Fix references. See: orphan node tests on "orphan a subgraph"
+            // The new value is null and the old value is an entity. We will
+            // want to remove reference to such entity
             if (previousNodeId) {
               referenceEdits.push({
                 containerId: currentContainerId,
@@ -323,13 +348,10 @@ export class SnapshotEditor {
             // always write to cache using real field name rather than alias
             // name.
             this._setValue(currentContainerId, currentPath, currentPayload);
-          } else if (selection.selectionSet) {
-          // This field contains nested selectionSet so recursively walking the
-          // sub-selectionSets. We expect to have an object or an array as a
-          // payload value. If not, the payload cannot have matching shape as
-          // the sub-selectionSets. Check if payload is a object or array, throw
-          // an error if it isn't.
 
+          // This field contains other fields; so we are not concerned with its
+          // direct values, and instead walk into it.
+          } else if (selection.selectionSet) {
             if (isScalar(currentPayload)) {
               const path = `${[...prevPath, payloadKey].join('.')}`;
               throw new Error(`Received a scalar value for a field that should be a complex object at ${path}`);
@@ -340,8 +362,8 @@ export class SnapshotEditor {
               ? currentDynamicFieldMap.children : currentDynamicFieldMap;
 
             if (Array.isArray(currentPayload)) {
-              // TODO(yuisu): check consistency of the array.  E.g all elements
-              // are entities, or none are.
+              // TODO(yuisu): consider checking the consistency of the array.
+              // E.g all elements are entities, or none are.
               const payloadLength = currentPayload.length;
               const previousLength = Array.isArray(previousNodeValue)
                 ? previousNodeValue.length : -1;
@@ -364,9 +386,9 @@ export class SnapshotEditor {
                 const elementPath = [...currentPath];
                 elementPath.push(idx);
 
-                // If an element in an array is 'undefined' (sparse array) or
-                // 'null' (holes), we want to simply write out null in the
-                // newArray otherwise recurse so we patch up an existed array.
+                // If an element in an array is `null`, `undefined`, or is
+                // missing (sparse array) we write it as `null`. Otherwise
+                // recurse so we patch up an existed array.
                 //
                 // For example see: "treats blanks in sparse arrays as null" and
                 // "returns the selected values, overlaid on the underlying
@@ -413,8 +435,9 @@ export class SnapshotEditor {
             let nextNodeId = entityIdOfCurrentPayload;
 
             if (nextNodeId || previousNodeId) {
-            // TODO(yuisu): error when there is an inconsistent of being entity
-            // between new node and previous node
+            // TODO(yuisu): Throw an error when there was previously an entity
+            // but the new payload value is not one; as well as when there is
+            // a previous value and the new value is an entity.
               if (!nextNodeId && prevPayload) {
                 nextNodeId = previousNodeId;
               }
