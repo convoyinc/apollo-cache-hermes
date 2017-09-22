@@ -11,6 +11,7 @@ parserOptions:
 plugins:
   - eslint-comments
   - import
+  - jest
   - typescript
 
 settings:
@@ -203,3 +204,8 @@ rules:
   # https://github.com/mysticatea/eslint-plugin-eslint-comments#rules
 
   eslint-comments/no-use: [error, { allow: [eslint-disable-line, eslint-disable-next-line] }]
+
+  # https://github.com/facebook/jest/tree/master/packages/eslint-plugin-jest#supported-rules
+
+  jest/no-focused-tests: error
+  jest/no-identical-title: error
