@@ -6,7 +6,7 @@ import { CacheContext } from '../context';
 import { DynamicField, DynamicFieldWithArgs, DynamicFieldMap, isDynamicFieldWithArgs } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
-import { JsonObject, JsonValue, PathPart, JsonScalar, NestedObject } from '../primitive';
+import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
   FragmentMap,
@@ -17,7 +17,6 @@ import {
   isScalar,
   lazyImmutableDeepSet,
   removeNodeReference,
-  walkPayload,
   get,
 } from '../util';
 
@@ -28,16 +27,6 @@ export interface EditedSnapshot {
   snapshot: GraphSnapshot;
   editedNodeIds: Set<NodeId>;
   writtenQueries: Set<ParsedQuery>;
-}
-
-/**
- * Used when walking payloads to merge.
- */
-interface MergeQueueItem {
-  containerId: NodeId;
-  containerPayload: JsonObject;
-  visitRoot: boolean;
-  fields: DynamicField | DynamicFieldMap | undefined;
 }
 
 /**
@@ -103,7 +92,7 @@ export class SnapshotEditor {
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
     // const { referenceEdits } = this._mergePayloadValues(parsed, payload);this._mergePayloadValuesUsingSelectionSetAsGuide;
-    const { referenceEdits } = this._mergePayloadValuesUsingSelectionSetAsGuide(parsed, payload); this._mergePayloadValues;
+    const { referenceEdits } = this._mergePayloadValuesUsingSelectionSetAsGuide(parsed, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -123,160 +112,6 @@ export class SnapshotEditor {
 
     // The query should now be considered complete for future reads.
     this._writtenQueries.add(parsed);
-  }
-
-  /**
-   * Walk `payload`, and for all changed values (vs the parent), constructs new
-   * versions of those nodes, including the new values.
-   *
-   * All edits are performed on new (shallow) copies of the parent's nodes,
-   * preserving their immutability, while copying the minimum number of objects.
-   *
-   * Note that edited references are only collected, not applied.  They are
-   * returned to be applied in a second pass (`_mergeReferenceEdits`), once we
-   * can guarantee that all edited nodes have been built.
-   */
-  private _mergePayloadValues(query: ParsedQuery, fullPayload: JsonObject) {
-    const { entityIdForNode } = this._context;
-
-    const queue: MergeQueueItem[] = [{
-      containerId: query.rootId,
-      containerPayload: fullPayload,
-      visitRoot: false,
-      fields: query.dynamicFieldMap,
-    }];
-    const referenceEdits: ReferenceEdit[] = [];
-    // We have to be careful to break cycles; it's ok for a caller to give us a
-    // cyclic payload.
-    const visitedNodes = new Set<object>();
-
-    while (queue.length) {
-      const { containerId, containerPayload, visitRoot, fields } = queue.pop()!;
-      const containerSnapshot = this.getNodeSnapshot(containerId);
-      const container = containerSnapshot ? containerSnapshot.node : undefined;
-
-      // Break cycles in referenced nodes from the payload.
-      if (!visitRoot) {
-        if (visitedNodes.has(containerPayload)) continue;
-        visitedNodes.add(containerPayload);
-      }
-      // Similarly, we need to be careful to break cycles _within_ a node.
-      const visitedPayloadValues = new Set<any>();
-
-      walkPayload(containerPayload, container, fields, visitRoot, (path, payloadValue, nodeValue, dynamicFields) => {
-        const payloadIsObject = isObject(payloadValue);
-        const nodeIsObject = isObject(nodeValue);
-        let nextNodeId = payloadIsObject ? entityIdForNode(payloadValue as JsonObject) : undefined;
-        const prevNodeId = nodeIsObject ? entityIdForNode(nodeValue as JsonObject) : undefined;
-        const isReference = nextNodeId || prevNodeId;
-        // TODO: Rather than failing on cycles in payload values, we should
-        // follow the query's selection set to know how deep to walk.
-        if (payloadIsObject && !isReference) {
-          // Don't re-visit payload values (e.g. cycles).
-          if (visitedPayloadValues.has(payloadValue)) {
-            const metadata = `Cycle encountered at ${JSON.stringify(path)} of node ${containerId}`;
-            throw new Error(`Cycles within non-entity values are not supported.  ${metadata}`);
-          }
-          visitedPayloadValues.add(payloadValue);
-        }
-
-        // Special case: If this is an array value, we DO NOT support writing
-        // sparse arrays; and GraphQL servers should be emitting null (by
-        // virtue of JSON as a transport).
-        if (payloadValue === undefined && typeof path[path.length - 1] === 'number') {
-          this._context.warn(
-            `Sparse arrays are not supported when writing.`,
-            `Treating blank as null in ${containerId} at ${path.join('.')}`,
-          );
-          payloadValue = null;
-        }
-
-        if (isDynamicFieldWithArgs(dynamicFields)) {
-          const fieldId = this._ensureParameterizedValueSnapshot(containerId, [...path], dynamicFields);
-          // We walk the values of the parameterized field like any other
-          // entity.
-          //
-          // EXCEPT: We re-visit the payload, in case it might _directly_
-          // reference an entity.  This allows us to build a chain of references
-          // where the parameterized value points _directly_ to a particular
-          // entity node.
-          queue.push({
-            containerId: fieldId,
-            containerPayload: payloadValue as JsonObject,
-            visitRoot: true,
-            fields: dynamicFields.children,
-          });
-
-          // Stop the walk for this subgraph.
-          return true;
-
-        // We've hit a reference.
-        } else if (prevNodeId || nextNodeId) {
-          // If we already know there is a node at this location, we can merge
-          // with it if no new identity was provided.
-          //
-          // TODO: Is this too forgiving?
-          if (!nextNodeId && payloadValue) {
-            nextNodeId = prevNodeId;
-          }
-
-          // The payload is now referencing a new entity.  We want to update it,
-          // but not until we've updated the values of our entities first.
-          if (prevNodeId !== nextNodeId) {
-            // We have spread "path" so that we pass in new array. "path" array
-            // will be mutated by walkPayload function.
-            referenceEdits.push({ containerId, path: [...path], prevNodeId, nextNodeId });
-          }
-
-          // Either we have a new value to merge, or we're clearing a reference.
-          // In both cases, _mergeReferenceEdits will take care of setting the
-          // value at this path.
-          //
-          // So, walk if we have new values, otherwise we're done for this
-          // subgraph.
-          if (nextNodeId) {
-            const nextFields = dynamicFields instanceof DynamicField ? dynamicFields.children : dynamicFields;
-            queue.push({ containerId: nextNodeId, containerPayload: payloadValue as JsonObject, visitRoot: false, fields: nextFields });
-          }
-          // Stop the walk for this subgraph.
-          return true;
-
-        // Arrays are a little special.  When present, we assume that the values
-        // contained within the array are the _full_ set of values.
-        } else if (Array.isArray(payloadValue)) {
-          const payloadLength = payloadValue.length;
-          const nodeLength = Array.isArray(nodeValue) && nodeValue.length;
-          // We will walk to each value within the array, so we do not need to
-          // process them yet; but because we update them by path, we do need to
-          // ensure that the updated entity's array has the same number of
-          // values.
-          if (nodeLength === payloadLength) return false;
-
-          // We will fill in the values as we walk, but we ensure that the
-          // length is accurate, so that we properly handle empty values (e.g. a
-          // value that contains only parameterized fields).
-          const newArray = Array.isArray(nodeValue) ? nodeValue.slice(0, payloadLength) : new Array(payloadLength);
-          this._setValue(containerId, path, newArray);
-
-        // All else we care about are updated scalar values.
-        } else if (isScalar(payloadValue) && payloadValue !== nodeValue) {
-          this._setValue(containerId, path, payloadValue);
-
-        // TODO: Rather than detecting empty objects directly (which should
-        // never occur for GraphQL results, and only for custom types), we
-        // should be walking the selection set of the query.
-        } else if (
-          payloadIsObject &&
-          !Object.keys((payloadValue as NestedObject<JsonScalar>)).length &&
-          (!nodeIsObject || Object.keys((payloadValue as NestedObject<JsonScalar>)).length)
-        ) {
-          this._setValue(containerId, path, payloadValue);
-        }
-        return false;
-      });
-    }
-
-    return { referenceEdits };
   }
 
   private _mergePayloadValuesUsingSelectionSetAsGuide(query: ParsedQuery, fullPayload: JsonObject) {
