@@ -9,6 +9,7 @@ parserOptions:
   comment: true # Until https://github.com/benmosher/eslint-plugin-import/issues/842
 
 plugins:
+  - eslint-comments
   - import
   - typescript
 
@@ -198,3 +199,7 @@ rules:
   typescript/no-triple-slash-reference: error
   typescript/no-unused-vars: error
   typescript/type-annotation-spacing: error
+
+  # https://github.com/mysticatea/eslint-plugin-eslint-comments#rules
+
+  eslint-comments/no-use: [error, { allow: [eslint-disable-line, eslint-disable-next-line] }]
