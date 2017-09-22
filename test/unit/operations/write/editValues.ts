@@ -330,6 +330,50 @@ describe(`operations.write`, () => {
       });
     });
 
+    it(`allows arrays to shrink`, () => {
+      const updated = write(silentContext, snapshot, arrayQuery, {
+        things: [
+          { id: 1, name: 'One' },
+          { id: 2, name: 'Two' },
+          { id: 3, name: 'Three' },
+        ] as JsonArray,
+      }).snapshot;
+
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
+        { id: '1', path: ['things', 0] },
+        { id: '2', path: ['things', 1] },
+        { id: '3', path: ['things', 2] },
+      ]);
+
+      expect(updated.get(QueryRootId)).to.deep.eq({
+        things: [
+          { id: 1, name: 'One' },
+          { id: 2, name: 'Two' },
+          { id: 3, name: 'Three' },
+        ],
+      });
+    });
+
+    it(`doesn't consider falsy values as blanks`, () => {
+      const updated = write(silentContext, snapshot, arrayQuery, {
+        things: [
+          false,
+          0,
+          '',
+          NaN, // TODO(ianm) SHOULD this be converted to null?
+        ] as JsonArray,
+      }).snapshot;
+
+      expect(updated.get(QueryRootId)).to.deep.eq({
+        things: [
+          false,
+          0,
+          '',
+          NaN,
+        ],
+      });
+    });
+
   });
 
 });
