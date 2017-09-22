@@ -12,7 +12,6 @@ trap 'trap - SIGTERM && kill 0' SIGINT SIGTERM EXIT
 tsc_fifo=$(mktemp -u)
 mkfifo "${tsc_fifo}"
 
-run clean
 run compile --watch >"${tsc_fifo}" 2>&1 &
 while read -r line; do
   echo "${line}"

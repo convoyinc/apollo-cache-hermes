@@ -3,4 +3,5 @@ set -e
 
 source ./scripts/include/node.sh
 
+run clean
 tsc "${@}"
