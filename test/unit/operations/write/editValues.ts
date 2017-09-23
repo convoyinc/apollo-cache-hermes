@@ -339,12 +339,6 @@ describe(`operations.write`, () => {
         ] as JsonArray,
       }).snapshot;
 
-      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
-        { id: '1', path: ['things', 0] },
-        { id: '2', path: ['things', 1] },
-        { id: '3', path: ['things', 2] },
-      ]);
-
       expect(updated.get(QueryRootId)).to.deep.eq({
         things: [
           { id: 1, name: 'One' },

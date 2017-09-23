@@ -361,18 +361,22 @@ export class SnapshotEditor {
             const childDynamicMap = currentDynamicFieldMap instanceof DynamicField
               ? currentDynamicFieldMap.children : currentDynamicFieldMap;
 
+            // TODO(yuisu): consider checking the consistency of the array.
+            // E.g all elements are entities, or none are.
             if (Array.isArray(currentPayload)) {
-              // TODO(yuisu): consider checking the consistency of the array.
-              // E.g all elements are entities, or none are.
               const payloadLength = currentPayload.length;
-              const previousLength = Array.isArray(previousNodeValue)
-                ? previousNodeValue.length : -1;
+              // TODO(ianm): should we throw an error if there was a previous
+              // value that is not an array? Or is that a valid type transition?
+              const previousLength = Array.isArray(previousNodeValue) ? previousNodeValue.length : -1;
 
-              let newArray: Array<JsonValue> | undefined;
+              // Note that even though we walk into arrays, we need to be
+              // careful to ensure that we don't leave stray values around if
+              // the new array is of a different length.
+              //
+              // So, we resize the array to our desired size before walking.
               if (payloadLength !== previousLength) {
-                newArray = Array.isArray(previousNodeValue)
-                  ? previousNodeValue.slice(0, previousLength) : new Array(payloadLength);
-
+                const newArray = Array.isArray(previousNodeValue)
+                  ? previousNodeValue.slice(0, payloadLength) : new Array(payloadLength);
                 this._setValue(currentContainerId, currentPath, newArray);
               }
 
@@ -382,19 +386,17 @@ export class SnapshotEditor {
                 const previousNodeAtIdx = get(previousNodeValue, idx);
                 const previousChildNodeId = isObject(previousNodeAtIdx)
                   ? this._context.entityIdForNode(previousNodeAtIdx) : undefined;
-
-                const elementPath = [...currentPath];
-                elementPath.push(idx);
+                const elementPath = [...currentPath, idx];
 
                 // If an element in an array is `null`, `undefined`, or is
                 // missing (sparse array) we write it as `null`. Otherwise
-                // recurse so we patch up an existed array.
+                // recurse so we can merge with any pre-existing values.
                 //
                 // For example see: "treats blanks in sparse arrays as null" and
                 // "returns the selected values, overlaid on the underlying
                 // data"
-                if (!element && newArray) {
-                  newArray[idx] = null;
+                if (!element) {
+                  this._setValue(currentContainerId, elementPath, null);
                 } else if (nextNodeId) {
                   this._walkSelectionSets(
                     selection.selectionSet,
