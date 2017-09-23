@@ -19,22 +19,19 @@ describe(`operations.write`, () => {
 
   describe(`non-entity object leaf-value to a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
-    let fooValue: {}, barValue: {};
     beforeAll(() => {
-      fooValue = {};
-      barValue = {
-        value: 'this is a bar',
-        extraProp: {
-          prop1: 100,
-          prop2: 200,
-        },
-        extraProp1: {
-          prop0: 'hello',
-        },
-      };
       const result = write(context, empty, rootValuesQuery, {
-        foo: fooValue,
-        bar: barValue,
+        foo: {},
+        bar: {
+          value: 'this is a bar',
+          extraProp: {
+            prop1: 100,
+            prop2: 200,
+          },
+          extraProp1: {
+            prop0: 'hello',
+          },
+        },
       });
 
       snapshot = result.snapshot;
@@ -52,26 +49,6 @@ describe(`operations.write`, () => {
           },
           extraProp1: {
             prop0: 'hello',
-          },
-        },
-      });
-    });
-
-    it(`check the query root after modify payload`, () => {
-      fooValue['addingMoreStuff'] = 42;
-      barValue['value'] = 'New value';
-      barValue['extraProp'] = {} as any;
-      barValue['extraProp1']['AddedProp'] = 'world';
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
-        foo: {
-          addingMoreStuff: 42,
-        },
-        bar: {
-          value: 'New value',
-          extraProp: {},
-          extraProp1: {
-            prop0: 'hello',
-            AddedProp: 'world',
           },
         },
       });
