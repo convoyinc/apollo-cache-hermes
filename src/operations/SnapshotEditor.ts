@@ -2,6 +2,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   SelectionSetNode,
 } from 'graphql';
 import deepFreeze = require('deep-freeze-strict');
+import lodashIsEqual = require('lodash.isequal');
 
 import { CacheContext } from '../context';
 import { DynamicField, DynamicFieldMap, DynamicFieldWithArgs, isDynamicFieldWithArgs } from '../DynamicField';
@@ -342,14 +343,19 @@ export class SnapshotEditor {
                 nextNodeId: undefined,
               });
             }
-            // We intentionally do not deep copy the nodeValue as Apollo will
-            // then perform Object.freeze anyway. So any change in the payload
-            // value afterward will be reflect in the graph as well.
-            //
-            // We use selection.name.value instead of payloadKey so that we
-            // always write to cache using real field name rather than alias
-            // name.
-            this._setValue(currentContainerId, currentPath, currentPayload);
+
+            // Note that we can perform a _deep_ equality check here, in cases
+            // where a leaf node is a complex object.
+            if (!lodashIsEqual(currentPayload, previousNodeValue)) {
+              // We intentionally do not deep copy the nodeValue as Apollo will
+              // then perform Object.freeze anyway. So any change in the payload
+              // value afterward will be reflect in the graph as well.
+              //
+              // We use selection.name.value instead of payloadKey so that we
+              // always write to cache using real field name rather than alias
+              // name.
+              this._setValue(currentContainerId, currentPath, currentPayload);
+            }
 
           // This field contains other fields; so we are not concerned with its
           // direct values, and instead walk into it.
