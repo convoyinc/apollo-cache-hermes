@@ -1,5 +1,6 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import lodashIsEqual = require('lodash.isequal');
+import lodashGet = require('lodash.get');
 
 import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
@@ -46,6 +47,13 @@ export namespace CacheContext {
      * write operation; an entity node is defined by `entityIdForNode`.
      */
     entityTransformer?: EntityTransformer;
+
+    /**
+     * Whether values in the graph should be frozen.
+     *
+     * Defaults to true unless process.env.NODE_ENV === 'production'
+     */
+    freeze?: boolean;
   }
 
 }
@@ -61,6 +69,9 @@ export class CacheContext {
   /** Run transformation on changed entity node, if any. */
   readonly entityTransformer: CacheContext.EntityTransformer | undefined;
 
+  /** Whether we should freeze snapshots after writes. */
+  readonly freezeSnapshots: boolean;
+
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
@@ -72,10 +83,15 @@ export class CacheContext {
   /** The logger we should use. */
   private readonly _logger: CacheContext.Logger;
 
+
   constructor(config: CacheContext.Configuration = {}) {
-    this._addTypename = config.addTypename || false;
     this.entityIdForNode = _makeEntityIdMapper(config.entityIdForNode);
     this.entityTransformer = config.entityTransformer;
+    this.freezeSnapshots = 'freeze' in config
+      ? !!config.freeze
+      : lodashGet(global, 'process.env.NODE_ENV') !== 'production';
+
+    this._addTypename = config.addTypename || false;
     this._logger = config.logger || {
       warn:  console.warn  ? console.warn.bind(console)  : console.log.bind(console), // eslint-disable-line no-console
       error: console.error ? console.error.bind(console) : console.log.bind(console), // eslint-disable-line no-console

@@ -34,6 +34,7 @@
   "devDependencies": {
     "@types/chai": "^4.0.1",
     "@types/chai-as-promised": "^7.1.0",
+    "@types/deep-freeze-strict": "^1.1.0",
     "@types/lodash": "^4.14.71",
     "@types/lodash.clonedeep": "^4.5.3",
     "@types/lodash.get": "^4.4.3",
@@ -43,6 +44,7 @@
     "chai-as-promised": "^7.1.1",
     "chai-jest-diff": "nevir/chai-jest-diff#built-member-assertions",
     "codecov": "^2.2.0",
+    "deep-freeze-strict": "^1.1.1",
     "eslint": "^4.5.0",
     "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
     "eslint-plugin-typescript": "^0.7.0",

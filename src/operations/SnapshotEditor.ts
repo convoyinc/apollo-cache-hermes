@@ -1,6 +1,7 @@
 import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
   SelectionSetNode,
 } from 'graphql';
+import deepFreeze = require('deep-freeze-strict');
 
 import { CacheContext } from '../context';
 import { DynamicField, DynamicFieldMap, DynamicFieldWithArgs, isDynamicFieldWithArgs } from '../DynamicField';
@@ -603,8 +604,13 @@ export class SnapshotEditor {
       }
     }
 
+    const snapshot = new GraphSnapshot(snapshots);
+    if (this._context.freezeSnapshots) {
+      deepFreeze(snapshot);
+    }
+
     return {
-      snapshot: new GraphSnapshot(snapshots),
+      snapshot,
       editedNodeIds: this._editedNodeIds,
       writtenQueries: this._writtenQueries,
     };
