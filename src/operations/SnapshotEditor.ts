@@ -382,6 +382,8 @@ export class SnapshotEditor {
                 this._setValue(currentContainerId, currentPath, newArray);
               }
 
+              // TODO(ianm): Much of this logic overlaps with above.  Needs to
+              // be shared!
               for (let idx = 0; idx < payloadLength; ++idx) {
                 const element = currentPayload[idx];
                 const elementPath = [...currentPath, idx];
