@@ -323,24 +323,27 @@ describe(`operations.write`, () => {
     });
 
     it(`doesn't consider falsy values as blanks`, () => {
-      const { snapshot: baseSnapshot } = write(context, empty, arrayQuery, {
-        things: [1, 2, 3, 4, 5],
+      const { snapshot: baseSnapshot } = write(context, empty, valuesQuery, {
+        foo: [1, 2, 3, 4, 5],
+        bar: 1,
       });
 
-      const updated = write(context, baseSnapshot, arrayQuery, {
-        things: [
+      const updated = write(context, baseSnapshot, valuesQuery, {
+        foo: [
           false,
           0,
           '',
         ] as JsonArray,
+        bar: 0,
       }).snapshot;
 
       expect(updated.get(QueryRootId)).to.deep.eq({
-        things: [
+        foo: [
           false,
           0,
           '',
         ],
+        bar: 0,
       });
     });
 
