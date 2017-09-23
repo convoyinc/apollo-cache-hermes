@@ -84,4 +84,6 @@ workflows:
             - test:unit
           filters:
             branches:
-              only: master
+              only:
+                - master
+                - /v\d+\.\d+/

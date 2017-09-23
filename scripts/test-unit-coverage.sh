@@ -10,7 +10,7 @@ if [[ "${CI}" == "" ]]; then
   )
 fi
 
-run test:unit -- --coverage "${OPTIONS[@]}"
+run test:unit --coverage "${OPTIONS[@]}"
 
 if [[ "${CI}" == "" ]]; then
   open ./output/test:unit/index.html

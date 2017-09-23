@@ -15,8 +15,7 @@ parse_version() {
 end_script
 }
 
-# Ensure a clean build
-run clean
+# Ensure a fresh build
 run compile
 
 # Make sure we have all tags available

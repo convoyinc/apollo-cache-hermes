@@ -107,27 +107,15 @@ describe(`operations.write`, () => {
 
         const result = write(context, baseline, cyclicQuery, {
           foo: {
+            id: 1,
             bar: {
+              id: 2,
               name: 'Barrington',
             },
           },
         });
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
-      });
-
-      it(`doesn't mutate the previous version`, () => {
-        const foo = baseline.get('1');
-        const bar = baseline.get('2');
-
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
-
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
       });
 
       it(`fixes all references to the edited node`, () => {
@@ -151,7 +139,6 @@ describe(`operations.write`, () => {
     });
 
     describe(`when removing some inbound references`, () => {
-
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         const cyclicQuery = query(`{
@@ -183,7 +170,9 @@ describe(`operations.write`, () => {
 
         const result = write(context, baseline, cyclicQuery, {
           foo: {
+            id: 1,
             bar: {
+              id: 2,
               fizz: null,
               buzz: null,
             },
@@ -191,20 +180,6 @@ describe(`operations.write`, () => {
         });
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
-      });
-
-      it(`doesn't mutate the previous version`, () => {
-        const foo = baseline.get('1');
-        const bar = baseline.get('2');
-
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
-
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
       });
 
       it(`fixes all references to the edited node`, () => {
@@ -228,7 +203,6 @@ describe(`operations.write`, () => {
     });
 
     describe(`when orphaning a cyclic subgraph`, () => {
-
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         const cyclicQuery = query(`{
@@ -265,20 +239,6 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't mutate the previous version`, () => {
-        const foo = baseline.get('1');
-        const bar = baseline.get('2');
-
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
-
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
-      });
-
       it(`removes the reference to the subgraph`, () => {
         expect(snapshot.get(QueryRootId).foo).to.eq(null);
       });
@@ -295,7 +255,6 @@ describe(`operations.write`, () => {
     });
 
     describe(`cyclic references in payloads`, () => {
-
       let cyclicQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         cyclicQuery = query(`{
@@ -339,11 +298,8 @@ describe(`operations.write`, () => {
 
     });
 
-    describe.skip(`cyclic values in payloads`, () => {
-
-      let cyclicQuery: Query, snapshot: GraphSnapshot;
-      // Jest ALWAYS runs beforeAll…
-      /*
+    describe(`cyclic values in payloads`, () => {
+      let cyclicQuery: Query, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         cyclicQuery = query(`{
           foo {
@@ -364,7 +320,6 @@ describe(`operations.write`, () => {
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
       });
-       */
 
       it(`can construct a graph from a cyclic payload`, () => {
         // Note that we explicitly DO NOT construct graph cycles for
@@ -377,6 +332,7 @@ describe(`operations.write`, () => {
               foo: { name: 'Foo' },
             },
           },
+          baz: null,
         });
       });
 

@@ -135,7 +135,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`updating a field`, () => {
+    describe(`updating non-entity field`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -162,12 +162,6 @@ describe(`operations.write`, () => {
         });
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
-      });
-
-      it(`doesn't edit the original snapshot`, () => {
-        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
-        expect(baseline.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
-        expect(baseline.get(parameterizedId)).to.not.eq(snapshot.get(parameterizedId));
       });
 
       it(`updates the node for the field`, () => {
@@ -251,7 +245,9 @@ describe(`operations.write`, () => {
       beforeAll(() => {
         const parameterizedQuery = query(`query getAFoo($id: ID!) {
           foo(id: $id, withExtra: true) {
-            id name extra
+            id
+            name
+            extra
           }
         }`, { id: 1 });
 
@@ -268,9 +264,9 @@ describe(`operations.write`, () => {
 
         const result = write(context, baseline, parameterizedQuery, {
           foo: [
-            { extra: true },
-            { extra: false },
-            { extra: true },
+            { id: 1, extra: true },
+            { id: 2, extra: false },
+            { id: 3, extra: true },
           ],
         });
         snapshot = result.snapshot;
@@ -278,6 +274,12 @@ describe(`operations.write`, () => {
       });
 
       it(`writes nodes for each entity`, () => {
+        expect(baseline.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
+        expect(baseline.get('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
+        expect(baseline.get('3')).to.deep.eq({ id: 3, name: 'Baz', extra: false });
+      });
+
+      it(`updates nodes for each entity`, () => {
         expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: true });
         expect(snapshot.get('2')).to.deep.eq({ id: 2, name: 'Bar', extra: false });
         expect(snapshot.get('3')).to.deep.eq({ id: 3, name: 'Baz', extra: true });
@@ -293,13 +295,15 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`updating a field with a direct reference`, () => {
+    describe(`directly updating entity field with a direct reference`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
         const parameterizedQuery = query(`query getAFoo($id: ID!) {
           foo(id: $id, withExtra: true) {
-            id name extra
+            id
+            name
+            extra
           }
         }`, { id: 1 });
 
@@ -324,12 +328,6 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't edit the original snapshot`, () => {
-        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
-        expect(baseline.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
-        expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
-      });
-
       it(`updates the node for the field`, () => {
         expect(snapshot.get(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
       });
@@ -344,7 +342,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`indirectly updating a field with a direct reference`, () => {
+    describe(`indirectly updating entity field with a direct reference`, () => {
 
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
@@ -375,12 +373,6 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't edit the original snapshot`, () => {
-        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
-        expect(baseline.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
-        expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
-      });
-
       it(`updates the node for the field`, () => {
         expect(snapshot.get(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
       });
@@ -397,14 +389,14 @@ describe(`operations.write`, () => {
 
     });
 
-    describe(`writing nested indirect fields contained in an array`, () => {
-
-      let nestedQuery: Query, snapshot: GraphSnapshot, containerId: NodeId, entry1Id: NodeId, entry2Id: NodeId;
+    describe(`writing an entity with nested indirect fields`, () => {
+      let nestedQuery: Query, snapshot: GraphSnapshot, parameterizedRootId: NodeId, parameterizedFieldId: NodeId, entityId: NodeId;
       beforeAll(() => {
         nestedQuery = query(`query nested($id: ID!) {
           one {
             two(id: $id) {
               three {
+                id
                 four(extra: true) {
                   five
                 }
@@ -413,21 +405,108 @@ describe(`operations.write`, () => {
           }
         }`, { id: 1 });
 
-        containerId = nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 });
-        entry1Id = nodeIdForParameterizedValue(containerId, [0, 'three', 'four'], { extra: true });
-        entry2Id = nodeIdForParameterizedValue(containerId, [1, 'three', 'four'], { extra: true });
+        parameterizedRootId = nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 });
+        entityId = '31';
+        parameterizedFieldId = nodeIdForParameterizedValue(entityId, ['four'], { extra: true });
+
+        snapshot = write(context, empty, nestedQuery, {
+          one: {
+            two: {
+              three: {
+                id: 31,
+                four: { five: 1 },
+              },
+            },
+          },
+        }).snapshot;
+      });
+
+      it(`writes a value snapshot for the containing field`, () => {
+        expect(snapshot.getNodeSnapshot(parameterizedRootId)).to.exist;
+      });
+
+      it(`writes value snapshots for each array entry`, () => {
+        expect(snapshot.getNodeSnapshot(parameterizedFieldId)).to.exist;
+      });
+
+      it(`references the parent entity snapshot from the children`, () => {
+        const entry1 = snapshot.getNodeSnapshot(parameterizedFieldId)!;
+
+        expect(entry1.inbound).to.have.deep.members([{ id: entityId, path: ['four'] }]);
+      });
+
+      it(`references the children from the parent entity`, () => {
+        const entity = snapshot.getNodeSnapshot(entityId)!;
+        expect(entity.outbound).to.have.deep.members([
+          { id: parameterizedFieldId, path: ['four'] },
+        ]);
+      });
+
+      it(`references the children from the parameterized root`, () => {
+        const container = snapshot.getNodeSnapshot(parameterizedRootId)!;
+
+        expect(container.outbound).to.have.deep.members([
+          { id: entityId, path: ['three'] },
+        ]);
+      });
+
+      it(`writes an array with the correct length`, () => {
+        // This is a bit arcane, but it ensures that _overlayParameterizedValues
+        // behaves properly when iterating arrays that contain _only_
+        // parameterized fields.
+        expect(snapshot.get(parameterizedRootId)).to.deep.eq({ three: { id: 31 } });
+      });
+
+      it(`allows removal of values containing a field`, () => {
+        const updated = write(context, snapshot, nestedQuery, {
+          one: {
+            two: null,
+          },
+        }).snapshot;
+
+        expect(updated.get(parameterizedRootId)).to.deep.eq(null);
+      });
+
+    });
+
+    describe(`writing an entity with nested indirect fields in an array`, () => {
+
+      let nestedQuery: Query, snapshot: GraphSnapshot, parameterizedRootId: NodeId;
+      let entityId1: NodeId, entityId2: NodeId;
+      let parameterizedIdInEntity1: NodeId, parameterizedIdInEntity2: NodeId;
+      beforeAll(() => {
+        nestedQuery = query(`query nested($id: ID!) {
+          one {
+            two(id: $id) {
+              three {
+                id
+                four(extra: true) {
+                  five
+                }
+              }
+            }
+          }
+        }`, { id: 1 });
+
+        parameterizedRootId = nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 });
+        entityId1 = '31';
+        entityId2 = '32';
+        parameterizedIdInEntity1 = nodeIdForParameterizedValue(entityId1, ['four'], { extra: true });
+        parameterizedIdInEntity2 = nodeIdForParameterizedValue(entityId2, ['four'], { extra: true });
 
         snapshot = write(context, empty, nestedQuery, {
           one: {
             two: [
               {
                 three: {
+                  id: 31,
                   four: { five: 1 },
                 },
               },
               {
                 three: {
-                  four: { five: 2 },
+                  id: 32,
+                  four: { five: 1 },
                 },
               },
             ],
@@ -436,28 +515,45 @@ describe(`operations.write`, () => {
       });
 
       it(`writes a value snapshot for the containing field`, () => {
-        expect(snapshot.getNodeSnapshot(containerId)).to.exist;
+        expect(snapshot.getNodeSnapshot(parameterizedRootId)).to.exist;
       });
 
-      it(`writes value snapshots for each array entry`, () => {
-        expect(snapshot.getNodeSnapshot(entry1Id)).to.exist;
-        expect(snapshot.getNodeSnapshot(entry2Id)).to.exist;
+      it(`writes entity snapshots for each array entry`, () => {
+        expect(snapshot.getNodeSnapshot(entityId1)).to.exist;
+        expect(snapshot.getNodeSnapshot(entityId2)).to.exist;
       });
 
-      it(`references the parent snapshot from the children`, () => {
-        const entry1 = snapshot.getNodeSnapshot(entry1Id)!;
-        const entry2 = snapshot.getNodeSnapshot(entry2Id)!;
-
-        expect(entry1.inbound).to.have.deep.members([{ id: containerId, path: [0, 'three', 'four'] }]);
-        expect(entry2.inbound).to.have.deep.members([{ id: containerId, path: [1, 'three', 'four'] }]);
+      it(`writes entity snapshots for each parameterized field of array entry`, () => {
+        expect(snapshot.getNodeSnapshot(parameterizedIdInEntity1)).to.exist;
+        expect(snapshot.getNodeSnapshot(parameterizedIdInEntity2)).to.exist;
       });
 
-      it(`references the children from the parent`, () => {
-        const container = snapshot.getNodeSnapshot(containerId)!;
+      it(`references the parent entity snapshot from the parameterized field`, () => {
+        const entry1 = snapshot.getNodeSnapshot(parameterizedIdInEntity1)!;
+        expect(entry1.inbound).to.have.deep.members([{ id: entityId1, path: ['four'] }]);
+
+        const entry2 = snapshot.getNodeSnapshot(parameterizedIdInEntity2)!;
+        expect(entry2.inbound).to.have.deep.members([{ id: entityId2, path: ['four'] }]);
+      });
+
+      it(`references the parameterized field children from the parent entity`, () => {
+        const entity1 = snapshot.getNodeSnapshot(entityId1)!;
+        expect(entity1.outbound).to.have.deep.members([
+          { id: parameterizedIdInEntity1, path: ['four'] },
+        ]);
+
+        const entity2 = snapshot.getNodeSnapshot(entityId2)!;
+        expect(entity2.outbound).to.have.deep.members([
+          { id: parameterizedIdInEntity2, path: ['four'] },
+        ]);
+      });
+
+      it(`references the children from the parameterized root`, () => {
+        const container = snapshot.getNodeSnapshot(parameterizedRootId)!;
 
         expect(container.outbound).to.have.deep.members([
-          { id: entry1Id, path: [0, 'three', 'four'] },
-          { id: entry2Id, path: [1, 'three', 'four'] },
+          { id: entityId1, path: [0, 'three'] },
+          { id: entityId2, path: [1, 'three'] },
         ]);
       });
 
@@ -465,7 +561,83 @@ describe(`operations.write`, () => {
         // This is a bit arcane, but it ensures that _overlayParameterizedValues
         // behaves properly when iterating arrays that contain _only_
         // parameterized fields.
-        expect(snapshot.get(containerId)).to.deep.eq([undefined, undefined]);
+        expect(snapshot.get(parameterizedRootId)).to.deep.eq([
+          {
+            three: { id: 31 },
+          },
+          {
+            three: { id: 32 },
+          },
+        ]);
+      });
+
+      it(`allows removal of values containing a field`, () => {
+        const updated = write(context, snapshot, nestedQuery, {
+          one: {
+            two: null,
+          },
+        }).snapshot;
+
+        expect(updated.get(parameterizedRootId)).to.deep.eq(null);
+      });
+
+    });
+
+    describe(`writing nested indirect fields contained in an array`, () => {
+
+      let nestedQuery: Query, snapshot: GraphSnapshot, containerId: NodeId;
+      beforeAll(() => {
+        nestedQuery = query(`query nested($id: ID!) {
+          one {
+            two(id: $id) {
+              three {
+                threeValue
+              }
+            }
+          }
+        }`, { id: 1 });
+
+        containerId = nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 });
+
+        snapshot = write(context, empty, nestedQuery, {
+          one: {
+            two: [
+              {
+                three: {
+                  threeValue: 'first',
+                },
+              },
+              {
+                three: {
+                  threeValue: 'second',
+                },
+              },
+            ],
+          },
+        }).snapshot;
+      });
+
+      it(`no references from the parent`, () => {
+        const container = snapshot.getNodeSnapshot(containerId)!;
+        expect(container.outbound).to.eq(undefined);
+      });
+
+      it(`writes an array with the correct length`, () => {
+        // This is a bit arcane, but it ensures that _overlayParameterizedValues
+        // behaves properly when iterating arrays that contain _only_
+        // parameterized fields.
+        expect(snapshot.get(containerId)).to.deep.eq([
+          {
+            three: {
+              threeValue: 'first',
+            },
+          },
+          {
+            three: {
+              threeValue: 'second',
+            },
+          },
+        ]);
       });
 
       it(`allows removal of values containing a field`, () => {
@@ -475,14 +647,21 @@ describe(`operations.write`, () => {
               null,
               {
                 three: {
-                  four: { five: 2 },
+                  threeValue: 'second',
                 },
               },
             ],
           },
         }).snapshot;
 
-        expect(updated.get(containerId)).to.deep.eq([null, undefined]);
+        expect(updated.get(containerId)).to.deep.eq([
+          null,
+          {
+            three: {
+              threeValue: 'second',
+            },
+          },
+        ]);
       });
 
     });
@@ -561,9 +740,11 @@ describe(`operations.write`, () => {
 
       let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
       beforeAll(() => {
-        const parameterizedQuery = query(`query getAFoo($one: Number, $two: String) {
-          foo(a: $one, b:$two)
-        }`, { one: 1 });
+        const parameterizedQuery = query(
+          `query getAFoo($one: Number, $two: String) {
+            foo(a: $one, b:$two)
+          }`, { one: 1 }
+        );
 
         parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { a: 1, b: null });
 
@@ -645,7 +826,7 @@ describe(`operations.write`, () => {
 
     describe.skip(`removing array nodes that contain parameterized values`, () => {
 
-      let rootedQuery: Query, snapshot: GraphSnapshot, value1Id: NodeId, value2Id: NodeId;
+      let rootedQuery: Query, snapshot: GraphSnapshot, entityBarId0: NodeId, entityBarId1: NodeId;
       beforeAll(() => {
         rootedQuery = query(`{
           foo {
@@ -655,8 +836,8 @@ describe(`operations.write`, () => {
           }
         }`);
 
-        value1Id = nodeIdForParameterizedValue(QueryRootId, ['foo', 0, 'bar'], { extra: true });
-        value2Id = nodeIdForParameterizedValue(QueryRootId, ['foo', 1, 'bar'], { extra: true });
+        entityBarId0 = nodeIdForParameterizedValue(QueryRootId, ['foo', 0, 'bar'], { extra: true });
+        entityBarId1 = nodeIdForParameterizedValue(QueryRootId, ['foo', 1, 'bar'], { extra: true });
 
         const { snapshot: baseSnapshot } = write(context, empty, rootedQuery, {
           foo: [
@@ -674,7 +855,7 @@ describe(`operations.write`, () => {
       });
 
       it(`doesn't contain the orphaned parameterized value`, () => {
-        expect(snapshot.allNodeIds()).to.not.include(value2Id);
+        expect(snapshot.allNodeIds()).to.not.include(entityBarId1);
       });
 
       it(`doesn't contain transitively orphaned nodes`, () => {
@@ -682,7 +863,6 @@ describe(`operations.write`, () => {
       });
 
     });
-
   });
 
 });
