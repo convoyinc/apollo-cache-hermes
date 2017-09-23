@@ -15,9 +15,6 @@ parse_version() {
 end_script
 }
 
-# Ensure a fresh build
-run compile
-
 # Make sure we have all tags available
 git fetch origin --tags
 
