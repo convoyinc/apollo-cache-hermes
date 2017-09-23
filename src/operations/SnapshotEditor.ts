@@ -2,6 +2,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   SelectionSetNode,
 } from 'graphql';
 import deepFreeze = require('deep-freeze-strict');
+import lodashGet = require('lodash.get');
 import lodashIsEqual = require('lodash.isequal');
 
 import { CacheContext } from '../context';
@@ -297,9 +298,8 @@ export class SnapshotEditor {
             } else {
               currentPath = [...prevPath, cacheKey];
             }
-            const containerSnapshot = this.getNodeSnapshot(currentContainerId);
-            const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
-            previousNodeValue = containerNode && containerNode[cacheKey];
+            const containerNode = this.getDataNodeOfNodeSnapshot(currentContainerId);
+            previousNodeValue = lodashGet(containerNode, currentPath);
           }
 
           // Only trying to get previousNodeId if the current select is expect
@@ -320,10 +320,10 @@ export class SnapshotEditor {
           // Explicitly check for "undefined" as we should
           // persist other falsy value (see: "writeFalsyValues" test).
           if (currentPayload === undefined) {
-          // The currentPayload doesn't have the value.
-          // Look into containerNode (which can be previous snapshot)
-          // for possible reuse value. We explicitly check for undefined
-          // as it indicates that the value doesn't exist.
+            // The currentPayload doesn't have the value.
+            // Look into containerNode (which can be previous snapshot)
+            // for possible reuse value. We explicitly check for undefined
+            // as it indicates that the value doesn't exist.
             currentPayload = previousNodeValue !== undefined
               ? previousNodeValue : null;
           }
@@ -469,14 +469,14 @@ export class SnapshotEditor {
               this._walkSelectionSets(
                 selection.selectionSet,
                 currentPayload,
-                /* prevPath */[],
+                /* prevPath */ [],
                 childDynamicMap,
                   nextNodeId!,
                   fragmentsMap,
                   referenceEdits
               );
             } else {
-            // CurrentPayload is not an entity so we didn't reset the path
+              // CurrentPayload is not an entity so we didn't reset the path
               this._walkSelectionSets(
                 selection.selectionSet,
                 currentPayload,
