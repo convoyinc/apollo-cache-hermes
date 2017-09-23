@@ -118,20 +118,6 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't mutate the previous version`, () => {
-        const foo = baseline.get('1');
-        const bar = baseline.get('2');
-
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
-
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
-      });
-
       it(`fixes all references to the edited node`, () => {
         const foo = snapshot.get('1');
         const bar = snapshot.get('2');
@@ -196,20 +182,6 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't mutate the previous version`, () => {
-        const foo = baseline.get('1');
-        const bar = baseline.get('2');
-
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
-
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
-      });
-
       it(`fixes all references to the edited node`, () => {
         const foo = snapshot.get('1');
         const bar = snapshot.get('2');
@@ -265,20 +237,6 @@ describe(`operations.write`, () => {
         });
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
-      });
-
-      it(`doesn't mutate the previous version`, () => {
-        const foo = baseline.get('1');
-        const bar = baseline.get('2');
-
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
-
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
       });
 
       it(`removes the reference to the subgraph`, () => {

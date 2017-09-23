@@ -44,24 +44,6 @@ describe(`operations.write`, () => {
       editedNodeIds = result.editedNodeIds;
     });
 
-    describe(`doesn't mutate the previous versions`, () => {
-      it(`baseline's QueryRootId is not modified`, () => {
-        expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
-      });
-
-      it(`baseline's entity node is not modified`, () => {
-        expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
-        expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
-      });
-
-      it(`baseline's queryRoot has unmodified value`, () => {
-        expect(baseline.get(QueryRootId)).to.deep.eq({
-          foo: { id: 1, name: 'Foo' },
-          bar: { id: 2, name: 'Bar', extra: null },
-        });
-      });
-    });
-
     it(`updates existing values in referenced nodes`, () => {
       expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo Boo' });
     });

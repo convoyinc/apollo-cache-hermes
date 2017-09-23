@@ -40,17 +40,8 @@ describe(`operations.write`, () => {
       editedNodeIds = result.editedNodeIds;
     });
 
-    it(`doesn't mutate the previous version`, () => {
-      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
-      expect(baseline.get(QueryRootId)).to.deep.eq({ foo: 123, bar: { baz: 'asdf' } });
-    });
-
     it(`updates the value, and its container`, () => {
       expect(snapshot.get(QueryRootId)).to.deep.eq({ foo: 321, bar: { baz: 'asdf' } });
-    });
-
-    it(`doesn't mutate other values`, () => {
-      expect(snapshot.get(QueryRootId).bar).to.eq(baseline.get(QueryRootId).bar);
     });
 
     it(`marks the root as edited`, () => {
@@ -85,14 +76,6 @@ describe(`operations.write`, () => {
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
-    });
-
-    it(`doesn't mutate the previous version`, () => {
-      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
-      expect(baseline.get(QueryRootId)).to.deep.eq({
-        foo: [{ value: 1 }, { value: 2 }, { value: 3 }],
-        bar: { baz: 'asdf' },
-      });
     });
 
     it(`merges new properties with existing objects`, () => {
@@ -136,15 +119,6 @@ describe(`operations.write`, () => {
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
-    });
-
-    it(`doesn't mutate the root query of previous versions`, () => {
-      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
-    });
-
-    it(`doesn't mutate an entity of previous versions`, () => {
-      expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
-      expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
     });
 
     it(`previous versions still have original value`, () => {

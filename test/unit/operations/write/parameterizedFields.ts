@@ -164,12 +164,6 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't edit the original snapshot`, () => {
-        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
-        expect(baseline.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
-        expect(baseline.get(parameterizedId)).to.not.eq(snapshot.get(parameterizedId));
-      });
-
       it(`updates the node for the field`, () => {
         expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo Bar', extra: false });
       });
@@ -334,12 +328,6 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't edit the original snapshot`, () => {
-        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
-        expect(baseline.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
-        expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
-      });
-
       it(`updates the node for the field`, () => {
         expect(snapshot.get(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
       });
@@ -383,12 +371,6 @@ describe(`operations.write`, () => {
         });
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
-      });
-
-      it(`doesn't edit the original snapshot`, () => {
-        expect(_.get(baseline.get(QueryRootId), 'foo')).to.eq(undefined);
-        expect(baseline.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
-        expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
       });
 
       it(`updates the node for the field`, () => {

@@ -41,16 +41,6 @@ describe(`operations.write`, () => {
       editedNodeIds = result.editedNodeIds;
     });
 
-    it(`doesn't mutate the previous versions`, () => {
-      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
-      expect(baseline.get('1')).to.eq(snapshot.get('1'));
-      expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
-      expect(baseline.get(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo' },
-        bar: { id: 2, name: 'Bar' },
-      });
-    });
-
     it(`replaces the reference with null`, () => {
       expect(snapshot.get(QueryRootId)).to.deep.eq({
         foo: { id: 1, name: 'Foo' },
@@ -88,16 +78,6 @@ describe(`operations.write`, () => {
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
-    });
-
-    it(`doesn't mutate the previous versions`, () => {
-      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
-      expect(baseline.get('1')).to.eq(snapshot.get('1'));
-      expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
-      expect(baseline.get(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo' },
-        bar: { id: 2, name: 'Bar' },
-      });
     });
 
     it(`replaces the reference with null`, () => {
@@ -175,29 +155,6 @@ describe(`operations.write`, () => {
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
-    });
-
-    it(`doesn't mutate the previous versions`, () => {
-      expect(baseline.get(QueryRootId)).to.deep.eq({
-        foo: {
-          id: 1,
-          name: 'Foo',
-          two: { id: 222 },
-        },
-        bar: {
-          id: 2,
-          one: { id: 111 },
-          two: { id: 222 },
-          three: {
-            id: 333,
-            foo: {
-              id: 1,
-              name: 'Foo',
-              two: { id: 222 },
-            },
-          },
-        },
-      });
     });
 
     it(`replaces the reference with null`, () => {
