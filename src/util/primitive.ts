@@ -9,5 +9,5 @@ export function isObject(value: any): value is JsonObject {
 }
 
 export function isNil(value: any): value is null | undefined {
-  return value === null || value === undefined;
+  return value === null || value === undefined || Number.isNaN(value);
 }

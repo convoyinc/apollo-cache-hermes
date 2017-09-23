@@ -3,21 +3,22 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
 } from 'graphql';
 
 import { CacheContext } from '../context';
-import { DynamicField, DynamicFieldWithArgs, DynamicFieldMap, isDynamicFieldWithArgs } from '../DynamicField';
+import { DynamicField, DynamicFieldMap, DynamicFieldWithArgs, isDynamicFieldWithArgs } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
+import { cloneNodeSnapshot, EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
-  FragmentMap,
   addNodeReference,
   addToSet,
+  FragmentMap,
+  get,
   hasNodeReference,
+  isNil,
   isObject,
   isScalar,
   lazyImmutableDeepSet,
   removeNodeReference,
-  get,
 } from '../util';
 
 /**
@@ -382,11 +383,11 @@ export class SnapshotEditor {
 
               for (let idx = 0; idx < payloadLength; ++idx) {
                 const element = currentPayload[idx];
+                const elementPath = [...currentPath, idx];
                 const nextNodeId = this._context.entityIdForNode(element);
                 const previousNodeAtIdx = get(previousNodeValue, idx);
                 const previousChildNodeId = isObject(previousNodeAtIdx)
                   ? this._context.entityIdForNode(previousNodeAtIdx) : undefined;
-                const elementPath = [...currentPath, idx];
 
                 // If an element in an array is `null`, `undefined`, or is
                 // missing (sparse array) we write it as `null`. Otherwise
@@ -395,7 +396,7 @@ export class SnapshotEditor {
                 // For example see: "treats blanks in sparse arrays as null" and
                 // "returns the selected values, overlaid on the underlying
                 // data"
-                if (!element) {
+                if (isNil(element)) {
                   this._setValue(currentContainerId, elementPath, null);
                 } else if (nextNodeId) {
                   this._walkSelectionSets(

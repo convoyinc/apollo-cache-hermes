@@ -331,7 +331,7 @@ describe(`operations.write`, () => {
     });
 
     it(`allows arrays to shrink`, () => {
-      const updated = write(silentContext, snapshot, arrayQuery, {
+      const updated = write(context, snapshot, arrayQuery, {
         things: [
           { id: 1, name: 'One' },
           { id: 2, name: 'Two' },
@@ -349,12 +349,15 @@ describe(`operations.write`, () => {
     });
 
     it(`doesn't consider falsy values as blanks`, () => {
-      const updated = write(silentContext, snapshot, arrayQuery, {
+      const { snapshot: baseSnapshot } = write(context, empty, arrayQuery, {
+        things: [1, 2, 3, 4, 5],
+      });
+
+      const updated = write(context, baseSnapshot, arrayQuery, {
         things: [
           false,
           0,
           '',
-          NaN, // TODO(ianm) SHOULD this be converted to null?
         ] as JsonArray,
       }).snapshot;
 
@@ -363,7 +366,6 @@ describe(`operations.write`, () => {
           false,
           0,
           '',
-          NaN,
         ],
       });
     });
