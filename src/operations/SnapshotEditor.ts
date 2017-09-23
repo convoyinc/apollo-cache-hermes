@@ -1,10 +1,15 @@
+import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+  SelectionSetNode,
+} from 'graphql';
+
 import { CacheContext } from '../context';
 import { DynamicField, DynamicFieldWithArgs, DynamicFieldMap, isDynamicFieldWithArgs } from '../DynamicField';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot, cloneNodeSnapshot } from '../nodes';
-import { JsonObject, PathPart, JsonScalar, NestedObject } from '../primitive';
+import { JsonObject, JsonValue, PathPart, JsonScalar, NestedObject } from '../primitive';
 import { NodeId, ParsedQuery, Query } from '../schema';
 import {
+  FragmentMap,
   addNodeReference,
   addToSet,
   hasNodeReference,
@@ -13,6 +18,7 @@ import {
   lazyImmutableDeepSet,
   removeNodeReference,
   walkPayload,
+  get,
 } from '../util';
 
 /**
@@ -99,7 +105,8 @@ export class SnapshotEditor {
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
-    const { referenceEdits } = this._mergePayloadValues(parsed, payload);
+    // const { referenceEdits } = this._mergePayloadValues(parsed, payload);this._mergePayloadValuesUsingSelectionSetAsGuide;
+    const { referenceEdits } = this._mergePayloadValuesUsingSelectionSetAsGuide(parsed, payload); this._mergePayloadValues;
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -182,7 +189,7 @@ export class SnapshotEditor {
         }
 
         if (isDynamicFieldWithArgs(dynamicFields)) {
-          const fieldId = this._ensureParameterizedValueSnapshot(containerId, [...path], dynamicFields, query.variables!);
+          const fieldId = this._ensureParameterizedValueSnapshot(containerId, [...path], dynamicFields);
           // We walk the values of the parameterized field like any other
           // entity.
           //
@@ -262,12 +269,361 @@ export class SnapshotEditor {
         ) {
           this._setValue(containerId, path, payloadValue);
         }
-
         return false;
       });
     }
 
     return { referenceEdits };
+  }
+
+  private _mergePayloadValuesUsingSelectionSetAsGuide(query: ParsedQuery, fullPayload: JsonObject) {
+    const referenceEdits: ReferenceEdit[] = [];
+    this._walkSelectionSets(
+      query.info.operation.selectionSet,
+      fullPayload,
+      /* prevPath */ [],
+      query.dynamicFieldMap,
+      query.rootId,
+      query.info.fragmentMap,
+      referenceEdits
+    );
+    return { referenceEdits };
+  }
+
+  // TODO (yuisu) : consider nest this function into _mergePayloadValuesUsingSelectionSetAsGuide
+  /**
+   * A helper function that will walk query selection sets recursively and write values into
+   * the graph snapshot.
+   *
+   * @param currentGraphqlNode a current graphql selection node we are visiting
+   * @param prevPayload a JSON payload with the shape matching current graphql node
+   * @param prevPath a array of PathPart that lead to current graphql selection
+   * @param prevDynamicFieldMap
+   * @param originalContainerId
+   * @param fragmentsMap
+   * @param referenceEdits
+   */
+  private _walkSelectionSets(
+    currentGraphqlNode: SelectionSetNode,
+    prevPayload: JsonValue,
+    prevPath: PathPart[],
+    prevDynamicFieldMap: DynamicFieldMap | undefined,
+    originalContainerId: string,
+    fragmentsMap: FragmentMap,
+    referenceEdits: ReferenceEdit[]): void {
+      if (prevPayload === undefined) {
+        return;
+      }
+
+      for (const selection of currentGraphqlNode.selections) {
+        let currentContainerId = originalContainerId;
+        switch(selection.kind) {
+          case "Field":
+            /**
+             * if there is no sub-selectionSet, threat the value as leaf and just point to the payload value.
+             * if there exist a child, walk the sub-selectionSet
+             */
+
+            // TODO(yuisu): should we be worry about both alias and real field name have payload value?
+            const cacheKey = selection.name.value;
+            const payloadKey = selection.alias ? selection.alias.value : cacheKey;
+            let currentPayload = prevPayload === null ? prevPayload : prevPayload[payloadKey];
+            const currentDynamicFieldMap = get(prevDynamicFieldMap, payloadKey);
+
+            // For non-parameterized field, we simply append current cacheKey to create
+            // a new path to the field.
+            //  user: {
+            //    name: "Bob",   -> newPath = ["user", "name"]
+            //    address: {     -> newPath = ["user", "address"]
+            //      city: "A",   -> newPath = ["user", "address", "city"]
+            //      state: "AB", -> newPath = ["user", "address", "state"]
+            //    },
+            //    info: {
+            //      id: 0,       -> newPath = ["id"]
+            //      prop1: "hi"  -> newPath = ["prop1"]
+            //    },
+            //    previousAddress: [
+            //      {
+            //        postal: 123  -> newPath = ["user", "previousAddress", 0, postal]
+            //      },
+            //      {
+            //        postal: 456  -> newPath = ["user", "previousAddress", 1, postal]
+            //      }
+            //    ],
+            //    phone: ["1234", -> newPath = ["user", 0]
+            //            "5678"] -> newPath = ["user", 1]
+            //  }
+            // }
+
+            // A parameterized graph node, the node-value under the
+            // parameterized key will be a direct reference to a
+            // node value of the corresponding entity GraphNodeSnapshot.
+            // e.g.
+            //   'ROOT_QUERY❖["foo"]❖{"id":1,"withExtra":true}'
+            //     (node value is a direct reference to node value at key '1')
+            //   1: { id: 1, ...}
+            // This is because parameterized key can only have one value so
+            // there is no need to store another indirection like
+            // non-parameterized node
+            //
+            // A non-parameterized graph node, the node-value under the
+            // RootQueryId will be an object in which each key is the
+            // selection name with the value be either
+            //   - a direct reference to a node value of corresponding
+            //     entity GraphNodeSnapshot
+            //   - an object (in the case of non-entity).
+            // e.g.
+            //   'ROOT_QUERY'
+            //     node : {
+            //      1: <reference to node value of entity "1">
+            //      2: { ...<some prop of the non-entity> }
+            //   1: { id: 1, ...}
+            //
+            // Thus, when the prevPath is undefined indicating that
+            // we just reenter the function with parameterized
+            // containerId, we can look directly for prevsousNodeValue.
+            // For non-parameterized, we will have to do redirection.
+            let previousNodeValue: JsonValue | undefined;
+            let currentPath: PathPart[];
+            // If it is parameterized edge, we will want to reprocess it first
+            // so that we can set container ID to be parameterized container ID.
+            const isParameterizedField = isDynamicFieldWithArgs(currentDynamicFieldMap);
+            if (isParameterizedField) {
+              currentContainerId = this._ensureParameterizedValueSnapshot(
+                currentContainerId,
+                [...prevPath, cacheKey],
+                currentDynamicFieldMap
+              );
+              // We reset the path to current field because parameterized
+              // field is its own entity node in the graph.
+              // If the current parameterized field is a leaf, we will store
+              // the value directly on the node because the parameterized key
+              // is unique to a particular value.
+              // e.g :
+              //    message(count: $count) -> newPath = []
+              //    detailMessage(count: $count) {
+              //       title -> newPath = [title]
+              //    }
+              currentPath = [];
+              const containerSnapshot = this._getNodeSnapshot(currentContainerId);
+              const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
+              previousNodeValue = containerNode;
+            }
+            else {
+              // If this is the prevPayload is a top element in the array and is null,
+              // just write out 'null' as an element instead of wrapping it in the object
+              // e.g
+              //    articles: [
+              //      null,  -> when visiting this element, selection will be 'title'
+              //      {
+              //        title: 10,
+              //        body: 'hello',
+              //      }
+              //    ]
+              // Snapshot values should be : [null, { title: 10, body: 'hello' }]
+              if (typeof prevPath[prevPath.length - 1] === 'number' && prevPayload === null) {
+                currentPath = [...prevPath];
+              }
+              else {
+                currentPath = [...prevPath, cacheKey];
+              }
+              const containerSnapshot = this._getNodeSnapshot(currentContainerId);
+              const containerNode = containerSnapshot ? containerSnapshot.node : undefined;
+              previousNodeValue = containerNode && containerNode[cacheKey];
+            }
+
+            // Only trying to get previousNodeId if the current select is expect
+            // to be an object and possible should be treat as entity
+            // e.g
+            //  query: { foo }
+            //  previous: { foo: { id: 0, name: 'Foo' } }
+            //  current: null
+            // We don't want to treat previousValue as an entity for at above case and get its Id.
+             const previousNodeId = isObject(previousNodeValue) && selection.selectionSet ?
+              this._context.entityIdForNode(previousNodeValue) : undefined;
+
+            if (previousNodeValue !== undefined && previousNodeValue === currentPayload) break;
+
+            // Check for missing payload value.
+            // Explicitly check for "undefined" as we should
+            // persist other falsy value (see: "writeFalsyValues" test).
+            if (currentPayload === undefined) {
+              // The currentPayload doesn't have the value.
+              // Look into containerNode (which can be previous snapshot)
+              // for possible reuse value. We explictily check for undefined
+              // as it indicates that the value doesn't exist.
+              currentPayload = previousNodeValue !== undefined ?
+                previousNodeValue : null;
+            }
+
+            // This field is a leaf field and does not contain any nested selection sets
+            // just reference payload value in the graph snapshot node.
+            if (currentPayload === null || !selection.selectionSet) {
+              // Fix references. See: orphan node tests on "orphan a subgraph"
+              // The new value is null and the old value is an entity. We will
+              // want to remove reference to such entity
+              if (previousNodeId) {
+                referenceEdits.push({
+                  containerId: currentContainerId,
+                  path: currentPath,
+                  prevNodeId: previousNodeId,
+                  nextNodeId: undefined,
+                })
+              }
+              // We intensionally do not deep copy the nodeValue as Apollo will then perform
+              // Object.freeze anyway. So any change in the payload value afterward will be reflect
+              // in the graph as well.
+              // We use selection.name.value instead of payloadKey so that we always write
+              // to cache using real field name rather than alias name.
+              this._setValue(currentContainerId, currentPath, currentPayload);
+            }
+            else if (selection.selectionSet) {
+              // This field contains nested selectionSet so recursively walking the sub-selectionSets.
+              // We expect to have an object or an array as a payload value. If not, the payload cannot
+              // have matching shape as the sub-selectionSets.
+              // Check if payload is a object or array, throw an error if it isn't.
+
+              if (isScalar(currentPayload)) {
+                // TODO(yuisu): sentry? should we continue and just write null ?
+                throw new Error(`Hermes Error: At field-"${payloadKey}",
+  expected an object or array as a payload but get "${JSON.stringify(currentPayload)}"`);
+              }
+
+              // It is still possible to be a DynamicField in the case of alias
+              const childDynamicMap = currentDynamicFieldMap instanceof DynamicField ?
+                currentDynamicFieldMap.children : currentDynamicFieldMap;
+
+              if (Array.isArray(currentPayload)) {
+                // TODO (yuisu) : check consistentcy in the array. e.g all element are enetity or non-entity
+                const payloadLength = currentPayload.length
+                const previousLength = Array.isArray(previousNodeValue) ?
+                  previousNodeValue.length : -1;
+
+                let newArray: Array<JsonValue> | undefined;
+                if (payloadLength !== previousLength) {
+                  newArray = Array.isArray(previousNodeValue) ?
+                    previousNodeValue.slice(0, previousLength) : new Array(payloadLength);
+
+                  this._setValue(currentContainerId, currentPath, newArray);
+                }
+
+                for (let idx = 0; idx < payloadLength; ++idx) {
+                  const element = currentPayload[idx];
+                  const nextNodeId = this._context.entityIdForNode(element);
+                  const previousNodeAtIdx = get(previousNodeValue, idx);
+                  const previousNodeId = isObject(previousNodeAtIdx) ?
+                    this._context.entityIdForNode(previousNodeAtIdx) : undefined;
+
+                  const elementPath = [...currentPath];
+                  elementPath.push(idx);
+
+                  // If an element in an array is 'undefined' (sparse array)
+                  // or 'null' (holes), we want to simply write out null in
+                  // the newArray otherwise recurse so we patch up an existed
+                  // array.
+                  // For example see: "treats blanks in sparse arrays as null"
+                  // and "returns the selected values, overlaid on the underlying data"
+                  if (!element && newArray) {
+                    newArray[idx] = null
+                  }
+                  else if (nextNodeId) {
+                    this._walkSelectionSets(
+                      selection.selectionSet,
+                      element,
+                      [],
+                      childDynamicMap,
+                      nextNodeId,
+                      fragmentsMap,
+                      referenceEdits
+                    )
+                  }
+                  else {
+                    this._walkSelectionSets(
+                      selection.selectionSet,
+                      element,
+                      elementPath,
+                      childDynamicMap,
+                      currentContainerId,
+                      fragmentsMap,
+                      referenceEdits
+                    );
+                  }
+
+                  // The reference between old and new one change, so update the reference
+                  if (previousNodeId !== nextNodeId) {
+                    referenceEdits.push({
+                      containerId: currentContainerId,
+                      path: elementPath,
+                      prevNodeId: previousNodeId,
+                      nextNodeId: nextNodeId,
+                    });
+                  }
+                }
+                break;
+              }
+
+              const entityIdOfCurrentPayload = this._context.entityIdForNode(currentPayload);
+              let nextNodeId = entityIdOfCurrentPayload;
+
+              if (nextNodeId || previousNodeId) {
+                // TODO(yuisu): error when there is an inconsitent of being entity between new node and previous node
+                if (!nextNodeId && prevPayload) {
+                  nextNodeId = previousNodeId;
+                }
+
+                if (previousNodeId !== nextNodeId) {
+                  referenceEdits.push({
+                    containerId: currentContainerId,
+                    path: currentPath,
+                    prevNodeId: previousNodeId,
+                    nextNodeId,
+                  });
+                }
+              }
+
+              // CurrentPayload is considered as an entity.
+              if (entityIdOfCurrentPayload !== undefined) {
+                this._walkSelectionSets(
+                  selection.selectionSet,
+                  currentPayload,
+                  /* prevPath */[],
+                  childDynamicMap,
+                  nextNodeId!,
+                  fragmentsMap,
+                  referenceEdits
+                );
+              }
+              else {
+                // CurrentPayload isnot an entity so we didn't reset the path
+                this._walkSelectionSets(
+                  selection.selectionSet,
+                  currentPayload,
+                  currentPath,
+                  childDynamicMap,
+                  currentContainerId,
+                  fragmentsMap,
+                  referenceEdits
+                );
+              }
+            }
+            break;
+          case "FragmentSpread":
+            const fragmentNode = fragmentsMap[selection.name.value]
+            this._walkSelectionSets(
+              fragmentNode.selectionSet,
+              prevPayload,
+              prevPath,
+              prevDynamicFieldMap,
+              currentContainerId,
+              fragmentsMap,
+              referenceEdits
+            )
+            break;
+          case "InlineFragment":
+            this._context.warn(`Hermes Error: InlineFragment is not yet support`);
+            break;
+        }
+      }
   }
 
   /**
@@ -448,7 +804,7 @@ export class SnapshotEditor {
   /**
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs, variables: JsonObject) {
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs) {
     const fieldId = nodeIdForParameterizedValue(containerId, path, field.args);
 
     // We're careful to not edit the container unless we absolutely have to.

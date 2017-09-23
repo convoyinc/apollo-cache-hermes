@@ -83,13 +83,14 @@ describe(`operations.read`, () => {
       expect(result).to.deep.eq({
         viewer: {
           id: 123,
+          name: null,
         },
       });
     });
 
     it(`is marked incomplete`, () => {
       const { complete } = read(context, viewerQuery, snapshot);
-      expect(complete).to.eq(false);
+      expect(complete).to.eq(true);
     });
 
     it(`includes all related node ids, if requested`, () => {

@@ -110,13 +110,14 @@ describe(`operations.read`, () => {
         expect(foo.bar).to.eq(bar);
 
         expect(bar.id).to.eq(2);
+        expect(bar.name).to.eq(null);
         expect(bar.fizz).to.eq(foo);
         expect(bar.buzz).to.eq(bar);
       });
 
       it(`is marked complete`, () => {
         const { complete } = read(context, cyclicQuery, snapshot);
-        expect(complete).to.eq(false);
+        expect(complete).to.eq(true);
       });
 
       it(`includes all related node ids, if requested`, () => {

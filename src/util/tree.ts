@@ -77,6 +77,10 @@ export function walkPayload(
   //      city: "A",   -> path = ["user", "address", "city"]
   //      state: "AB", -> path = ["user", "address", "state"]
   //    },
+  //    info: {
+  //      id: 0,       -> path = ["id"]
+  //      prop1: "hi"  -> path = ["prop1"]
+  //    },
   //    phone: ["1234", -> path = ["user", 0]
   //            "5678"] -> path = ["user", 1]
   //  }
@@ -204,7 +208,7 @@ export function walkOperation(document: DocumentNode, result: JsonObject | undef
   }
 }
 
-function get(value: any, key: PathPart) {
+export function get(value: any, key: PathPart) {
   // Remember: arrays are typeof 'object', too.
   return value !== null && typeof value === 'object' ? value[key] : undefined;
 }

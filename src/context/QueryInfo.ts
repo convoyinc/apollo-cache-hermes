@@ -36,9 +36,9 @@ export class QueryInfo {
   public readonly fragmentMap: FragmentMap;
   /**
    * The field map for the document, if there are any dynamic features: alias,
-   * parameterized arguments, directive
+   * parameterized arguments, directive. This fieldmap is a raw filed map with NO variables substituted.
    */
-  public readonly dynamicFieldMap?: DynamicFieldMapWithVariables;
+  public readonly rawDynamicFieldMap?: DynamicFieldMapWithVariables;
   /** Variables used within this query. */
   public readonly variables: Set<string>;
   /**
@@ -57,7 +57,7 @@ export class QueryInfo {
     this.fragmentMap = fragmentMapForDocument(document);
 
     const { fieldMap, variables } = compileDynamicFields(this.fragmentMap, this.operation.selectionSet);
-    this.dynamicFieldMap = fieldMap;
+    this.rawDynamicFieldMap = fieldMap;
     this.variables = variables;
     this.variableDefaults = variableDefaultsInOperation(this.operation);
 
