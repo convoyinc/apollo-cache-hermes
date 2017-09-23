@@ -104,7 +104,7 @@ describe(`operations.write`, () => {
 
   });
 
-  describe(`swap references`, () => {
+  describe(`reference swaps`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const baselineResult = write(context, empty, entityQuery, {
@@ -150,7 +150,7 @@ describe(`operations.write`, () => {
     });
 
     it(`marks the container as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '1', '2']);
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
     });
 
     it(`contains the correct nodes`, () => {

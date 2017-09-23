@@ -133,7 +133,7 @@ describe(`operations.write`, () => {
       });
 
       it(`only marks the edited node`, () => {
-        expect(Array.from(editedNodeIds)).to.have.members(['1', '2']);
+        expect(Array.from(editedNodeIds)).to.have.members(['2']);
       });
 
     });
@@ -197,7 +197,7 @@ describe(`operations.write`, () => {
       });
 
       it(`only marks the edited node`, () => {
-        expect(Array.from(editedNodeIds)).to.have.members(['1', '2']);
+        expect(Array.from(editedNodeIds)).to.have.members(['2']);
       });
 
     });
