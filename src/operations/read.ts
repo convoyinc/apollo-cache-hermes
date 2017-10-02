@@ -4,7 +4,7 @@ import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, ParsedQuery, RawOperation } from '../schema';
+import { NodeId, Operation, RawOperation } from '../schema';
 import { isObject } from '../util';
 
 export interface QueryResult {
@@ -84,7 +84,7 @@ class OverlayWalkNode {
  * contain them).
  */
 export function _walkAndOverlayDynamicValues(
-  query: ParsedQuery,
+  query: Operation,
   context: CacheContext,
   snapshot: GraphSnapshot,
   fields: DynamicFieldMap,
@@ -187,7 +187,7 @@ function _wrapValue(value: JsonValue, context: CacheContext): any {
  * Determines whether `result` satisfies the properties requested by `selection`.
  */
 export function _visitSelection(
-  query: ParsedQuery,
+  query: Operation,
   context: CacheContext,
   result?: JsonObject,
   includeNodeIds?: true,

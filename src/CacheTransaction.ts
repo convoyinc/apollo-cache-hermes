@@ -4,7 +4,7 @@ import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, ParsedQuery, RawOperation, QuerySnapshot } from './schema';
+import { ChangeId, NodeId, Operation, RawOperation, QuerySnapshot } from './schema';
 import { addToSet } from './util';
 
 /**
@@ -23,7 +23,7 @@ export class CacheTransaction implements Queryable {
   private _deltas: QuerySnapshot[] = [];
 
   /** All queries written during the transaction. */
-  private _writtenQueries = new Set<ParsedQuery>();
+  private _writtenQueries = new Set<Operation>();
 
   constructor(
     private _context: CacheContext,
@@ -69,7 +69,7 @@ export class CacheTransaction implements Queryable {
    * Complete the transaction, returning the new snapshot and the ids of any
    * nodes that were edited.
    */
-  commit(): { snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>, writtenQueries: Set<ParsedQuery> } {
+  commit(): { snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>, writtenQueries: Set<Operation> } {
     let snapshot = this._snapshot;
     if (this._optimisticChangeId) {
       snapshot = {

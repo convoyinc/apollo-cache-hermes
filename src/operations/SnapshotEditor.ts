@@ -10,7 +10,7 @@ import { DynamicField, DynamicFieldMap, DynamicFieldWithArgs, isDynamicFieldWith
 import { GraphSnapshot } from '../GraphSnapshot';
 import { cloneNodeSnapshot, EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
-import { NodeId, ParsedQuery, RawOperation } from '../schema';
+import { NodeId, Operation, RawOperation } from '../schema';
 import {
   addNodeReference,
   addToSet,
@@ -30,7 +30,7 @@ import {
 export interface EditedSnapshot {
   snapshot: GraphSnapshot;
   editedNodeIds: Set<NodeId>;
-  writtenQueries: Set<ParsedQuery>;
+  writtenQueries: Set<Operation>;
 }
 
 /**
@@ -75,7 +75,7 @@ export class SnapshotEditor {
   private _rebuiltNodeIds = new Set<NodeId>();
 
   /** The queries that were written, and should now be considered complete. */
-  private _writtenQueries = new Set<ParsedQuery>();
+  private _writtenQueries = new Set<Operation>();
 
   constructor(
     /** The configuration/context to use when editing snapshots. */
@@ -117,7 +117,7 @@ export class SnapshotEditor {
     this._writtenQueries.add(parsed);
   }
 
-  private _mergePayloadValuesUsingSelectionSetAsGuide(query: ParsedQuery, fullPayload: JsonObject) {
+  private _mergePayloadValuesUsingSelectionSetAsGuide(query: Operation, fullPayload: JsonObject) {
     const referenceEdits: ReferenceEdit[] = [];
     this._walkSelectionSets(
       query.info.operation.selectionSet,

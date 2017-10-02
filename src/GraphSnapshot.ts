@@ -1,6 +1,6 @@
 import { NodeSnapshot } from './nodes';
 import { QueryResult, QueryResultWithNodeIds } from './operations/read';
-import { NodeId, ParsedQuery } from './schema';
+import { NodeId, Operation } from './schema';
 
 /**
  * Maintains an identity map of all value snapshots that reference into a
@@ -13,7 +13,7 @@ import { NodeId, ParsedQuery } from './schema';
 export class GraphSnapshot {
 
   /** Cached results for queries. */
-  public readonly readCache = new Map<ParsedQuery, QueryResult | QueryResultWithNodeIds>();
+  public readonly readCache = new Map<Operation, QueryResult | QueryResultWithNodeIds>();
 
   /**
    * @internal

@@ -44,9 +44,9 @@ export interface RawOperation {
 }
 
 /**
- * A processed query, ready for consumption by various operations.
+ * A processed query, ready for consumption by the cache.
  */
-export interface ParsedQuery {
+export interface Operation {
   /** The id of the node to begin the query at. */
   readonly rootId: NodeId;
   /** A parsed GraphQL document, declaring an operation to execute. */

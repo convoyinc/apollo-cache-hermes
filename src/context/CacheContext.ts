@@ -4,7 +4,7 @@ import lodashGet = require('lodash.get');
 
 import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
-import { EntityId, ParsedQuery, RawOperation } from '../schema';
+import { EntityId, Operation, RawOperation } from '../schema';
 import { addToSet, addTypenameToDocument, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
@@ -77,9 +77,9 @@ export class CacheContext {
   /** All currently known & processed GraphQL documents. */
   private readonly _queryInfoMap = new Map<string, QueryInfo>();
   /** All currently known & parsed queries, for identity mapping. */
-  private readonly _parsedQueriesMap = new Map<string, ParsedQuery[]>();
+  private readonly _parsedQueriesMap = new Map<string, Operation[]>();
   /** All queries that have been successfully written to the cache. */
-  private readonly _writtenQueries = new Set<ParsedQuery>();
+  private readonly _writtenQueries = new Set<Operation>();
   /** The logger we should use. */
   private readonly _logger: CacheContext.Logger;
 
@@ -104,7 +104,7 @@ export class CacheContext {
    * To aid in various cache lookups, the result is memoized by all of its
    * values, and can be used as an identity for a specific query.
    */
-  parseQuery(query: RawOperation): ParsedQuery {
+  parseQuery(query: RawOperation): Operation {
     // It appears like Apollo or someone upstream is cloning or otherwise
     // modifying the queries that are passed down.  Thus, the query source is a
     // more reliable cache key…
@@ -152,7 +152,7 @@ export class CacheContext {
   /**
    * Mark a query as having been successfully written into the graph.
    */
-  markQueriesWritten(parsed: Iterable<ParsedQuery>): void {
+  markQueriesWritten(parsed: Iterable<Operation>): void {
     addToSet(this._writtenQueries, parsed);
   }
 
@@ -163,7 +163,7 @@ export class CacheContext {
    * Once written, it's impossible for a read of that same query to be
    * considered incomplete (we never remove reachable nodes in the graph).
    */
-  wasQueryWritten(parsed: ParsedQuery): boolean {
+  wasQueryWritten(parsed: Operation): boolean {
     return this._writtenQueries.has(parsed);
   }
 
