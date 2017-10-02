@@ -4,7 +4,7 @@ import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { walkOperation } from '../util';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, Operation, RawOperation } from '../schema';
+import { NodeId, OperationInstance, RawOperation } from '../schema';
 import { isObject } from '../util';
 
 export interface QueryResult {
@@ -25,7 +25,7 @@ export interface QueryResultWithNodeIds extends QueryResult {
 export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot): QueryResult;
 export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
 export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: true) {
-  const parsed = context.parseQuery(query);
+  const parsed = context.parseOperation(query);
   let queryResult = snapshot.readCache.get(parsed) as Partial<QueryResultWithNodeIds>;
   if (!queryResult) {
     let result = snapshot.get(parsed.rootId);
@@ -41,7 +41,7 @@ export function read(context: CacheContext, query: RawOperation, snapshot: Graph
     //
     // TODO: Once we've nailed down all the bugs; consider skipping
     // _visitSelection for known complete queries (and drop nodeIds tracking?)
-    if (!complete && context.wasQueryWritten(parsed)) {
+    if (!complete && context.wasOperationWritten(parsed)) {
       context.error(`Hermes BUG: the most recently written query was marked incomplete`, {
         queryName: parsed.info.operationName,
         query: parsed.info.operationSource,
@@ -84,7 +84,7 @@ class OverlayWalkNode {
  * contain them).
  */
 export function _walkAndOverlayDynamicValues(
-  query: Operation,
+  query: OperationInstance,
   context: CacheContext,
   snapshot: GraphSnapshot,
   fields: DynamicFieldMap,
@@ -187,7 +187,7 @@ function _wrapValue(value: JsonValue, context: CacheContext): any {
  * Determines whether `result` satisfies the properties requested by `selection`.
  */
 export function _visitSelection(
-  query: Operation,
+  query: OperationInstance,
   context: CacheContext,
   result?: JsonObject,
   includeNodeIds?: true,

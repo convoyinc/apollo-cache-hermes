@@ -4,7 +4,7 @@ import lodashGet = require('lodash.get');
 
 import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
-import { EntityId, Operation, RawOperation } from '../schema';
+import { EntityId, OperationInstance, RawOperation } from '../schema';
 import { addToSet, addTypenameToDocument, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
@@ -77,9 +77,9 @@ export class CacheContext {
   /** All currently known & processed GraphQL documents. */
   private readonly _queryInfoMap = new Map<string, QueryInfo>();
   /** All currently known & parsed queries, for identity mapping. */
-  private readonly _parsedQueriesMap = new Map<string, Operation[]>();
+  private readonly _operationMap = new Map<string, OperationInstance[]>();
   /** All queries that have been successfully written to the cache. */
-  private readonly _writtenQueries = new Set<Operation>();
+  private readonly _writtenQueries = new Set<OperationInstance>();
   /** The logger we should use. */
   private readonly _logger: CacheContext.Logger;
 
@@ -99,40 +99,40 @@ export class CacheContext {
   }
 
   /**
-   * Returns a memoized & parsed query.
+   * Returns a memoized & parsed operation.
    *
    * To aid in various cache lookups, the result is memoized by all of its
-   * values, and can be used as an identity for a specific query.
+   * values, and can be used as an identity for a specific operation.
    */
-  parseQuery(query: RawOperation): Operation {
+  parseOperation(raw: RawOperation): OperationInstance {
     // It appears like Apollo or someone upstream is cloning or otherwise
-    // modifying the queries that are passed down.  Thus, the query source is a
-    // more reliable cache key…
-    const cacheKey = queryCacheKey(query.document);
-    let parsedQueries = this._parsedQueriesMap.get(cacheKey);
-    if (!parsedQueries) {
-      parsedQueries = [];
-      this._parsedQueriesMap.set(cacheKey, parsedQueries);
+    // modifying the queries that are passed down.  Thus, the operation source
+    // is a more reliable cache key…
+    const cacheKey = operationCacheKey(raw.document);
+    let operationInstances = this._operationMap.get(cacheKey);
+    if (!operationInstances) {
+      operationInstances = [];
+      this._operationMap.set(cacheKey, operationInstances);
     }
 
     // Do we already have a copy of this guy?
-    for (const parsedQuery of parsedQueries) {
-      if (parsedQuery.rootId !== query.rootId) continue;
-      if (!lodashIsEqual(parsedQuery.variables, query.variables)) continue;
-      return parsedQuery;
+    for (const instance of operationInstances) {
+      if (instance.rootId !== raw.rootId) continue;
+      if (!lodashIsEqual(instance.variables, raw.variables)) continue;
+      return instance;
     }
 
-    const info = this._queryInfo(query.document);
-    const fullVariables = { ...info.variableDefaults, ...query.variables } as JsonObject;
-    const parsedQuery = {
+    const info = this._queryInfo(raw.document);
+    const fullVariables = { ...info.variableDefaults, ...raw.variables } as JsonObject;
+    const operation = {
       info,
-      rootId: query.rootId,
+      rootId: raw.rootId,
       dynamicFieldMap: expandVariables(info.rawDynamicFieldMap, fullVariables),
-      variables: query.variables,
+      variables: raw.variables,
     };
-    parsedQueries.push(parsedQuery);
+    operationInstances.push(operation);
 
-    return parsedQuery;
+    return operation;
   }
 
   /**
@@ -152,7 +152,7 @@ export class CacheContext {
   /**
    * Mark a query as having been successfully written into the graph.
    */
-  markQueriesWritten(parsed: Iterable<Operation>): void {
+  markOperationsWritten(parsed: Iterable<OperationInstance>): void {
     addToSet(this._writtenQueries, parsed);
   }
 
@@ -163,7 +163,7 @@ export class CacheContext {
    * Once written, it's impossible for a read of that same query to be
    * considered incomplete (we never remove reachable nodes in the graph).
    */
-  wasQueryWritten(parsed: Operation): boolean {
+  wasOperationWritten(parsed: OperationInstance): boolean {
     return this._writtenQueries.has(parsed);
   }
 
@@ -171,7 +171,7 @@ export class CacheContext {
    * Retrieves a memoized QueryInfo for a given GraphQL document.
    */
   private _queryInfo(document: DocumentNode): QueryInfo {
-    const cacheKey = queryCacheKey(document);
+    const cacheKey = operationCacheKey(document);
     if (!this._queryInfoMap.has(cacheKey)) {
       if (this._addTypename) {
         document = addTypenameToDocument(document);
@@ -204,6 +204,6 @@ export function defaultEntityIdMapper(node: { id?: any }) {
   return node.id;
 }
 
-export function queryCacheKey(document: DocumentNode) {
+export function operationCacheKey(document: DocumentNode) {
   return document.loc!.source.body;
 }
