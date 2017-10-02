@@ -176,7 +176,7 @@ export class CacheContext {
       if (this._addTypename) {
         document = addTypenameToDocument(document);
       }
-      this._queryInfoMap.set(cacheKey, new QueryInfo(document));
+      this._queryInfoMap.set(cacheKey, new QueryInfo(this, document));
     }
     return this._queryInfoMap.get(cacheKey)!;
   }

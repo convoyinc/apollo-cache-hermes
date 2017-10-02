@@ -1,12 +1,15 @@
 import gql from 'graphql-tag';
 
-import { QueryInfo } from '../../../src/context';
+import { CacheContext, QueryInfo } from '../../../src/context';
 import { DynamicField, expandVariables } from '../../../src/DynamicField';
+import { strictConfig } from '../../helpers';
 
 describe(`DynamicField.expandVariables`, () => {
 
+  const context = new CacheContext(strictConfig);
+
   function makeFieldMap(query: string) {
-    return new QueryInfo(gql(query)).rawDynamicFieldMap;
+    return new QueryInfo(context, gql(query)).rawDynamicFieldMap;
   }
 
   it(`passes undefined through`, () => {
