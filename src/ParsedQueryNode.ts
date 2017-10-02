@@ -100,7 +100,8 @@ export function parseQuery(
 }
 
 /**
- *
+ * Recursively builds a mapping of field names to ParsedQueryNodes for the given
+ * selection set.
  */
 function _buildNodeMap(
   variables: Set<string>,
@@ -146,7 +147,7 @@ function _buildNodeMap(
 }
 
 /**
- *
+ * Well, are they?
  */
 function _areChildrenParameterized(children?: ParsedQueryWithVariables) {
   if (!children) return undefined;
