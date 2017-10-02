@@ -10,7 +10,7 @@ import { DynamicField, DynamicFieldMap, DynamicFieldWithArgs, isDynamicFieldWith
 import { GraphSnapshot } from '../GraphSnapshot';
 import { cloneNodeSnapshot, EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
-import { NodeId, ParsedQuery, Query } from '../schema';
+import { NodeId, ParsedQuery, RawOperation } from '../schema';
 import {
   addNodeReference,
   addToSet,
@@ -88,7 +88,7 @@ export class SnapshotEditor {
    * Merge a GraphQL payload (query/fragment/etc) into the snapshot, rooted at
    * the node identified by `rootId`.
    */
-  mergePayload(query: Query, payload: JsonObject): void {
+  mergePayload(query: RawOperation, payload: JsonObject): void {
     const parsed = this._context.parseQuery(query);
 
     // First, we walk the payload and apply all _scalar_ edits, while collecting

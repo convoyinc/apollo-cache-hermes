@@ -4,7 +4,7 @@ import lodashGet = require('lodash.get');
 
 import { expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
-import { EntityId, ParsedQuery, Query } from '../schema';
+import { EntityId, ParsedQuery, RawOperation } from '../schema';
 import { addToSet, addTypenameToDocument, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
@@ -104,7 +104,7 @@ export class CacheContext {
    * To aid in various cache lookups, the result is memoized by all of its
    * values, and can be used as an identity for a specific query.
    */
-  parseQuery(query: Query): ParsedQuery {
+  parseQuery(query: RawOperation): ParsedQuery {
     // It appears like Apollo or someone upstream is cloning or otherwise
     // modifying the queries that are passed down.  Thus, the query source is a
     // more reliable cache key…

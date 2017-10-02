@@ -4,7 +4,7 @@ import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, ParsedQuery, Query, QuerySnapshot } from './schema';
+import { ChangeId, NodeId, ParsedQuery, RawOperation, QuerySnapshot } from './schema';
 import { addToSet } from './util';
 
 /**
@@ -34,7 +34,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Executes reads against the current values in the transaction.
    */
-  read(query: Query): { result?: JsonValue, complete: boolean } {
+  read(query: RawOperation): { result?: JsonValue, complete: boolean } {
     return read(this._context, query, this._snapshot.optimistic);
   }
 
@@ -45,7 +45,7 @@ export class CacheTransaction implements Queryable {
    * any previous optimistic values.  Otherwise, edits will be made to the
    * baseline state (and any optimistic updates will be replayed over it).
    */
-  write(query: Query, payload: JsonObject): void {
+  write(query: RawOperation, payload: JsonObject): void {
     if (this._optimisticChangeId) {
       this._writeOptimistic(query, payload);
     } else {
@@ -84,7 +84,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Merge a payload with the baseline snapshot.
    */
-  private _writeBaseline(query: Query, payload: JsonObject) {
+  private _writeBaseline(query: RawOperation, payload: JsonObject) {
     const current = this._snapshot;
 
     const { snapshot: baseline, editedNodeIds, writtenQueries } = write(this._context, current.baseline, query, payload);
@@ -112,7 +112,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Merge a payload with the optimistic snapshot.
    */
-  private _writeOptimistic(query: Query, payload: JsonObject) {
+  private _writeOptimistic(query: RawOperation, payload: JsonObject) {
     this._deltas.push({ query, payload });
 
     const { snapshot: optimistic, editedNodeIds, writtenQueries } = write(this._context, this._snapshot.baseline, query, payload);

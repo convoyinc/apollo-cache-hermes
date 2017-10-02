@@ -31,10 +31,10 @@ export enum StaticNodeId {
 }
 
 /**
- * All the information needed to describe a complete GraphQL query that can be
- * made against the cache (read or written).
+ * All the information needed to describe a complete GraphQL operation that can
+ * be made against the cache (read or written).
  */
-export interface Query {
+export interface RawOperation {
   /** The id of the node to begin the query at. */
   readonly rootId: NodeId;
   /** A parsed GraphQL document, declaring an operation to execute. */
@@ -61,6 +61,6 @@ export interface ParsedQuery {
  * Represents a single query and a set of values that match its selection.
  */
 export interface QuerySnapshot {
-  query: Query;
+  query: RawOperation;
   payload?: JsonObject;
 }
