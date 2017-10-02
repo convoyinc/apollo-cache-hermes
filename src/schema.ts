@@ -55,6 +55,8 @@ export interface OperationInstance {
   readonly info: QueryInfo;
   /** Parsed form of the query, with values substituted for any variables. */
   readonly parsedQuery: ParsedQuery;
+  /** Whether the operation contains _no_ parameterized values. */
+  readonly isStatic: boolean;
   // TODO(ianm): Remove.
   readonly dynamicFieldMap?: DynamicFieldMap;
   /** Any variables used by parameterized fields within the selection set. */

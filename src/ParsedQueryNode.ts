@@ -120,7 +120,7 @@ function _buildNodeMap(
       const children = _buildNodeMap(variables, context, fragments, selection.selectionSet, [...path, name]);
       const schemaName = selection.alias ? selection.name.value : undefined;
       const args = _buildFieldArgs(variables, selection.arguments);
-      const hasParameterizedChildren = _areChildrenParameterized(children);
+      const hasParameterizedChildren = areChildrenParameterized(children);
 
       const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren);
       nodeMap[name] = _mergeNodes([...path, name], node, nodeMap[name]);
@@ -149,7 +149,7 @@ function _buildNodeMap(
 /**
  * Well, are they?
  */
-function _areChildrenParameterized(children?: ParsedQueryWithVariables) {
+export function areChildrenParameterized(children?: ParsedQueryWithVariables) {
   if (!children) return undefined;
   for (const name in children) {
     const child = children[name];
