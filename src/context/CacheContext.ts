@@ -2,7 +2,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import lodashIsEqual = require('lodash.isequal');
 import lodashGet = require('lodash.get');
 
-import { expandVariables } from '../DynamicField';
+import { deprecatedExpandVariables, expandVariables } from '../DynamicField';
 import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
 import { addToSet, addTypenameToDocument, isObject } from '../util';
@@ -127,7 +127,8 @@ export class CacheContext {
     const operation = {
       info,
       rootId: raw.rootId,
-      dynamicFieldMap: expandVariables(info.rawDynamicFieldMap, fullVariables),
+      parsedQuery: expandVariables(info.parsed, fullVariables),
+      dynamicFieldMap: deprecatedExpandVariables(info.rawDynamicFieldMap, fullVariables),
       variables: raw.variables,
     };
     operationInstances.push(operation);

@@ -1,7 +1,7 @@
 import gql from 'graphql-tag';
 
 import { CacheContext, QueryInfo } from '../../../src/context';
-import { DynamicField, expandVariables } from '../../../src/DynamicField';
+import { DynamicField, deprecatedExpandVariables } from '../../../src/DynamicField';
 import { strictConfig } from '../../helpers';
 
 describe(`DynamicField.expandVariables`, () => {
@@ -13,7 +13,7 @@ describe(`DynamicField.expandVariables`, () => {
   }
 
   it(`passes undefined through`, () => {
-    expect(expandVariables(undefined, undefined)).to.eq(undefined);
+    expect(deprecatedExpandVariables(undefined, undefined)).to.eq(undefined);
   });
 
   it(`handles static queries`, () => {
@@ -26,7 +26,7 @@ describe(`DynamicField.expandVariables`, () => {
       }
     `);
 
-    expect(expandVariables(map, undefined)).to.deep.eq({
+    expect(deprecatedExpandVariables(map, undefined)).to.deep.eq({
       foo: new DynamicField({ limit: 5 }, undefined, {
         bar: new DynamicField({ tag: 'hello' }),
       }),
@@ -41,7 +41,7 @@ describe(`DynamicField.expandVariables`, () => {
       }
     `);
 
-    expect(expandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
+    expect(deprecatedExpandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
       thing: new DynamicField({ a: 123, b: 'ohai' }),
     });
   });
@@ -59,7 +59,7 @@ describe(`DynamicField.expandVariables`, () => {
       }
     `);
 
-    expect(expandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
+    expect(deprecatedExpandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
       one: {
         two: new DynamicField({ a: 123 }, undefined, {
           three: {
@@ -77,7 +77,7 @@ describe(`DynamicField.expandVariables`, () => {
       }
     `);
 
-    expect(expandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
+    expect(deprecatedExpandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
       thing: new DynamicField({ one: { two: 'ohai', three: [1, 2, 123] } }),
     });
   });
@@ -90,7 +90,7 @@ describe(`DynamicField.expandVariables`, () => {
     `);
 
     expect(() => {
-      expandVariables(map, undefined);
+      deprecatedExpandVariables(map, undefined);
     }).to.throw(/\$(foo|bar)/);
   });
 
@@ -102,7 +102,7 @@ describe(`DynamicField.expandVariables`, () => {
     `);
 
     expect(() => {
-      expandVariables(map, { foo: 123 });
+      deprecatedExpandVariables(map, { foo: 123 });
     }).to.throw(/\$bar/);
   });
 

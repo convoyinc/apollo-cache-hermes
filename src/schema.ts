@@ -2,6 +2,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 
 import { QueryInfo } from './context';
 import { DynamicFieldMap } from './DynamicField';
+import { ParsedQuery } from './ParsedQueryNode';
 import { JsonObject } from './primitive';
 
 /**
@@ -52,7 +53,9 @@ export interface OperationInstance {
   readonly rootId: NodeId;
   /** A parsed GraphQL document, declaring an operation to execute. */
   readonly info: QueryInfo;
-  /** The dynamic field map for the query, with variables substituted in. */
+  /** Parsed form of the query, with values substituted for any variables. */
+  readonly parsedQuery: ParsedQuery;
+  // TODO(ianm): Remove.
   readonly dynamicFieldMap?: DynamicFieldMap;
   /** Any variables used by parameterized fields within the selection set. */
   readonly variables?: JsonObject;

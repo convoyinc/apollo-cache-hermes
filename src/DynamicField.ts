@@ -1,3 +1,4 @@
+import { ParsedQuery, ParsedQueryNode, ParsedQueryWithVariables } from './ParsedQueryNode';
 import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
   ArgumentNode,
   SelectionSetNode,
@@ -147,12 +148,38 @@ export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArg
 }
 
 /**
- * Replace all instances of VariableArgument contained within a DynamicFieldMap
+ * Replace all instances of VariableArgument contained within a parsed operation
  * with their actual values.
  *
  * This requires that all variables used are provided in `variables`.
  */
-export function expandVariables(
+export function expandVariables(parsed: ParsedQueryWithVariables, variables: JsonObject | undefined): ParsedQuery {
+  return _expandVariables(parsed, variables)!;
+}
+
+export function _expandVariables(parsed?: ParsedQueryWithVariables, variables?: JsonObject) {
+  if (!parsed) return undefined;
+
+  const newMap = {};
+  for (const key in parsed) {
+    const node = parsed[key];
+    if (node.args || node.hasParameterizedChildren) {
+      newMap[key] = new ParsedQueryNode(
+        _expandVariables(node.children, variables),
+        node.schemaName,
+        expandFieldArguments(node.args, variables),
+        node.hasParameterizedChildren,
+      );
+    // No variables to substitute for this subtree.
+    } else {
+      newMap[key] = node;
+    }
+  }
+
+  return newMap;
+}
+
+export function deprecatedExpandVariables(
   map: DynamicFieldMapWithVariables | undefined,
   variables: JsonObject | undefined,
 ): DynamicFieldMap | undefined {
@@ -165,10 +192,10 @@ export function expandVariables(
       newMap[key] = new DynamicField(
         expandFieldArguments(entry.args, variables),
         entry.fieldName,
-        expandVariables(entry.children, variables),
+        deprecatedExpandVariables(entry.children, variables),
       );
     } else {
-      newMap[key] = expandVariables(entry, variables);
+      newMap[key] = deprecatedExpandVariables(entry, variables);
     }
   }
 

@@ -1,8 +1,8 @@
-import { JsonScalar } from '../../../src/primitive';
 import gql from 'graphql-tag';
 
 import { CacheContext } from '../../../src/context';
 import { ParsedQueryNode, parseQuery, VariableArgument } from '../../../src/ParsedQueryNode';
+import { JsonScalar } from '../../../src/primitive';
 import { fragmentMapForDocument, getOperationOrDie } from '../../../src/util';
 import { strictConfig } from '../../helpers';
 

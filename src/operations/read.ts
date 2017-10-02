@@ -25,40 +25,40 @@ export interface QueryResultWithNodeIds extends QueryResult {
 export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot): QueryResult;
 export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
 export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: true) {
-  const parsed = context.parseOperation(query);
-  let queryResult = snapshot.readCache.get(parsed) as Partial<QueryResultWithNodeIds>;
+  const operation = context.parseOperation(query);
+  let queryResult = snapshot.readCache.get(operation) as Partial<QueryResultWithNodeIds>;
   if (!queryResult) {
-    let result = snapshot.get(parsed.rootId);
+    let result = snapshot.get(operation.rootId);
 
-    const { dynamicFieldMap } = parsed;
+    const { dynamicFieldMap } = operation;
     if (dynamicFieldMap) {
-      result = _walkAndOverlayDynamicValues(parsed, context, snapshot, dynamicFieldMap, result);
+      result = _walkAndOverlayDynamicValues(operation, context, snapshot, dynamicFieldMap, result);
     }
 
-    let { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
+    let { complete, nodeIds } = _visitSelection(operation, context, result, includeNodeIds);
 
     // This should NEVER be true.
     //
     // TODO: Once we've nailed down all the bugs; consider skipping
     // _visitSelection for known complete queries (and drop nodeIds tracking?)
-    if (!complete && context.wasOperationWritten(parsed)) {
+    if (!complete && context.wasOperationWritten(operation)) {
       context.error(`Hermes BUG: the most recently written query was marked incomplete`, {
-        queryName: parsed.info.operationName,
-        query: parsed.info.operationSource,
+        queryName: operation.info.operationName,
+        query: operation.info.operationSource,
       });
       // Recover in this case.
       complete = true;
     }
 
     queryResult = { result, complete, nodeIds };
-    snapshot.readCache.set(parsed, queryResult as QueryResult);
+    snapshot.readCache.set(operation, queryResult as QueryResult);
   }
 
   // We can potentially ask for results without node ids first, and then follow
   // up with an ask for them.  In that case, we need to fill in the cache a bit
   // more.
   if (includeNodeIds && !queryResult.nodeIds) {
-    const { complete, nodeIds } = _visitSelection(parsed, context, queryResult.result, includeNodeIds);
+    const { complete, nodeIds } = _visitSelection(operation, context, queryResult.result, includeNodeIds);
     queryResult.complete = complete;
     queryResult.nodeIds = nodeIds;
   }
