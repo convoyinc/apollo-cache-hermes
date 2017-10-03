@@ -2,18 +2,20 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   SelectionSetNode,
 } from 'graphql';
 import deepFreeze = require('deep-freeze-strict');
-import lodashGet = require('lodash.get');
 import lodashIsEqual = require('lodash.isequal');
 
 import { CacheContext } from '../context';
 import { DynamicField, DynamicFieldMap, DynamicFieldWithArgs, isDynamicFieldWithArgs } from '../DynamicField';
+import { InvalidPayloadError, OperationError } from '../errors';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { cloneNodeSnapshot, EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
-import { JsonObject, JsonValue, PathPart } from '../primitive';
+import { FieldArguments, ParsedQuery } from '../ParsedQueryNode';
+import { JsonArray, JsonObject, JsonValue, nil, PathPart } from '../primitive';
 import { NodeId, OperationInstance, RawOperation } from '../schema';
 import {
   addNodeReference,
   addToSet,
+  deepGet,
   FragmentMap,
   get,
   hasNodeReference,
@@ -95,7 +97,8 @@ export class SnapshotEditor {
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
-    const { referenceEdits } = this._mergePayloadValuesUsingSelectionSetAsGuide(parsed, payload);
+    const referenceEdits: ReferenceEdit[] = [];
+    this._mergeSubgraph(referenceEdits, parsed.rootId, [] /* path */, parsed.parsedQuery, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -115,6 +118,216 @@ export class SnapshotEditor {
 
     // The query should now be considered complete for future reads.
     this._writtenQueries.add(parsed);
+  }
+
+  /**
+   *
+   */
+  private _mergeSubgraph(
+    referenceEdits: ReferenceEdit[],
+    containerId: NodeId,
+    path: PathPart[],
+    parsed: ParsedQuery,
+    payload: JsonValue | undefined,
+  ) {
+    // Don't trust our inputs; we can receive values that aren't JSON
+    // serializable via optimistic updates.
+    if (payload === undefined) {
+      payload = null;
+    }
+
+    // We should only ever reach a subgraph if it is a container (object/array).
+    if (typeof payload !== 'object') {
+      throw new InvalidPayloadError(`Received a ${typeof payload} value, but expected an object/array/null`, containerId, path, payload);
+    }
+
+    // TODO(ianm): We're doing this a lot.  How much is it impacting perf?
+    const previousValue = deepGet(this.getNodeData(containerId), path);
+
+    // Recurse into arrays.
+    if (Array.isArray(payload) || Array.isArray(previousValue)) {
+      if (!isNil(previousValue) && !Array.isArray(previousValue)) {
+        throw new InvalidPayloadError(`Unsupported transition from a non-list to list value`, containerId, path, payload);
+      }
+      if (!isNil(payload) && !Array.isArray(payload)) {
+        throw new InvalidPayloadError(`Unsupported transition from a list to a non-list value`, containerId, path, payload);
+      }
+
+      this._mergeArraySubgraph(referenceEdits, containerId, path, parsed, payload, previousValue);
+      return;
+    }
+
+    const payloadId = this._context.entityIdForValue(payload);
+    const previousId = this._context.entityIdForValue(previousValue);
+
+    // Is this an identity change?
+    if (payloadId !== previousId) {
+      // It is invalid to transition from a *value* with an id to one without.
+      if (!isNil(payload) && !payloadId) {
+        throw new InvalidPayloadError(`Unsupported transition from an entity to a non-entity value`, containerId, path, payload);
+      }
+      // The reverse is also invalid.
+      if (!isNil(previousValue) && !previousId) {
+        throw new InvalidPayloadError(`Unsupported transition from a non-entity value to an entity`, containerId, path, payload);
+      }
+      // Double check that our id generator is behaving properly.
+      if (payloadId && isNil(payload)) {
+        throw new OperationError(`entityIdForNode emitted an id for a nil payload value`, containerId, path, payload);
+      }
+
+      // Fix references. See: orphan node tests on "orphan a subgraph" The new
+      // value is null and the old value is an entity. We will want to remove
+      // reference to such entity
+      referenceEdits.push({
+        containerId,
+        path,
+        prevNodeId: previousId,
+        nextNodeId: payloadId,
+      });
+
+      // Nothing more to do here; the reference edit will null out this field.
+      if (!payloadId) return;
+
+    // End of the line for a non-reference.
+    } else if (isNil(payload) && previousValue !== null) {
+      this._setValue(containerId, path, null, true);
+      return;
+    }
+
+    // If we've entered a new node; it becomes our container.
+    if (payloadId) {
+      containerId = payloadId;
+      path = [];
+    }
+
+    // Finally, we can walk into individual values.
+    for (const payloadName in parsed) {
+      const node = parsed[payloadName];
+      // Having a schemaName on the node implies that payloadName is an alias.
+      const schemaName = node.schemaName ? node.schemaName : payloadName;
+      let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;
+      const previousFieldValue = deepGet(previousValue, [schemaName]);
+      // Don't trust our inputs.  Ensure that missing values are null.
+      if (fieldValue === undefined) {
+        fieldValue = null;
+      }
+
+      let containerIdForField = containerId;
+
+      // For static fields, we append the current cacheKey to create a new path
+      // to the field.
+      //
+      //   user: {
+      //     name: 'Bob',   -> fieldPath: ['user', 'name']
+      //     address: {     -> fieldPath: ['user', 'address']
+      //       city: 'A',   -> fieldPath: ['user', 'address', 'city']
+      //       state: 'AB', -> fieldPath: ['user', 'address', 'state']
+      //     },
+      //     info: {
+      //       id: 0,       -> fieldPath: ['id']
+      //       prop1: 'hi'  -> fieldPath: ['prop1']
+      //     },
+      //     history: [
+      //       {
+      //         postal: 123 -> fieldPath: ['user', 'history', 0, 'postal']
+      //       },
+      //       {
+      //         postal: 456 -> fieldPath: ['user', 'history', 1, 'postal']
+      //       }
+      //     ],
+      //     phone: [
+      //       '1234', -> fieldPath: ['user', 0]
+      //       '5678', -> fieldPath: ['user', 1]
+      //     ],
+      //   },
+      //
+      // Similarly, something to keep in mind is that parameterized nodes
+      // (instances of ParameterizedValueSnapshot) can have direct references to
+      // an entity node's value.
+      //
+      // For example, with the query:
+      //
+      //   foo(id: 1) { id, name }
+      //
+      // The cache would have:
+      //
+      //   1: {
+      //     node: { id: 1, name: 'Foo' },
+      //   },
+      //   'ROOT_QUERY❖["foo"]❖{"id":1}': {
+      //     node: // a direct reference to the node of entity '1'.
+      //   },
+      //
+      // This allows us to rely on standard behavior for entity references: If
+      // node '1' is edited, the parameterized node must also be edited.
+      // Similarly, the parameterized node contains an outbound reference to the
+      // entity node, for garbage collection.
+      let fieldPath = [...path, schemaName];
+      if (node.args) {
+        // The values of a parameterized field are explicit nodes in the graph;
+        // so we set up a new container & path.
+        containerIdForField = this._ensureParameterizedValueSnapshot(containerId, fieldPath, node.args);
+        fieldPath = [];
+      }
+
+      // For fields with sub selections, we walk into them; only leaf fields are
+      // directly written via _setValue.  This allows us to perform minimal
+      // edits to the graph.
+      if (node.children) {
+        this._mergeSubgraph(referenceEdits, containerIdForField, fieldPath, node.children, fieldValue);
+
+      // We've hit a leaf field.
+      //
+      // Note that we must perform a _deep_ equality check here, to cover cases
+      // where a leaf value is a complex object.
+      } else if (!lodashIsEqual(fieldValue, previousFieldValue)) {
+        // We intentionally do not deep copy the nodeValue as Apollo will
+        // then perform Object.freeze anyway. So any change in the payload
+        // value afterward will be reflect in the graph as well.
+        //
+        // We use selection.name.value instead of payloadKey so that we
+        // always write to cache using real field name rather than alias
+        // name.
+        this._setValue(containerIdForField, fieldPath, fieldValue);
+      }
+    }
+  }
+
+  private _mergeArraySubgraph(
+    referenceEdits: ReferenceEdit[],
+    containerId: NodeId,
+    path: PathPart[],
+    parsed: ParsedQuery,
+    payload: JsonArray | nil,
+    previousValue: JsonArray | nil,
+  ) {
+    // TODO(ianm): Clean up references.
+    if (isNil(payload)) {
+      // Note that we mark this as an edit, as this method is only ever called
+      // if we've determined the value to be an array (which means that
+      // previousValue MUST be an array in this case).
+      this._setValue(containerId, path, null, true);
+      return;
+    }
+
+    const payloadLength = payload ? payload.length : 0;
+    const previousLength = previousValue ? previousValue.length : 0;
+    // Note that even though we walk into arrays, we need to be
+    // careful to ensure that we don't leave stray values around if
+    // the new array is of a different length.
+    //
+    // So, we resize the array to our desired size before walking.
+    if (payloadLength !== previousLength) {
+      const newArray = Array.isArray(previousValue)
+        ? previousValue.slice(0, payloadLength) : new Array(payloadLength);
+      this._setValue(containerId, path, newArray);
+    }
+
+    // Note that we're careful to iterate over all indexes, in case this is a
+    // sparse array.
+    for (let i = 0; i < payload.length; i++) {
+      this._mergeSubgraph(referenceEdits, containerId, [...path, i], parsed, payload[i]);
+    }
   }
 
   private _mergePayloadValuesUsingSelectionSetAsGuide(query: OperationInstance, fullPayload: JsonObject) {
@@ -251,7 +464,7 @@ export class SnapshotEditor {
           // so that we can set container ID to be parameterized container ID.
           const isParameterizedField = isDynamicFieldWithArgs(currentDynamicFieldMap);
           if (isParameterizedField) {
-            currentContainerId = this._ensureParameterizedValueSnapshot(
+            currentContainerId = this._deprecatedEnsureParameterizedValueSnapshot(
               currentContainerId,
               [...prevPath, cacheKey],
               currentDynamicFieldMap
@@ -298,8 +511,8 @@ export class SnapshotEditor {
             } else {
               currentPath = [...prevPath, cacheKey];
             }
-            const containerNode = this.getDataNodeOfNodeSnapshot(currentContainerId);
-            previousNodeValue = lodashGet(containerNode, currentPath);
+            const containerNode = this.getNodeData(currentContainerId);
+            previousNodeValue = deepGet(containerNode, currentPath);
           }
 
           // Only trying to get previousNodeId if the current select is expect
@@ -312,7 +525,7 @@ export class SnapshotEditor {
           // We don't want to treat previousValue as an entity for at above case
           // and get its Id.
           const previousNodeId = isObject(previousNodeValue) && selection.selectionSet
-            ? this._context.entityIdForNode(previousNodeValue) : undefined;
+            ? this._context.entityIdForValue(previousNodeValue) : undefined;
 
           if (previousNodeValue !== undefined && previousNodeValue === currentPayload) break;
 
@@ -393,10 +606,10 @@ export class SnapshotEditor {
               for (let idx = 0; idx < payloadLength; ++idx) {
                 const element = currentPayload[idx];
                 const elementPath = [...currentPath, idx];
-                const nextNodeId = this._context.entityIdForNode(element);
+                const nextNodeId = this._context.entityIdForValue(element);
                 const previousNodeAtIdx = get(previousNodeValue, idx);
                 const previousChildNodeId = isObject(previousNodeAtIdx)
-                  ? this._context.entityIdForNode(previousNodeAtIdx) : undefined;
+                  ? this._context.entityIdForValue(previousNodeAtIdx) : undefined;
 
                 // If an element in an array is `null`, `undefined`, or is
                 // missing (sparse array) we write it as `null`. Otherwise
@@ -443,7 +656,7 @@ export class SnapshotEditor {
               break;
             }
 
-            const entityIdOfCurrentPayload = this._context.entityIdForNode(currentPayload);
+            const entityIdOfCurrentPayload = this._context.entityIdForValue(currentPayload);
             let nextNodeId = entityIdOfCurrentPayload;
 
             if (nextNodeId || previousNodeId) {
@@ -521,7 +734,7 @@ export class SnapshotEditor {
     const orphanedNodeIds: Set<NodeId> = new Set();
 
     for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
-      const target = nextNodeId ? this.getDataNodeOfNodeSnapshot(nextNodeId) : null;
+      const target = nextNodeId ? this.getNodeData(nextNodeId) : null;
       this._setValue(containerId, path, target);
       const container = this._ensureNewSnapshot(containerId);
 
@@ -627,7 +840,7 @@ export class SnapshotEditor {
   /**
    * Retrieve the _latest_ version of a node.
    */
-  private getDataNodeOfNodeSnapshot(id: NodeId) {
+  private getNodeData(id: NodeId) {
     const snapshot = this.getNodeSnapshot(id);
     return snapshot ? snapshot.node : undefined;
   }
@@ -677,9 +890,32 @@ export class SnapshotEditor {
   }
 
   /**
+   * Ensures that there is a ParameterizedValueSnapshot for the given node with
+   * arguments
+   */
+  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], args: FieldArguments) {
+    const fieldId = nodeIdForParameterizedValue(containerId, path, args);
+
+    // We're careful to not edit the container unless we absolutely have to.
+    // (There may be no changes for this parameterized value).
+    const containerSnapshot = this.getNodeSnapshot(containerId);
+    if (!containerSnapshot || !hasNodeReference(containerSnapshot, 'outbound', fieldId, path)) {
+      // We need to construct a new snapshot otherwise.
+      const newSnapshot = new ParameterizedValueSnapshot();
+      addNodeReference('inbound', newSnapshot, containerId, path);
+      this._newNodes[fieldId] = newSnapshot;
+
+      // Ensure that the container points to it.
+      addNodeReference('outbound', this._ensureNewSnapshot(containerId), fieldId, path);
+    }
+
+    return fieldId;
+  }
+
+  /**
    * Ensures that there is a ParameterizedValueSnapshot for the given field.
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs) {
+  _deprecatedEnsureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], field: DynamicFieldWithArgs) {
     const fieldId = nodeIdForParameterizedValue(containerId, path, field.args);
 
     // We're careful to not edit the container unless we absolutely have to.

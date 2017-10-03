@@ -11,6 +11,7 @@ import { DeepReadonly, JsonScalar, JsonObject, JsonValue, NestedObject, NestedVa
 import { FragmentMap, isObject, valueFromNode } from './util';
 
 export type JsonAndVariables = JsonScalar | VariableArgument;
+export type FieldArguments<TArgTypes = JsonScalar> = NestedObject<TArgTypes>;
 
 /**
  * The GraphQL AST is parsed down into a simple tree containing all information

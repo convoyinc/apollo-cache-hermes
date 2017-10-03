@@ -26,6 +26,16 @@ describe(`operations.write`, () => {
       extra
     }
   }`);
+  const rootMergeQuery = query(`{
+    foo {
+      id
+      name
+    }
+    bar {
+      id
+      extra
+    }
+  }`);
 
   describe(`merge unidentifiable payloads with previously known nodes`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
@@ -36,7 +46,7 @@ describe(`operations.write`, () => {
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(context, baseline, rootValuesQuery, {
+      const result = write(context, baseline, rootMergeQuery, {
         foo: { id: 1, name: 'Foo Boo' },
         bar: { id: 2, extra: true },
       });

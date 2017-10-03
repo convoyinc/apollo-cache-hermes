@@ -20,7 +20,7 @@ export class QueryError extends CacheError {
     // The path within the query where the error occurred.
     public readonly path: string[],
   ) {
-    super(`${message} at ${JSON.stringify(path)}`);
+    super(`${message} at ${prettyPath(path)}`);
   }
 }
 
@@ -54,7 +54,7 @@ export class OperationError extends CacheError {
     // A value associated with the error.
     public readonly value?: any,
   ) {
-    super(`${message} at ${JSON.stringify(path)} of node ${nodeId}`);
+    super(`${message} at ${prettyPath(path)} of node ${nodeId}`);
   }
 }
 
@@ -78,4 +78,11 @@ export class CacheConsistencyError extends OperationError {
   ) {
     super(`Hermes BUG: ${message}`, nodeId, path);
   }
+}
+
+/**
+ * Renders a path as a pretty string.
+ */
+function prettyPath(path: PathPart[]) {
+  return path.length ? path.join('.') : '[]';
 }

@@ -33,8 +33,9 @@ describe(`operations.write`, () => {
       });
       baseline = baselineResult.snapshot;
 
-      const innerNodeQuery = query(`{ name extra }`, undefined, '1');
+      const innerNodeQuery = query(`{ id name extra }`, undefined, '1');
       const result = write(context, baseline, innerNodeQuery, {
+        id: 1,
         name: 'moo',
         extra: true,
       });
