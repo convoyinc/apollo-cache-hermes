@@ -13,6 +13,7 @@ import { QueryInfo } from './QueryInfo';
 export namespace CacheContext {
 
   export type EntityIdForNode = (node: JsonObject) => EntityId | undefined;
+  export type EntityIdForValue = (value: any) => EntityId | undefined;
   export type EntityIdMapper = (node: JsonObject) => string | number | undefined;
   export type EntityTransformer = (node: JsonObject) => void;
   export type LogEmitter = (message: string, ...metadata: any[]) => void;
@@ -65,7 +66,7 @@ export namespace CacheContext {
 export class CacheContext {
 
   /** Retrieve the EntityId for a given node, if any. */
-  readonly entityIdForNode: CacheContext.EntityIdForNode;
+  readonly entityIdForValue: CacheContext.EntityIdForValue;
 
   /** Run transformation on changed entity node, if any. */
   readonly entityTransformer: CacheContext.EntityTransformer | undefined;
@@ -86,7 +87,7 @@ export class CacheContext {
 
 
   constructor(config: CacheContext.Configuration = {}) {
-    this.entityIdForNode = _makeEntityIdMapper(config.entityIdForNode);
+    this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
     this.entityTransformer = config.entityTransformer;
     this.freezeSnapshots = 'freeze' in config
       ? !!config.freeze
@@ -191,7 +192,7 @@ export class CacheContext {
  */
 export function _makeEntityIdMapper(
   mapper: CacheContext.EntityIdMapper = defaultEntityIdMapper,
-): CacheContext.EntityIdForNode {
+): CacheContext.EntityIdForValue {
   return function entityIdForNode(node: JsonObject) {
     if (!isObject(node)) return undefined;
 
