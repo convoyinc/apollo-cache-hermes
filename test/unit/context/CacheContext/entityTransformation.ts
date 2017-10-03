@@ -7,7 +7,7 @@ import { nodeIdForParameterizedValue } from '../../../../src/operations/Snapshot
 import { write } from '../../../../src/operations/write';
 import { JsonObject } from '../../../../src/primitive';
 import { RawOperation, StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -25,6 +25,7 @@ describe(`context.CacheContext`, () => {
         }`, { id: '4' });
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: undefined,
         });
@@ -63,6 +64,7 @@ describe(`context.CacheContext`, () => {
         }
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
@@ -148,6 +150,7 @@ describe(`context.CacheContext`, () => {
         }
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
@@ -178,7 +181,9 @@ describe(`context.CacheContext`, () => {
             name: 'Bob',
             nickName: 'B',
             contact: {
+              __typename: 'contact',
               address: {
+                __typename: 'address',
                 city: 'AA',
                 state: 'AAAA',
               },
@@ -264,6 +269,7 @@ describe(`context.CacheContext`, () => {
         }
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
@@ -294,7 +300,9 @@ describe(`context.CacheContext`, () => {
             name: 'Bob',
             nickName: 'B',
             contact: {
+              __typename: 'contact',
               address: {
+                __typename: 'address',
                 city: 'AA',
                 state: 'AAAA',
               },
@@ -342,6 +350,7 @@ describe(`context.CacheContext`, () => {
         }`);
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             Object.freeze(node);
@@ -383,6 +392,7 @@ describe(`context.CacheContext`, () => {
         }
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
