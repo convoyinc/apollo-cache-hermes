@@ -1,4 +1,3 @@
-import { ParsedQuery, ParsedQueryNode, ParsedQueryWithVariables } from './ParsedQueryNode';
 import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
   ArgumentNode,
   SelectionSetNode,
@@ -145,38 +144,6 @@ function _valueFromNode(variables: Set<string>, node: ValueNode): JsonValue {
  */
 export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArgs {
   return !!(field instanceof DynamicField && field.args);
-}
-
-/**
- * Replace all instances of VariableArgument contained within a parsed operation
- * with their actual values.
- *
- * This requires that all variables used are provided in `variables`.
- */
-export function expandVariables(parsed: ParsedQueryWithVariables, variables: JsonObject | undefined): ParsedQuery {
-  return _expandVariables(parsed, variables)!;
-}
-
-export function _expandVariables(parsed?: ParsedQueryWithVariables, variables?: JsonObject) {
-  if (!parsed) return undefined;
-
-  const newMap = {};
-  for (const key in parsed) {
-    const node = parsed[key];
-    if (node.args || node.hasParameterizedChildren) {
-      newMap[key] = new ParsedQueryNode(
-        _expandVariables(node.children, variables),
-        node.schemaName,
-        expandFieldArguments(node.args, variables),
-        node.hasParameterizedChildren,
-      );
-    // No variables to substitute for this subtree.
-    } else {
-      newMap[key] = node;
-    }
-  }
-
-  return newMap;
 }
 
 export function deprecatedExpandVariables(

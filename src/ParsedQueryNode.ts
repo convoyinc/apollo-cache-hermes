@@ -7,8 +7,10 @@ import lodashIsEqual = require('lodash.isequal');
 
 import { CacheContext } from './context';
 import { ConflictingFieldsError } from './errors';
-import { DeepReadonly, JsonScalar, JsonValue, NestedObject } from './primitive';
-import { FragmentMap, valueFromNode } from './util';
+import { DeepReadonly, JsonScalar, JsonObject, JsonValue, NestedObject, NestedValue } from './primitive';
+import { FragmentMap, isObject, valueFromNode } from './util';
+
+export type JsonAndVariables = JsonScalar | VariableArgument;
 
 /**
  * The GraphQL AST is parsed down into a simple tree containing all information
@@ -66,7 +68,7 @@ export interface ParsedQuery<TArgTypes = JsonScalar> extends ParsedQueryNodeMap<
  * substituted for any VariableArguments in the parsed query (and are a plain
  * ParsedQueryNode).
  */
-export interface ParsedQueryWithVariables extends ParsedQuery<JsonScalar | VariableArgument> {}
+export interface ParsedQueryWithVariables extends ParsedQuery<JsonAndVariables> {}
 
 /**
  * Represents the location a variable should be used as an argument to a
@@ -120,7 +122,7 @@ function _buildNodeMap(
       const children = _buildNodeMap(variables, context, fragments, selection.selectionSet, [...path, name]);
       const schemaName = selection.alias ? selection.name.value : undefined;
       const args = _buildFieldArgs(variables, selection.arguments);
-      const hasParameterizedChildren = areChildrenParameterized(children);
+      const hasParameterizedChildren = areChildrenDynamic(children);
 
       const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren);
       nodeMap[name] = _mergeNodes([...path, name], node, nodeMap[name]);
@@ -149,12 +151,13 @@ function _buildNodeMap(
 /**
  * Well, are they?
  */
-export function areChildrenParameterized(children?: ParsedQueryWithVariables) {
+export function areChildrenDynamic(children?: ParsedQueryWithVariables) {
   if (!children) return undefined;
   for (const name in children) {
     const child = children[name];
     if (child.hasParameterizedChildren) return true;
     if (child.args) return true;
+    if (child.schemaName) return true; // Aliases are dynamic at read time.
   }
   return undefined;
 }
@@ -211,4 +214,70 @@ function _mergeNodes<TArgTypes>(path: string[], target: ParsedQueryNode<TArgType
   }
 
   return target;
+}
+
+
+/**
+ * Replace all instances of VariableArgument contained within a parsed operation
+ * with their actual values.
+ *
+ * This requires that all variables used are provided in `variables`.
+ */
+export function expandVariables(parsed: ParsedQueryWithVariables, variables: JsonObject | undefined): ParsedQuery {
+  return _expandVariables(parsed, variables)!;
+}
+
+export function _expandVariables(parsed?: ParsedQueryWithVariables, variables?: JsonObject) {
+  if (!parsed) return undefined;
+
+  const newMap = {};
+  for (const key in parsed) {
+    const node = parsed[key];
+    if (node.args || node.hasParameterizedChildren) {
+      newMap[key] = new ParsedQueryNode(
+        _expandVariables(node.children, variables),
+        node.schemaName,
+        expandFieldArguments(node.args, variables),
+        node.hasParameterizedChildren,
+      );
+    // No variables to substitute for this subtree.
+    } else {
+      newMap[key] = node;
+    }
+  }
+
+  return newMap;
+}
+
+/**
+ * Sub values in for any variables required by a field's args.
+ */
+export function expandFieldArguments(
+  args: NestedValue<JsonAndVariables> | undefined,
+  variables: JsonObject | undefined,
+): JsonObject | undefined {
+  return args ? _expandArgument(args, variables) as JsonObject : undefined;
+}
+
+export function _expandArgument(
+  arg: NestedValue<JsonAndVariables>,
+  variables: JsonObject | undefined,
+): JsonValue {
+  if (arg instanceof VariableArgument) {
+    if (!variables || !(arg.name in variables)) {
+      throw new Error(`Expected variable $${arg.name} to exist for query`);
+    }
+    return variables[arg.name];
+  } else if (Array.isArray(arg)) {
+    return arg.map(v => _expandArgument(v, variables));
+  } else if (isObject(arg)) {
+    const expanded = {};
+    for (const key in arg) {
+      expanded[key] = _expandArgument(arg[key], variables);
+    }
+    return expanded;
+  } else {
+    // TS isn't inferring that arg cannot contain any VariableArgument values.
+    return arg as JsonValue;
+  }
 }

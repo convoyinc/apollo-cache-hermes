@@ -1,9 +1,9 @@
-import { areChildrenParameterized } from '../ParsedQueryNode';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import lodashIsEqual = require('lodash.isequal');
 import lodashGet = require('lodash.get');
 
-import { deprecatedExpandVariables, expandVariables } from '../DynamicField';
+import { deprecatedExpandVariables } from '../DynamicField';
+import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
 import { addToSet, addTypenameToDocument, isObject } from '../util';
@@ -129,7 +129,7 @@ export class CacheContext {
       info,
       rootId: raw.rootId,
       parsedQuery: expandVariables(info.parsed, fullVariables),
-      isStatic: !!areChildrenParameterized(info.parsed),
+      isStatic: !areChildrenDynamic(info.parsed),
       variables: raw.variables,
       dynamicFieldMap: deprecatedExpandVariables(info.rawDynamicFieldMap, fullVariables),
     };

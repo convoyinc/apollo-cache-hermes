@@ -7,12 +7,14 @@ describe(`operations.read`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const parameterizedQuery = query(`query getAFoo($id: ID!) {
-    user(id: $id, withExtra: true) {
-      id name extra
+  const parameterizedQuery = query(`
+    query getAFoo($id: ID!) {
+      user(id: $id, withExtra: true) {
+        id name extra
+      }
+      stuff
     }
-    stuff
-  }`, { id: 1 });
+  `, { id: 1 });
 
   describe(`parameterized fields`, () => {
 
