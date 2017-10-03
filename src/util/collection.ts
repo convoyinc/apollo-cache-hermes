@@ -1,4 +1,13 @@
+import lodashGet = require('lodash.get');
+
 import { PathPart } from '../primitive';
+
+/**
+ * Gets a nested value, with support for blank paths.
+ */
+export function deepGet(target: any, path: PathPart[]): any {
+  return path.length ? lodashGet(target, path) : target;
+}
 
 /**
  * Adds values to a set, mutating it.
