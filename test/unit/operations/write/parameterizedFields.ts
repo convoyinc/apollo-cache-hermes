@@ -158,6 +158,7 @@ describe(`operations.write`, () => {
         const result = write(context, baseline, parameterizedQuery, {
           foo: {
             name: 'Foo Bar',
+            extra: false,
           },
         });
         snapshot = result.snapshot;
@@ -264,9 +265,9 @@ describe(`operations.write`, () => {
 
         const result = write(context, baseline, parameterizedQuery, {
           foo: [
-            { id: 1, extra: true },
-            { id: 2, extra: false },
-            { id: 3, extra: true },
+            { id: 1, name: 'Foo', extra: true },
+            { id: 2, name: 'Bar', extra: false },
+            { id: 3, name: 'Baz', extra: true },
           ],
         });
         snapshot = result.snapshot;
@@ -322,6 +323,7 @@ describe(`operations.write`, () => {
           foo: {
             id: 1,
             name: 'Foo Bar',
+            extra: false,
           },
         });
         snapshot = result.snapshot;

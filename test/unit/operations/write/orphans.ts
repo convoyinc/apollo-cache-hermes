@@ -34,7 +34,7 @@ describe(`operations.write`, () => {
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(context, baseline, rootValuesQuery, {
+      const result = write(context, baseline, query(`{ bar { id } }`), {
         bar: null,
       });
       snapshot = result.snapshot;
@@ -63,45 +63,7 @@ describe(`operations.write`, () => {
 
   });
 
-  describe(`orphan a node`, () => {
-
-    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
-    beforeAll(() => {
-      const baselineResult = write(context, empty, rootValuesQuery, {
-        foo: { id: 1, name: 'Foo' },
-        bar: { id: 2, name: 'Bar' },
-      });
-      baseline = baselineResult.snapshot;
-
-      const result = write(context, baseline, rootValuesQuery, {
-        bar: null,
-      });
-      snapshot = result.snapshot;
-      editedNodeIds = result.editedNodeIds;
-    });
-
-    it(`replaces the reference with null`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo' },
-        bar: null,
-      });
-    });
-
-    it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
-    });
-
-    it(`marks the container and orphaned node as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '2']);
-    });
-
-    it(`contains the correct nodes`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1']);
-    });
-  });
-
-  describe(`orphan a subgraph`, () => {
+  describe(`when orphaning a subgraph`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const subgraphQuery = query(`{
@@ -149,6 +111,7 @@ describe(`operations.write`, () => {
       const result = write(context, baseline, subgraphQuery, {
         foo: {
           id: 1,
+          name: 'Foo',
           two: null,
         },
         bar: null,

@@ -42,7 +42,7 @@ describe(`operations.write`, () => {
     beforeAll(() => {
       const baselineResult = write(context, empty, rootValuesQuery, {
         foo: { id: 1, name: 'Foo' },
-        bar: { id: 2, name: 'Bar' },
+        bar: { id: 2, name: 'Bar', extra: null },
       });
       baseline = baselineResult.snapshot;
 

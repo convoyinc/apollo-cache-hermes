@@ -28,7 +28,7 @@ describe(`operations.write`, () => {
             bar: 'THIS IS A STRING NOT OBJECT',
           },
         });
-      }).to.throw(/scalar.*foo\.bar/);
+      }).to.throw(/foo\.bar/);
     });
   });
 

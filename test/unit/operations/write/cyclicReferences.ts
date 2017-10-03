@@ -108,9 +108,12 @@ describe(`operations.write`, () => {
         const result = write(context, baseline, cyclicQuery, {
           foo: {
             id: 1,
+            name: 'Foo',
             bar: {
               id: 2,
               name: 'Barrington',
+              fizz: { id: 1 },
+              buzz: { id: 2 },
             },
           },
         });
@@ -171,8 +174,10 @@ describe(`operations.write`, () => {
         const result = write(context, baseline, cyclicQuery, {
           foo: {
             id: 1,
+            name: 'Foo',
             bar: {
               id: 2,
+              name: 'Bar',
               fizz: null,
               buzz: null,
             },
