@@ -10,7 +10,7 @@ import { DynamicField, DynamicFieldMap, DynamicFieldWithArgs, isDynamicFieldWith
 import { GraphSnapshot } from '../GraphSnapshot';
 import { cloneNodeSnapshot, EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
-import { NodeId, ParsedQuery, Query } from '../schema';
+import { NodeId, OperationInstance, RawOperation } from '../schema';
 import {
   addNodeReference,
   addToSet,
@@ -30,7 +30,7 @@ import {
 export interface EditedSnapshot {
   snapshot: GraphSnapshot;
   editedNodeIds: Set<NodeId>;
-  writtenQueries: Set<ParsedQuery>;
+  writtenQueries: Set<OperationInstance>;
 }
 
 /**
@@ -75,7 +75,7 @@ export class SnapshotEditor {
   private _rebuiltNodeIds = new Set<NodeId>();
 
   /** The queries that were written, and should now be considered complete. */
-  private _writtenQueries = new Set<ParsedQuery>();
+  private _writtenQueries = new Set<OperationInstance>();
 
   constructor(
     /** The configuration/context to use when editing snapshots. */
@@ -88,8 +88,8 @@ export class SnapshotEditor {
    * Merge a GraphQL payload (query/fragment/etc) into the snapshot, rooted at
    * the node identified by `rootId`.
    */
-  mergePayload(query: Query, payload: JsonObject): void {
-    const parsed = this._context.parseQuery(query);
+  mergePayload(query: RawOperation, payload: JsonObject): void {
+    const parsed = this._context.parseOperation(query);
 
     // First, we walk the payload and apply all _scalar_ edits, while collecting
     // all references that have changed.  Reference changes are applied later,
@@ -117,7 +117,7 @@ export class SnapshotEditor {
     this._writtenQueries.add(parsed);
   }
 
-  private _mergePayloadValuesUsingSelectionSetAsGuide(query: ParsedQuery, fullPayload: JsonObject) {
+  private _mergePayloadValuesUsingSelectionSetAsGuide(query: OperationInstance, fullPayload: JsonObject) {
     const referenceEdits: ReferenceEdit[] = [];
     this._walkSelectionSets(
       query.info.operation.selectionSet,

@@ -1,10 +1,14 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import gql from 'graphql-tag';
 
+import { CacheContext } from '../../../src/context';
 import { QueryInfo } from '../../../src/context/QueryInfo';
 import { DynamicField, VariableArgument } from '../../../src/DynamicField';
+import { strictConfig } from '../../helpers';
 
 describe(`context.QueryInfo`, () => {
+
+  const context = new CacheContext(strictConfig);
 
   describe(`with a valid query document`, () => {
 
@@ -30,7 +34,7 @@ describe(`context.QueryInfo`, () => {
         }
       `;
 
-      info = new QueryInfo(query);
+      info = new QueryInfo(context, query);
     });
 
     it(`hangs onto the document, with no changes`, () => {
@@ -74,7 +78,7 @@ describe(`context.QueryInfo`, () => {
         }
       `;
 
-      info = new QueryInfo(query);
+      info = new QueryInfo(context, query);
     });
 
     it(`collects the variables that are used`, () => {
@@ -99,7 +103,7 @@ describe(`context.QueryInfo`, () => {
 
     it(`asserts that all variables are declared`, () => {
       expect(() => {
-        new QueryInfo(gql`
+        new QueryInfo(context, gql`
           query whoops($foo: Number) {
             thing(foo: $foo, bar: $bar, baz: $baz)
           }
@@ -109,7 +113,7 @@ describe(`context.QueryInfo`, () => {
 
     it(`asserts that all variables are declared, when used via fragments`, () => {
       expect(() => {
-        new QueryInfo(gql`
+        new QueryInfo(context, gql`
           query whoops($foo: Number) {
             thing { ...stuff }
           }
@@ -123,7 +127,7 @@ describe(`context.QueryInfo`, () => {
 
     it(`asserts that all variables are used`, () => {
       expect(() => {
-        new QueryInfo(gql`
+        new QueryInfo(context, gql`
           query whoops($foo: Number, $bar: String, $baz: ID) {
             thing(bar: $bar)
           }
@@ -133,7 +137,7 @@ describe(`context.QueryInfo`, () => {
 
     it(`asserts that all variables are used, including fragments`, () => {
       expect(() => {
-        new QueryInfo(gql`
+        new QueryInfo(context, gql`
           query whoops($foo: Number, $bar: String, $baz: ID) {
             thing { ...stuff }
           }

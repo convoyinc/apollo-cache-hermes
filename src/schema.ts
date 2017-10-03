@@ -2,6 +2,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 
 import { QueryInfo } from './context';
 import { DynamicFieldMap } from './DynamicField';
+import { ParsedQuery } from './ParsedQueryNode';
 import { JsonObject } from './primitive';
 
 /**
@@ -31,10 +32,10 @@ export enum StaticNodeId {
 }
 
 /**
- * All the information needed to describe a complete GraphQL query that can be
- * made against the cache (read or written).
+ * All the information needed to describe a complete GraphQL operation that can
+ * be made against the cache (read or written).
  */
-export interface Query {
+export interface RawOperation {
   /** The id of the node to begin the query at. */
   readonly rootId: NodeId;
   /** A parsed GraphQL document, declaring an operation to execute. */
@@ -44,14 +45,19 @@ export interface Query {
 }
 
 /**
- * A processed query, ready for consumption by various operations.
+ * A processed query, ready for consumption by the cache, with values for any
+ * variables already substituted in.
  */
-export interface ParsedQuery {
+export interface OperationInstance {
   /** The id of the node to begin the query at. */
   readonly rootId: NodeId;
   /** A parsed GraphQL document, declaring an operation to execute. */
   readonly info: QueryInfo;
-  /** The dynamic field map for the query, with variables substituted in. */
+  /** Parsed form of the query, with values substituted for any variables. */
+  readonly parsedQuery: ParsedQuery;
+  /** Whether the operation contains _no_ parameterized values. */
+  readonly isStatic: boolean;
+  // TODO(ianm): Remove.
   readonly dynamicFieldMap?: DynamicFieldMap;
   /** Any variables used by parameterized fields within the selection set. */
   readonly variables?: JsonObject;
@@ -61,6 +67,6 @@ export interface ParsedQuery {
  * Represents a single query and a set of values that match its selection.
  */
 export interface QuerySnapshot {
-  query: Query;
+  query: RawOperation;
   payload?: JsonObject;
 }

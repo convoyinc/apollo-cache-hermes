@@ -1,13 +1,17 @@
-import { JsonObject, scalar } from '../primitive';
+import { JsonObject, nil, scalar } from '../primitive';
 
 export function isScalar(value: any): value is scalar {
-  return typeof value !== 'object' || value === null;
+  return value === null || typeof value !== 'object';
 }
 
 export function isObject(value: any): value is JsonObject {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-export function isNil(value: any): value is null | undefined {
+export function isObjectOrNull(value: any): value is JsonObject | null {
+  return typeof value === 'object' && !Array.isArray(value);
+}
+
+export function isNil(value: any): value is nil {
   return value === null || value === undefined || Number.isNaN(value);
 }

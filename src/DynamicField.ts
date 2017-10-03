@@ -146,13 +146,7 @@ export function isDynamicFieldWithArgs(field: any): field is DynamicFieldWithArg
   return !!(field instanceof DynamicField && field.args);
 }
 
-/**
- * Replace all instances of VariableArgument contained within a DynamicFieldMap
- * with their actual values.
- *
- * This requires that all variables used are provided in `variables`.
- */
-export function expandVariables(
+export function deprecatedExpandVariables(
   map: DynamicFieldMapWithVariables | undefined,
   variables: JsonObject | undefined,
 ): DynamicFieldMap | undefined {
@@ -165,10 +159,10 @@ export function expandVariables(
       newMap[key] = new DynamicField(
         expandFieldArguments(entry.args, variables),
         entry.fieldName,
-        expandVariables(entry.children, variables),
+        deprecatedExpandVariables(entry.children, variables),
       );
     } else {
-      newMap[key] = expandVariables(entry, variables);
+      newMap[key] = deprecatedExpandVariables(entry, variables);
     }
   }
 

@@ -24,7 +24,7 @@ describe(`operations.read`, () => {
     }
   }`);
 
-  describe.skip(`incomplete payload`, () => {
+  describe(`incomplete payload`, () => {
 
     let snapshot: GraphSnapshot;
     let readResult: QueryResult;
@@ -83,7 +83,7 @@ describe(`operations.read`, () => {
     });
 
     it(`verify that read result is correct`, () => {
-      expect(readResult.result).to.eq({
+      expect(readResult.result).to.deep.eq({
         shipments: [
           {
             id: '0',

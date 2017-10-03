@@ -43,7 +43,6 @@ rules:
   # Best Practices
 
   class-methods-use-this: error
-  consistent-return: error
   curly: [error, multi-line]
   dot-location: [error, property]
   eqeqeq: [error, allow-null]

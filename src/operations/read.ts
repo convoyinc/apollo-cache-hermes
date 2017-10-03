@@ -1,10 +1,10 @@
+import { ParsedQuery } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
-import { DynamicField, DynamicFieldMap } from '../DynamicField';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
-import { walkOperation } from '../util';
+import { isNil, walkOperation } from '../util';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, ParsedQuery, Query } from '../schema';
+import { NodeId, OperationInstance, RawOperation } from '../schema';
 import { isObject } from '../util';
 
 export interface QueryResult {
@@ -22,43 +22,42 @@ export interface QueryResultWithNodeIds extends QueryResult {
 /**
  * Get you some data.
  */
-export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot): QueryResult;
-export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
-export function read(context: CacheContext, query: Query, snapshot: GraphSnapshot, includeNodeIds?: true) {
-  const parsed = context.parseQuery(query);
-  let queryResult = snapshot.readCache.get(parsed) as Partial<QueryResultWithNodeIds>;
+export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot): QueryResult;
+export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
+export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: true) {
+  const operation = context.parseOperation(query);
+  let queryResult = snapshot.readCache.get(operation) as Partial<QueryResultWithNodeIds>;
   if (!queryResult) {
-    let result = snapshot.get(parsed.rootId);
+    let result = snapshot.get(operation.rootId);
 
-    const { dynamicFieldMap } = parsed;
-    if (dynamicFieldMap) {
-      result = _walkAndOverlayDynamicValues(parsed, context, snapshot, dynamicFieldMap, result);
+    if (!operation.isStatic) {
+      result = _walkAndOverlayDynamicValues(operation, context, snapshot, result);
     }
 
-    let { complete, nodeIds } = _visitSelection(parsed, context, result, includeNodeIds);
+    let { complete, nodeIds } = _visitSelection(operation, context, result, includeNodeIds);
 
     // This should NEVER be true.
     //
     // TODO: Once we've nailed down all the bugs; consider skipping
     // _visitSelection for known complete queries (and drop nodeIds tracking?)
-    if (!complete && context.wasQueryWritten(parsed)) {
+    if (!complete && context.wasOperationWritten(operation)) {
       context.error(`Hermes BUG: the most recently written query was marked incomplete`, {
-        queryName: parsed.info.operationName,
-        query: parsed.info.operationSource,
+        queryName: operation.info.operationName,
+        query: operation.info.operationSource,
       });
       // Recover in this case.
       complete = true;
     }
 
     queryResult = { result, complete, nodeIds };
-    snapshot.readCache.set(parsed, queryResult as QueryResult);
+    snapshot.readCache.set(operation, queryResult as QueryResult);
   }
 
   // We can potentially ask for results without node ids first, and then follow
   // up with an ask for them.  In that case, we need to fill in the cache a bit
   // more.
   if (includeNodeIds && !queryResult.nodeIds) {
-    const { complete, nodeIds } = _visitSelection(parsed, context, queryResult.result, includeNodeIds);
+    const { complete, nodeIds } = _visitSelection(operation, context, queryResult.result, includeNodeIds);
     queryResult.complete = complete;
     queryResult.nodeIds = nodeIds;
   }
@@ -70,7 +69,7 @@ class OverlayWalkNode {
   constructor(
     public readonly value: JsonObject,
     public readonly containerId: NodeId,
-    public readonly fieldMap: DynamicFieldMap,
+    public readonly parsedMap: ParsedQuery,
     public readonly path: PathPart[],
   ) {}
 }
@@ -84,24 +83,16 @@ class OverlayWalkNode {
  * contain them).
  */
 export function _walkAndOverlayDynamicValues(
-  query: ParsedQuery,
+  query: OperationInstance,
   context: CacheContext,
   snapshot: GraphSnapshot,
-  fields: DynamicFieldMap,
   result: JsonObject,
 ): JsonObject {
   // Corner case: We stop walking once we reach a parameterized field with no
   // snapshot, but we should also preemptively stop walking if there are no
   // dynamic values to be overlaid
   const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
-
-  // It is possible to have no outbound but there is still an dynamic field
-  // that need to be overlaid (i.e. alias)
-  if (!rootSnapshot || !(rootSnapshot.outbound || fields)) {
-    // For now, what's probably good enough is to just stop the walk if we have
-    // no root snapshot making outbound references to any other fields.
-    return result;
-  }
+  if (isNil(rootSnapshot)) return result;
 
   // TODO: A better approach here might be to walk the outbound references from
   // each node, rather than walking the result set.  We'd have to store the path
@@ -111,11 +102,11 @@ export function _walkAndOverlayDynamicValues(
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
   // schema.  Can we layer that on in such a way that we can support uses w/ and
   // w/o a schema compilation step?
-  const queue = [new OverlayWalkNode(newResult, query.rootId, fields, [])];
+  const queue = [new OverlayWalkNode(newResult, query.rootId, query.parsedQuery, [])];
 
   while (queue.length) {
     const walkNode = queue.pop()!;
-    const { value, fieldMap } = walkNode;
+    const { value, parsedMap } = walkNode;
     let { containerId, path } = walkNode;
     const valueId = context.entityIdForNode(value);
     if (valueId) {
@@ -123,46 +114,42 @@ export function _walkAndOverlayDynamicValues(
       path = [];
     }
 
-    for (const key in fieldMap) {
-      let field: DynamicFieldMap | DynamicField | undefined = fieldMap[key];
+    for (const key in parsedMap) {
+      let node = parsedMap[key];
       let child, childId;
       let fieldName = key;
 
-      if (field instanceof DynamicField) {
-        // If exist filedName property then the current key is an alias
-        fieldName = field.fieldName ? field.fieldName : key;
+      // This is an alias if we have a schemaName declared.
+      fieldName = node.schemaName ? node.schemaName : key;
 
-        if (field.args) {
-          childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], field.args);
-          const childSnapshot = snapshot.getNodeSnapshot(childId);
-          if (childSnapshot) {
-            child = childSnapshot.node;
-          }
-        } else {
-          child = value[fieldName];
+      if (node.args) {
+        childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
+        const childSnapshot = snapshot.getNodeSnapshot(childId);
+        if (childSnapshot) {
+          child = childSnapshot.node;
         }
-        field = field!.children;
       } else {
-        child = value[key];
+        child = value[fieldName];
       }
 
-      // Should we continue the walk?
-      if (field && !(field instanceof DynamicField) && child !== null) {
+      // Have we reached a leaf (either in the query, or in the cache)?
+      if (node.children && child !== null) {
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
             child[i] = _wrapValue(child[i], context);
-            queue.push(new OverlayWalkNode(child[i], containerId, field as DynamicFieldMap, [...path, fieldName, i]));
+            queue.push(new OverlayWalkNode(child[i], containerId, node.children, [...path, fieldName, i]));
           }
 
         } else {
           child = _wrapValue(child, context);
-          queue.push(new OverlayWalkNode(child, containerId, field as DynamicFieldMap, [...path, fieldName]))
+          queue.push(new OverlayWalkNode(child, containerId, node.children, [...path, fieldName]));
         }
       }
 
-      // Because key is already a field alias, result will be written correctly using alias as key
+      // Because key is already a field alias, result will be written correctly
+      // using alias as key.
       value[key] = child;
     }
   }
@@ -187,7 +174,7 @@ function _wrapValue(value: JsonValue, context: CacheContext): any {
  * Determines whether `result` satisfies the properties requested by `selection`.
  */
 export function _visitSelection(
-  query: ParsedQuery,
+  query: OperationInstance,
   context: CacheContext,
   result?: JsonObject,
   includeNodeIds?: true,

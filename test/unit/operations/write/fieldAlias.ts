@@ -3,7 +3,7 @@ import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
-import { Query, StaticNodeId } from '../../../../src/schema';
+import { RawOperation, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -21,7 +21,7 @@ describe(`operations.write`, () => {
 
     describe(`without parameterized arguments`, () => {
       describe(`simple query alias on a leaf field`, () => {
-        let aliasQuery: Query, snapshot: GraphSnapshot;
+        let aliasQuery: RawOperation, snapshot: GraphSnapshot;
         beforeAll(() => {
           aliasQuery = query(`{
             user {
@@ -64,7 +64,7 @@ describe(`operations.write`, () => {
       });
 
       describe(`simple query alias on entityId`, () => {
-        let aliasQuery: Query, snapshot: GraphSnapshot;
+        let aliasQuery: RawOperation, snapshot: GraphSnapshot;
         beforeAll(() => {
           aliasQuery = query(`{
             user {
@@ -111,7 +111,7 @@ describe(`operations.write`, () => {
       });
 
       describe(`nested non entityId alias query`, () => {
-        let aliasQuery: Query, snapshot: GraphSnapshot;
+        let aliasQuery: RawOperation, snapshot: GraphSnapshot;
         beforeAll(() => {
           aliasQuery = query(`{
             user {
@@ -205,7 +205,7 @@ describe(`operations.write`, () => {
       });
 
       describe(`same alias name in different scope`, () => {
-        let aliasQuery: Query, snapshot: GraphSnapshot;
+        let aliasQuery: RawOperation, snapshot: GraphSnapshot;
         beforeAll(() => {
           aliasQuery = query(`{
             shipment: Shipment {
@@ -279,7 +279,7 @@ describe(`operations.write`, () => {
     });
 
     describe(`query with both alias and non-alias to same field`, () => {
-      let mixQuery: Query;
+      let mixQuery: RawOperation;
       beforeAll(() => {
         mixQuery = query(`
           query GetUser {

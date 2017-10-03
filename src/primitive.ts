@@ -10,6 +10,11 @@
 export type scalar = undefined | null | boolean | number | string | Symbol;
 
 /**
+ * A missing object.
+ */
+export type nil = undefined | null;
+
+/**
  * A component of a path through objects/arrays.
  */
 export type PathPart = number | string;

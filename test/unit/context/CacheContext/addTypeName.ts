@@ -16,7 +16,7 @@ describe(`context.CacheContext`, () => {
 
     it(`does not inject __typename by default`, () => {
       const context = new CacheContext({});
-      const parsed = context.parseQuery({
+      const parsed = context.parseOperation({
         rootId: 'abc',
         document: gql`{
           foo {
@@ -37,7 +37,7 @@ describe(`context.CacheContext`, () => {
 
     it(`injects __typename into parsed queries`, () => {
       const context = new CacheContext({ addTypename: true });
-      const parsed = context.parseQuery({
+      const parsed = context.parseOperation({
         rootId: 'abc',
         document: gql`{
           foo {
@@ -58,7 +58,7 @@ describe(`context.CacheContext`, () => {
 
     it(`injects __typename into fragments`, () => {
       const context = new CacheContext({ addTypename: true });
-      const parsed = context.parseQuery({
+      const parsed = context.parseOperation({
         rootId: 'abc',
         document: gql`
           query stuff {
@@ -84,7 +84,7 @@ describe(`context.CacheContext`, () => {
 
     it(`injects __typename into inline fragments`, () => {
       const context = new CacheContext({ addTypename: true });
-      const parsed = context.parseQuery({
+      const parsed = context.parseOperation({
         rootId: 'abc',
         document: gql`{
           asdf {

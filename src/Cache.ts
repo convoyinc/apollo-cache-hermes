@@ -6,7 +6,7 @@ import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { QueryObserver, read } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
-import { ChangeId, NodeId, Query } from './schema';
+import { ChangeId, NodeId, RawOperation } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
 
@@ -39,7 +39,7 @@ export class Cache implements Queryable {
    * TODO: Can we drop non-optimistic reads?
    * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(query: Query, optimistic?: boolean): { result?: JsonValue, complete: boolean } {
+  read(query: RawOperation, optimistic?: boolean): { result?: JsonValue, complete: boolean } {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     const snapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
@@ -57,7 +57,7 @@ export class Cache implements Queryable {
    * Registers a callback that should be triggered any time the nodes selected
    * by a particular query have changed.
    */
-  watch(query: Query, callback: () => void): () => void {
+  watch(query: RawOperation, callback: () => void): () => void {
     const observer = new QueryObserver(this._context, query, this._snapshot.optimistic, callback);
     this._observers.push(observer);
 
@@ -67,7 +67,7 @@ export class Cache implements Queryable {
   /**
    * Writes values for a selection to the cache.
    */
-  write(query: Query, payload: JsonObject): void {
+  write(query: RawOperation, payload: JsonObject): void {
     this.transaction(t => t.write(query, payload));
   }
 
@@ -100,7 +100,7 @@ export class Cache implements Queryable {
 
     const { snapshot, editedNodeIds, writtenQueries } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
-    this._context.markQueriesWritten(writtenQueries);
+    this._context.markOperationsWritten(writtenQueries);
 
     return true;
   }

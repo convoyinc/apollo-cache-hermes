@@ -1,6 +1,6 @@
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, Query } from '../schema';
+import { NodeId, RawOperation } from '../schema';
 
 import { QueryResult, QueryResultWithNodeIds, read } from './read';
 
@@ -16,13 +16,13 @@ export class QueryObserver {
   /** Cache configuration/context to use when executing queries. */
   private _context: CacheContext;
   /** The query being observed. */
-  private _query: Query;
+  private _query: RawOperation;
   /** The most recent result */
   private _result: QueryResultWithNodeIds;
   /** The callback to trigger when observed nodes have changed. */
   private _callback: Callback;
 
-  constructor(context: CacheContext, query: Query, snapshot: GraphSnapshot, callback: Callback) {
+  constructor(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, callback: Callback) {
     this._context = context;
     this._query = query;
     this._callback = callback;
