@@ -207,7 +207,6 @@ export class SnapshotEditor {
       // Having a schemaName on the node implies that payloadName is an alias.
       const schemaName = node.schemaName ? node.schemaName : payloadName;
       let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;
-      const previousFieldValue = deepGet(previousValue, [schemaName]);
       // Don't trust our inputs.  Ensure that missing values are null.
       if (fieldValue === undefined) {
         this._context.warn(`Encountered undefined at ${[...path, payloadName].join('.')} of node ${containerId}. Treating as null`);
@@ -272,6 +271,10 @@ export class SnapshotEditor {
         fieldPath = [];
       }
 
+      // Note that we're careful to fetch the value of our new container; not
+      // the outer container.
+      const previousFieldValue = deepGet(this.getNodeData(containerIdForField), fieldPath);
+
       // For fields with sub selections, we walk into them; only leaf fields are
       // directly written via _setValue.  This allows us to perform minimal
       // edits to the graph.
@@ -319,7 +322,7 @@ export class SnapshotEditor {
     // the new array is of a different length.
     //
     // So, we resize the array to our desired size before walking.
-    if (payloadLength !== previousLength) {
+    if (payloadLength !== previousLength || !previousValue) {
       const newArray = Array.isArray(previousValue)
         ? previousValue.slice(0, payloadLength) : new Array(payloadLength);
       this._setValue(containerId, path, newArray);
