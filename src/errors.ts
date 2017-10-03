@@ -20,7 +20,7 @@ export class QueryError extends CacheError {
     // The path within the query where the error occurred.
     public readonly path: string[],
   ) {
-    super(`${message} at ${path.join('.')}`);
+    super(`${message} at ${JSON.stringify(path)}`);
   }
 }
 
@@ -51,8 +51,10 @@ export class OperationError extends CacheError {
     public readonly nodeId: NodeId,
     // The path within the node where the error occurred.
     public readonly path: PathPart[],
+    // A value associated with the error.
+    public readonly value?: any,
   ) {
-    super(`${message} at ${path.join('.')} of ${nodeId}`);
+    super(`${message} at ${JSON.stringify(path)} of node ${nodeId}`);
   }
 }
 
