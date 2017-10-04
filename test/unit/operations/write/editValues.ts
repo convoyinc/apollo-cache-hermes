@@ -132,9 +132,9 @@ describe(`operations.write`, () => {
       });
     });
 
-    it(`preserves unedited nodes from the parent`, () => {
-      expect(baseline.get('1').node).to.eq(snapshot.get('1').node);
-      expect(baseline.get('2').node).to.eq(snapshot.get('2').node);
+    it.only(`preserves unedited nodes from the parent`, () => {
+      expect(baseline.get('1')).to.eq(snapshot.get('1'));
+      expect(baseline.get('2')).to.eq(snapshot.get('2'));
     });
 
     it(`updates outbound references`, () => {

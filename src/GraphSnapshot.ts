@@ -28,7 +28,7 @@ export class GraphSnapshot {
    */
   get(id: NodeId): Readonly<any> | undefined {
     const snapshot = this.getNodeSnapshot(id);
-    return snapshot ? snapshot.node : undefined;
+    return snapshot ? snapshot.data : undefined;
   }
 
   /**

@@ -11,12 +11,12 @@ import { ParameterizedValueSnapshot } from './ParameterizedValueSnapshot';
  */
 export function cloneNodeSnapshot(parent: NodeSnapshot) {
   let node;
-  if (Array.isArray(parent.node)) {
-    node = [...parent.node];
-  } else if (isObject(parent.node)) {
-    node = { ...parent.node };
+  if (Array.isArray(parent.data)) {
+    node = [...parent.data];
+  } else if (isObject(parent.data)) {
+    node = { ...parent.data };
   } else {
-    node = parent.node;
+    node = parent.data;
   }
   const inbound = parent.inbound ? [...parent.inbound] : undefined;
   const outbound = parent.outbound ? [...parent.outbound] : undefined;

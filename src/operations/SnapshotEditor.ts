@@ -380,7 +380,7 @@ export class SnapshotEditor {
       if (!snapshot || !snapshot.inbound) continue;
 
       for (const { id, path } of snapshot.inbound) {
-        this._setValue(id, path, snapshot.node, false);
+        this._setValue(id, path, snapshot.data, false);
         if (this._rebuiltNodeIds.has(id)) continue;
 
         this._rebuiltNodeIds.add(id);
@@ -425,8 +425,8 @@ export class SnapshotEditor {
         delete snapshots[id];
       } else {
         if (entityTransformer) {
-          const { node } = this._newNodes[id] as EntitySnapshot;
-          if (node) entityTransformer(node);
+          const { data } = this._newNodes[id] as EntitySnapshot;
+          if (data) entityTransformer(data);
         }
         snapshots[id] = newSnapshot;
       }
@@ -449,7 +449,7 @@ export class SnapshotEditor {
    */
   private getNodeData(id: NodeId) {
     const snapshot = this.getNodeSnapshot(id);
-    return snapshot ? snapshot.node : undefined;
+    return snapshot ? snapshot.data : undefined;
   }
 
   /**
@@ -473,7 +473,7 @@ export class SnapshotEditor {
 
     const parent = this._parent.getNodeSnapshot(id);
     const current = this._ensureNewSnapshot(id);
-    current.node = lazyImmutableDeepSet(current.node, parent && parent.node, path, newValue);
+    current.data = lazyImmutableDeepSet(current.data, parent && parent.data, path, newValue);
   }
 
   /**

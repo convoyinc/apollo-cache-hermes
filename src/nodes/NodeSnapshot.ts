@@ -6,7 +6,7 @@ import { NodeId } from '../schema';
  */
 export interface NodeSnapshot {
   /** A reference to the node this snapshot is about. TODO: Remove? */
-  node?: JsonValue;
+  data?: JsonValue;
   /** Other node snapshots that point to this one. */
   inbound?: NodeReference[];
   /** The node snapshots that this one points to. */

@@ -259,7 +259,7 @@ describe(`operations.write`, () => {
           expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq({
             inbound: undefined,
             outbound: [{ id: '0', path: ['Shipment'] }, { id: '2', path: ['Dispatcher'] }, { id: '1', path: ['Carrier'] }],
-            node: {
+            data: {
               Shipment: {
                 shipmentId: 0,
                 shipmentName: 'ToSeattle',

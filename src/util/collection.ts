@@ -50,7 +50,7 @@ export function lazyImmutableDeepSet<TEntity>(
 
       if (i === 0) {
         // Make sure we have a reference to the new target. We can keep the
-        // reference here because "target" is pointing as currentNode.node.
+        // reference here because "target" is pointing as currentNode.data.
         target = targetNode;
       } else {
         parentNode[path[i - 1]] = targetNode;

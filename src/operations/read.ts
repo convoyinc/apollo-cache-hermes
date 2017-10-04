@@ -131,7 +131,7 @@ export function _walkAndOverlayDynamicValues(
         childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
         const childSnapshot = snapshot.getNodeSnapshot(childId);
         if (childSnapshot) {
-          child = childSnapshot.node;
+          child = childSnapshot.data;
         }
       } else {
         child = value[fieldName];
