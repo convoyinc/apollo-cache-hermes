@@ -28,10 +28,11 @@ export function read(context: CacheContext, query: RawOperation, snapshot: Graph
   const operation = context.parseOperation(query);
   let queryResult = snapshot.readCache.get(operation) as Partial<QueryResultWithNodeIds>;
   if (!queryResult) {
-    let result = snapshot.getNodeData(operation.rootId);
+    const staticResult = snapshot.getNodeData(operation.rootId);
 
+    let result = staticResult;
     if (!operation.isStatic) {
-      result = _walkAndOverlayDynamicValues(operation, context, snapshot, result);
+      result = _walkAndOverlayDynamicValues(operation, context, snapshot, staticResult);
     }
 
     let { complete, nodeIds } = _visitSelection(operation, context, result, includeNodeIds);
@@ -41,11 +42,11 @@ export function read(context: CacheContext, query: RawOperation, snapshot: Graph
     // TODO: Once we've nailed down all the bugs; consider skipping
     // _visitSelection for known complete queries (and drop nodeIds tracking?)
     if (!complete && context.wasOperationWritten(operation)) {
-      context.error(`Hermes BUG: the most recently written query was marked incomplete`, {
+      context.error(`BUG: the most recently written query was marked incomplete`, {
         queryName: operation.info.operationName,
         query: operation.info.operationSource,
       });
-      // Recover in this case.
+      // Attempt to recover; though this likely means the cache is corrupt.
       complete = true;
     }
 
@@ -54,7 +55,7 @@ export function read(context: CacheContext, query: RawOperation, snapshot: Graph
 
     if (context.verbose) {
       const { info } = operation;
-      context.debug(`read(${info.operationType} ${info.operationName})`, queryResult);
+      context.debug(`read(${info.operationType} ${info.operationName})`, { result, complete, nodeIds, snapshot });
     }
   }
 
@@ -130,7 +131,8 @@ export function _walkAndOverlayDynamicValues(
       if (node.args) {
         childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
         const childSnapshot = snapshot.getNodeSnapshot(childId);
-        child = childSnapshot ? childSnapshot.data : null;
+        if (!childSnapshot) continue;
+        child = childSnapshot.data;
       } else {
         child = value[fieldName];
       }

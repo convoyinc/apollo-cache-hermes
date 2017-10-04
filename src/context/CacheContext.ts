@@ -181,7 +181,7 @@ export class CacheContext {
    * Emit log events in a (collapsed) group.
    */
   logGroup(message: string, callback: () => void): void {
-    this._logger.group(message);
+    this._logger.group(`[Cache] ${message}`);
     try {
       callback();
     } finally {

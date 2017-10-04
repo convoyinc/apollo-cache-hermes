@@ -142,7 +142,7 @@ export class SnapshotEditor {
     // Don't trust our inputs; we can receive values that aren't JSON
     // serializable via optimistic updates.
     if (payload === undefined) {
-      warnings.push(`(1) Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
+      warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
       payload = null;
     }
 
@@ -224,7 +224,7 @@ export class SnapshotEditor {
       let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;
       // Don't trust our inputs.  Ensure that missing values are null.
       if (fieldValue === undefined) {
-        warnings.push(`(2) Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
+        warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
         fieldValue = null;
       }
 
