@@ -28,7 +28,7 @@ export function read(context: CacheContext, query: RawOperation, snapshot: Graph
   const operation = context.parseOperation(query);
   let queryResult = snapshot.readCache.get(operation) as Partial<QueryResultWithNodeIds>;
   if (!queryResult) {
-    let result = snapshot.get(operation.rootId);
+    let result = snapshot.getNodeData(operation.rootId);
 
     if (!operation.isStatic) {
       result = _walkAndOverlayDynamicValues(operation, context, snapshot, result);

@@ -246,10 +246,10 @@ export class SnapshotEditor {
       // The cache would have:
       //
       //   1: {
-      //     node: { id: 1, name: 'Foo' },
+      //     data: { id: 1, name: 'Foo' },
       //   },
       //   'ROOT_QUERY❖["foo"]❖{"id":1}': {
-      //     node: // a direct reference to the node of entity '1'.
+      //     data: // a direct reference to the node of entity '1'.
       //   },
       //
       // This allows us to rely on standard behavior for entity references: If

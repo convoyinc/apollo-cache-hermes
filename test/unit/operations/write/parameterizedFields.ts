@@ -50,7 +50,7 @@ describe(`operations.write`, () => {
       });
 
       it(`writes a node for the field`, () => {
-        expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
       });
 
       it(`creates an outgoing reference from the field's container`, () => {
@@ -64,7 +64,7 @@ describe(`operations.write`, () => {
       });
 
       it(`does not expose the parameterized field directly from its container`, () => {
-        expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
+        expect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).to.eq(undefined);
       });
 
       it(`marks only the new field as edited`, () => {
@@ -108,7 +108,7 @@ describe(`operations.write`, () => {
       });
 
       it(`writes a node for the field`, () => {
-        expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
       });
 
       it(`creates an outgoing reference from the field's container`, () => {
@@ -122,7 +122,7 @@ describe(`operations.write`, () => {
       });
 
       it(`does not expose the parameterized field directly from its container`, () => {
-        expect(_.get(snapshot.get(QueryRootId), 'foo.bar.baz')).to.eq(undefined);
+        expect(_.get(snapshot.getNodeData(QueryRootId), 'foo.bar.baz')).to.eq(undefined);
       });
 
       it(`marks only the new field as edited`, () => {
@@ -166,7 +166,7 @@ describe(`operations.write`, () => {
       });
 
       it(`updates the node for the field`, () => {
-        expect(snapshot.get(parameterizedId)).to.deep.eq({ name: 'Foo Bar', extra: false });
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ name: 'Foo Bar', extra: false });
       });
 
       it(`marks only the field as edited`, () => {
@@ -203,11 +203,11 @@ describe(`operations.write`, () => {
       });
 
       it(`writes a node for the new entity`, () => {
-        expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
+        expect(snapshot.getNodeData('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
       });
 
       it(`writes a node for the field that points to the entity's value`, () => {
-        expect(snapshot.get(parameterizedId)).to.eq(snapshot.get('1'));
+        expect(snapshot.getNodeData(parameterizedId)).to.eq(snapshot.getNodeData('1'));
       });
 
       it(`creates an outgoing reference from the field's container`, () => {
@@ -231,7 +231,7 @@ describe(`operations.write`, () => {
       });
 
       it(`does not expose the parameterized field directly from its container`, () => {
-        expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
+        expect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).to.eq(undefined);
       });
 
       it(`marks the new field and entity as edited`, () => {
@@ -275,19 +275,19 @@ describe(`operations.write`, () => {
       });
 
       it(`writes nodes for each entity`, () => {
-        expect(baseline.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
-        expect(baseline.get('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
-        expect(baseline.get('3')).to.deep.eq({ id: 3, name: 'Baz', extra: false });
+        expect(baseline.getNodeData('1')).to.deep.eq({ id: 1, name: 'Foo', extra: false });
+        expect(baseline.getNodeData('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
+        expect(baseline.getNodeData('3')).to.deep.eq({ id: 3, name: 'Baz', extra: false });
       });
 
       it(`updates nodes for each entity`, () => {
-        expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo', extra: true });
-        expect(snapshot.get('2')).to.deep.eq({ id: 2, name: 'Bar', extra: false });
-        expect(snapshot.get('3')).to.deep.eq({ id: 3, name: 'Baz', extra: true });
+        expect(snapshot.getNodeData('1')).to.deep.eq({ id: 1, name: 'Foo', extra: true });
+        expect(snapshot.getNodeData('2')).to.deep.eq({ id: 2, name: 'Bar', extra: false });
+        expect(snapshot.getNodeData('3')).to.deep.eq({ id: 3, name: 'Baz', extra: true });
       });
 
       it(`writes an array for the parameterized node`, () => {
-        expect(snapshot.get(parameterizedId)).to.deep.eq([
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq([
           { id: 1, name: 'Foo', extra: true },
           { id: 2, name: 'Bar', extra: false },
           { id: 3, name: 'Baz', extra: true },
@@ -331,11 +331,11 @@ describe(`operations.write`, () => {
       });
 
       it(`updates the node for the field`, () => {
-        expect(snapshot.get(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
       });
 
       it(`writes a node for the field that points to the entity's value`, () => {
-        expect(snapshot.get(parameterizedId)).to.eq(snapshot.get('1'));
+        expect(snapshot.getNodeData(parameterizedId)).to.eq(snapshot.getNodeData('1'));
       });
 
       it(`marks only the entity as edited`, () => {
@@ -376,13 +376,13 @@ describe(`operations.write`, () => {
       });
 
       it(`updates the node for the field`, () => {
-        expect(snapshot.get(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ id: 1, name: 'Foo Bar', extra: false });
       });
 
       it(`ensures normalized references`, () => {
-        const entity = snapshot.get('1');
-        expect(snapshot.get(QueryRootId).viewer).to.eq(entity);
-        expect(snapshot.get(parameterizedId)).to.eq(entity);
+        const entity = snapshot.getNodeData('1');
+        expect(snapshot.getNodeData(QueryRootId).viewer).to.eq(entity);
+        expect(snapshot.getNodeData(parameterizedId)).to.eq(entity);
       });
 
       it(`marks only the entity as edited`, () => {
@@ -456,7 +456,7 @@ describe(`operations.write`, () => {
         // This is a bit arcane, but it ensures that _overlayParameterizedValues
         // behaves properly when iterating arrays that contain _only_
         // parameterized fields.
-        expect(snapshot.get(parameterizedRootId)).to.deep.eq({ three: { id: 31 } });
+        expect(snapshot.getNodeData(parameterizedRootId)).to.deep.eq({ three: { id: 31 } });
       });
 
       it(`allows removal of values containing a field`, () => {
@@ -466,7 +466,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(updated.get(parameterizedRootId)).to.deep.eq(null);
+        expect(updated.getNodeData(parameterizedRootId)).to.deep.eq(null);
       });
 
     });
@@ -563,7 +563,7 @@ describe(`operations.write`, () => {
         // This is a bit arcane, but it ensures that _overlayParameterizedValues
         // behaves properly when iterating arrays that contain _only_
         // parameterized fields.
-        expect(snapshot.get(parameterizedRootId)).to.deep.eq([
+        expect(snapshot.getNodeData(parameterizedRootId)).to.deep.eq([
           {
             three: { id: 31 },
           },
@@ -580,7 +580,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(updated.get(parameterizedRootId)).to.deep.eq(null);
+        expect(updated.getNodeData(parameterizedRootId)).to.deep.eq(null);
       });
 
     });
@@ -628,7 +628,7 @@ describe(`operations.write`, () => {
         // This is a bit arcane, but it ensures that _overlayParameterizedValues
         // behaves properly when iterating arrays that contain _only_
         // parameterized fields.
-        expect(snapshot.get(containerId)).to.deep.eq([
+        expect(snapshot.getNodeData(containerId)).to.deep.eq([
           {
             three: {
               threeValue: 'first',
@@ -656,7 +656,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(updated.get(containerId)).to.deep.eq([
+        expect(updated.getNodeData(containerId)).to.deep.eq([
           null,
           {
             three: {
@@ -756,7 +756,7 @@ describe(`operations.write`, () => {
       });
 
       it(`writes a node for the field`, () => {
-        expect(snapshot.get(parameterizedId)).to.deep.eq('hello');
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq('hello');
       });
 
       it(`creates an outgoing reference from the field's container`, () => {
@@ -770,7 +770,7 @@ describe(`operations.write`, () => {
       });
 
       it(`does not expose the parameterized field directly from its container`, () => {
-        expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
+        expect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).to.eq(undefined);
       });
 
       it(`marks only the new field as edited`, () => {
@@ -799,7 +799,7 @@ describe(`operations.write`, () => {
       });
 
       it(`writes a node for the field`, () => {
-        expect(snapshot.get(parameterizedId)).to.deep.eq('hello');
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq('hello');
       });
 
       it(`creates an outgoing reference from the field's container`, () => {
@@ -813,7 +813,7 @@ describe(`operations.write`, () => {
       });
 
       it(`does not expose the parameterized field directly from its container`, () => {
-        expect(_.get(snapshot.get(QueryRootId), 'foo')).to.eq(undefined);
+        expect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).to.eq(undefined);
       });
 
       it(`marks only the new field as edited`, () => {

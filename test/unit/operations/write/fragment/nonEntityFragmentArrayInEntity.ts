@@ -22,7 +22,7 @@ describe(`operations.write`, () => {
         name
         articles {
           ...ShortArticle
-        } 
+        }
       }
     }
     fragment ShortArticle on Article {
@@ -55,7 +55,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, referencing the entity`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         viewer: {
           id: 123,
           name: 'Gouda',
@@ -74,7 +74,7 @@ describe(`operations.write`, () => {
     });
 
     it(`indexes the entity`, () => {
-      expect(snapshot.get('123')).to.deep.eq({
+      expect(snapshot.getNodeData('123')).to.deep.eq({
         id: 123,
         name: 'Gouda',
         articles: [
@@ -99,8 +99,8 @@ describe(`operations.write`, () => {
     });
 
     it(`directly references viewer from the query root`, () => {
-      const queryRoot = snapshot.get(QueryRootId);
-      const viewer = snapshot.get('123');
+      const queryRoot = snapshot.getNodeData(QueryRootId);
+      const viewer = snapshot.getNodeData('123');
       expect(queryRoot.viewer).to.eq(viewer);
     });
 

@@ -55,17 +55,17 @@ describe(`operations.write`, () => {
     });
 
     it(`updates existing values in referenced nodes`, () => {
-      expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo Boo' });
+      expect(snapshot.getNodeData('1')).to.deep.eq({ id: 1, name: 'Foo Boo' });
     });
 
     it(`inserts new values in referenced nodes`, () => {
-      expect(snapshot.get('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
+      expect(snapshot.getNodeData('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
     });
 
     it(`updates references to the newly edited nodes`, () => {
-      const root = snapshot.get(QueryRootId);
-      expect(root.foo).to.eq(snapshot.get('1'));
-      expect(root.bar).to.eq(snapshot.get('2'));
+      const root = snapshot.getNodeData(QueryRootId);
+      expect(root.foo).to.eq(snapshot.getNodeData('1'));
+      expect(root.bar).to.eq(snapshot.getNodeData('2'));
     });
 
     it(`doesn't mark regenerated nodes as edited`, () => {

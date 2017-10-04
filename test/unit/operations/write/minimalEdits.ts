@@ -23,7 +23,7 @@ describe(`operations.write`, () => {
       const { snapshot: baseSnapshot } = write(context, empty, basicQuery, { foo: [1, 2, 3] });
       const { snapshot } = write(context, baseSnapshot, basicQuery, { foo: [1, 2, 3] });
 
-      expect(snapshot.get(QueryRootId)).to.eq(baseSnapshot.get(QueryRootId));
+      expect(snapshot.getNodeData(QueryRootId)).to.eq(baseSnapshot.getNodeData(QueryRootId));
     });
 
     it(`preserves complex arrays if none of their values change`, () => {
@@ -37,7 +37,7 @@ describe(`operations.write`, () => {
         foo: [value1, value2, value3],
       });
 
-      expect(snapshot.get(QueryRootId)).to.eq(baseSnapshot.get(QueryRootId));
+      expect(snapshot.getNodeData(QueryRootId)).to.eq(baseSnapshot.getNodeData(QueryRootId));
     });
 
     it(`only edits values that do change`, () => {
@@ -52,8 +52,8 @@ describe(`operations.write`, () => {
         foo: [value1, value4, value3],
       });
 
-      const baseValue = baseSnapshot.get(QueryRootId).foo;
-      const newValue = snapshot.get(QueryRootId).foo;
+      const baseValue = baseSnapshot.getNodeData(QueryRootId).foo;
+      const newValue = snapshot.getNodeData(QueryRootId).foo;
       expect(newValue[0]).to.eq(baseValue[0]);
       expect(newValue[2]).to.eq(baseValue[2]);
       expect(newValue[1]).to.deep.eq({ nested: { value: 4 } });
@@ -72,7 +72,7 @@ describe(`operations.write`, () => {
         foo: { a: 1, b: 2, c: 3 },
       });
 
-      expect(snapshot.get(QueryRootId)).to.eq(baseSnapshot.get(QueryRootId));
+      expect(snapshot.getNodeData(QueryRootId)).to.eq(baseSnapshot.getNodeData(QueryRootId));
     });
 
     it(`only edits values that do change`, () => {
@@ -87,8 +87,8 @@ describe(`operations.write`, () => {
         foo: { a: value1, b: value4, c: value3 },
       });
 
-      const baseValue = baseSnapshot.get(QueryRootId).foo;
-      const newValue = snapshot.get(QueryRootId).foo;
+      const baseValue = baseSnapshot.getNodeData(QueryRootId).foo;
+      const newValue = snapshot.getNodeData(QueryRootId).foo;
       expect(newValue.a).to.eq(baseValue.a);
       expect(newValue.c).to.eq(baseValue.c);
       expect(newValue.b).to.deep.eq({ nested: { value: 4 } });

@@ -26,7 +26,7 @@ export class GraphSnapshot {
   /**
    * Retrieves the value identified by `id`.
    */
-  get(id: NodeId): Readonly<any> | undefined {
+  getNodeData(id: NodeId): Readonly<any> | undefined {
     const snapshot = this.getNodeSnapshot(id);
     return snapshot ? snapshot.data : undefined;
   }

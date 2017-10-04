@@ -37,7 +37,7 @@ describe(`operations.write`, () => {
     });
 
     it(`replaces the reference with null`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         foo: { id: 1, name: 'Foo' },
         bar: null,
       });
@@ -109,7 +109,7 @@ describe(`operations.write`, () => {
     });
 
     it(`replaces the reference with null`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         foo: { id: 1, name: 'Foo', two: null },
         bar: null,
       });

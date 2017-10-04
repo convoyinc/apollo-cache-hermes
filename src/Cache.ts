@@ -50,7 +50,7 @@ export class Cache implements Queryable {
    * Retrieves the current value of the entity identified by `id`.
    */
   getEntity(id: NodeId) {
-    return this._snapshot.optimistic.get(id);
+    return this._snapshot.optimistic.getNodeData(id);
   }
 
   /**

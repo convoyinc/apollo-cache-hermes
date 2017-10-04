@@ -45,7 +45,7 @@ describe(`operations.write`, () => {
     });
 
     it(`updates the value, and its container`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({ foo: 321, bar: { baz: 'asdf' } });
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({ foo: 321, bar: { baz: 'asdf' } });
     });
 
     it(`marks the root as edited`, () => {
@@ -83,19 +83,19 @@ describe(`operations.write`, () => {
     });
 
     it(`merges new properties with existing objects`, () => {
-      expect(snapshot.get(QueryRootId).bar).to.deep.eq({ baz: 'fdsa', fizz: 'buzz' });
+      expect(snapshot.getNodeData(QueryRootId).bar).to.deep.eq({ baz: 'fdsa', fizz: 'buzz' });
     });
 
     it(`honors array lengths`, () => {
-      expect(snapshot.get(QueryRootId).foo.length).to.eq(2);
+      expect(snapshot.getNodeData(QueryRootId).foo.length).to.eq(2);
     });
 
     it(`overwrites previous values in array elements`, () => {
-      expect(snapshot.get(QueryRootId).foo[0]).to.deep.eq({ value: -1 });
+      expect(snapshot.getNodeData(QueryRootId).foo[0]).to.deep.eq({ value: -1 });
     });
 
     it(`no merging of new values in array elements as we copy leaf value`, () => {
-      expect(snapshot.get(QueryRootId).foo[1]).to.deep.eq({ extra: true });
+      expect(snapshot.getNodeData(QueryRootId).foo[1]).to.deep.eq({ extra: true });
     });
 
     it(`marks the root as edited`, () => {
@@ -126,15 +126,15 @@ describe(`operations.write`, () => {
     });
 
     it(`previous versions still have original value`, () => {
-      expect(baseline.get(QueryRootId)).to.deep.eq({
+      expect(baseline.getNodeData(QueryRootId)).to.deep.eq({
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar' },
       });
     });
 
     it.only(`preserves unedited nodes from the parent`, () => {
-      expect(baseline.get('1')).to.eq(snapshot.get('1'));
-      expect(baseline.get('2')).to.eq(snapshot.get('2'));
+      expect(baseline.getNodeData('1')).to.eq(snapshot.getNodeData('1'));
+      expect(baseline.getNodeData('2')).to.eq(snapshot.getNodeData('2'));
     });
 
     it(`updates outbound references`, () => {
@@ -270,7 +270,7 @@ describe(`operations.write`, () => {
         { id: '4', path: ['things', 3] },
       ]);
 
-      expect(updated.get(QueryRootId)).to.deep.eq({
+      expect(updated.getNodeData(QueryRootId)).to.deep.eq({
         things: [
           null,
           null,
@@ -297,7 +297,7 @@ describe(`operations.write`, () => {
         { id: '4', path: ['things', 3] },
       ]);
 
-      expect(updated.get(QueryRootId)).to.deep.eq({
+      expect(updated.getNodeData(QueryRootId)).to.deep.eq({
         things: [
           null,
           null,
@@ -317,7 +317,7 @@ describe(`operations.write`, () => {
         ] as JsonArray,
       }).snapshot;
 
-      expect(updated.get(QueryRootId)).to.deep.eq({
+      expect(updated.getNodeData(QueryRootId)).to.deep.eq({
         things: [
           { id: 1, name: 'One' },
           { id: 2, name: 'Two' },
@@ -341,7 +341,7 @@ describe(`operations.write`, () => {
         bar: 0,
       }).snapshot;
 
-      expect(updated.get(QueryRootId)).to.deep.eq({
+      expect(updated.getNodeData(QueryRootId)).to.deep.eq({
         foo: [
           false,
           0,

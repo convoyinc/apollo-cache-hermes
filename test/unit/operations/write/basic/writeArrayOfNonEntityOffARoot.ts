@@ -42,7 +42,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, referencing the entity`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         viewer: [
           {
             postal: 123,
@@ -61,7 +61,7 @@ describe(`operations.write`, () => {
     });
 
     it(`directly references a first entity of viewer from the query root`, () => {
-      const queryRoot = snapshot.get(QueryRootId);
+      const queryRoot = snapshot.getNodeData(QueryRootId);
       expect(queryRoot.viewer[0]).to.deep.eq({
         postal: 123,
         name: 'Gouda',

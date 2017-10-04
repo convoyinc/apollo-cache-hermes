@@ -43,7 +43,7 @@ describe(`operations.write`, () => {
       });
 
       it(`writes the complete graph`, () => {
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
+        expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
           foo: [
             { id: 'a', bar: { id: 1 } },
             { id: 'a', bar: { id: 1 } },
@@ -108,7 +108,7 @@ describe(`operations.write`, () => {
       });
 
       it(`writes the complete graph`, () => {
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
+        expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
           foo: [
             { id: 'a', bar: { id: 2 } },
             { id: 'a', bar: { id: 2 } },

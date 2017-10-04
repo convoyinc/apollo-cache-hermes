@@ -42,7 +42,7 @@ describe(`operations.write`, () => {
     });
 
     it(`replaces the reference with null`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         foo: { id: 1, name: 'Foo' },
         bar: null,
       });
@@ -121,7 +121,7 @@ describe(`operations.write`, () => {
     });
 
     it(`replaces the reference with null`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         foo: {
           id: 1,
           name: 'Foo',
@@ -132,7 +132,7 @@ describe(`operations.write`, () => {
     });
 
     it(`preserves nodes that only lost some of their inbound references`, () => {
-      expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo', two: null });
+      expect(snapshot.getNodeData('1')).to.deep.eq({ id: 1, name: 'Foo', two: null });
     });
 
     it(`updates outbound references`, () => {

@@ -32,12 +32,12 @@ describe(`operations.write`, () => {
       }).snapshot;
 
       expect(() => {
-        const root = snapshot.get(QueryRootId);
+        const root = snapshot.getNodeData(QueryRootId);
         root.foo.bar[0].baz = 111;
       }).to.throw(/property.*baz/);
 
       expect(() => {
-        const root = snapshot.get(QueryRootId);
+        const root = snapshot.getNodeData(QueryRootId);
         root.foo.fizz = 'nope';
       }).to.throw(/property.*fizz/);
     });

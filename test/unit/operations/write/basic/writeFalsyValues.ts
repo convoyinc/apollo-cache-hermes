@@ -26,7 +26,7 @@ describe(`operations.write`, () => {
     });
 
     it(`persists all falsy values`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({ null: null, false: false, zero: 0, string: '' });
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({ null: null, false: false, zero: 0, string: '' });
     });
   });
 

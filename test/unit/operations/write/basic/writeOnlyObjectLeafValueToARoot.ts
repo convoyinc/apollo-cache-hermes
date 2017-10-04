@@ -39,7 +39,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, with the values`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         foo: {},
         bar: {
           value: 'this is a bar',
@@ -79,7 +79,7 @@ describe(`operations.write`, () => {
     });
 
     it(`stores the values`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         foo: {},
         bar: [],
       });
@@ -104,7 +104,7 @@ describe(`operations.write`, () => {
     });
 
     it(`stores the values`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         foo: { id: 1 },
         bar: {
           baz: { id: 1 },

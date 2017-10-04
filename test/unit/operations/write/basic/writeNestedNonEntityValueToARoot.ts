@@ -42,7 +42,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, with the values`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         bar: {
           value: 42,
           prop1: 'hello',

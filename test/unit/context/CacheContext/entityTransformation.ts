@@ -41,7 +41,7 @@ describe(`context.CacheContext`, () => {
 
       it(`check helper methods does not exist`, () => {
         const viewerParameterizedId = nodeIdForParameterizedValue(QueryRootId, ['viewer'], { id: '4' });
-        expect(Object.getPrototypeOf(snapshot.get(viewerParameterizedId))).to.not.include.all.keys(['getName', 'getId']);
+        expect(Object.getPrototypeOf(snapshot.getNodeData(viewerParameterizedId))).to.not.include.all.keys(['getName', 'getId']);
       });
     });
 
@@ -96,8 +96,8 @@ describe(`context.CacheContext`, () => {
       });
 
       it(`check helper methods exists`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId))).to.not.include.all.keys(['getName', 'getId']);
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId).viewer)).to.include.all.keys(['getName', 'getId']);
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId))).to.not.include.all.keys(['getName', 'getId']);
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId).viewer)).to.include.all.keys(['getName', 'getId']);
       });
     });
 
@@ -208,14 +208,14 @@ describe(`context.CacheContext`, () => {
       });
 
       it(`check helper methods exists`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId).user)).to.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId).user)).to.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
       });
 
       it(`check helper method not attached to other entity`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId))).to.not.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId))).to.not.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
-        expect(Object.getPrototypeOf(snapshot.get('1'))).to.not.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData('1'))).to.not.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
       });
     });
@@ -327,14 +327,14 @@ describe(`context.CacheContext`, () => {
       });
 
       it(`check helper methods exists`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId).user)).to.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId).user)).to.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
       });
 
       it(`check helper method not attached to other entity`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId))).to.not.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId))).to.not.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
-        expect(Object.getPrototypeOf(snapshot.get('1'))).to.not.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData('1'))).to.not.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
       });
     });
@@ -367,8 +367,8 @@ describe(`context.CacheContext`, () => {
       });
 
       it(`check that entity is frozen`, () => {
-        expect(snapshot.get(QueryRootId)).to.be.frozen;
-        expect(snapshot.get('0')).to.be.frozen;
+        expect(snapshot.getNodeData(QueryRootId)).to.be.frozen;
+        expect(snapshot.getNodeData('0')).to.be.frozen;
       });
     });
 
@@ -425,7 +425,7 @@ describe(`context.CacheContext`, () => {
 
       it(`check helper methods exists`, () => {
         const viewerParameterizedId = nodeIdForParameterizedValue(QueryRootId, ['viewer'], { id: '4' });
-        expect(Object.getPrototypeOf(snapshot.get(viewerParameterizedId))).to.include.all.keys(['getName', 'getId']);
+        expect(Object.getPrototypeOf(snapshot.getNodeData(viewerParameterizedId))).to.include.all.keys(['getName', 'getId']);
       });
     });
   });

@@ -39,7 +39,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             user: {
               id: 0,
               name: 'Foo',
@@ -82,7 +82,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             user: {
               id: 0,
               name: 'Foo',
@@ -131,7 +131,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             user: {
               info: {
                 name: 'Foo',
@@ -188,7 +188,7 @@ describe(`operations.write`, () => {
             },
           },
         }).snapshot;
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
+        expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
           user: {
             id: 0,
             name: 'Foo',
@@ -239,7 +239,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             Shipment: {
               shipmentId: 0,
               shipmentName: 'ToSeattle',
@@ -313,7 +313,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             user: {
               id: 0,
               name: 'Foo',
@@ -351,7 +351,7 @@ describe(`operations.write`, () => {
             contact: '555-555-5555',
           },
         }).snapshot;
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
+        expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
           user: {
             id: 0,
             name: 'Foo',
@@ -372,7 +372,7 @@ describe(`operations.write`, () => {
             contact: '555-555-5555',
           },
         }).snapshot;
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
+        expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
           user: {
             id: 1,
             name: 'FooBar',
@@ -399,7 +399,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(snapshot.get(parameterizedId)).to.deep.eq({
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({
           id: 0,
           name: 'Baz',
         });
@@ -423,7 +423,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(snapshot.get(parameterizedId)).to.deep.eq({
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({
           id: 0,
           name: 'Baz',
         });
@@ -464,7 +464,7 @@ describe(`operations.write`, () => {
 
         const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['shipments'], { first: 2 });
 
-        expect(snapshot.get(parameterizedId)).to.deep.eq({
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({
           fields: [
             {
               id: 0,
@@ -532,7 +532,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(snapshot.get(parameterizedId)).to.deep.eq({
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({
           id: 4,
           name: 'Foo',
           contactInfo: {

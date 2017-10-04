@@ -42,7 +42,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, referencing the entity`, () => {
-      expect(snapshot.get(QueryRootId)).to.deep.eq({
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
         viewer: [
           {
             id: 123,
@@ -57,14 +57,14 @@ describe(`operations.write`, () => {
     });
 
     it(`indexes the first entity in an array`, () => {
-      expect(snapshot.get('123')).to.deep.eq({
+      expect(snapshot.getNodeData('123')).to.deep.eq({
         id: 123,
         name: 'Gouda',
       });
     });
 
     it(`indexes the second entity in an array`, () => {
-      expect(snapshot.get('456')).to.deep.eq({
+      expect(snapshot.getNodeData('456')).to.deep.eq({
         id: 456,
         name: 'Brie',
       });
@@ -83,8 +83,8 @@ describe(`operations.write`, () => {
     });
 
     it(`directly references a first entity of viewer from the query root`, () => {
-      const queryRoot = snapshot.get(QueryRootId);
-      const viewer = snapshot.get('123');
+      const queryRoot = snapshot.getNodeData(QueryRootId);
+      const viewer = snapshot.getNodeData('123');
       expect(queryRoot.viewer[0]).to.eq(viewer);
     });
 
