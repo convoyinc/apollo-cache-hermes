@@ -20,6 +20,8 @@ export namespace CacheContext {
     debug: LogEmitter;
     warn: LogEmitter;
     error: LogEmitter;
+    group: LogEmitter;
+    groupEnd: () => void;
   }
 
   /**
@@ -109,6 +111,9 @@ export class CacheContext {
       debug: console.debug ? console.debug.bind(console) : console.log.bind(console), // eslint-disable-line no-console
       warn:  console.warn  ? console.warn.bind(console)  : console.log.bind(console), // eslint-disable-line no-console
       error: console.error ? console.error.bind(console) : console.log.bind(console), // eslint-disable-line no-console
+      // Grouping:
+      group:    console.groupCollapsed ? console.groupCollapsed.bind(console) : console.log.bind(console), // eslint-disable-line no-console
+      groupEnd: console.groupEnd       ? console.groupEnd.bind(console)       : () => {}, // eslint-disable-line no-console
     };
   }
 
@@ -170,6 +175,18 @@ export class CacheContext {
    */
   error(message: string, ...metadata: any[]): void {
     this._logger.error(`[Cache] ${message}`, ...metadata);
+  }
+
+  /**
+   * Emit log events in a (collapsed) group.
+   */
+  logGroup(message: string, callback: () => void): void {
+    this._logger.group(message);
+    try {
+      callback();
+    } finally {
+      this._logger.groupEnd();
+    }
   }
 
   /**

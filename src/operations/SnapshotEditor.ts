@@ -85,12 +85,16 @@ export class SnapshotEditor {
   mergePayload(query: RawOperation, payload: JsonObject): void {
     const parsed = this._context.parseOperation(query);
 
+    // We collect all warnings associated with this operation to avoid
+    // overwhelming the log for particularly nasty payloads.
+    const warnings: string[] = [];
+
     // First, we walk the payload and apply all _scalar_ edits, while collecting
     // all references that have changed.  Reference changes are applied later,
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
     const referenceEdits: ReferenceEdit[] = [];
-    this._mergeSubgraph(referenceEdits, parsed.rootId, [] /* path */, parsed.parsedQuery, payload);
+    this._mergeSubgraph(referenceEdits, warnings, parsed.rootId, [] /* path */, parsed.parsedQuery, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -110,6 +114,16 @@ export class SnapshotEditor {
 
     // The query should now be considered complete for future reads.
     this._writtenQueries.add(parsed);
+
+    if (warnings.length) {
+      const { info } = parsed;
+      this._context.logGroup(`Warnings when writing payload for ${info.operationType} ${info.operationName}:`, () => {
+        this._context.warn(`Payload:`, payload);
+        for (const warning of warnings) {
+          this._context.warn(warning);
+        }
+      });
+    }
   }
 
   /**
@@ -118,6 +132,7 @@ export class SnapshotEditor {
    */
   private _mergeSubgraph(
     referenceEdits: ReferenceEdit[],
+    warnings: string[],
     containerId: NodeId,
     path: PathPart[],
     parsed: ParsedQuery,
@@ -126,7 +141,7 @@ export class SnapshotEditor {
     // Don't trust our inputs; we can receive values that aren't JSON
     // serializable via optimistic updates.
     if (payload === undefined) {
-      this._context.warn(`Encountered undefined at ${path.join('.')} of node ${containerId}. Treating as null`);
+      warnings.push(`Encountered undefined at ${path.join('.')} of node ${containerId}. Treating as null`);
       payload = null;
     }
 
@@ -147,7 +162,7 @@ export class SnapshotEditor {
         throw new InvalidPayloadError(`Unsupported transition from a list to a non-list value`, containerId, path, payload);
       }
 
-      this._mergeArraySubgraph(referenceEdits, containerId, path, parsed, payload, previousValue);
+      this._mergeArraySubgraph(referenceEdits, warnings, containerId, path, parsed, payload, previousValue);
       return;
     }
 
@@ -202,7 +217,7 @@ export class SnapshotEditor {
       let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;
       // Don't trust our inputs.  Ensure that missing values are null.
       if (fieldValue === undefined) {
-        this._context.warn(`Encountered undefined at ${[...path, payloadName].join('.')} of node ${containerId}. Treating as null`);
+        warnings.push(`Encountered undefined at ${[...path, payloadName].join('.')} of node ${containerId}. Treating as null`);
         fieldValue = null;
       }
 
@@ -272,7 +287,7 @@ export class SnapshotEditor {
       // directly written via _setValue.  This allows us to perform minimal
       // edits to the graph.
       if (node.children) {
-        this._mergeSubgraph(referenceEdits, containerIdForField, fieldPath, node.children, fieldValue);
+        this._mergeSubgraph(referenceEdits, warnings, containerIdForField, fieldPath, node.children, fieldValue);
 
       // We've hit a leaf field.
       //
@@ -296,6 +311,7 @@ export class SnapshotEditor {
    */
   private _mergeArraySubgraph(
     referenceEdits: ReferenceEdit[],
+    warnings: string[],
     containerId: NodeId,
     path: PathPart[],
     parsed: ParsedQuery,
@@ -327,7 +343,7 @@ export class SnapshotEditor {
     // Note that we're careful to iterate over all indexes, in case this is a
     // sparse array.
     for (let i = 0; i < payload.length; i++) {
-      this._mergeSubgraph(referenceEdits, containerId, [...path, i], parsed, payload[i]);
+      this._mergeSubgraph(referenceEdits, warnings, containerId, [...path, i], parsed, payload[i]);
     }
   }
 

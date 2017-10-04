@@ -20,7 +20,7 @@ describe(`Cache`, () => {
       warn = jest.fn();
       error = jest.fn();
       cache = new Cache({
-        logger: { debug, warn, error },
+        logger: { debug, warn, error, group: jest.fn(), groupEnd: jest.fn() },
       });
     });
 
