@@ -14,12 +14,13 @@ describe(`Cache`, () => {
       }
     }`);
 
-    let cache: Cache, warn: jest.Mock<any>, error: jest.Mock<any>;
+    let cache: Cache, debug: jest.Mock<any>, warn: jest.Mock<any>, error: jest.Mock<any>;
     beforeEach(() => {
+      debug = jest.fn();
       warn = jest.fn();
       error = jest.fn();
       cache = new Cache({
-        logger: { warn, error },
+        logger: { debug, warn, error },
       });
     });
 

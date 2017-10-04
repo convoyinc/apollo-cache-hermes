@@ -17,6 +17,7 @@ export namespace CacheContext {
   export type EntityTransformer = (node: JsonObject) => void;
   export type LogEmitter = (message: string, ...metadata: any[]) => void;
   export interface Logger {
+    debug: LogEmitter;
     warn: LogEmitter;
     error: LogEmitter;
   }
@@ -42,6 +43,14 @@ export namespace CacheContext {
      * The logger to use when emitting messages. By default, `console`.
      */
     logger?: Logger;
+
+    /**
+     * Whether debugging information should be logged out.
+     *
+     * Enabling this will cause the cache to emit log events for most operations
+     * performed against it.
+     */
+    verbose?: boolean;
 
     /**
      * Transformation function to be run on entity nodes that change during
@@ -73,6 +82,9 @@ export class CacheContext {
   /** Whether we should freeze snapshots after writes. */
   readonly freezeSnapshots: boolean;
 
+  /** Whether the cache should emit debug level log events. */
+  readonly verbose: boolean;
+
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
@@ -84,16 +96,17 @@ export class CacheContext {
   /** The logger we should use. */
   private readonly _logger: CacheContext.Logger;
 
-
   constructor(config: CacheContext.Configuration = {}) {
     this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
     this.entityTransformer = config.entityTransformer;
     this.freezeSnapshots = 'freeze' in config
       ? !!config.freeze
       : lodashGet(global, 'process.env.NODE_ENV') !== 'production';
+    this.verbose = !!config.verbose;
 
     this._addTypename = config.addTypename || false;
     this._logger = config.logger || {
+      debug: console.debug ? console.debug.bind(console) : console.log.bind(console), // eslint-disable-line no-console
       warn:  console.warn  ? console.warn.bind(console)  : console.log.bind(console), // eslint-disable-line no-console
       error: console.error ? console.error.bind(console) : console.log.bind(console), // eslint-disable-line no-console
     };
@@ -138,17 +151,25 @@ export class CacheContext {
   }
 
   /**
+   * Emit a debugging message.
+   */
+  debug(message: string, ...metadata: any[]): void {
+    if (!this.verbose) return;
+    this._logger.debug(`[Cache] ${message}`, ...metadata);
+  }
+
+  /**
    * Emit a warning.
    */
   warn(message: string, ...metadata: any[]): void {
-    this._logger.warn(message, ...metadata);
+    this._logger.warn(`[Cache] ${message}`, ...metadata);
   }
 
   /**
    * Emit a non-blocking error.
    */
   error(message: string, ...metadata: any[]): void {
-    this._logger.error(message, ...metadata);
+    this._logger.error(`[Cache] ${message}`, ...metadata);
   }
 
   /**

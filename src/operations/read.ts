@@ -51,6 +51,11 @@ export function read(context: CacheContext, query: RawOperation, snapshot: Graph
 
     queryResult = { result, complete, nodeIds };
     snapshot.readCache.set(operation, queryResult as QueryResult);
+
+    if (context.verbose) {
+      const { info } = operation;
+      context.debug(`read(${info.operationType} ${info.operationName})`, queryResult);
+    }
   }
 
   // We can potentially ask for results without node ids first, and then follow
