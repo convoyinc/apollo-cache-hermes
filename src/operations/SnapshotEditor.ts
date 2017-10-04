@@ -142,13 +142,14 @@ export class SnapshotEditor {
     // Don't trust our inputs; we can receive values that aren't JSON
     // serializable via optimistic updates.
     if (payload === undefined) {
-      warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
+      warnings.push(`(1) Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
       payload = null;
     }
 
     // We should only ever reach a subgraph if it is a container (object/array).
     if (typeof payload !== 'object') {
-      throw new InvalidPayloadError(`Received a ${typeof payload} value, but expected an object/array/null`, containerId, path, payload);
+      const message = `Received a ${typeof payload} value, but expected an object/array/null`;
+      throw new InvalidPayloadError(message, prefixPath, containerId, path, payload);
     }
 
     // TODO(ianm): We're doing this a lot.  How much is it impacting perf?
@@ -157,10 +158,10 @@ export class SnapshotEditor {
     // Recurse into arrays.
     if (Array.isArray(payload) || Array.isArray(previousValue)) {
       if (!isNil(previousValue) && !Array.isArray(previousValue)) {
-        throw new InvalidPayloadError(`Unsupported transition from a non-list to list value`, containerId, path, payload);
+        throw new InvalidPayloadError(`Unsupported transition from a non-list to list value`, prefixPath, containerId, path, payload);
       }
       if (!isNil(payload) && !Array.isArray(payload)) {
-        throw new InvalidPayloadError(`Unsupported transition from a list to a non-list value`, containerId, path, payload);
+        throw new InvalidPayloadError(`Unsupported transition from a list to a non-list value`, prefixPath, containerId, path, payload);
       }
 
       this._mergeArraySubgraph(referenceEdits, warnings, containerId, prefixPath, path, parsed, payload, previousValue);
@@ -174,15 +175,17 @@ export class SnapshotEditor {
     if (payloadId !== previousId) {
       // It is invalid to transition from a *value* with an id to one without.
       if (!isNil(payload) && !payloadId) {
-        throw new InvalidPayloadError(`Unsupported transition from an entity to a non-entity value`, containerId, path, payload);
+        const message = `Unsupported transition from an entity to a non-entity value`;
+        throw new InvalidPayloadError(message, prefixPath, containerId, path, payload);
       }
       // The reverse is also invalid.
       if (!isNil(previousValue) && !previousId) {
-        throw new InvalidPayloadError(`Unsupported transition from a non-entity value to an entity`, containerId, path, payload);
+        const message = `Unsupported transition from a non-entity value to an entity`;
+        throw new InvalidPayloadError(message, prefixPath, containerId, path, payload);
       }
       // Double check that our id generator is behaving properly.
       if (payloadId && isNil(payload)) {
-        throw new OperationError(`entityIdForNode emitted an id for a nil payload value`, containerId, path, payload);
+        throw new OperationError(`entityIdForNode emitted an id for a nil payload value`, prefixPath, containerId, path, payload);
       }
 
       // Fix references. See: orphan node tests on "orphan a subgraph" The new
@@ -199,8 +202,10 @@ export class SnapshotEditor {
       if (!payloadId) return;
 
     // End of the line for a non-reference.
-    } else if (isNil(payload) && previousValue !== null) {
-      this._setValue(containerId, path, null, true);
+    } else if (isNil(payload)) {
+      if (previousValue !== null) {
+        this._setValue(containerId, path, null, true);
+      }
       return;
     }
 
@@ -219,7 +224,7 @@ export class SnapshotEditor {
       let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;
       // Don't trust our inputs.  Ensure that missing values are null.
       if (fieldValue === undefined) {
-        warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
+        warnings.push(`(2) Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
         fieldValue = null;
       }
 

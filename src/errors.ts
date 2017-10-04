@@ -47,6 +47,8 @@ export class ConflictingFieldsError extends QueryError {
 export class OperationError extends CacheError {
   constructor(
     message: string,
+    // The path from the payload root to the node containing the error.
+    public readonly prefixPath: PathPart[],
     // The node id being processed when the error occurred.
     public readonly nodeId: NodeId,
     // The path within the node where the error occurred.
@@ -54,7 +56,7 @@ export class OperationError extends CacheError {
     // A value associated with the error.
     public readonly value?: any,
   ) {
-    super(`${message} at ${prettyPath(path)} of node ${nodeId}`);
+    super(`${message} at ${prettyPath([...prefixPath, ...path])} (node ${nodeId})`);
   }
 }
 
@@ -69,6 +71,8 @@ export class InvalidPayloadError extends OperationError {}
 export class CacheConsistencyError extends OperationError {
   constructor(
     message: string,
+    // The path from the payload root to the node containing the error.
+    public readonly prefixPath: PathPart[],
     // The node id being processed when the error occurred.
     public readonly nodeId: NodeId,
     // The path within the node where the error occurred.
@@ -76,7 +80,7 @@ export class CacheConsistencyError extends OperationError {
     // A value that is the subject of the error
     public readonly value?: any,
   ) {
-    super(`Hermes BUG: ${message}`, nodeId, path);
+    super(`Hermes BUG: ${message}`, prefixPath, nodeId, path);
   }
 }
 
