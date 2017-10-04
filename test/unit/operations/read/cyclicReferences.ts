@@ -93,6 +93,7 @@ describe(`operations.read`, () => {
             name: 'Foo',
             bar: {
               id: 2,
+              name: null,
               fizz: { id: 1 },
               buzz: { id: 2 },
             },

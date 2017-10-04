@@ -10,21 +10,9 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   SelectionSetNode,
 } from 'graphql';
 
-import { DynamicField, DynamicFieldMap } from '../DynamicField';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 
 import { fragmentMapForDocument, getOperationOrDie } from './ast';
-
-/**
- * A function called when `walkPayload` visits a node in the payload, and any
- * associated values from the node and references.
- */
-export type PayloadVisitor = (
-  path: PathPart[],
-  payloadValue: JsonValue,
-  nodeValue: JsonValue | undefined,
-  dynamicField: DynamicField | DynamicFieldMap | undefined,
-) => boolean;
 
 /**
  *

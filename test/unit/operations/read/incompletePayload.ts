@@ -1,11 +1,11 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { QueryResult, read, write } from '../../../../src/operations';
-import { query, strictConfig } from '../../../helpers';
+import { query, silentConfig } from '../../../helpers';
 
 describe(`operations.read`, () => {
 
-  const context = new CacheContext(strictConfig);
+  const context = new CacheContext(silentConfig);
   const empty = new GraphSnapshot();
   const shipmentsQuery = query(`{
     shipments {

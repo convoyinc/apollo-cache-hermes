@@ -2,6 +2,7 @@ import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-ext
 import gql from 'graphql-tag';
 
 import { CacheContext } from '../../../../src/context/CacheContext';
+import { silentConfig, strictConfig } from '../../../helpers';
 
 describe(`context.CacheContext`, () => {
   describe(`addTypename`, () => {
@@ -15,7 +16,7 @@ describe(`context.CacheContext`, () => {
     }
 
     it(`does not inject __typename by default`, () => {
-      const context = new CacheContext({});
+      const context = new CacheContext(strictConfig);
       const parsed = context.parseOperation({
         rootId: 'abc',
         document: gql`{
@@ -36,7 +37,7 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`injects __typename into parsed queries`, () => {
-      const context = new CacheContext({ addTypename: true });
+      const context = new CacheContext({ ...strictConfig, addTypename: true });
       const parsed = context.parseOperation({
         rootId: 'abc',
         document: gql`{
@@ -57,7 +58,7 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`injects __typename into fragments`, () => {
-      const context = new CacheContext({ addTypename: true });
+      const context = new CacheContext({ ...strictConfig, addTypename: true });
       const parsed = context.parseOperation({
         rootId: 'abc',
         document: gql`
@@ -83,7 +84,7 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`injects __typename into inline fragments`, () => {
-      const context = new CacheContext({ addTypename: true });
+      const context = new CacheContext({ ...silentConfig, addTypename: true });
       const parsed = context.parseOperation({
         rootId: 'abc',
         document: gql`{

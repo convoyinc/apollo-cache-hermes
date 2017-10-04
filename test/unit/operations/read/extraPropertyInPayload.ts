@@ -69,11 +69,7 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
-          },
-          {
             extraObject: 'WAT!!!',
-            driver: {
-            },
           },
         ],
       }).snapshot;
@@ -123,15 +119,6 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
-          },
-          {
-            id: null,
-            driver: {
-              name: null,
-              id: null,
-              messages: null,
-            },
-            stopEtaSummary: null,
           },
         ],
       });

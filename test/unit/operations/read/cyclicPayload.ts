@@ -29,7 +29,7 @@ describe(`operations.read`, () => {
       }`);
 
       const foo = { id: 0, name: 'Foo', bar: null as any };
-      const bar = { id: 1, name: 'Bar', foo };
+      const bar = { id: 1, name: 'Bar', fizz: null, buzz: null, foo };
       foo.bar = bar;
 
       const { snapshot } = write(context, empty, cyclicQuery, { foo, baz: null });

@@ -28,6 +28,10 @@ describe(`operations.write`, () => {
       name
     }
   }`);
+  const entityIdQuery = query(`{
+    foo { id }
+    bar { id }
+  }`);
 
   describe(`edit leaf values of a root`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
@@ -35,7 +39,7 @@ describe(`operations.write`, () => {
       const baselineResult = write(context, empty, valuesQuery, { foo: 123, bar: { baz: 'asdf' } });
       baseline = baselineResult.snapshot;
 
-      const result = write(context, baseline, valuesQuery, { foo: 321 });
+      const result = write(context, baseline, query(`{ foo }`), { foo: 321 });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
@@ -113,7 +117,7 @@ describe(`operations.write`, () => {
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(context, baseline, entityQuery, {
+      const result = write(context, baseline, entityIdQuery, {
         foo: { id: 2 },
         bar: { id: 1 },
       });

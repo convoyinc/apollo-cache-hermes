@@ -108,7 +108,7 @@ export function _walkAndOverlayDynamicValues(
     const walkNode = queue.pop()!;
     const { value, parsedMap } = walkNode;
     let { containerId, path } = walkNode;
-    const valueId = context.entityIdForNode(value);
+    const valueId = context.entityIdForValue(value);
     if (valueId) {
       containerId = valueId;
       path = [];
@@ -162,7 +162,7 @@ function _wrapValue(value: JsonValue, context: CacheContext): any {
   if (Array.isArray(value)) return [...value];
   if (isObject(value)) {
     const newValue = { ...value };
-    if (context.entityTransformer && context.entityIdForNode(value)) {
+    if (context.entityTransformer && context.entityIdForValue(value)) {
       context.entityTransformer(newValue);
     }
     return newValue;
@@ -200,7 +200,7 @@ export function _visitSelection(
     if (!isObject(value)) return false;
 
     if (nodeIds && isObject(value)) {
-      const nodeId = context.entityIdForNode(value);
+      const nodeId = context.entityIdForValue(value);
       if (nodeId !== undefined) {
         nodeIds.add(nodeId);
       }

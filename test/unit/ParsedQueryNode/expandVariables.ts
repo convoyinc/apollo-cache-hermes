@@ -1,20 +1,17 @@
 import gql from 'graphql-tag';
 
 import { CacheContext, QueryInfo } from '../../../src/context';
-import { DynamicField, deprecatedExpandVariables } from '../../../src/DynamicField';
+import { ParsedQueryNode, expandVariables } from '../../../src/ParsedQueryNode';
+import { JsonScalar } from '../../../src/primitive';
 import { strictConfig } from '../../helpers';
 
-describe(`DynamicField.expandVariables`, () => {
+describe(`ParsedQueryNode.expandVariables`, () => {
 
   const context = new CacheContext(strictConfig);
 
   function makeFieldMap(query: string) {
-    return new QueryInfo(context, gql(query)).rawDynamicFieldMap;
+    return new QueryInfo(context, gql(query)).parsed;
   }
-
-  it(`passes undefined through`, () => {
-    expect(deprecatedExpandVariables(undefined, undefined)).to.eq(undefined);
-  });
 
   it(`handles static queries`, () => {
     const map = makeFieldMap(`
@@ -26,11 +23,11 @@ describe(`DynamicField.expandVariables`, () => {
       }
     `);
 
-    expect(deprecatedExpandVariables(map, undefined)).to.deep.eq({
-      foo: new DynamicField({ limit: 5 }, undefined, {
-        bar: new DynamicField({ tag: 'hello' }),
-      }),
-      baz: new DynamicField({ thing: null }),
+    expect(expandVariables(map, undefined)).to.deep.eq({
+      foo: new ParsedQueryNode<JsonScalar>({
+        bar: new ParsedQueryNode(undefined, undefined, { tag: 'hello' }),
+      }, undefined, { limit: 5 }, true),
+      baz: new ParsedQueryNode(undefined, undefined, { thing: null }),
     });
   });
 
@@ -41,8 +38,8 @@ describe(`DynamicField.expandVariables`, () => {
       }
     `);
 
-    expect(deprecatedExpandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
-      thing: new DynamicField({ a: 123, b: 'ohai' }),
+    expect(expandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
+      thing: new ParsedQueryNode(undefined, undefined, { a: 123, b: 'ohai' }),
     });
   });
 
@@ -59,14 +56,14 @@ describe(`DynamicField.expandVariables`, () => {
       }
     `);
 
-    expect(deprecatedExpandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
-      one: {
-        two: new DynamicField({ a: 123 }, undefined, {
-          three: {
-            four: new DynamicField({ b: 'ohai' }),
-          },
-        }),
-      },
+    expect(expandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
+      one: new ParsedQueryNode<JsonScalar>({
+        two: new ParsedQueryNode<JsonScalar>({
+          three: new ParsedQueryNode({
+            four: new ParsedQueryNode(undefined, undefined, { b: 'ohai' }),
+          }, undefined, undefined, true),
+        }, undefined, { a: 123 }, true),
+      }, undefined, undefined, true),
     });
   });
 
@@ -77,8 +74,8 @@ describe(`DynamicField.expandVariables`, () => {
       }
     `);
 
-    expect(deprecatedExpandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
-      thing: new DynamicField({ one: { two: 'ohai', three: [1, 2, 123] } }),
+    expect(expandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
+      thing: new ParsedQueryNode(undefined, undefined, { one: { two: 'ohai', three: [1, 2, 123] } }),
     });
   });
 
@@ -90,7 +87,7 @@ describe(`DynamicField.expandVariables`, () => {
     `);
 
     expect(() => {
-      deprecatedExpandVariables(map, undefined);
+      expandVariables(map, undefined);
     }).to.throw(/\$(foo|bar)/);
   });
 
@@ -102,7 +99,7 @@ describe(`DynamicField.expandVariables`, () => {
     `);
 
     expect(() => {
-      deprecatedExpandVariables(map, { foo: 123 });
+      expandVariables(map, { foo: 123 });
     }).to.throw(/\$bar/);
   });
 
