@@ -94,7 +94,7 @@ export class SnapshotEditor {
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
     const referenceEdits: ReferenceEdit[] = [];
-    this._mergeSubgraph(referenceEdits, warnings, parsed.rootId, [] /* path */, parsed.parsedQuery, payload);
+    this._mergeSubgraph(referenceEdits, warnings, parsed.rootId, [] /* prefixPath */, [] /* path */, parsed.parsedQuery, payload);
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -134,6 +134,7 @@ export class SnapshotEditor {
     referenceEdits: ReferenceEdit[],
     warnings: string[],
     containerId: NodeId,
+    prefixPath: PathPart[],
     path: PathPart[],
     parsed: ParsedQuery,
     payload: JsonValue | undefined,
@@ -141,7 +142,7 @@ export class SnapshotEditor {
     // Don't trust our inputs; we can receive values that aren't JSON
     // serializable via optimistic updates.
     if (payload === undefined) {
-      warnings.push(`Encountered undefined at ${path.join('.')} of node ${containerId}. Treating as null`);
+      warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
       payload = null;
     }
 
@@ -162,7 +163,7 @@ export class SnapshotEditor {
         throw new InvalidPayloadError(`Unsupported transition from a list to a non-list value`, containerId, path, payload);
       }
 
-      this._mergeArraySubgraph(referenceEdits, warnings, containerId, path, parsed, payload, previousValue);
+      this._mergeArraySubgraph(referenceEdits, warnings, containerId, prefixPath, path, parsed, payload, previousValue);
       return;
     }
 
@@ -205,6 +206,7 @@ export class SnapshotEditor {
 
     // If we've entered a new node; it becomes our container.
     if (payloadId) {
+      prefixPath = [...prefixPath, ...path];
       containerId = payloadId;
       path = [];
     }
@@ -217,7 +219,7 @@ export class SnapshotEditor {
       let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;
       // Don't trust our inputs.  Ensure that missing values are null.
       if (fieldValue === undefined) {
-        warnings.push(`Encountered undefined at ${[...path, payloadName].join('.')} of node ${containerId}. Treating as null`);
+        warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
         fieldValue = null;
       }
 
@@ -271,11 +273,13 @@ export class SnapshotEditor {
       // node '1' is edited, the parameterized node must also be edited.
       // Similarly, the parameterized node contains an outbound reference to the
       // entity node, for garbage collection.
+      let fieldPrefixPath = prefixPath;
       let fieldPath = [...path, schemaName];
       if (node.args) {
         // The values of a parameterized field are explicit nodes in the graph;
         // so we set up a new container & path.
         containerIdForField = this._ensureParameterizedValueSnapshot(containerId, fieldPath, node.args);
+        fieldPrefixPath = [...prefixPath, ...fieldPath];
         fieldPath = [];
       }
 
@@ -287,7 +291,7 @@ export class SnapshotEditor {
       // directly written via _setValue.  This allows us to perform minimal
       // edits to the graph.
       if (node.children) {
-        this._mergeSubgraph(referenceEdits, warnings, containerIdForField, fieldPath, node.children, fieldValue);
+        this._mergeSubgraph(referenceEdits, warnings, containerIdForField, fieldPrefixPath, fieldPath, node.children, fieldValue);
 
       // We've hit a leaf field.
       //
@@ -313,6 +317,7 @@ export class SnapshotEditor {
     referenceEdits: ReferenceEdit[],
     warnings: string[],
     containerId: NodeId,
+    prefixPath: PathPart[],
     path: PathPart[],
     parsed: ParsedQuery,
     payload: JsonArray | nil,
@@ -343,7 +348,7 @@ export class SnapshotEditor {
     // Note that we're careful to iterate over all indexes, in case this is a
     // sparse array.
     for (let i = 0; i < payload.length; i++) {
-      this._mergeSubgraph(referenceEdits, warnings, containerId, [...path, i], parsed, payload[i]);
+      this._mergeSubgraph(referenceEdits, warnings, containerId, prefixPath, [...path, i], parsed, payload[i]);
     }
   }
 
