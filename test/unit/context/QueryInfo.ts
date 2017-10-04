@@ -3,7 +3,6 @@ import gql from 'graphql-tag';
 
 import { CacheContext } from '../../../src/context';
 import { QueryInfo } from '../../../src/context/QueryInfo';
-import { DynamicField, VariableArgument } from '../../../src/DynamicField';
 import { strictConfig } from '../../helpers';
 
 describe(`context.QueryInfo`, () => {
@@ -52,14 +51,6 @@ describe(`context.QueryInfo`, () => {
 
     it(`builds a fragment map`, () => {
       expect(info.fragmentMap).to.have.all.keys('completeStuff', 'completeThing');
-    });
-
-    it(`builds a parameterized field map`, () => {
-      expect(info.rawDynamicFieldMap).to.deep.eq({
-        things: new DynamicField({
-          ids: new VariableArgument('ids'),
-        }),
-      });
     });
 
     it(`collects the variables that are used`, () => {

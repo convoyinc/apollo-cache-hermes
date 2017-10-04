@@ -1,7 +1,6 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
 import { QueryInfo } from './context';
-import { DynamicFieldMap } from './DynamicField';
 import { ParsedQuery } from './ParsedQueryNode';
 import { JsonObject } from './primitive';
 
@@ -57,8 +56,6 @@ export interface OperationInstance {
   readonly parsedQuery: ParsedQuery;
   /** Whether the operation contains _no_ parameterized values. */
   readonly isStatic: boolean;
-  // TODO(ianm): Remove.
-  readonly dynamicFieldMap?: DynamicFieldMap;
   /** Any variables used by parameterized fields within the selection set. */
   readonly variables?: JsonObject;
 }

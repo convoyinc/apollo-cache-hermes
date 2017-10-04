@@ -2,7 +2,6 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import lodashIsEqual = require('lodash.isequal');
 import lodashGet = require('lodash.get');
 
-import { deprecatedExpandVariables } from '../DynamicField';
 import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
@@ -132,7 +131,6 @@ export class CacheContext {
       parsedQuery: expandVariables(info.parsed, fullVariables),
       isStatic: !areChildrenDynamic(info.parsed),
       variables: raw.variables,
-      dynamicFieldMap: deprecatedExpandVariables(info.rawDynamicFieldMap, fullVariables),
     };
     operationInstances.push(operation);
 

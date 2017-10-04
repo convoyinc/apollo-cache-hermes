@@ -4,7 +4,6 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   OperationTypeNode,
 } from 'graphql';
 
-import { compileDynamicFields, DynamicFieldMapWithVariables } from '../DynamicField';
 import { ParsedQueryWithVariables, parseQuery } from '../ParsedQueryNode';
 import { JsonValue } from '../primitive';
 import {
@@ -42,12 +41,6 @@ export class QueryInfo {
    * and contain placeholders for any variables in use.
    */
   public readonly parsed: ParsedQueryWithVariables;
-  /**
-   * The field map for the document, if there are any dynamic features: alias,
-   * parameterized arguments, directive. This field map is a raw filed map with
-   * NO variables substituted.
-   */
-  public readonly rawDynamicFieldMap?: DynamicFieldMapWithVariables;
   /** Variables used within this query. */
   public readonly variables: Set<string>;
   /**
@@ -69,10 +62,6 @@ export class QueryInfo {
     this.parsed = parsedQuery;
     this.variables = variables;
     this.variableDefaults = variableDefaultsInOperation(this.operation);
-
-    // TODO(ianm): Remove.
-    const { fieldMap } = compileDynamicFields(this.fragmentMap, this.operation.selectionSet);
-    this.rawDynamicFieldMap = fieldMap;
 
     this._assertValid();
   }
