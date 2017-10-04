@@ -130,9 +130,7 @@ export function _walkAndOverlayDynamicValues(
       if (node.args) {
         childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
         const childSnapshot = snapshot.getNodeSnapshot(childId);
-        if (childSnapshot) {
-          child = childSnapshot.data;
-        }
+        child = childSnapshot ? childSnapshot.data : null;
       } else {
         child = value[fieldName];
       }
@@ -144,12 +142,12 @@ export function _walkAndOverlayDynamicValues(
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
             child[i] = _wrapValue(child[i], context);
-            queue.push(new OverlayWalkNode(child[i], containerId, node.children, [...path, fieldName, i]));
+            queue.push(new OverlayWalkNode(child[i] as JsonObject, containerId, node.children, [...path, fieldName, i]));
           }
 
         } else {
           child = _wrapValue(child, context);
-          queue.push(new OverlayWalkNode(child, containerId, node.children, [...path, fieldName]));
+          queue.push(new OverlayWalkNode(child as JsonObject, containerId, node.children, [...path, fieldName]));
         }
       }
 
@@ -162,7 +160,7 @@ export function _walkAndOverlayDynamicValues(
   return newResult;
 }
 
-function _wrapValue(value: JsonValue, context: CacheContext): any {
+function _wrapValue(value: JsonValue | undefined, context: CacheContext): any {
   if (value === undefined) return {};
   if (Array.isArray(value)) return [...value];
   if (isObject(value)) {
