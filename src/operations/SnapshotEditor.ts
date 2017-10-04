@@ -15,6 +15,7 @@ import {
   hasNodeReference,
   isNil,
   lazyImmutableDeepSet,
+  pathBeginsWith,
   removeNodeReference,
 } from '../util';
 
@@ -39,6 +40,8 @@ interface ReferenceEdit {
   prevNodeId: NodeId | undefined;
   /** The id of the node that should be referenced. */
   nextNodeId: NodeId | undefined;
+  /** Whether we know we can skip the write. */
+  noWrite?: true;
 }
 
 /**
@@ -328,7 +331,6 @@ export class SnapshotEditor {
     payload: JsonArray | nil,
     previousValue: JsonArray | nil,
   ) {
-    // TODO(ianm): Clean up references.
     if (isNil(payload)) {
       // Note that we mark this as an edit, as this method is only ever called
       // if we've determined the value to be an array (which means that
@@ -348,12 +350,40 @@ export class SnapshotEditor {
       const newArray = Array.isArray(previousValue)
         ? previousValue.slice(0, payloadLength) : new Array(payloadLength);
       this._setValue(containerId, path, newArray);
+
+      // Drop any extraneous references.
+      if (payloadLength < previousLength) {
+        this._removeArrayReferences(referenceEdits, containerId, path, payloadLength - 1);
+      }
     }
 
     // Note that we're careful to iterate over all indexes, in case this is a
     // sparse array.
     for (let i = 0; i < payload.length; i++) {
       this._mergeSubgraph(referenceEdits, warnings, containerId, prefixPath, [...path, i], parsed, payload[i]);
+    }
+  }
+
+  /**
+   *
+   */
+  private _removeArrayReferences(referenceEdits: ReferenceEdit[], containerId: NodeId, prefix: PathPart[], afterIndex: number) {
+    const container = this.getNodeSnapshot(containerId);
+    if (!container || !container.outbound) return;
+    for (const reference of container.outbound) {
+      if (!pathBeginsWith(reference.path, prefix)) continue;
+      const index = reference.path[prefix.length];
+      if (typeof index !== 'number') continue;
+      if (index <= afterIndex) continue;
+
+      // At this point, we've got a reference beyond the array's new bounds.
+      referenceEdits.push({
+        containerId,
+        path: reference.path,
+        prevNodeId: reference.id,
+        nextNodeId: undefined,
+        noWrite: true,
+      });
     }
   }
 
@@ -366,9 +396,11 @@ export class SnapshotEditor {
   private _mergeReferenceEdits(referenceEdits: ReferenceEdit[]) {
     const orphanedNodeIds: Set<NodeId> = new Set();
 
-    for (const { containerId, path, prevNodeId, nextNodeId } of referenceEdits) {
-      const target = nextNodeId ? this.getNodeData(nextNodeId) : null;
-      this._setValue(containerId, path, target);
+    for (const { containerId, path, prevNodeId, nextNodeId, noWrite } of referenceEdits) {
+      if (!noWrite) {
+        const target = nextNodeId ? this.getNodeData(nextNodeId) : null;
+        this._setValue(containerId, path, target);
+      }
       const container = this._ensureNewSnapshot(containerId);
 
       if (prevNodeId) {

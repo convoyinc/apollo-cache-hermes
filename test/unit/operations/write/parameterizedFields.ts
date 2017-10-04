@@ -718,7 +718,7 @@ describe(`operations.write`, () => {
         ]);
       });
 
-      it.skip(`allows shifting from the front`, () => {
+      it(`allows shifting from the front`, () => {
         const updated = write(context, snapshot, nestedQuery, {
           one: {
             two: [
@@ -826,7 +826,7 @@ describe(`operations.write`, () => {
 
     });
 
-    describe.skip(`removing array nodes that contain parameterized values`, () => {
+    describe(`removing array nodes that contain parameterized values`, () => {
 
       let rootedQuery: RawOperation, snapshot: GraphSnapshot, entityBarId0: NodeId, entityBarId1: NodeId;
       beforeAll(() => {

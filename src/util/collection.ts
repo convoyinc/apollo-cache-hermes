@@ -9,6 +9,14 @@ export function deepGet(target: any, path: PathPart[]): any {
   return path.length ? lodashGet(target, path) : target;
 }
 
+export function pathBeginsWith(target: PathPart[], prefix: PathPart[]) {
+  if (target.length < prefix.length) return false;
+  for (let i = 0; i < prefix.length; i++) {
+    if (prefix[i] !== target[i]) return false;
+  }
+  return true;
+}
+
 /**
  * Adds values to a set, mutating it.
  */

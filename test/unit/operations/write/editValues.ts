@@ -210,7 +210,7 @@ describe(`operations.write`, () => {
       ]);
     });
 
-    it.skip(`drops references when the array shrinks`, () => {
+    it(`drops references when the array shrinks`, () => {
       const updated = write(context, snapshot, arrayQuery, {
         things: [
           { id: 1, name: 'One' },
@@ -351,7 +351,7 @@ describe(`operations.write`, () => {
       });
     });
 
-    it.skip(`throws if we attempt to write non-objects with a selection set`, () => {
+    it(`throws if we attempt to write non-objects with a selection set`, () => {
       expect(() => {
         write(context, empty, entityQuery, { foo: [1, 2, 3, 4, 5] });
       }).to.throw(/foo\.\d/);
