@@ -34,7 +34,7 @@
   "devDependencies": {
     "@types/chai": "^4.0.1",
     "@types/chai-as-promised": "^7.1.0",
-    "@types/graphql": "^0.10.2",
+    "@types/graphql": "^0.11.5",
     "@types/lodash": "^4.14.71",
     "@types/lodash.clonedeep": "^4.5.3",
     "@types/lodash.get": "^4.4.3",
