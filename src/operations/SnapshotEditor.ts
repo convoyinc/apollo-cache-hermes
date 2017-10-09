@@ -570,7 +570,7 @@ export class SnapshotEditor {
    * Ensures that there is a ParameterizedValueSnapshot for the given node with
    * arguments
    */
-  _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], args: FieldArguments) {
+  private _ensureParameterizedValueSnapshot(containerId: NodeId, path: PathPart[], args: FieldArguments) {
     const fieldId = nodeIdForParameterizedValue(containerId, path, args);
 
     // We're careful to not edit the container unless we absolutely have to.
