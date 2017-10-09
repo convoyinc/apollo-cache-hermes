@@ -1,7 +1,7 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read, write } from '../../../../src/operations';
-import { RawQuery, StaticNodeId } from '../../../../src/schema';
+import { RawOperation, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -14,7 +14,7 @@ describe(`operations.read`, () => {
   describe(`cyclic references`, () => {
     describe(`in a complete cache`, () => {
 
-      let cyclicQuery: RawQuery, snapshot: GraphSnapshot;
+      let cyclicQuery: RawOperation, snapshot: GraphSnapshot;
       beforeAll(() => {
         cyclicQuery = query(`{
           foo {
@@ -72,7 +72,7 @@ describe(`operations.read`, () => {
 
     describe(`in a partial cache`, () => {
 
-      let cyclicQuery: RawQuery, snapshot: GraphSnapshot;
+      let cyclicQuery: RawOperation, snapshot: GraphSnapshot;
       beforeAll(() => {
         cyclicQuery = query(`{
           foo {
@@ -93,6 +93,7 @@ describe(`operations.read`, () => {
             name: 'Foo',
             bar: {
               id: 2,
+              name: null,
               fizz: { id: 1 },
               buzz: { id: 2 },
             },
@@ -110,13 +111,14 @@ describe(`operations.read`, () => {
         expect(foo.bar).to.eq(bar);
 
         expect(bar.id).to.eq(2);
+        expect(bar.name).to.eq(null);
         expect(bar.fizz).to.eq(foo);
         expect(bar.buzz).to.eq(bar);
       });
 
       it(`is marked complete`, () => {
         const { complete } = read(context, cyclicQuery, snapshot);
-        expect(complete).to.eq(false);
+        expect(complete).to.eq(true);
       });
 
       it(`includes all related node ids, if requested`, () => {

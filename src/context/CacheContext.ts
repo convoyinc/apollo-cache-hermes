@@ -1,9 +1,10 @@
 import { isEqual } from 'apollo-utilities';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import lodashGet = require('lodash.get');
 
-import { expandVariables } from '../DynamicField';
+import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
-import { EntityId, ParsedQuery, Query } from '../schema';
+import { EntityId, OperationInstance, RawOperation } from '../schema';
 import { addToSet, addTypenameToDocument, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
@@ -11,12 +12,16 @@ import { QueryInfo } from './QueryInfo';
 export namespace CacheContext {
 
   export type EntityIdForNode = (node: JsonObject) => EntityId | undefined;
+  export type EntityIdForValue = (value: any) => EntityId | undefined;
   export type EntityIdMapper = (node: JsonObject) => string | number | undefined;
   export type EntityTransformer = (node: JsonObject) => void;
   export type LogEmitter = (message: string, ...metadata: any[]) => void;
   export interface Logger {
+    debug: LogEmitter;
     warn: LogEmitter;
     error: LogEmitter;
+    group: LogEmitter;
+    groupEnd: () => void;
   }
 
   /**
@@ -42,10 +47,25 @@ export namespace CacheContext {
     logger?: Logger;
 
     /**
+     * Whether debugging information should be logged out.
+     *
+     * Enabling this will cause the cache to emit log events for most operations
+     * performed against it.
+     */
+    verbose?: boolean;
+
+    /**
      * Transformation function to be run on entity nodes that change during
      * write operation; an entity node is defined by `entityIdForNode`.
      */
     entityTransformer?: EntityTransformer;
+
+    /**
+     * Whether values in the graph should be frozen.
+     *
+     * Defaults to true unless process.env.NODE_ENV === 'production'
+     */
+    freeze?: boolean;
   }
 
 }
@@ -56,89 +76,123 @@ export namespace CacheContext {
 export class CacheContext {
 
   /** Retrieve the EntityId for a given node, if any. */
-  readonly entityIdForNode: CacheContext.EntityIdForNode;
+  readonly entityIdForValue: CacheContext.EntityIdForValue;
 
   /** Run transformation on changed entity node, if any. */
   readonly entityTransformer: CacheContext.EntityTransformer | undefined;
+
+  /** Whether we should freeze snapshots after writes. */
+  readonly freezeSnapshots: boolean;
+
+  /** Whether the cache should emit debug level log events. */
+  readonly verbose: boolean;
 
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
   private readonly _queryInfoMap = new Map<string, QueryInfo>();
   /** All currently known & parsed queries, for identity mapping. */
-  private readonly _parsedQueriesMap = new Map<string, ParsedQuery[]>();
+  private readonly _operationMap = new Map<string, OperationInstance[]>();
   /** All queries that have been successfully written to the cache. */
-  private readonly _writtenQueries = new Set<ParsedQuery>();
+  private readonly _writtenQueries = new Set<OperationInstance>();
   /** The logger we should use. */
   private readonly _logger: CacheContext.Logger;
 
   constructor(config: CacheContext.Configuration = {}) {
-    this._addTypename = config.addTypename || false;
-    this.entityIdForNode = _makeEntityIdMapper(config.entityIdForNode);
+    this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
     this.entityTransformer = config.entityTransformer;
+    this.freezeSnapshots = 'freeze' in config
+      ? !!config.freeze
+      : lodashGet(global, 'process.env.NODE_ENV') !== 'production';
+    this.verbose = !!config.verbose;
+
+    this._addTypename = config.addTypename || false;
     this._logger = config.logger || {
+      debug: console.debug ? console.debug.bind(console) : console.log.bind(console), // eslint-disable-line no-console
       warn:  console.warn  ? console.warn.bind(console)  : console.log.bind(console), // eslint-disable-line no-console
       error: console.error ? console.error.bind(console) : console.log.bind(console), // eslint-disable-line no-console
+      // Grouping:
+      group:    console.groupCollapsed ? console.groupCollapsed.bind(console) : console.log.bind(console), // eslint-disable-line no-console
+      groupEnd: console.groupEnd       ? console.groupEnd.bind(console)       : () => {}, // eslint-disable-line no-console
     };
   }
 
   /**
-   * Returns a memoized & parsed query.
+   * Returns a memoized & parsed operation.
    *
    * To aid in various cache lookups, the result is memoized by all of its
-   * values, and can be used as an identity for a specific query.
+   * values, and can be used as an identity for a specific operation.
    */
-  parseQuery(query: Query): ParsedQuery {
-    if (isParsedQuery(query)) return query;
-
+  parseOperation(raw: RawOperation): OperationInstance {
     // It appears like Apollo or someone upstream is cloning or otherwise
-    // modifying the queries that are passed down.  Thus, the query source is a
-    // more reliable cache key…
-    const cacheKey = queryCacheKey(query.document);
-    let parsedQueries = this._parsedQueriesMap.get(cacheKey);
-    if (!parsedQueries) {
-      parsedQueries = [];
-      this._parsedQueriesMap.set(cacheKey, parsedQueries);
+    // modifying the queries that are passed down.  Thus, the operation source
+    // is a more reliable cache key…
+    const cacheKey = operationCacheKey(raw.document);
+    let operationInstances = this._operationMap.get(cacheKey);
+    if (!operationInstances) {
+      operationInstances = [];
+      this._operationMap.set(cacheKey, operationInstances);
     }
 
     // Do we already have a copy of this guy?
-    for (const parsedQuery of parsedQueries) {
-      if (parsedQuery.rootId !== query.rootId) continue;
-      if (!isEqual(parsedQuery.variables, query.variables)) continue;
-      return parsedQuery;
+    for (const instance of operationInstances) {
+      if (instance.rootId !== raw.rootId) continue;
+      if (!isEqual(instance.variables, raw.variables)) continue;
+      return instance;
     }
 
-    const info = this._queryInfo(query.document);
-    const fullVariables = { ...info.variableDefaults, ...query.variables } as JsonObject;
-    const parsedQuery = {
+    const info = this._queryInfo(raw.document);
+    const fullVariables = { ...info.variableDefaults, ...raw.variables } as JsonObject;
+    const operation = {
       info,
-      rootId: query.rootId,
-      dynamicFieldMap: expandVariables(info.dynamicFieldMap, fullVariables),
-      variables: query.variables,
+      rootId: raw.rootId,
+      parsedQuery: expandVariables(info.parsed, fullVariables),
+      isStatic: !areChildrenDynamic(info.parsed),
+      variables: raw.variables,
     };
-    parsedQueries.push(parsedQuery);
+    operationInstances.push(operation);
 
-    return parsedQuery;
+    return operation;
+  }
+
+  /**
+   * Emit a debugging message.
+   */
+  debug(message: string, ...metadata: any[]): void {
+    if (!this.verbose) return;
+    this._logger.debug(`[Cache] ${message}`, ...metadata);
   }
 
   /**
    * Emit a warning.
    */
   warn(message: string, ...metadata: any[]): void {
-    this._logger.warn(message, ...metadata);
+    this._logger.warn(`[Cache] ${message}`, ...metadata);
   }
 
   /**
    * Emit a non-blocking error.
    */
   error(message: string, ...metadata: any[]): void {
-    this._logger.error(message, ...metadata);
+    this._logger.error(`[Cache] ${message}`, ...metadata);
+  }
+
+  /**
+   * Emit log events in a (collapsed) group.
+   */
+  logGroup(message: string, callback: () => void): void {
+    this._logger.group(`[Cache] ${message}`);
+    try {
+      callback();
+    } finally {
+      this._logger.groupEnd();
+    }
   }
 
   /**
    * Mark a query as having been successfully written into the graph.
    */
-  markQueriesWritten(parsed: Iterable<ParsedQuery>): void {
+  markOperationsWritten(parsed: Iterable<OperationInstance>): void {
     addToSet(this._writtenQueries, parsed);
   }
 
@@ -149,7 +203,7 @@ export class CacheContext {
    * Once written, it's impossible for a read of that same query to be
    * considered incomplete (we never remove reachable nodes in the graph).
    */
-  wasQueryWritten(parsed: ParsedQuery): boolean {
+  wasOperationWritten(parsed: OperationInstance): boolean {
     return this._writtenQueries.has(parsed);
   }
 
@@ -157,12 +211,12 @@ export class CacheContext {
    * Retrieves a memoized QueryInfo for a given GraphQL document.
    */
   private _queryInfo(document: DocumentNode): QueryInfo {
-    const cacheKey = queryCacheKey(document);
+    const cacheKey = operationCacheKey(document);
     if (!this._queryInfoMap.has(cacheKey)) {
       if (this._addTypename) {
         document = addTypenameToDocument(document);
       }
-      this._queryInfoMap.set(cacheKey, new QueryInfo(document));
+      this._queryInfoMap.set(cacheKey, new QueryInfo(this, document));
     }
     return this._queryInfoMap.get(cacheKey)!;
   }
@@ -174,7 +228,7 @@ export class CacheContext {
  */
 export function _makeEntityIdMapper(
   mapper: CacheContext.EntityIdMapper = defaultEntityIdMapper,
-): CacheContext.EntityIdForNode {
+): CacheContext.EntityIdForValue {
   return function entityIdForNode(node: JsonObject) {
     if (!isObject(node)) return undefined;
 
@@ -190,10 +244,6 @@ export function defaultEntityIdMapper(node: { id?: any }) {
   return node.id;
 }
 
-export function queryCacheKey(document: DocumentNode) {
+export function operationCacheKey(document: DocumentNode) {
   return document.loc!.source.body;
-}
-
-export function isParsedQuery(query: Query): query is ParsedQuery {
-  return 'info' in query;
 }

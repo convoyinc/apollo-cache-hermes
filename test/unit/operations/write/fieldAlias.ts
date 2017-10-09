@@ -3,7 +3,7 @@ import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
-import { RawQuery, StaticNodeId } from '../../../../src/schema';
+import { RawOperation, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -20,9 +20,8 @@ describe(`operations.write`, () => {
   describe(`field alias`, () => {
 
     describe(`without parameterized arguments`, () => {
-
-      describe(`simple query alias on non entityId`, () => {
-        let aliasQuery: RawQuery, snapshot: GraphSnapshot;
+      describe(`simple query alias on a leaf field`, () => {
+        let aliasQuery: RawOperation, snapshot: GraphSnapshot;
         beforeAll(() => {
           aliasQuery = query(`{
             user {
@@ -40,7 +39,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             user: {
               id: 0,
               name: 'Foo',
@@ -65,7 +64,7 @@ describe(`operations.write`, () => {
       });
 
       describe(`simple query alias on entityId`, () => {
-        let aliasQuery: RawQuery, snapshot: GraphSnapshot;
+        let aliasQuery: RawOperation, snapshot: GraphSnapshot;
         beforeAll(() => {
           aliasQuery = query(`{
             user {
@@ -83,7 +82,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             user: {
               id: 0,
               name: 'Foo',
@@ -105,10 +104,14 @@ describe(`operations.write`, () => {
             )
           );
         });
+
+        it(`check there is only one entity node, RootQuery`, () => {
+          expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+        });
       });
 
       describe(`nested non entityId alias query`, () => {
-        let aliasQuery: RawQuery, snapshot: GraphSnapshot;
+        let aliasQuery: RawOperation, snapshot: GraphSnapshot;
         beforeAll(() => {
           aliasQuery = query(`{
             user {
@@ -128,7 +131,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             user: {
               info: {
                 name: 'Foo',
@@ -185,7 +188,7 @@ describe(`operations.write`, () => {
             },
           },
         }).snapshot;
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
+        expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
           user: {
             id: 0,
             name: 'Foo',
@@ -202,7 +205,7 @@ describe(`operations.write`, () => {
       });
 
       describe(`same alias name in different scope`, () => {
-        let aliasQuery: RawQuery, snapshot: GraphSnapshot;
+        let aliasQuery: RawOperation, snapshot: GraphSnapshot;
         beforeAll(() => {
           aliasQuery = query(`{
             shipment: Shipment {
@@ -236,7 +239,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             Shipment: {
               shipmentId: 0,
               shipmentName: 'ToSeattle',
@@ -256,7 +259,7 @@ describe(`operations.write`, () => {
           expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq({
             inbound: undefined,
             outbound: [{ id: '0', path: ['Shipment'] }, { id: '2', path: ['Dispatcher'] }, { id: '1', path: ['Carrier'] }],
-            node: {
+            data: {
               Shipment: {
                 shipmentId: 0,
                 shipmentName: 'ToSeattle',
@@ -276,7 +279,7 @@ describe(`operations.write`, () => {
     });
 
     describe(`query with both alias and non-alias to same field`, () => {
-      let mixQuery: RawQuery;
+      let mixQuery: RawOperation;
       beforeAll(() => {
         mixQuery = query(`
           query GetUser {
@@ -310,7 +313,7 @@ describe(`operations.write`, () => {
         });
 
         it(`only writes fields from the schema`, () => {
-          expect(snapshot.get(QueryRootId)).to.deep.eq({
+          expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
             user: {
               id: 0,
               name: 'Foo',
@@ -348,7 +351,7 @@ describe(`operations.write`, () => {
             contact: '555-555-5555',
           },
         }).snapshot;
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
+        expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
           user: {
             id: 0,
             name: 'Foo',
@@ -369,7 +372,7 @@ describe(`operations.write`, () => {
             contact: '555-555-5555',
           },
         }).snapshot;
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
+        expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
           user: {
             id: 1,
             name: 'FooBar',
@@ -396,7 +399,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(snapshot.get(parameterizedId)).to.deep.eq({
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({
           id: 0,
           name: 'Baz',
         });
@@ -420,7 +423,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(snapshot.get(parameterizedId)).to.deep.eq({
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({
           id: 0,
           name: 'Baz',
         });
@@ -461,7 +464,7 @@ describe(`operations.write`, () => {
 
         const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['shipments'], { first: 2 });
 
-        expect(snapshot.get(parameterizedId)).to.deep.eq({
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({
           fields: [
             {
               id: 0,
@@ -480,7 +483,7 @@ describe(`operations.write`, () => {
       it(`alias and non-alias`, () => {
         const aliasQuery = query(`{
           fullUser: user(id: 4) {
-            ID: id
+            id
             FirstName: name
             contact: contactInfo {
               shortAddress: address {
@@ -491,7 +494,7 @@ describe(`operations.write`, () => {
             }
           }
           shortUser: user (id: 4) {
-            ID: id
+            id
             FirstName: name
             contact: contactInfo {
               phone
@@ -506,7 +509,7 @@ describe(`operations.write`, () => {
 
         const snapshot = write(context, empty, aliasQuery, {
           fullUser: {
-            ID: 4,
+            id: 4,
             FirstName: 'Foo',
             contact: {
               shortAddress: {
@@ -517,7 +520,7 @@ describe(`operations.write`, () => {
             },
           },
           shortUser: {
-            ID: 4,
+            id: 4,
             FirstName: 'Foo',
             contact: {
               phone: '555-555-5555',
@@ -529,7 +532,7 @@ describe(`operations.write`, () => {
           },
         }).snapshot;
 
-        expect(snapshot.get(parameterizedId)).to.deep.eq({
+        expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({
           id: 4,
           name: 'Foo',
           contactInfo: {

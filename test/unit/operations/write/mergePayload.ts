@@ -1,5 +1,6 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
+import { EntitySnapshot } from '../../../../src/nodes/EntitySnapshot';
 import { write } from '../../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
@@ -14,47 +15,57 @@ describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const rootValuesQuery = query(`{ foo bar }`);
+  const rootValuesQuery = query(`{
+    foo {
+      id
+      name
+    }
+    bar {
+      id
+      name
+      extra
+    }
+  }`);
+  const rootMergeQuery = query(`{
+    foo {
+      id
+      name
+    }
+    bar {
+      id
+      extra
+    }
+  }`);
 
   describe(`merge unidentifiable payloads with previously known nodes`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const baselineResult = write(context, empty, rootValuesQuery, {
         foo: { id: 1, name: 'Foo' },
-        bar: { id: 2, name: 'Bar' },
+        bar: { id: 2, name: 'Bar', extra: null },
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(context, baseline, rootValuesQuery, {
-        foo: { name: 'Foo Boo' },
-        bar: { extra: true },
+      const result = write(context, baseline, rootMergeQuery, {
+        foo: { id: 1, name: 'Foo Boo' },
+        bar: { id: 2, extra: true },
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
 
-    it(`doesn't mutate the previous versions`, () => {
-      expect(baseline.get(QueryRootId)).to.not.eq(snapshot.get(QueryRootId));
-      expect(baseline.get('1')).to.not.eq(snapshot.get('1'));
-      expect(baseline.get('2')).to.not.eq(snapshot.get('2'));
-      expect(baseline.get(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo' },
-        bar: { id: 2, name: 'Bar' },
-      });
-    });
-
     it(`updates existing values in referenced nodes`, () => {
-      expect(snapshot.get('1')).to.deep.eq({ id: 1, name: 'Foo Boo' });
+      expect(snapshot.getNodeData('1')).to.deep.eq({ id: 1, name: 'Foo Boo' });
     });
 
     it(`inserts new values in referenced nodes`, () => {
-      expect(snapshot.get('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
+      expect(snapshot.getNodeData('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
     });
 
     it(`updates references to the newly edited nodes`, () => {
-      const root = snapshot.get(QueryRootId);
-      expect(root.foo).to.eq(snapshot.get('1'));
-      expect(root.bar).to.eq(snapshot.get('2'));
+      const root = snapshot.getNodeData(QueryRootId);
+      expect(root.foo).to.eq(snapshot.getNodeData('1'));
+      expect(root.bar).to.eq(snapshot.getNodeData('2'));
     });
 
     it(`doesn't mark regenerated nodes as edited`, () => {
@@ -63,6 +74,12 @@ describe(`operations.write`, () => {
 
     it(`contains the correct nodes`, () => {
       expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
+    });
+
+    it(`emits the edited nodes as an EntitySnapshot`, () => {
+      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot('1')).to.be.an.instanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot('2')).to.be.an.instanceOf(EntitySnapshot);
     });
 
   });

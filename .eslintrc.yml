@@ -45,7 +45,6 @@ rules:
   # Best Practices
 
   class-methods-use-this: error
-  consistent-return: error
   curly: [error, multi-line]
   dot-location: [error, property]
   eqeqeq: [error, allow-null]
@@ -103,7 +102,7 @@ rules:
   func-names: [error, as-needed]
   func-style: [error, declaration, { allowArrowFunctions: true }]
   id-blacklist: [error, e, err, cb, fn]
-  indent: [error, 2]
+  indent: [error, 2, { SwitchCase: 1 }]
   jsx-quotes: [error, prefer-single]
   key-spacing: [error, { mode: minimum }]
   keyword-spacing: error

@@ -6,18 +6,18 @@ import { read } from '../../../../src/operations/read';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
 import { JsonObject } from '../../../../src/primitive';
-import { RawQuery, StaticNodeId } from '../../../../src/schema';
-import { query } from '../../../helpers';
+import { RawOperation, StaticNodeId } from '../../../../src/schema';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`context.CacheContext`, () => {
   describe(`entity transformation`, () => {
     describe(`no entity transformer`, () => {
-      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
-        query getViwer($id:ID!) {
+        query getViewer($id:ID!) {
           viewer(id:$id) {
             id
             name
@@ -25,6 +25,7 @@ describe(`context.CacheContext`, () => {
         }`, { id: '4' });
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: undefined,
         });
@@ -40,12 +41,12 @@ describe(`context.CacheContext`, () => {
 
       it(`check helper methods does not exist`, () => {
         const viewerParameterizedId = nodeIdForParameterizedValue(QueryRootId, ['viewer'], { id: '4' });
-        expect(Object.getPrototypeOf(snapshot.get(viewerParameterizedId))).to.not.include.all.keys(['getName', 'getId']);
+        expect(Object.getPrototypeOf(snapshot.getNodeData(viewerParameterizedId))).to.not.include.all.keys(['getName', 'getId']);
       });
     });
 
     describe(`mixin additional helper on simple query`, () => {
-      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`{
           viewer {
@@ -63,6 +64,7 @@ describe(`context.CacheContext`, () => {
         }
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
@@ -94,13 +96,13 @@ describe(`context.CacheContext`, () => {
       });
 
       it(`check helper methods exists`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId))).to.not.include.all.keys(['getName', 'getId']);
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId).viewer)).to.include.all.keys(['getName', 'getId']);
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId))).to.not.include.all.keys(['getName', 'getId']);
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId).viewer)).to.include.all.keys(['getName', 'getId']);
       });
     });
 
     describe(`mixin additional helper on nested query`, () => {
-      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
           query GetUser {
@@ -148,6 +150,7 @@ describe(`context.CacheContext`, () => {
         }
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
@@ -178,7 +181,9 @@ describe(`context.CacheContext`, () => {
             name: 'Bob',
             nickName: 'B',
             contact: {
+              __typename: 'contact',
               address: {
+                __typename: 'address',
                 city: 'AA',
                 state: 'AAAA',
               },
@@ -203,20 +208,20 @@ describe(`context.CacheContext`, () => {
       });
 
       it(`check helper methods exists`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId).user)).to.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId).user)).to.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
       });
 
       it(`check helper method not attached to other entity`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId))).to.not.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId))).to.not.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
-        expect(Object.getPrototypeOf(snapshot.get('1'))).to.not.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData('1'))).to.not.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
       });
     });
 
     describe(`mixin additional helper on nested alias query`, () => {
-      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
           query GetUser {
@@ -264,6 +269,7 @@ describe(`context.CacheContext`, () => {
         }
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
@@ -294,7 +300,9 @@ describe(`context.CacheContext`, () => {
             name: 'Bob',
             nickName: 'B',
             contact: {
+              __typename: 'contact',
               address: {
+                __typename: 'address',
                 city: 'AA',
                 state: 'AAAA',
               },
@@ -319,20 +327,20 @@ describe(`context.CacheContext`, () => {
       });
 
       it(`check helper methods exists`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId).user)).to.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId).user)).to.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
       });
 
       it(`check helper method not attached to other entity`, () => {
-        expect(Object.getPrototypeOf(snapshot.get(QueryRootId))).to.not.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData(QueryRootId))).to.not.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
-        expect(Object.getPrototypeOf(snapshot.get('1'))).to.not.include.all.keys(
+        expect(Object.getPrototypeOf(snapshot.getNodeData('1'))).to.not.include.all.keys(
           ['getName', 'getId', 'getJustPhoneNumber', 'getCity']);
       });
     });
 
     describe(`freeze an object`, () => {
-      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`{
           viewer {
@@ -342,6 +350,7 @@ describe(`context.CacheContext`, () => {
         }`);
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             Object.freeze(node);
@@ -358,16 +367,16 @@ describe(`context.CacheContext`, () => {
       });
 
       it(`check that entity is frozen`, () => {
-        expect(snapshot.get(QueryRootId)).to.be.frozen;
-        expect(snapshot.get('0')).to.be.frozen;
+        expect(snapshot.getNodeData(QueryRootId)).to.be.frozen;
+        expect(snapshot.getNodeData('0')).to.be.frozen;
       });
     });
 
     describe(`Mixing additional helper on parameterized query`, () => {
-      let viewerQuery: RawQuery, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
+      let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = query(`
-        query getViwer($id:ID!) {
+        query getViewer($id:ID!) {
           viewer(id:$id) {
             id
             name
@@ -383,6 +392,7 @@ describe(`context.CacheContext`, () => {
         }
 
         entityTransformerContext = new CacheContext({
+          ...strictConfig,
           addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
@@ -415,7 +425,7 @@ describe(`context.CacheContext`, () => {
 
       it(`check helper methods exists`, () => {
         const viewerParameterizedId = nodeIdForParameterizedValue(QueryRootId, ['viewer'], { id: '4' });
-        expect(Object.getPrototypeOf(snapshot.get(viewerParameterizedId))).to.include.all.keys(['getName', 'getId']);
+        expect(Object.getPrototypeOf(snapshot.getNodeData(viewerParameterizedId))).to.include.all.keys(['getName', 'getId']);
       });
     });
   });

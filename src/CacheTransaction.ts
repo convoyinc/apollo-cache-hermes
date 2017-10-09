@@ -4,7 +4,7 @@ import { GraphSnapshot } from './GraphSnapshot';
 import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, ParsedQuery, RawQuery, QuerySnapshot } from './schema';
+import { ChangeId, NodeId, OperationInstance, RawOperation, QuerySnapshot } from './schema';
 import { addToSet } from './util';
 
 /**
@@ -23,7 +23,7 @@ export class CacheTransaction implements Queryable {
   private _deltas: QuerySnapshot[] = [];
 
   /** All queries written during the transaction. */
-  private _writtenQueries = new Set<ParsedQuery>();
+  private _writtenQueries = new Set<OperationInstance>();
 
   constructor(
     private _context: CacheContext,
@@ -34,7 +34,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Executes reads against the current values in the transaction.
    */
-  read(query: RawQuery): { result?: JsonValue, complete: boolean } {
+  read(query: RawOperation): { result?: JsonValue, complete: boolean } {
     return read(this._context, query, this._snapshot.optimistic);
   }
 
@@ -45,7 +45,7 @@ export class CacheTransaction implements Queryable {
    * any previous optimistic values.  Otherwise, edits will be made to the
    * baseline state (and any optimistic updates will be replayed over it).
    */
-  write(query: RawQuery, payload: JsonObject): void {
+  write(query: RawOperation, payload: JsonObject): void {
     if (this._optimisticChangeId) {
       this._writeOptimistic(query, payload);
     } else {
@@ -69,7 +69,7 @@ export class CacheTransaction implements Queryable {
    * Removes values from the current transaction
    */
   // eslint-disable-next-line class-methods-use-this
-  evict(query: RawQuery): { success: boolean } {
+  evict(query: RawOperation): { success: boolean } {
     throw new Error('evict() is not implemented on CacheTransaction');
   }
 
@@ -77,7 +77,7 @@ export class CacheTransaction implements Queryable {
    * Complete the transaction, returning the new snapshot and the ids of any
    * nodes that were edited.
    */
-  commit(): { snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>, writtenQueries: Set<ParsedQuery> } {
+  commit(): { snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>, writtenQueries: Set<OperationInstance> } {
     let snapshot = this._snapshot;
     if (this._optimisticChangeId) {
       snapshot = {
@@ -92,7 +92,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Merge a payload with the baseline snapshot.
    */
-  private _writeBaseline(query: RawQuery, payload: JsonObject) {
+  private _writeBaseline(query: RawOperation, payload: JsonObject) {
     const current = this._snapshot;
 
     const { snapshot: baseline, editedNodeIds, writtenQueries } = write(this._context, current.baseline, query, payload);
@@ -120,7 +120,7 @@ export class CacheTransaction implements Queryable {
   /**
    * Merge a payload with the optimistic snapshot.
    */
-  private _writeOptimistic(query: RawQuery, payload: JsonObject) {
+  private _writeOptimistic(query: RawOperation, payload: JsonObject) {
     this._deltas.push({ query, payload });
 
     const { snapshot: optimistic, editedNodeIds, writtenQueries } = write(this._context, this._snapshot.baseline, query, payload);
