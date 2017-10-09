@@ -195,6 +195,7 @@ rules:
       typeLiteral: { delimiter: comma, requireLast: true, ignoreSingleLine: true }
     }
   }]
+  typescript/member-naming: [error, { private: ^_ }]
   typescript/no-angle-bracket-type-assertion: error
   typescript/no-triple-slash-reference: error
   typescript/no-unused-vars: error
