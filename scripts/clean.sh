@@ -11,12 +11,9 @@ FILES_TO_REMOVE=($(
 ))
 
 if [[ "${#FILES_TO_REMOVE[@]}" != "0" ]]; then
-  echo
   for file in "${FILES_TO_REMOVE[@]}"; do
-    echo "  ${file}"
     rm "${file}"
   done
-  echo
 fi
 
 # We also just drop some trees completely.

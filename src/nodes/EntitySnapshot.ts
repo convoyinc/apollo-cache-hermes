@@ -15,7 +15,7 @@ export { NestedArray, NestedObject };
 export class EntitySnapshot implements NodeSnapshot {
   constructor(
     /** A reference to the entity this snapshot is about. */
-    public node?: JsonObject,
+    public data?: JsonObject,
     /** Other node snapshots that point to this one. */
     public inbound?: NodeReference[],
     /** The node snapshots that this one points to. */

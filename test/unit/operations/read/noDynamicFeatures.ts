@@ -1,14 +1,15 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read, write } from '../../../../src/operations';
-import { RawQuery, StaticNodeId } from '../../../../src/schema';
-import { query, strictConfig } from '../../../helpers';
+import { RawOperation, StaticNodeId } from '../../../../src/schema';
+import { query, silentConfig, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.read`, () => {
 
   const context = new CacheContext(strictConfig);
+  const silentContext = new CacheContext(silentConfig);
   const empty = new GraphSnapshot();
   const viewerQuery = query(`{
     viewer {
@@ -67,11 +68,11 @@ describe(`operations.read`, () => {
 
   });
 
-  describe(`with a partial cache`, () => {
+  describe(`with a partial write`, () => {
 
     let snapshot: GraphSnapshot;
     beforeAll(() => {
-      snapshot = write(context, empty, viewerQuery, {
+      snapshot = write(silentContext, empty, viewerQuery, {
         viewer: {
           id: 123,
         },
@@ -79,21 +80,22 @@ describe(`operations.read`, () => {
     });
 
     it(`returns the selected values.`, () => {
-      const { result } = read(context, viewerQuery, snapshot);
+      const { result } = read(silentContext, viewerQuery, snapshot);
       expect(result).to.deep.eq({
         viewer: {
           id: 123,
+          name: null,
         },
       });
     });
 
     it(`is marked incomplete`, () => {
-      const { complete } = read(context, viewerQuery, snapshot);
-      expect(complete).to.eq(false);
+      const { complete } = read(silentContext, viewerQuery, snapshot);
+      expect(complete).to.eq(true);
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(context, viewerQuery, snapshot, true);
+      const { nodeIds } = read(silentContext, viewerQuery, snapshot, true);
       expect(Array.from(nodeIds)).to.have.members([QueryRootId, '123']);
     });
 
@@ -101,7 +103,7 @@ describe(`operations.read`, () => {
 
   describe(`with a null subgraphs`, () => {
 
-    let nestedQuery: RawQuery, snapshot: GraphSnapshot;
+    let nestedQuery: RawOperation, snapshot: GraphSnapshot;
     beforeAll(() => {
       nestedQuery = query(`{
         one {

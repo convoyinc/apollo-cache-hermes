@@ -4,7 +4,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unr
   OperationTypeNode,
 } from 'graphql';
 
-import { compileDynamicFields, DynamicFieldMapWithVariables } from '../DynamicField';
+import { ParsedQueryWithVariables, parseQuery } from '../ParsedQueryNode';
 import { JsonValue } from '../primitive';
 import {
   FragmentMap,
@@ -13,6 +13,8 @@ import {
   variableDefaultsInOperation,
   variablesInOperation,
 } from '../util';
+
+import { CacheContext } from './CacheContext';
 
 /**
  * Metadata about a GraphQL document (query/mutation/fragment/etc).
@@ -35,10 +37,10 @@ export class QueryInfo {
   /** All fragments in the document, indexed by name. */
   public readonly fragmentMap: FragmentMap;
   /**
-   * The field map for the document, if there are any dynamic features: alias,
-   * parameterized arguments, directive
+   * The fully parsed query document.  It will be flattened (no fragments),
+   * and contain placeholders for any variables in use.
    */
-  public readonly dynamicFieldMap?: DynamicFieldMapWithVariables;
+  public readonly parsed: ParsedQueryWithVariables;
   /** Variables used within this query. */
   public readonly variables: Set<string>;
   /**
@@ -48,7 +50,7 @@ export class QueryInfo {
    */
   public readonly variableDefaults: { [Key: string]: JsonValue }
 
-  constructor(document: DocumentNode) {
+  constructor(context: CacheContext, document: DocumentNode) {
     this.document = document;
     this.operation = getOperationOrDie(document);
     this.operationType = this.operation.operation;
@@ -56,8 +58,8 @@ export class QueryInfo {
     this.operationSource = this.operation.loc && this.operation.loc.source.body;
     this.fragmentMap = fragmentMapForDocument(document);
 
-    const { fieldMap, variables } = compileDynamicFields(this.fragmentMap, this.operation.selectionSet);
-    this.dynamicFieldMap = fieldMap;
+    const { parsedQuery, variables } = parseQuery(context, this.fragmentMap, this.operation.selectionSet);
+    this.parsed = parsedQuery;
     this.variables = variables;
     this.variableDefaults = variableDefaultsInOperation(this.operation);
 

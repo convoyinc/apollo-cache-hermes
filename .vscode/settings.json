@@ -16,5 +16,6 @@
     "typescript",
     "typescriptreact"
   ],
+  "jsDocCompletion.enabled": false,
   "todohighlight.keywordsPattern": "TODO(\\(\\w+\\))?:"
 }

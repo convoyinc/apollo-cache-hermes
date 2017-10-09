@@ -1,4 +1,21 @@
+import lodashGet = require('lodash.get');
+
 import { PathPart } from '../primitive';
+
+/**
+ * Gets a nested value, with support for blank paths.
+ */
+export function deepGet(target: any, path: PathPart[]): any {
+  return path.length ? lodashGet(target, path) : target;
+}
+
+export function pathBeginsWith(target: PathPart[], prefix: PathPart[]) {
+  if (target.length < prefix.length) return false;
+  for (let i = 0; i < prefix.length; i++) {
+    if (prefix[i] !== target[i]) return false;
+  }
+  return true;
+}
 
 /**
  * Adds values to a set, mutating it.
@@ -40,7 +57,8 @@ export function lazyImmutableDeepSet<TEntity>(
       }
 
       if (i === 0) {
-        // Make sure we have a reference to the new target.
+        // Make sure we have a reference to the new target. We can keep the
+        // reference here because "target" is pointing as currentNode.data.
         target = targetNode;
       } else {
         parentNode[path[i - 1]] = targetNode;

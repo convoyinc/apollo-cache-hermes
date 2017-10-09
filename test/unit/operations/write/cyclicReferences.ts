@@ -1,7 +1,7 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { write } from '../../../../src/operations/write';
-import { NodeId, RawQuery, StaticNodeId } from '../../../../src/schema';
+import { NodeId, RawOperation, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -51,8 +51,8 @@ describe(`operations.write`, () => {
       });
 
       it(`constructs a normalized cyclic graph`, () => {
-        const foo = snapshot.get('1');
-        const bar = snapshot.get('2');
+        const foo = snapshot.getNodeData('1');
+        const bar = snapshot.getNodeData('2');
 
         expect(foo.id).to.eq(1);
         expect(foo.name).to.eq('Foo');
@@ -65,7 +65,7 @@ describe(`operations.write`, () => {
       });
 
       it(`properly references the cyclic nodes via QueryRoot`, () => {
-        expect(snapshot.get(QueryRootId).foo).to.eq(snapshot.get('1'));
+        expect(snapshot.getNodeData(QueryRootId).foo).to.eq(snapshot.getNodeData('1'));
       });
 
       it(`marks all the nodes as edited`, () => {
@@ -107,8 +107,13 @@ describe(`operations.write`, () => {
 
         const result = write(context, baseline, cyclicQuery, {
           foo: {
+            id: 1,
+            name: 'Foo',
             bar: {
+              id: 2,
               name: 'Barrington',
+              fizz: { id: 1 },
+              buzz: { id: 2 },
             },
           },
         });
@@ -116,23 +121,9 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't mutate the previous version`, () => {
-        const foo = baseline.get('1');
-        const bar = baseline.get('2');
-
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
-
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
-      });
-
       it(`fixes all references to the edited node`, () => {
-        const foo = snapshot.get('1');
-        const bar = snapshot.get('2');
+        const foo = snapshot.getNodeData('1');
+        const bar = snapshot.getNodeData('2');
 
         expect(foo.id).to.eq(1);
         expect(foo.name).to.eq('Foo');
@@ -151,7 +142,6 @@ describe(`operations.write`, () => {
     });
 
     describe(`when removing some inbound references`, () => {
-
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         const cyclicQuery = query(`{
@@ -183,7 +173,11 @@ describe(`operations.write`, () => {
 
         const result = write(context, baseline, cyclicQuery, {
           foo: {
+            id: 1,
+            name: 'Foo',
             bar: {
+              id: 2,
+              name: 'Bar',
               fizz: null,
               buzz: null,
             },
@@ -193,23 +187,9 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't mutate the previous version`, () => {
-        const foo = baseline.get('1');
-        const bar = baseline.get('2');
-
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
-
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
-      });
-
       it(`fixes all references to the edited node`, () => {
-        const foo = snapshot.get('1');
-        const bar = snapshot.get('2');
+        const foo = snapshot.getNodeData('1');
+        const bar = snapshot.getNodeData('2');
 
         expect(foo.id).to.eq(1);
         expect(foo.name).to.eq('Foo');
@@ -228,7 +208,6 @@ describe(`operations.write`, () => {
     });
 
     describe(`when orphaning a cyclic subgraph`, () => {
-
       let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         const cyclicQuery = query(`{
@@ -265,22 +244,8 @@ describe(`operations.write`, () => {
         editedNodeIds = result.editedNodeIds;
       });
 
-      it(`doesn't mutate the previous version`, () => {
-        const foo = baseline.get('1');
-        const bar = baseline.get('2');
-
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
-
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
-      });
-
       it(`removes the reference to the subgraph`, () => {
-        expect(snapshot.get(QueryRootId).foo).to.eq(null);
+        expect(snapshot.getNodeData(QueryRootId).foo).to.eq(null);
       });
 
       // TODO: Detect this case, and actually make it work.  Mark & sweep? :(
@@ -295,8 +260,7 @@ describe(`operations.write`, () => {
     });
 
     describe(`cyclic references in payloads`, () => {
-
-      let cyclicQuery: RawQuery, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+      let cyclicQuery: RawOperation, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         cyclicQuery = query(`{
           foo {
@@ -321,9 +285,9 @@ describe(`operations.write`, () => {
       });
 
       it(`can construct a graph from a cyclic payload`, () => {
-        const root = snapshot.get(QueryRootId);
-        const foo = snapshot.get('1');
-        const bar = snapshot.get('2');
+        const root = snapshot.getNodeData(QueryRootId);
+        const foo = snapshot.getNodeData('1');
+        const bar = snapshot.getNodeData('2');
         expect(root.foo).to.eq(foo);
         expect(foo.bar).to.eq(bar);
         expect(bar.foo).to.eq(foo);
@@ -331,19 +295,16 @@ describe(`operations.write`, () => {
 
       it(`can update cyclic graphs with payloads built from the graph`, () => {
         // A common case is to update an existing graph by shallow cloning it.
-        const root = snapshot.get(QueryRootId);
+        const root = snapshot.getNodeData(QueryRootId);
 
         const result = write(context, snapshot, cyclicQuery, { ...root, baz: 'hello' });
-        expect(result.snapshot.get(QueryRootId).baz).to.eq('hello');
+        expect(result.snapshot.getNodeData(QueryRootId).baz).to.eq('hello');
       });
 
     });
 
-    describe.skip(`cyclic values in payloads`, () => {
-
-      let cyclicQuery: RawQuery, snapshot: GraphSnapshot;
-      // Jest ALWAYS runs beforeAll…
-      /*
+    describe(`cyclic values in payloads`, () => {
+      let cyclicQuery: RawOperation, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
         cyclicQuery = query(`{
           foo {
@@ -364,12 +325,11 @@ describe(`operations.write`, () => {
         snapshot = result.snapshot;
         editedNodeIds = result.editedNodeIds;
       });
-       */
 
       it(`can construct a graph from a cyclic payload`, () => {
         // Note that we explicitly DO NOT construct graph cycles for
         // non-references!
-        expect(snapshot.get(QueryRootId)).to.deep.eq({
+        expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
           foo: {
             name: 'Foo',
             bar: {
@@ -377,15 +337,16 @@ describe(`operations.write`, () => {
               foo: { name: 'Foo' },
             },
           },
+          baz: null,
         });
       });
 
       it(`can update cyclic graphs with payloads built from the graph`, () => {
         // A common case is to update an existing graph by shallow cloning it.
-        const root = snapshot.get(QueryRootId);
+        const root = snapshot.getNodeData(QueryRootId);
 
         const result = write(context, snapshot, cyclicQuery, { ...root, baz: 'hello' });
-        expect(result.snapshot.get(QueryRootId).baz).to.eq('hello');
+        expect(result.snapshot.getNodeData(QueryRootId).baz).to.eq('hello');
       });
 
     });
