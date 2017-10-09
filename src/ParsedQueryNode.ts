@@ -1,10 +1,9 @@
-import { valueFromNode } from 'apollo-utilities';
+import { isEqual, valueFromNode } from 'apollo-utilities';
 import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
   ArgumentNode,
   SelectionSetNode,
   ValueNode,
 } from 'graphql';
-import lodashIsEqual = require('lodash.isequal');
 
 import { CacheContext } from './context';
 import { ConflictingFieldsError } from './errors';
@@ -195,7 +194,7 @@ function _valueFromNode(variables: Set<string>, node: ValueNode): JsonValue {
  */
 function _mergeNodes<TArgTypes>(path: string[], target: ParsedQueryNode<TArgTypes>, source?: ParsedQueryNode<TArgTypes>) {
   if (!source) return target;
-  if (!lodashIsEqual(target.args, source.args)) {
+  if (!isEqual(target.args, source.args)) {
     throw new ConflictingFieldsError(`parameterization mismatch`, path, [target, source]);
   }
   if (target.schemaName !== source.schemaName) {

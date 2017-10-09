@@ -1,5 +1,5 @@
+import { isEqual } from 'apollo-utilities';
 import deepFreeze = require('deep-freeze-strict');
-import lodashIsEqual = require('lodash.isequal');
 
 import { CacheContext } from '../context';
 import { InvalidPayloadError, OperationError } from '../errors';
@@ -302,7 +302,7 @@ export class SnapshotEditor {
       //
       // Note that we must perform a _deep_ equality check here, to cover cases
       // where a leaf value is a complex object.
-      } else if (!lodashIsEqual(fieldValue, previousFieldValue)) {
+      } else if (!isEqual(fieldValue, previousFieldValue)) {
         // We intentionally do not deep copy the nodeValue as Apollo will
         // then perform Object.freeze anyway. So any change in the payload
         // value afterward will be reflect in the graph as well.
