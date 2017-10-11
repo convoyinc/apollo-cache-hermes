@@ -17,7 +17,7 @@ describe(`operations.write`, () => {
 
   describe(`cyclic references`, () => {
 
-    describe(`cyclic reference through same entityId`, () => {
+    describe(`payload with cyclic references`, () => {
 
       let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
       beforeAll(() => {
