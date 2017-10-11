@@ -1,5 +1,3 @@
-import * as _ from 'lodash';
-
 import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { ParameterizedValueSnapshot } from '../../../../../src/nodes';
