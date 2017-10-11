@@ -142,7 +142,6 @@ export class SnapshotEditor {
     // Don't trust our inputs; we can receive values that aren't JSON
     // serializable via optimistic updates.
     if (payload === undefined) {
-      warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
       payload = null;
     }
 
@@ -224,8 +223,13 @@ export class SnapshotEditor {
       let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;
       // Don't trust our inputs.  Ensure that missing values are null.
       if (fieldValue === undefined) {
-        warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
         fieldValue = null;
+
+        // And if it was explicitly undefined, that likely indicates a malformed
+        // input (mutation, direct write).
+        if (payload && payloadName in payload) {
+          warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
+        }
       }
 
       let containerIdForField = containerId;
@@ -357,7 +361,20 @@ export class SnapshotEditor {
     // Note that we're careful to iterate over all indexes, in case this is a
     // sparse array.
     for (let i = 0; i < payload.length; i++) {
-      this._mergeSubgraph(referenceEdits, warnings, containerId, prefixPath, [...path, i], parsed, payload[i]);
+      let childPayload = payload[i];
+      if (childPayload === undefined) {
+        // Undefined values in an array are strictly invalid; and likely
+        // indicate a malformed input (mutation, direct write).
+        childPayload = null;
+
+        if (i in payload) {
+          warnings.push(`Encountered undefined at ${[...path, i].join('.')}. Treating as null`);
+        } else {
+          warnings.push(`Encountered hole in array at ${[...path, i].join('.')}. Filling with null`);
+        }
+      }
+
+      this._mergeSubgraph(referenceEdits, warnings, containerId, prefixPath, [...path, i], parsed, childPayload);
     }
   }
 
