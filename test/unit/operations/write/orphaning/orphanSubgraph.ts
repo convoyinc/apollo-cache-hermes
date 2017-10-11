@@ -1,8 +1,8 @@
-import { CacheContext } from '../../../../src/context';
-import { GraphSnapshot } from '../../../../src/GraphSnapshot';
-import { write } from '../../../../src/operations/write';
-import { NodeId, StaticNodeId } from '../../../../src/schema';
-import { query, strictConfig } from '../../../helpers';
+import { CacheContext } from '../../../../../src/context';
+import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
+import { write } from '../../../../../src/operations/write';
+import { NodeId, StaticNodeId } from '../../../../../src/schema';
+import { query, strictConfig } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
