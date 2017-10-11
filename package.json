@@ -45,7 +45,6 @@
     "codecov": "^2.2.0",
     "eslint": "^4.7.0",
     "eslint-plugin-eslint-comments": "^1.0.3",
-    "deep-freeze-strict": "^1.1.1",
     "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
     "eslint-plugin-jest": "^21.1.0",
     "eslint-plugin-typescript": "^0.8.0",
@@ -60,7 +59,8 @@
   "dependencies": {
     "apollo-cache": "^0.2.0-alpha.13",
     "apollo-utilities": "^0.2.0-alpha.6",
-    "lodash.get": "^4.4.2",
+    "deep-freeze-strict": "^1.0.0",
+    "lodash.get": "^4.0.0",
     "make-error": "^1.3.0",
     "tslib": "^1.7.0"
   }
