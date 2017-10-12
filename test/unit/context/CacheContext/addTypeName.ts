@@ -6,6 +6,13 @@ import { silentConfig, strictConfig } from '../../../helpers';
 
 describe(`context.CacheContext`, () => {
   describe(`addTypename`, () => {
+    function transformDocument(context: CacheContext, operation: string) {
+      return context.parseOperation({
+        rootId: 'abc',
+        document: context.transformDocument(gql(operation)),
+      });
+    }
+
     function fieldNames(selectionSet: SelectionSetNode) {
       const names = [] as string[];
       for (const selection of selectionSet.selections) {
@@ -17,14 +24,11 @@ describe(`context.CacheContext`, () => {
 
     it(`does not inject __typename by default`, () => {
       const context = new CacheContext(strictConfig);
-      const parsed = context.parseOperation({
-        rootId: 'abc',
-        document: gql`{
-          foo {
-            bar { a b }
-          }
-        }`,
-      });
+      const parsed = transformDocument(context, `{
+        foo {
+          bar { a b }
+        }
+      }`);
 
       const rootSelection = parsed.info.operation.selectionSet;
       expect(fieldNames(rootSelection)).to.have.members(['foo']);
@@ -38,14 +42,11 @@ describe(`context.CacheContext`, () => {
 
     it(`injects __typename into parsed queries`, () => {
       const context = new CacheContext({ ...strictConfig, addTypename: true });
-      const parsed = context.parseOperation({
-        rootId: 'abc',
-        document: gql`{
-          foo {
-            bar { a b }
-          }
-        }`,
-      });
+      const parsed = transformDocument(context, `{
+        foo {
+          bar { a b }
+        }
+      }`);
 
       const rootSelection = parsed.info.operation.selectionSet;
       expect(fieldNames(rootSelection)).to.have.members(['foo']);
@@ -59,19 +60,16 @@ describe(`context.CacheContext`, () => {
 
     it(`injects __typename into fragments`, () => {
       const context = new CacheContext({ ...strictConfig, addTypename: true });
-      const parsed = context.parseOperation({
-        rootId: 'abc',
-        document: gql`
-          query stuff {
-            foo {
-              __typename
-              ...fullFoo
-            }
+      const parsed = transformDocument(context, `
+        query stuff {
+          foo {
+            __typename
+            ...fullFoo
           }
+        }
 
-          fragment fullFoo on Foo { bar }
-        `,
-      });
+        fragment fullFoo on Foo { bar }
+      `);
 
       const rootSelection = parsed.info.operation.selectionSet;
       expect(fieldNames(rootSelection)).to.have.members(['foo']);
@@ -85,15 +83,12 @@ describe(`context.CacheContext`, () => {
 
     it(`injects __typename into inline fragments`, () => {
       const context = new CacheContext({ ...silentConfig, addTypename: true });
-      const parsed = context.parseOperation({
-        rootId: 'abc',
-        document: gql`{
-          asdf {
-          ... on Foo { a }
-          ... on Bar { b }
-            }
-        }`,
-      });
+      const parsed = transformDocument(context, `{
+        asdf {
+        ... on Foo { a }
+        ... on Bar { b }
+          }
+      }`);
 
       const rootSelection = parsed.info.operation.selectionSet;
       expect(fieldNames(rootSelection)).to.have.members(['asdf']);

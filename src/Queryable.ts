@@ -1,3 +1,5 @@
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+
 import { JsonObject, JsonValue } from './primitive';
 import { RawOperation } from './schema';
 
@@ -6,6 +8,14 @@ import { RawOperation } from './schema';
  * views, etc).
  */
 export interface Queryable {
+
+  /**
+   * Performs any transformations of operation documents.
+   *
+   * Cache consumers should call this on any operation document prior to calling
+   * any other method in the cache.
+   */
+  transformDocument(document: DocumentNode): DocumentNode;
 
   /**
    * Reads the selection expressed by a query from the cache.

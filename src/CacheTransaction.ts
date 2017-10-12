@@ -1,3 +1,5 @@
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
@@ -30,6 +32,10 @@ export class CacheTransaction implements Queryable {
     private _snapshot: CacheSnapshot,
     private _optimisticChangeId?: ChangeId,
   ) {}
+
+  transformDocument(document: DocumentNode): DocumentNode {
+    return this._context.transformDocument(document);
+  }
 
   /**
    * Executes reads against the current values in the transaction.
