@@ -1,8 +1,8 @@
-import { CacheContext } from '../../../../src/context';
-import { GraphSnapshot } from '../../../../src/GraphSnapshot';
-import { write } from '../../../../src/operations/write';
-import { NodeId, StaticNodeId } from '../../../../src/schema';
-import { query, strictConfig } from '../../../helpers';
+import { CacheContext } from '../../../../../src/context';
+import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
+import { write } from '../../../../../src/operations/write';
+import { NodeId, StaticNodeId } from '../../../../../src/schema';
+import { query, strictConfig } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -14,16 +14,21 @@ describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
+  const rootValuesQuery = query(`{
+    foo {
+      id
+      name
+    }
+    bar {
+      id
+      name
+    }
+  }`);
 
   describe(`when orphaning a node`, () => {
-    const simpleEntitiesQuery = query(`{
-      foo { id name }
-      bar { id name }
-    }`);
-
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baselineResult = write(context, empty, simpleEntitiesQuery, {
+      const baselineResult = write(context, empty, rootValuesQuery, {
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar' },
       });
@@ -45,9 +50,7 @@ describe(`operations.write`, () => {
 
     it(`updates outbound references`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.deep.eq([
-        { id: '1', path: ['foo'] },
-      ]);
+      expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
     });
 
     it(`marks the container and orphaned node as edited`, () => {
@@ -60,27 +63,33 @@ describe(`operations.write`, () => {
 
   });
 
-  describe(`orphan a subgraph`, () => {
-    const subgraphQuery = query(`{
-      foo {
-        id
-        name
-        two { id }
-      }
-      bar {
-        id
-        name
-        one { id }
-        two { id }
-        three {
-          id
-          foo { id }
-        }
-      }
-    }`);
-
+  describe(`when orphaning a subgraph`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
+      const subgraphQuery = query(`{
+        foo {
+          id
+          name
+          two {
+            id
+          }
+        }
+        bar {
+          id
+          one {
+            id
+          }
+          two {
+            id
+          }
+          three {
+            id
+            foo {
+              id
+            }
+          }
+        }
+      }`);
       const baselineResult = write(context, empty, subgraphQuery, {
         foo: {
           id: 1,
@@ -89,7 +98,6 @@ describe(`operations.write`, () => {
         },
         bar: {
           id: 2,
-          name: 'Bar',
           one: { id: 111 },
           two: { id: 222 },
           three: {
@@ -101,7 +109,11 @@ describe(`operations.write`, () => {
       baseline = baselineResult.snapshot;
 
       const result = write(context, baseline, subgraphQuery, {
-        foo: { id: 1, name: 'Foo', two: null },
+        foo: {
+          id: 1,
+          name: 'Foo',
+          two: null,
+        },
         bar: null,
       });
       snapshot = result.snapshot;
@@ -110,16 +122,22 @@ describe(`operations.write`, () => {
 
     it(`replaces the reference with null`, () => {
       expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo', two: null },
+        foo: {
+          id: 1,
+          name: 'Foo',
+          two: null,
+        },
         bar: null,
       });
     });
 
-    it(`no outbound references`, () => {
+    it(`preserves nodes that only lost some of their inbound references`, () => {
+      expect(snapshot.getNodeData('1')).to.deep.eq({ id: 1, name: 'Foo', two: null });
+    });
+
+    it(`updates outbound references`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.deep.eq([
-        { id: '1', path: ['foo'] },
-      ]);
+      expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
     });
 
     it(`marks the container and all orphaned nodes as edited`, () => {
