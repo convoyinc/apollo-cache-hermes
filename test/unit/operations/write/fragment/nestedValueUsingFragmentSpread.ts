@@ -15,25 +15,27 @@ describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const viewerQuery = query(`
-    query getViewer {
-      viewer {
-        id
-        name
-        address {
-          ...ShortAddress
-        }
-      }
-    }
-    fragment ShortAddress on Address {
-      city
-      postal
-    }
-  `);
 
-  describe(`write a new single entity with fragment in query`, () => {
+  describe(`nested value with fragment spread`, () => {
+
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
+      const viewerQuery = query(`
+        query getViewer {
+          viewer {
+            id
+            name
+            address {
+              ...ShortAddress
+            }
+          }
+        }
+        fragment ShortAddress on Address {
+          city
+          postal
+        }
+      `);
+
       const result = write(context, empty, viewerQuery, {
         viewer: {
           id: 123,

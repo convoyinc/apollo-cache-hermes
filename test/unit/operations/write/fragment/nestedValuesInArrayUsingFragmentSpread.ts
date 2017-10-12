@@ -15,25 +15,30 @@ describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const viewerQuery = query(`
-    query getViewer {
-      viewer {
-        id
-        name
-        articles {
-          ...ShortArticle
-        }
-      }
-    }
-    fragment ShortArticle on Article {
-      createAt
-      title
-    }
-  `);
 
-  describe(`write a new single entity with fragment in query`, () => {
+  describe(`nested values in array using fragment spread`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
+      const viewerQuery = query(`
+        query getViewer {
+          viewer {
+            id
+            name
+            articles {
+              ...ShortArticle
+            }
+          }
+        }
+        fragment ShortArticle on Article {
+          createAt
+          title
+          details {
+            body
+            ref
+          }
+        }
+      `);
+
       const result = write(context, empty, viewerQuery, {
         viewer: {
           id: 123,
@@ -42,10 +47,19 @@ describe(`operations.write`, () => {
             {
               createAt: '10/01',
               title: 'Hello',
+              details: {
+                body: 'Hello - body',
+                ref: 'Hello-ref',
+              },
             },
             {
               createAt: '10/02',
-              title: 'World',
+              title: null,
+              details: {
+                body: 'world - body',
+                ref: null
+                ,
+              },
             },
           ],
         },
@@ -63,10 +77,19 @@ describe(`operations.write`, () => {
             {
               createAt: '10/01',
               title: 'Hello',
+              details: {
+                body: 'Hello - body',
+                ref: 'Hello-ref',
+              },
             },
             {
               createAt: '10/02',
-              title: 'World',
+              title: null,
+              details: {
+                body: 'world - body',
+                ref: null
+                ,
+              },
             },
           ],
         },
@@ -81,10 +104,19 @@ describe(`operations.write`, () => {
           {
             createAt: '10/01',
             title: 'Hello',
+            details: {
+              body: 'Hello - body',
+              ref: 'Hello-ref',
+            },
           },
           {
             createAt: '10/02',
-            title: 'World',
+            title: null,
+            details: {
+              body: 'world - body',
+              ref: null
+              ,
+            },
           },
         ],
       });
