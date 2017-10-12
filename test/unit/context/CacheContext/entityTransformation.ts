@@ -1,3 +1,4 @@
+import { addTypenameToDocument } from 'apollo-utilities';
 import * as _ from 'lodash';
 
 import { CacheContext } from '../../../../src/context';
@@ -6,27 +7,33 @@ import { read } from '../../../../src/operations/read';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../src/operations/write';
 import { JsonObject } from '../../../../src/primitive';
-import { RawOperation, StaticNodeId } from '../../../../src/schema';
+import { NodeId, RawOperation, StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`context.CacheContext`, () => {
+
+  function queryWithTypename(gqlString: string, variables?: JsonObject, rootId?: NodeId) {
+    const rawOperation = query(gqlString, variables, rootId);
+    return { ...rawOperation, document: addTypenameToDocument(rawOperation.document) };
+  }
+
   describe(`entity transformation`, () => {
     describe(`no entity transformer`, () => {
       let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
-        viewerQuery = query(`
-        query getViewer($id:ID!) {
-          viewer(id:$id) {
-            id
-            name
+        viewerQuery = queryWithTypename(`
+          query getViewer($id:ID!) {
+            viewer(id:$id) {
+              id
+              name
+            }
           }
-        }`, { id: '4' });
+        `, { id: '4' });
 
         entityTransformerContext = new CacheContext({
           ...strictConfig,
-          addTypename: true,
           entityTransformer: undefined,
         });
         const empty = new GraphSnapshot();
@@ -48,7 +55,7 @@ describe(`context.CacheContext`, () => {
     describe(`mixin additional helper on simple query`, () => {
       let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
-        viewerQuery = query(`{
+        viewerQuery = queryWithTypename(`{
           viewer {
             id
             name
@@ -65,7 +72,6 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           ...strictConfig,
-          addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: { id: string, name: string }) {
@@ -104,7 +110,7 @@ describe(`context.CacheContext`, () => {
     describe(`mixin additional helper on nested query`, () => {
       let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
-        viewerQuery = query(`
+        viewerQuery = queryWithTypename(`
           query GetUser {
             user {
               dispatcher
@@ -151,7 +157,6 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           ...strictConfig,
-          addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: User) {
@@ -223,7 +228,7 @@ describe(`context.CacheContext`, () => {
     describe(`mixin additional helper on nested alias query`, () => {
       let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
-        viewerQuery = query(`
+        viewerQuery = queryWithTypename(`
           query GetUser {
             User: user {
               dispatcher
@@ -270,7 +275,6 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           ...strictConfig,
-          addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: User) {
@@ -342,7 +346,7 @@ describe(`context.CacheContext`, () => {
     describe(`freeze an object`, () => {
       let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
-        viewerQuery = query(`{
+        viewerQuery = queryWithTypename(`{
           viewer {
             id
             name
@@ -351,7 +355,6 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           ...strictConfig,
-          addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             Object.freeze(node);
           },
@@ -375,7 +378,7 @@ describe(`context.CacheContext`, () => {
     describe(`Mixing additional helper on parameterized query`, () => {
       let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
-        viewerQuery = query(`
+        viewerQuery = queryWithTypename(`
         query getViewer($id:ID!) {
           viewer(id:$id) {
             id
@@ -393,7 +396,6 @@ describe(`context.CacheContext`, () => {
 
         entityTransformerContext = new CacheContext({
           ...strictConfig,
-          addTypename: true,
           entityTransformer: (node: JsonObject): void => {
             mixinHelperMethods(node, {
               getName(this: { id: string, name: string }) {

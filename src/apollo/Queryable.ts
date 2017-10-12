@@ -68,9 +68,8 @@ export abstract class ApolloQueryable implements DataProxy {
     this._queryable.write(query, options.data);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   transformDocument(doc: DocumentNode): DocumentNode {
-    return doc;
+    return this._queryable.transformDocument(doc);
   }
 
   evict(options: Cache.EvictOptions): Cache.EvictionResult {

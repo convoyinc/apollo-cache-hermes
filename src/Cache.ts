@@ -1,3 +1,4 @@
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import { Cache as CacheInterface } from 'apollo-cache';
 
 import { CacheSnapshot } from './CacheSnapshot';
@@ -29,10 +30,14 @@ export class Cache implements Queryable {
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
 
-  constructor(config?: CacheContext.Configuration, ) {
+  constructor(config?: CacheContext.Configuration) {
     const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
     this._context = new CacheContext(config);
+  }
+
+  transformDocument(document: DocumentNode): DocumentNode {
+    return this._context.transformDocument(document);
   }
 
   restore(data: GraphSnapshot): Cache {

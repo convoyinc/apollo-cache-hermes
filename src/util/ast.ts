@@ -14,7 +14,6 @@ export {
   variablesInOperation,
   valueFromNode,
   FragmentMap,
-  addTypenameToDocument,
 } from 'apollo-utilities';
 
 /**
