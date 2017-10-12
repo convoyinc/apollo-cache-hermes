@@ -1,33 +1,44 @@
 import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { write } from '../../../../../src/operations/write';
+import { StaticNodeId } from '../../../../../src/schema';
 import { query, strictConfig } from '../../../../helpers';
+
+const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const simpleQuery = query(`{ foo }`);
 
-  describe(`snapshot freezing`, () => {
+  describe(`freezes snapshot values after write operation`, () => {
 
-    it(`freezes complex values referenced from the payload`, () => {
-      const payload = {
+    it(`checks values referenced from the snapshot`, () => {
+      const nestedQuery = query(`{
+        foo {
+          bar {
+            baz
+          }
+        }
+      }`);
+
+      const snapshot = write(context, empty, nestedQuery, {
         foo: {
           bar: [
             { baz: 123 },
             { baz: 321 },
           ],
         },
-      };
-      write(context, empty, simpleQuery, payload);
+      }).snapshot;
 
       expect(() => {
-        payload.foo.bar[0].baz = 111;
+        const root = snapshot.getNodeData(QueryRootId);
+        root.foo.bar[0].baz = 111;
       }).to.throw(/property.*baz/);
 
       expect(() => {
-        (payload.foo as any).fizz = 'nope';
+        const root = snapshot.getNodeData(QueryRootId);
+        root.foo.fizz = 'nope';
       }).to.throw(/property.*fizz/);
     });
 
