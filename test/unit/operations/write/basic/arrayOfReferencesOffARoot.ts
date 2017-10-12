@@ -1,9 +1,7 @@
-import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../../src/nodes';
-import { write } from '../../../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { query, strictConfig } from '../../../../helpers';
+import { createBaselineEditedSnapshot, WriteTestQuery } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -13,30 +11,25 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
 
-  const context = new CacheContext(strictConfig);
-  const empty = new GraphSnapshot();
-  const viewerQuery = query(`{
-    viewer {
-      id
-      name
-    }
-  }`);
-
   describe(`new array of references hanging off of a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const result = write(context, empty, viewerQuery, {
-        viewer: [
-          {
-            id: 123,
-            name: 'Gouda',
-          },
-          {
-            id: 456,
-            name: 'Brie',
-          },
-        ],
-      });
+      const result = createBaselineEditedSnapshot(
+        WriteTestQuery.basicViewerRefQuery,
+        {
+          viewer: [
+            {
+              id: 123,
+              name: 'Gouda',
+            },
+            {
+              id: 456,
+              name: 'Brie',
+            },
+          ],
+        }
+      );
+
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });

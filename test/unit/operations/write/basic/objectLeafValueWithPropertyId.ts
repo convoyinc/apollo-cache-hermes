@@ -1,5 +1,4 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
-import { EntitySnapshot } from '../../../../../src/nodes';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
 import { createBaselineEditedSnapshot, WriteTestQuery } from '../../../../helpers';
 
@@ -10,33 +9,40 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  describe(`simple leaf-values hanging off a root`, () => {
+  describe(`object leaf-value with property id`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const result = createBaselineEditedSnapshot(
         WriteTestQuery.fooBarLeafValuesQuery,
-        { foo: 123, bar: 'asdf' }
+        {
+          foo: { id: 1 },
+          bar: {
+            baz: { id: 1 },
+          },
+        }
       );
+
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
 
-    it(`creates the query root, with the values`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({ foo: 123, bar: 'asdf' });
+    it(`stores the values`, () => {
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+        foo: { id: 1 },
+        bar: {
+          baz: { id: 1 },
+        },
+      });
     });
 
-    it(`marks the root as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
-    });
-
-    it(`only contains the root node`, () => {
+    it(`does not normalize the values of the object leaf-value`, () => {
       expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
     });
 
-    it(`emits the root as an EntitySnapshot`, () => {
-      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+    it(`marks the container as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
     });
-  });
 
+  });
 });

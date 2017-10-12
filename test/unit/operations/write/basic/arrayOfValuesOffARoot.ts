@@ -1,9 +1,7 @@
-import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../../src/nodes';
-import { write } from '../../../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { query, strictConfig } from '../../../../helpers';
+import { createBaselineEditedSnapshot, WriteTestQuery } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -13,30 +11,24 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
 
-  const context = new CacheContext(strictConfig);
-  const empty = new GraphSnapshot();
-  const viewerQuery = query(`{
-    viewer {
-      postal
-      name
-    }
-  }`);
-
   describe(`array of values hanging off of a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const result = write(context, empty, viewerQuery, {
-        viewer: [
-          {
-            postal: 123,
-            name: 'Gouda',
-          },
-          {
-            postal: 456,
-            name: 'Brie',
-          },
-        ],
-      });
+      const result = createBaselineEditedSnapshot(
+        WriteTestQuery.basicViewerValueQuery,
+        {
+          viewer: [
+            {
+              postal: 123,
+              name: 'Gouda',
+            },
+            {
+              postal: 456,
+              name: 'Brie',
+            },
+          ],
+        }
+      );
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
