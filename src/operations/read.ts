@@ -37,19 +37,6 @@ export function read(context: CacheContext, query: RawOperation, snapshot: Graph
 
     let { complete, nodeIds } = _visitSelection(operation, context, result, includeNodeIds);
 
-    // This should NEVER be true.
-    //
-    // TODO: Once we've nailed down all the bugs; consider skipping
-    // _visitSelection for known complete queries (and drop nodeIds tracking?)
-    if (!complete && context.wasOperationWritten(operation)) {
-      context.error(`BUG: the most recently written query was marked incomplete`, {
-        queryName: operation.info.operationName,
-        query: operation.info.operationSource,
-      });
-      // Attempt to recover; though this likely means the cache is corrupt.
-      complete = true;
-    }
-
     queryResult = { result, complete, nodeIds };
     snapshot.readCache.set(operation, queryResult as QueryResult);
 
