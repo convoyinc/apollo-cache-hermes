@@ -224,5 +224,4 @@ describe(`operations.write`, () => {
     });
 
   });
-
 });
