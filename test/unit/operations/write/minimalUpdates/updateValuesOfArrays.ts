@@ -16,7 +16,7 @@ describe(`operations.write`, () => {
   const empty = new GraphSnapshot();
   const basicQuery = query(`{ foo }`);
 
-  describe(`minimal edits of arrays`, () => {
+  describe(`minimal updates values of arrays`, () => {
 
     it(`preserves scalar arrays if none of their values change`, () => {
       const { snapshot: baseSnapshot } = write(context, empty, basicQuery, { foo: [1, 2, 3] });

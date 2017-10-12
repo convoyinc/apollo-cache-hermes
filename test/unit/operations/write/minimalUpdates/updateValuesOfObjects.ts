@@ -16,7 +16,7 @@ describe(`operations.write`, () => {
   const empty = new GraphSnapshot();
   const basicNestedQuery = query(`{ foo { a b c } }`);
 
-  describe(`minimal edits of objects`, () => {
+  describe(`minimal updates values of objects`, () => {
 
     it(`preserves objects if none of their values change`, () => {
       const { snapshot: baseSnapshot } = write(context, empty, basicNestedQuery, {
