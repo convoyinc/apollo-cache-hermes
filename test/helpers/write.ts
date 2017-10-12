@@ -36,7 +36,9 @@ export function createUpdateEditedSnapshot(
   return write(context, baseline, query(gqlString, gqlVariables, rootId), payload);
 }
 
-// List of basic common queries used in unit/write
+/**
+ * Common query for testing write operation
+ */
 export namespace WriteTestQuery {
   /**
    * {
