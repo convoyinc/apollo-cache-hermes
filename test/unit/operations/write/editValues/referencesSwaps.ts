@@ -82,5 +82,4 @@ describe(`operations.write`, () => {
       expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
     });
   });
-
 });

@@ -1,5 +1,3 @@
-import * as _ from 'lodash';
-
 import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { ParameterizedValueSnapshot } from '../../../../../src/nodes';
@@ -19,9 +17,9 @@ describe(`operations.write`, () => {
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
 
-  describe(`top-level non-entity parameterized field`, () => {
+  describe(`updates parameterized value`, () => {
 
-    let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
     beforeAll(() => {
       const parameterizedQuery = query(`query getAFoo($id: ID!) {
         foo(id: $id, withExtra: true) {
@@ -31,9 +29,17 @@ describe(`operations.write`, () => {
 
       parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
 
-      const result = write(context, empty, parameterizedQuery, {
+      const baselineResult = write(context, empty, parameterizedQuery, {
         foo: {
           name: 'Foo',
+          extra: false,
+        },
+      });
+      baseline = baselineResult.snapshot;
+
+      const result = write(context, baseline, parameterizedQuery, {
+        foo: {
+          name: 'Foo Bar',
           extra: false,
         },
       });
@@ -41,25 +47,11 @@ describe(`operations.write`, () => {
       editedNodeIds = result.editedNodeIds;
     });
 
-    it(`writes a node for the field`, () => {
-      expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
+    it(`updates the node for the field`, () => {
+      expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ name: 'Foo Bar', extra: false });
     });
 
-    it(`creates an outgoing reference from the field's container`, () => {
-      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: ['foo'] }]);
-    });
-
-    it(`creates an inbound reference to the field's container`, () => {
-      const values = snapshot.getNodeSnapshot(parameterizedId)!;
-      expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: ['foo'] }]);
-    });
-
-    it(`does not expose the parameterized field directly from its container`, () => {
-      expect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).to.eq(undefined);
-    });
-
-    it(`marks only the new field as edited`, () => {
+    it(`marks only the field as edited`, () => {
       expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
     });
 

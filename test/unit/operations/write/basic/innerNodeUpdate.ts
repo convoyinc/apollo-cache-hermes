@@ -1,10 +1,8 @@
 import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { write } from '../../../../../src/operations/write';
-import { NodeId, StaticNodeId } from '../../../../../src/schema';
+import { NodeId } from '../../../../../src/schema';
 import { query, strictConfig } from '../../../../helpers';
-
-const { QueryRoot: QueryRootId } = StaticNodeId;
 
 // These are really more like integration tests, given the underlying machinery.
 //
@@ -25,7 +23,8 @@ describe(`operations.write`, () => {
     }
   }`);
 
-  describe(`orphans a node`, () => {
+  describe(`inner nodes update`, () => {
+
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const baselineResult = write(context, empty, rootValuesQuery, {
@@ -34,31 +33,22 @@ describe(`operations.write`, () => {
       });
       baseline = baselineResult.snapshot;
 
-      const result = write(context, baseline, query(`{ bar { id } }`), {
-        bar: null,
+      const innerNodeQuery = query(`{ id name extra }`, undefined, '1');
+      const result = write(context, baseline, innerNodeQuery, {
+        id: 1,
+        name: 'moo',
+        extra: true,
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
 
-    it(`replaces the reference with null`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
-        foo: { id: 1, name: 'Foo' },
-        bar: null,
-      });
+    it(`edits the inner node`, () => {
+      expect(snapshot.getNodeData('1')).to.deep.eq({ id: 1, name: 'moo', extra: true });
     });
 
-    it(`updates outbound references`, () => {
-      const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
-    });
-
-    it(`marks the container and orphaned node as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '2']);
-    });
-
-    it(`contains the correct nodes`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1']);
+    it(`marks only the inner node as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members(['1']);
     });
 
   });

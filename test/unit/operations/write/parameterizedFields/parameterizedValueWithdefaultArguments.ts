@@ -19,30 +19,25 @@ describe(`operations.write`, () => {
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
 
-  describe(`top-level non-entity parameterized field`, () => {
+  describe(`parameterized value with default arguments`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
     beforeAll(() => {
-      const parameterizedQuery = query(`query getAFoo($id: ID!) {
-        foo(id: $id, withExtra: true) {
-          name extra
+      const parameterizedQuery = query(`
+        query getAFoo($one: Number = 123, $two: String = "stuff") {
+          foo(a: $one, b:$two)
         }
-      }`, { id: 1 });
+      `);
 
-      parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
+      parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { a: 123, b: 'stuff' });
 
-      const result = write(context, empty, parameterizedQuery, {
-        foo: {
-          name: 'Foo',
-          extra: false,
-        },
-      });
+      const result = write(context, empty, parameterizedQuery, { foo: 'hello' });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
 
     it(`writes a node for the field`, () => {
-      expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
+      expect(snapshot.getNodeData(parameterizedId)).to.deep.eq('hello');
     });
 
     it(`creates an outgoing reference from the field's container`, () => {

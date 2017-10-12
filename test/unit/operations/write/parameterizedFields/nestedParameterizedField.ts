@@ -19,22 +19,30 @@ describe(`operations.write`, () => {
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
 
-  describe(`top-level non-entity parameterized field`, () => {
+  describe(`nested parameterzied field`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
     beforeAll(() => {
       const parameterizedQuery = query(`query getAFoo($id: ID!) {
-        foo(id: $id, withExtra: true) {
-          name extra
+        foo {
+          bar {
+            baz(id: $id, withExtra: true) {
+              name extra
+            }
+          }
         }
       }`, { id: 1 });
 
-      parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1, withExtra: true });
+      parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo', 'bar', 'baz'], { id: 1, withExtra: true });
 
       const result = write(context, empty, parameterizedQuery, {
         foo: {
-          name: 'Foo',
-          extra: false,
+          bar: {
+            baz: {
+              name: 'Foo',
+              extra: false,
+            },
+          },
         },
       });
       snapshot = result.snapshot;
@@ -47,16 +55,16 @@ describe(`operations.write`, () => {
 
     it(`creates an outgoing reference from the field's container`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: ['foo'] }]);
+      expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: ['foo', 'bar', 'baz'] }]);
     });
 
     it(`creates an inbound reference to the field's container`, () => {
       const values = snapshot.getNodeSnapshot(parameterizedId)!;
-      expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: ['foo'] }]);
+      expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: ['foo', 'bar', 'baz'] }]);
     });
 
     it(`does not expose the parameterized field directly from its container`, () => {
-      expect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).to.eq(undefined);
+      expect(_.get(snapshot.getNodeData(QueryRootId), 'foo.bar.baz')).to.eq(undefined);
     });
 
     it(`marks only the new field as edited`, () => {
