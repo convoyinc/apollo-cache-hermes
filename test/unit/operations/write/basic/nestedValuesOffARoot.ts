@@ -23,7 +23,7 @@ describe(`operations.write`, () => {
     }
   }`);
 
-  describe(`write only object value to a root`, () => {
+  describe(`nested values hanging off of a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const result = write(context, empty, rootValuesQuery, {

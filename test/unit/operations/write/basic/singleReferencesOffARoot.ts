@@ -17,25 +17,19 @@ describe(`operations.write`, () => {
   const empty = new GraphSnapshot();
   const viewerQuery = query(`{
     viewer {
-      postal
+      id
       name
     }
   }`);
 
-  describe(`write a new array of non-entity hanging off of a root`, () => {
+  describe(`single references hanging off of a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const result = write(context, empty, viewerQuery, {
-        viewer: [
-          {
-            postal: 123,
-            name: 'Gouda',
-          },
-          {
-            postal: 456,
-            name: 'Brie',
-          },
-        ],
+        viewer: {
+          id: 123,
+          name: 'Gouda',
+        },
       });
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
@@ -43,16 +37,17 @@ describe(`operations.write`, () => {
 
     it(`creates the query root, referencing the entity`, () => {
       expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
-        viewer: [
-          {
-            postal: 123,
-            name: 'Gouda',
-          },
-          {
-            postal: 456,
-            name: 'Brie',
-          },
-        ],
+        viewer: {
+          id: 123,
+          name: 'Gouda',
+        },
+      });
+    });
+
+    it(`indexes the entity`, () => {
+      expect(snapshot.getNodeData('123')).to.deep.eq({
+        id: 123,
+        name: 'Gouda',
       });
     });
 
@@ -60,26 +55,34 @@ describe(`operations.write`, () => {
       expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
     });
 
-    it(`directly references a first entity of viewer from the query root`, () => {
-      const queryRoot = snapshot.getNodeData(QueryRootId);
-      expect(queryRoot.viewer[0]).to.deep.eq({
-        postal: 123,
-        name: 'Gouda',
-      });
+    it(`emits the entity as an EntitySnapshot`, () => {
+      expect(snapshot.getNodeSnapshot('123')).to.be.an.instanceOf(EntitySnapshot);
     });
 
-    it(`records the outbound and inbound reference from the query root`, () => {
+    it(`directly references viewer from the query root`, () => {
+      const queryRoot = snapshot.getNodeData(QueryRootId);
+      const viewer = snapshot.getNodeData('123');
+      expect(queryRoot.viewer).to.eq(viewer);
+    });
+
+    it(`records the outbound reference from the query root`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.eq(undefined);
+      expect(queryRoot.outbound).to.deep.eq([{ id: '123', path: ['viewer'] }]);
       expect(queryRoot.inbound).to.eq(undefined);
     });
 
-    it(`marks a query root as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+    it(`records the inbound reference from referenced entity`, () => {
+      const queryRoot = snapshot.getNodeSnapshot('123')!;
+      expect(queryRoot.inbound).to.deep.eq([{ id: QueryRootId, path: ['viewer'] }]);
+      expect(queryRoot.outbound).to.eq(undefined);
     });
 
-    it(`only contains a one node`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+    it(`marks the entity and root as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '123']);
+    });
+
+    it(`only contains the two nodes`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '123']);
     });
   });
 

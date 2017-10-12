@@ -20,7 +20,7 @@ describe(`operations.write`, () => {
     }
   }`);
 
-  describe(`invalid write on a root, expect an object`, () => {
+  describe(`invalid nested values, expect an object`, () => {
     it(`creates the query root, with the values`, () => {
       expect(() => {
         write(context, empty, rootValuesQuery, {

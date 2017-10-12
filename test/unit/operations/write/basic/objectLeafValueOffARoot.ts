@@ -17,7 +17,7 @@ describe(`operations.write`, () => {
   const empty = new GraphSnapshot();
   const rootValuesQuery = query(`{ foo bar }`);
 
-  describe(`non-entity object leaf-value to a root`, () => {
+  describe(`object leaf-value hanging off a root`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const result = write(context, empty, rootValuesQuery, {

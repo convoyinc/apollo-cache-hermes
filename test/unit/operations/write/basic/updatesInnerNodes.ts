@@ -23,7 +23,7 @@ describe(`operations.write`, () => {
     }
   }`);
 
-  describe(`write to inner nodes`, () => {
+  describe(`updates inner nodes`, () => {
 
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {

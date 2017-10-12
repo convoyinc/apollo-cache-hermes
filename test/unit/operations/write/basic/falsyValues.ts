@@ -15,7 +15,7 @@ describe(`operations.write`, () => {
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
 
-  describe(`write falsy values`, () => {
+  describe(`falsy values`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const falsyValuesQuery = query(`{ null, false, zero, string }`);
