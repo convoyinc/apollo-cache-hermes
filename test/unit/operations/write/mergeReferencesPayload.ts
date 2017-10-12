@@ -15,31 +15,33 @@ describe(`operations.write`, () => {
 
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
-  const rootValuesQuery = query(`{
-    foo {
-      id
-      name
-    }
-    bar {
-      id
-      name
-      extra
-    }
-  }`);
-  const rootMergeQuery = query(`{
-    foo {
-      id
-      name
-    }
-    bar {
-      id
-      extra
-    }
-  }`);
 
-  describe(`merge unidentifiable payloads with previously known nodes`, () => {
+  describe(`merge references payload`, () => {
+
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
+      const rootValuesQuery = query(`{
+        foo {
+          id
+          name
+        }
+        bar {
+          id
+          name
+          extra
+        }
+      }`);
+      const rootMergeQuery = query(`{
+        foo {
+          id
+          name
+        }
+        bar {
+          id
+          extra
+        }
+      }`);
+
       const baselineResult = write(context, empty, rootValuesQuery, {
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar', extra: null },
