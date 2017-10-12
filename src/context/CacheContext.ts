@@ -5,7 +5,7 @@ import lodashGet = require('lodash.get');
 import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
-import { addToSet, isObject } from '../util';
+import { isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
 
@@ -93,8 +93,6 @@ export class CacheContext {
   private readonly _queryInfoMap = new Map<string, QueryInfo>();
   /** All currently known & parsed queries, for identity mapping. */
   private readonly _operationMap = new Map<string, OperationInstance[]>();
-  /** All queries that have been successfully written to the cache. */
-  private readonly _writtenQueries = new Set<OperationInstance>();
   /** The logger we should use. */
   private readonly _logger: CacheContext.Logger;
 
@@ -198,24 +196,6 @@ export class CacheContext {
     } finally {
       this._logger.groupEnd();
     }
-  }
-
-  /**
-   * Mark a query as having been successfully written into the graph.
-   */
-  markOperationsWritten(parsed: Iterable<OperationInstance>): void {
-    addToSet(this._writtenQueries, parsed);
-  }
-
-  /**
-   * Whether we've previously written a query to the cache (and that reads
-   * against it should be considered complete).
-   *
-   * Once written, it's impossible for a read of that same query to be
-   * considered incomplete (we never remove reachable nodes in the graph).
-   */
-  wasOperationWritten(parsed: OperationInstance): boolean {
-    return this._writtenQueries.has(parsed);
   }
 
   /**

@@ -117,9 +117,8 @@ export class Cache implements Queryable {
       return false;
     }
 
-    const { snapshot, editedNodeIds, writtenQueries } = transaction.commit();
+    const { snapshot, editedNodeIds } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
-    this._context.markOperationsWritten(writtenQueries);
 
     return true;
   }
