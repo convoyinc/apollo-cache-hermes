@@ -25,7 +25,7 @@ describe(`operations.write`, () => {
     }
   }`);
 
-  describe(`when orphaning a node`, () => {
+  describe(`orphans a node`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const baselineResult = write(context, empty, rootValuesQuery, {
