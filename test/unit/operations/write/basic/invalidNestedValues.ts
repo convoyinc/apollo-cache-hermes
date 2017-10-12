@@ -20,7 +20,7 @@ describe(`operations.write`, () => {
     }
   }`);
 
-  describe(`invalid nested values, expect an object`, () => {
+  describe(`invalid nested values, scalar in place of object value`, () => {
     it(`creates the query root, with the values`, () => {
       expect(() => {
         write(context, empty, rootValuesQuery, {
