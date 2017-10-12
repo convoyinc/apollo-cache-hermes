@@ -1,11 +1,11 @@
-import { isEqual } from 'apollo-utilities';
+import { addTypenameToDocument, isEqual } from 'apollo-utilities';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import lodashGet = require('lodash.get');
 
 import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
-import { addToSet, addTypenameToDocument, isObject } from '../util';
+import { addToSet, isObject } from '../util';
 
 import { QueryInfo } from './QueryInfo';
 
@@ -118,6 +118,17 @@ export class CacheContext {
   }
 
   /**
+   * Performs any transformations of operation documents.
+   *
+   * Cache consumers should call this on any operation document prior to calling
+   * any other method in the cache.
+   */
+  transformDocument(document: DocumentNode): DocumentNode {
+    // TODO: memoize?
+    return this._addTypename ? addTypenameToDocument(document) : document;
+  }
+
+  /**
    * Returns a memoized & parsed operation.
    *
    * To aid in various cache lookups, the result is memoized by all of its
@@ -213,9 +224,6 @@ export class CacheContext {
   private _queryInfo(document: DocumentNode): QueryInfo {
     const cacheKey = operationCacheKey(document);
     if (!this._queryInfoMap.has(cacheKey)) {
-      if (this._addTypename) {
-        document = addTypenameToDocument(document);
-      }
       this._queryInfoMap.set(cacheKey, new QueryInfo(this, document));
     }
     return this._queryInfoMap.get(cacheKey)!;
