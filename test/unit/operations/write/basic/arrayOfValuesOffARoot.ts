@@ -1,9 +1,7 @@
-import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../../src/nodes';
-import { write } from '../../../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { query, strictConfig } from '../../../../helpers';
+import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -12,31 +10,25 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-
-  const context = new CacheContext(strictConfig);
-  const empty = new GraphSnapshot();
-  const viewerQuery = query(`{
-    viewer {
-      postal
-      name
-    }
-  }`);
-
   describe(`array of values hanging off of a root`, () => {
+
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const result = write(context, empty, viewerQuery, {
-        viewer: [
-          {
-            postal: 123,
-            name: 'Gouda',
-          },
-          {
-            postal: 456,
-            name: 'Brie',
-          },
-        ],
-      });
+      const result = createSnapshot(
+        {
+          viewer: [
+            {
+              postal: 123,
+              name: 'Gouda',
+            },
+            {
+              postal: 456,
+              name: 'Brie',
+            },
+          ],
+        },
+        `{ viewer { postal name } }`
+      );
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });

@@ -1,25 +1,18 @@
-import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
-import { write } from '../../../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { query, strictConfig } from '../../../../helpers';
+import { createSnapshot, updateSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
-
 // These are really more like integration tests, given the underlying machinery.
 //
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
+  describe(`edit cyclic graph`, () => {
 
-  const context = new CacheContext(strictConfig);
-  const empty = new GraphSnapshot();
-
-  describe(`orphan a cyclic subgraph`, () => {
-
-    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const cyclicQuery = query(`{
+      const cyclicRefQuery = `{
         foo {
           id
           name
@@ -30,25 +23,30 @@ describe(`operations.write`, () => {
             buzz { id }
           }
         }
-      }`);
+      }`;
 
-      const baselineResult = write(context, empty, cyclicQuery, {
-        foo: {
-          id: 1,
-          name: 'Foo',
-          bar: {
-            id: 2,
-            name: 'Bar',
-            fizz: { id: 1 },
-            buzz: { id: 2 },
+      const baseline = createSnapshot(
+        {
+          foo: {
+            id: 1,
+            name: 'Foo',
+            bar: {
+              id: 2,
+              name: 'Bar',
+              fizz: { id: 1 },
+              buzz: { id: 2 },
+            },
           },
         },
-      });
-      baseline = baselineResult.snapshot;
+        cyclicRefQuery
+      ).snapshot;
 
-      const result = write(context, baseline, cyclicQuery, {
-        foo: null,
-      });
+      const result = updateSnapshot(
+        baseline,
+        { foo: null },
+        cyclicRefQuery
+      );
+
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });

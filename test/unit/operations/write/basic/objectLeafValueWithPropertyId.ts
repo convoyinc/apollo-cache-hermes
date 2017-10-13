@@ -9,21 +9,39 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  describe(`falsy values`, () => {
+  describe(`object leaf-value with property id`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const result = createSnapshot(
-        { null: null, false: false, zero: 0, string: '' },
-        `{ null, false, zero, string }`
+        {
+          foo: { id: 1 },
+          bar: {
+            baz: { id: 1 },
+          },
+        },
+        `{ foo bar }`
       );
 
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
 
-    it(`persists all falsy values`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({ null: null, false: false, zero: 0, string: '' });
+    it(`stores the values`, () => {
+      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+        foo: { id: 1 },
+        bar: {
+          baz: { id: 1 },
+        },
+      });
+    });
+
+    it(`does not normalize the values of the object leaf-value`, () => {
+      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+    });
+
+    it(`marks the container as edited`, () => {
+      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
     });
 
   });

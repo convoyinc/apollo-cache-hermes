@@ -1,44 +1,43 @@
-import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
-import { write } from '../../../../../src/operations/write';
 import { NodeId } from '../../../../../src/schema';
-import { query, strictConfig } from '../../../../helpers';
+import { createSnapshot, updateSnapshot } from '../../../../helpers';
 
 // These are really more like integration tests, given the underlying machinery.
 //
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-
-  const context = new CacheContext(strictConfig);
-  const empty = new GraphSnapshot();
-  const rootValuesQuery = query(`{
-    foo {
-      id
-      name
-    }
-    bar {
-      id
-      name
-    }
-  }`);
-
   describe(`inner nodes update`, () => {
 
-    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baselineResult = write(context, empty, rootValuesQuery, {
-        foo: { id: 1, name: 'Foo' },
-        bar: { id: 2, name: 'Bar' },
-      });
-      baseline = baselineResult.snapshot;
+      const baseline = createSnapshot(
+        {
+          foo: { id: 1, name: 'Foo' },
+          bar: { id: 2, name: 'Bar' },
+        },
+        `{
+          foo {
+            id
+            name
+          }
+          bar {
+            id
+            name
+          }
+        }`
+      ).snapshot;
 
-      const innerNodeQuery = query(`{ id name extra }`, undefined, '1');
-      const result = write(context, baseline, innerNodeQuery, {
-        id: 1,
-        name: 'moo',
-        extra: true,
-      });
+      const result = updateSnapshot(baseline,
+        {
+          id: 1,
+          name: 'moo',
+          extra: true,
+        },
+        `{ id name extra }`,
+        /* gqlVariables */ undefined,
+        /* rootId */ '1'
+      );
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });

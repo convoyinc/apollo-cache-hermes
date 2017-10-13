@@ -16,7 +16,7 @@ describe(`operations.write`, () => {
   const empty = new GraphSnapshot();
   const valuesQuery = query(`{ foo bar }`);
 
-  describe(`edit nested values hanging off of a root`, () => {
+  describe(`updates nested values hanging off of a root`, () => {
     let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const baselineResult = write(context, empty, valuesQuery, {
