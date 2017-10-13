@@ -28,7 +28,7 @@ describe(`operations.write`, () => {
     }
   }`);
 
-  describe(`edit references in an array`, () => {
+  describe(`updates references in an array`, () => {
     let arrayQuery: RawOperation, snapshot: GraphSnapshot;
     beforeAll(() => {
       arrayQuery = query(`{
