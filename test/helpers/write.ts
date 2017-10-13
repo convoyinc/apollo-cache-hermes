@@ -64,4 +64,33 @@ export namespace WriteTestQuery {
   export const fooBarLeafValuesQuery: QueryObject = {
     gqlString: `{ foo bar }`,
   };
+
+  /**
+   * {
+   *    foo {
+   *      id
+   *      name
+   *      bar {
+   *        id
+   *        name
+   *        fizz { id }
+   *        buzz { id }
+   *      }
+   *    }
+   *  }
+   */
+  export const cyclicRefQuery: QueryObject = {
+    gqlString: `{
+      foo {
+        id
+        name
+        bar {
+          id
+          name
+          fizz { id }
+          buzz { id }
+        }
+      }
+    }`,
+  };
 }

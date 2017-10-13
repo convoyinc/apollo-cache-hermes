@@ -1,8 +1,6 @@
-import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
-import { write } from '../../../../../src/operations/write';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { query, strictConfig } from '../../../../helpers';
+import { createBaselineEditedSnapshot, WriteTestQuery } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -11,39 +9,27 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-
-  const context = new CacheContext(strictConfig);
-  const empty = new GraphSnapshot();
-
   describe(`write cyclic references payload`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const cyclicQuery = query(`{
-        foo {
-          id
-          name
-          bar {
-            id
-            name
-            fizz { id }
-            buzz { id }
-          }
-        }
-      }`);
 
-      const result = write(context, empty, cyclicQuery, {
-        foo: {
-          id: 1,
-          name: 'Foo',
-          bar: {
-            id: 2,
-            name: 'Bar',
-            fizz: { id: 1 },
-            buzz: { id: 2 },
+      const result = createBaselineEditedSnapshot(
+        WriteTestQuery.cyclicRefQuery,
+        {
+          foo: {
+            id: 1,
+            name: 'Foo',
+            bar: {
+              id: 2,
+              name: 'Bar',
+              fizz: { id: 1 },
+              buzz: { id: 2 },
+            },
           },
-        },
-      });
+        }
+      );
+
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;
     });
