@@ -8,12 +8,6 @@ import { NodeId } from '../../src/schema';
 import { strictConfig } from './context';
 import { query } from './graphql';
 
-export type QueryObject = {
-  gqlString: string,
-  gqlVariables?: JsonObject,
-  rootId?: NodeId,
-};
-
 export function createSnapshot(
   payload: JsonObject,
   gqlString: string,
@@ -21,6 +15,7 @@ export function createSnapshot(
   rootId?: NodeId,
   cacheConfig: CacheContext.Configuration = strictConfig
 ): EditedSnapshot {
+
   return write(
     new CacheContext(cacheConfig),
     new GraphSnapshot(),
@@ -37,6 +32,7 @@ export function updateSnapshot(
   rootId?: NodeId,
   cacheConfig: CacheContext.Configuration = strictConfig
 ): EditedSnapshot {
+
   return write(
     new CacheContext(cacheConfig),
     baseline,
