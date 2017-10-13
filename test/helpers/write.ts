@@ -19,7 +19,7 @@ export function createBaselineEditedSnapshot(
   payload: JsonObject,
   cacheConfig: CacheContext.Configuration = strictConfig
 ): EditedSnapshot {
-  const context = new CacheContext(strictConfig);
+  const context = new CacheContext(cacheConfig);
   const empty = new GraphSnapshot();
 
   return write(context, empty, query(gqlString, gqlVariables, rootId), payload);
@@ -31,66 +31,7 @@ export function createUpdateEditedSnapshot(
   payload: JsonObject,
   cacheConfig: CacheContext.Configuration = strictConfig
 ): EditedSnapshot {
-  const context = new CacheContext(strictConfig);
+  const context = new CacheContext(cacheConfig);
 
   return write(context, baseline, query(gqlString, gqlVariables, rootId), payload);
-}
-
-/**
- * Common query for testing write operation
- */
-export namespace WriteTestQuery {
-  /**
-   * {
-   *   viewer { id name }
-   * }
-   */
-  export const basicViewerRefQuery: QueryObject = {
-    gqlString: `{ viewer { id name } }`,
-  };
-
-  /**
-   * {
-   *   viewer { postal name }
-   * }
-   */
-  export const basicViewerValueQuery: QueryObject = {
-    gqlString: `{ viewer { postal name } }`,
-  };
-
-  /**
-   * { foo bar }
-   */
-  export const fooBarLeafValuesQuery: QueryObject = {
-    gqlString: `{ foo bar }`,
-  };
-
-  /**
-   * {
-   *    foo {
-   *      id
-   *      name
-   *      bar {
-   *        id
-   *        name
-   *        fizz { id }
-   *        buzz { id }
-   *      }
-   *    }
-   *  }
-   */
-  export const cyclicRefQuery: QueryObject = {
-    gqlString: `{
-      foo {
-        id
-        name
-        bar {
-          id
-          name
-          fizz { id }
-          buzz { id }
-        }
-      }
-    }`,
-  };
 }

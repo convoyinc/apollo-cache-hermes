@@ -1,7 +1,7 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../../src/nodes';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { createBaselineEditedSnapshot, WriteTestQuery } from '../../../../helpers';
+import { createBaselineEditedSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -15,7 +15,7 @@ describe(`operations.write`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const result = createBaselineEditedSnapshot(
-        WriteTestQuery.basicViewerRefQuery,
+        { gqlString: `{ viewer { id name } }` },
         {
           viewer: [
             {

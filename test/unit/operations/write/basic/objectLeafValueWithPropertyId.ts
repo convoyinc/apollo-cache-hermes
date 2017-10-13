@@ -1,6 +1,6 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { createBaselineEditedSnapshot, WriteTestQuery } from '../../../../helpers';
+import { createBaselineEditedSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -14,7 +14,7 @@ describe(`operations.write`, () => {
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
       const result = createBaselineEditedSnapshot(
-        WriteTestQuery.fooBarLeafValuesQuery,
+        { gqlString: `{ foo bar }` },
         {
           foo: { id: 1 },
           bar: {
