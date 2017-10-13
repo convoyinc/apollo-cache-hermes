@@ -1,7 +1,7 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../../src/nodes';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { createBaselineEditedSnapshot } from '../../../../helpers';
+import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -10,12 +10,11 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-
   describe(`new array of references hanging off of a root`, () => {
+
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const result = createBaselineEditedSnapshot(
-        { gqlString: `{ viewer { id name } }` },
+      const result = createSnapshot(
         {
           viewer: [
             {
@@ -27,7 +26,8 @@ describe(`operations.write`, () => {
               name: 'Brie',
             },
           ],
-        }
+        },
+        `{ viewer { id name } }`
       );
 
       snapshot = result.snapshot;

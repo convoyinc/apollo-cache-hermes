@@ -1,4 +1,4 @@
-import { createBaselineEditedSnapshot } from '../../../../helpers';
+import { createSnapshot } from '../../../../helpers';
 
 // These are really more like integration tests, given the underlying machinery.
 //
@@ -9,23 +9,21 @@ describe(`operations.write`, () => {
 
     it(`creates the query root, with the values`, () => {
       expect(() => {
-        createBaselineEditedSnapshot(
-          {
-            gqlString: `{
-              foo {
-                bar {
-                  value
-                  prop1
-                  prop2
-                }
-              }
-            }`,
-          },
+        createSnapshot(
           {
             foo: {
               bar: 'THIS IS A STRING NOT OBJECT',
             },
-          }
+          },
+          `{
+            foo {
+              bar {
+                value
+                prop1
+                prop2
+              }
+            }
+          }`
         );
       }).to.throw(/foo\.bar/);
     });

@@ -14,24 +14,33 @@ export type QueryObject = {
   rootId?: NodeId,
 };
 
-export function createBaselineEditedSnapshot(
-  { gqlString, gqlVariables, rootId }: QueryObject,
+export function createSnapshot(
   payload: JsonObject,
+  gqlString: string,
+  gqlVariables?: JsonObject,
+  rootId?: NodeId,
   cacheConfig: CacheContext.Configuration = strictConfig
 ): EditedSnapshot {
-  const context = new CacheContext(cacheConfig);
-  const empty = new GraphSnapshot();
-
-  return write(context, empty, query(gqlString, gqlVariables, rootId), payload);
+  return write(
+    new CacheContext(cacheConfig),
+    new GraphSnapshot(),
+    query(gqlString, gqlVariables, rootId),
+    payload
+  );
 }
 
-export function createUpdateEditedSnapshot(
+export function updateSnapshot(
   baseline: GraphSnapshot,
-  { gqlString, gqlVariables, rootId }: QueryObject,
   payload: JsonObject,
+  gqlString: string,
+  gqlVariables?: JsonObject,
+  rootId?: NodeId,
   cacheConfig: CacheContext.Configuration = strictConfig
 ): EditedSnapshot {
-  const context = new CacheContext(cacheConfig);
-
-  return write(context, baseline, query(gqlString, gqlVariables, rootId), payload);
+  return write(
+    new CacheContext(cacheConfig),
+    baseline,
+    query(gqlString, gqlVariables, rootId),
+    payload
+  );
 }

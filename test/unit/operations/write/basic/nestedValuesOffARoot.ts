@@ -1,7 +1,7 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../../src/nodes';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { createBaselineEditedSnapshot } from '../../../../helpers';
+import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -14,16 +14,7 @@ describe(`operations.write`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const result = createBaselineEditedSnapshot(
-        {
-          gqlString: `{
-            bar {
-              value
-              prop1
-              prop2
-            }
-          }`,
-        },
+      const result = createSnapshot(
         {
           bar: {
             value: 42,
@@ -33,7 +24,14 @@ describe(`operations.write`, () => {
               nestedProp2: 'world',
             },
           },
-        }
+        },
+        `{
+          bar {
+            value
+            prop1
+            prop2
+          }
+        }`
       );
 
       snapshot = result.snapshot;

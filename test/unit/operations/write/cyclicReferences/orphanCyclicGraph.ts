@@ -1,6 +1,6 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { createBaselineEditedSnapshot, createUpdateEditedSnapshot } from '../../../../helpers';
+import { createSnapshot, updateSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 // These are really more like integration tests, given the underlying machinery.
@@ -12,23 +12,20 @@ describe(`operations.write`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const cyclicRefQuery = {
-        gqlString: `{
-          foo {
+      const cyclicRefQuery = `{
+        foo {
+          id
+          name
+          bar {
             id
             name
-            bar {
-              id
-              name
-              fizz { id }
-              buzz { id }
-            }
+            fizz { id }
+            buzz { id }
           }
-        }`,
-      };
+        }
+      }`;
 
-      const baseline = createBaselineEditedSnapshot(
-        cyclicRefQuery,
+      const baseline = createSnapshot(
         {
           foo: {
             id: 1,
@@ -40,13 +37,14 @@ describe(`operations.write`, () => {
               buzz: { id: 2 },
             },
           },
-        }
+        },
+        cyclicRefQuery
       ).snapshot;
 
-      const result = createUpdateEditedSnapshot(
+      const result = updateSnapshot(
         baseline,
-        cyclicRefQuery,
-        { foo: null }
+        { foo: null },
+        cyclicRefQuery
       );
 
       snapshot = result.snapshot;

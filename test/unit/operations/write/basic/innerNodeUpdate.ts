@@ -1,6 +1,6 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { NodeId } from '../../../../../src/schema';
-import { createBaselineEditedSnapshot, createUpdateEditedSnapshot } from '../../../../helpers';
+import { createSnapshot, updateSnapshot } from '../../../../helpers';
 
 // These are really more like integration tests, given the underlying machinery.
 //
@@ -11,35 +11,32 @@ describe(`operations.write`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const baseline = createBaselineEditedSnapshot(
-        {
-          gqlString: `{
-            foo {
-              id
-              name
-            }
-            bar {
-              id
-              name
-            }
-          }`,
-        },
+      const baseline = createSnapshot(
         {
           foo: { id: 1, name: 'Foo' },
           bar: { id: 2, name: 'Bar' },
-        }
+        },
+        `{
+          foo {
+            id
+            name
+          }
+          bar {
+            id
+            name
+          }
+        }`
       ).snapshot;
 
-      const result = createUpdateEditedSnapshot(baseline,
-        {
-          gqlString: `{ id name extra }`,
-          rootId: '1',
-        },
+      const result = updateSnapshot(baseline,
         {
           id: 1,
           name: 'moo',
           extra: true,
-        }
+        },
+        `{ id name extra }`,
+        /* gqlVariables */ undefined,
+        /* rootId */ '1'
       );
       snapshot = result.snapshot;
       editedNodeIds = result.editedNodeIds;

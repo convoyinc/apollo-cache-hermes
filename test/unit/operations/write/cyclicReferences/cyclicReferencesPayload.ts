@@ -1,6 +1,6 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
-import { createBaselineEditedSnapshot } from '../../../../helpers';
+import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -9,27 +9,24 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 // It just isn't very fruitful to unit test the individual steps of the write
 // workflow in isolation, given the contextual state that must be passed around.
 describe(`operations.write`, () => {
-  describe(`write cyclic references payload`, () => {
+  describe(`cyclic references payload`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
     beforeAll(() => {
-      const cyclicRefQuery = {
-        gqlString: `{
-          foo {
+      const cyclicRefQuery = `{
+        foo {
+          id
+          name
+          bar {
             id
             name
-            bar {
-              id
-              name
-              fizz { id }
-              buzz { id }
-            }
+            fizz { id }
+            buzz { id }
           }
-        }`,
-      };
+        }
+      }`;
 
-      const result = createBaselineEditedSnapshot(
-        cyclicRefQuery,
+      const result = createSnapshot(
         {
           foo: {
             id: 1,
@@ -41,7 +38,8 @@ describe(`operations.write`, () => {
               buzz: { id: 2 },
             },
           },
-        }
+        },
+        cyclicRefQuery
       );
 
       snapshot = result.snapshot;
