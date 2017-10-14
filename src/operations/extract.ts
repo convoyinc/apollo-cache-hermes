@@ -1,6 +1,6 @@
 import { GraphSnapshot } from '../GraphSnapshot';
-import { JsonObject } from '../primitive';
+import { Serializeable } from '../primitive';
 
-export function extract(data: GraphSnapshot): JsonObject {
+export function extract(data: GraphSnapshot): Serializeable.GraphSnapshot {
   return { };
 }

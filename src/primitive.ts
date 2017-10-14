@@ -55,3 +55,30 @@ export type JsonScalar = null | boolean | number | string;
 export type JsonValue = NestedValue<JsonScalar>;
 export type JsonObject = NestedObject<JsonScalar>;
 export type JsonArray = NestedArray<JsonScalar>;
+
+/**
+ * Lists of types which are JSON serializable
+ */
+export namespace Serializeable {
+  /**
+   * Json serializable type of NodeReference
+   */
+  export interface NodeReference {
+    id: JsonScalar;
+    path: JsonScalar[];
+  }
+
+  /**
+   * Json serializable type of GraphSnapshot
+   *
+   * This is used when doing extract and restore cache's stage
+   */
+  export interface GraphSnapshot {
+    [key: string]: {
+      inbound: null | Serializeable.NodeReference[],
+      outbound: null | Serializeable.NodeReference[],
+      data: null | JsonObject,
+    };
+  }
+
+}

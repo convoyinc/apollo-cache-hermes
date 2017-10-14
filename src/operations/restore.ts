@@ -1,6 +1,6 @@
 import { GraphSnapshot } from '../GraphSnapshot';
-import { JsonObject } from '../primitive';
+import { Serializeable } from '../primitive';
 
-export function restore(serializedState: JsonObject): GraphSnapshot {
+export function restore(serializedState: Serializeable.GraphSnapshot): GraphSnapshot {
   return new GraphSnapshot();
 }
