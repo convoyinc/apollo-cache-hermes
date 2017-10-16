@@ -125,7 +125,7 @@ export function _walkAndOverlayDynamicValues(
       }
 
       // Have we reached a leaf (either in the query, or in the cache)?
-      if (node.children && child !== null) {
+      if (node.hasParameterizedChildren && node.children && child !== null) {
         if (Array.isArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
