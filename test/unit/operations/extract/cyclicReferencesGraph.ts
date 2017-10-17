@@ -48,7 +48,7 @@ describe.skip(`operations.extract`, () => {
           data: null,
         },
         '1': {
-         inbound: [
+          inbound: [
             { id: QueryRootId, path: ['foo'] },
             { id: 2, path: ['fizz'] },
           ],
