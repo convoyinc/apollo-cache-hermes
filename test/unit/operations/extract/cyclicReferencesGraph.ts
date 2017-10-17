@@ -44,22 +44,29 @@ describe.skip(`operations.extract`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           inbound: null,
-          outbound: null,
+          outbound: [{ id: 1, path: ['foo'] }],
           data: null,
         },
         '1': {
-          data: { id: 1, name: 'Foo' },
-          inbound: [
+         inbound: [
+            { id: QueryRootId, path: ['foo'] },
             { id: 2, path: ['fizz'] },
           ],
-          outbound: [],
+          outbound: [
+            { id: 2, path: ['bar'] },
+          ],
+          data: { id: 1, name: 'Foo' },
         },
         '2': {
-          data: { id: 2, name: 'Bar' },
           inbound: [
+            { id: 1, path: ['bar'] },
             { id: 2, path: ['buzz'] },
           ],
-          outbound: [],
+          outbound: [
+            { id: 1, path: ['fizz'] },
+            { id: 2, path: ['buzz'] },
+          ],
+          data: { id: 2, name: 'Bar' },
         },
       });
     });
