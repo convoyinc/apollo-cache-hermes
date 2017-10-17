@@ -5,7 +5,7 @@ import { createSnapshot } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.serialization`, () => {
+describe.skip(`operations.extract`, () => {
   describe(`cyclic GraphSnapshot`, () => {
 
     let extractResult: Serializeable.GraphSnapshot;

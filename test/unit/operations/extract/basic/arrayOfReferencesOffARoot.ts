@@ -5,7 +5,7 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.serialization`, () => {
+describe.skip(`operations.extract`, () => {
   describe(`new array of references hanging off of a root`, () => {
 
     let extractResult: Serializeable.GraphSnapshot;
@@ -32,9 +32,14 @@ describe.skip(`operations.serialization`, () => {
     it(`extract Json serializable object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          outbound: [{ id: 123, path: ['viewer', 0] }, { id: 456, path: ['viewer', 1] }],
+          outbound: [
+            { id: 123, path: ['viewer', 0] },
+            { id: 456, path: ['viewer', 1] },
+          ],
           inbound: null,
-          data: null,
+          data: {
+            viewer: [],
+          },
         },
         '123': {
           outbound: null,
