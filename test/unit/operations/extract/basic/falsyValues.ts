@@ -3,7 +3,6 @@ import { Serializeable } from '../../../../../src/primitive';
 import { StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
-
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe.skip(`operations.extract`, () => {
