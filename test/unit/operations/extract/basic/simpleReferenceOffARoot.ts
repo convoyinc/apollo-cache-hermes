@@ -26,12 +26,12 @@ describe.skip(`operations.extract`, () => {
     it(`extract Json serializable object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: 123, path: ['viewer'] }],
-          inbound: null,
-          data: null,
+          data: {},
         },
         '123': {
-          outbound: null,
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['viewer'] }],
           data: { id: 123, name: 'Gouda' },
         },

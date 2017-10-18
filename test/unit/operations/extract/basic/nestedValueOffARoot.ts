@@ -36,8 +36,7 @@ describe.skip(`operations.extract`, () => {
     it(`extract Json serialization object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          inbound: null,
-          outbound: null,
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           data: {
             bar: {
               value: 42,
