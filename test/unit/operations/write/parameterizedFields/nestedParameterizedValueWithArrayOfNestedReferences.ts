@@ -16,7 +16,7 @@ describe(`operations.write`, () => {
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
 
-  describe(`parameterized entity field with array of nested indirect fields`, () => {
+  describe(`nested parameterized value with array of nested references`, () => {
 
     let nestedQuery: RawOperation, snapshot: GraphSnapshot, parameterizedRootId: NodeId;
     let entityId1: NodeId, entityId2: NodeId;
