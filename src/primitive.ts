@@ -87,8 +87,8 @@ export namespace Serializeable {
    * correct create NodeSnapshot.
    *
    */
-  export enum NodeSnapshotType {
+  export const enum NodeSnapshotType {
     EntitySnapshot,
-    ParameterizedValueSnapshot
+    ParameterizedValueSnapshot,
   }
 }
