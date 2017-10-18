@@ -41,7 +41,7 @@ describe.skip(`operations.extract`, () => {
     it(`extract Json serialization object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          inbound: null,
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [
             { id: 'a', path: ['foo', 0] },
             { id: 'a', path: ['foo', 1] },
@@ -50,17 +50,18 @@ describe.skip(`operations.extract`, () => {
             { id: 'b', path: ['foo', 4] },
             { id: 'a', path: ['baz'] },
           ],
-          data: null,
+          data: {},
         },
         '1': {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [
             { id: 'a', path: ['bar'] },
             { id: 'b', path: ['bar'] },
           ],
-          outbound: null,
           data: { id: 1 },
         },
         'a': {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [
             { id: QueryRootId, path: ['foo', 0] },
             { id: QueryRootId, path: ['foo', 1] },
@@ -73,6 +74,7 @@ describe.skip(`operations.extract`, () => {
           },
         },
         'b': {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [
             { id: QueryRootId, path: ['foo', 2] },
             { id: QueryRootId, path: ['foo', 4] },
