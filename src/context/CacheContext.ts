@@ -79,8 +79,11 @@ export namespace CacheContext {
     freeze?: boolean;
 
     /**
-     * Parameterized fields that should redirect to other locations in the cache
-     * when there is no value currently cached for their location.
+     * Parameterized fields that should redirect to entities in the cache when
+     * there is no value currently cached for their location.
+     *
+     * Note that you may only redirect to _entities_ within the graph.
+     * Redirection to arbitrary nodes is not supported.
      */
     resolverRedirects?: ResolverRedirects;
   }
