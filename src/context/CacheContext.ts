@@ -25,6 +25,17 @@ export namespace CacheContext {
   }
 
   /**
+   * Expected to return an EntityId or undefined, but we loosen the restrictions
+   * for ease of declaration.
+   */
+  export type ResolverRedirect = (args: JsonObject) => any;
+  export type ResolverRedirects = {
+    [typeName: string]: {
+      [fieldName: string]: ResolverRedirect,
+    },
+  };
+
+  /**
    * Configuration for a Hermes cache.
    */
   export interface Configuration {
@@ -66,6 +77,12 @@ export namespace CacheContext {
      * Defaults to true unless process.env.NODE_ENV === 'production'
      */
     freeze?: boolean;
+
+    /**
+     * Parameterized fields that should redirect to other locations in the cache
+     * when there is no value currently cached for their location.
+     */
+    resolverRedirects?: ResolverRedirects;
   }
 
 }
@@ -87,6 +104,9 @@ export class CacheContext {
   /** Whether the cache should emit debug level log events. */
   readonly verbose: boolean;
 
+  /** Configured resolver redirects. */
+  readonly resolverRedirects: CacheContext.ResolverRedirects;
+
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
@@ -103,6 +123,7 @@ export class CacheContext {
       ? !!config.freeze
       : lodashGet(global, 'process.env.NODE_ENV') !== 'production';
     this.verbose = !!config.verbose;
+    this.resolverRedirects = config.resolverRedirects || {};
 
     this._addTypename = config.addTypename || false;
     this._logger = config.logger || {
