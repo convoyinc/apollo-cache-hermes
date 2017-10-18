@@ -46,23 +46,37 @@ describe.skip(`operations.extract`, () => {
         ['one', 'two'],
         { id: 1 }
       );
+
+      const nestedParameterizedContainersId = nodeIdForParameterizedValue(
+        QueryRootId,
+        ['31', 'four'],
+        { extra: true }
+      );
+
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          inbound: null,
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: parameterizedContainersId, path: ['one', 'two'] }],
-          data: null,
         },
         [parameterizedContainersId]: {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: [] }],
           outbound: [{ id: 31, path: ['three'] }],
-          data: null,
+          data: {},
         },
         '31': {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: parameterizedContainersId, path: ['three'] }],
-          outbound: null,
+          outbound: [{ id: nestedParameterizedContainersId, path: ['four'] }],
           data: {
             id: 31,
-            four: { five: 1 },
+          },
+        },
+        [nestedParameterizedContainersId]: {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          inbound: [{ id: parameterizedContainersId, path: ['four'] }],
+          data: {
+            five: 1,
           },
         },
       });

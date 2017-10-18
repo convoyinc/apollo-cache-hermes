@@ -13,30 +13,30 @@ describe.skip(`operations.extract`, () => {
     beforeAll(() => {
       const snapshot = createSnapshot(
         {
-          foo: {
-            bar: [
+          one: {
+            two: [
               {
-                baz: {
-                  id: 'baz0',
-                  name: 'BAZ0',
-                  extra: false,
+                three: {
+                  id: '30',
+                  name: 'Three0',
+                  extraValue: '30-42',
                 },
               },
               {
-                baz: {
-                  id: 'baz1',
-                  name: 'BAZ1',
-                  extra: false,
+                three: {
+                  id: '31',
+                  name: 'Three1',
+                  extraValue: '31-42',
                 },
               },
             ],
           },
         },
         `query getAFoo($id: ID!) {
-          foo {
-            bar {
-              baz(id: $id, withExtra: true) {
-                id name extra
+          one {
+            two {
+              three(id: $id, withExtra: true) {
+                id name extraValue
               }
             }
           }
@@ -48,58 +48,57 @@ describe.skip(`operations.extract`, () => {
     });
 
     it(`extract Json serialization object`, () => {
-      const parameterizedContainersId0 = nodeIdForParameterizedValue(
+      const parameterizedContainersArrayIdx0 = nodeIdForParameterizedValue(
         QueryRootId,
-        ['foo', 'bar', 0, 'baz'],
-        { id: 1 }
+        ['one', 'two', 0, 'three'],
+        { id: 1, withExtra: true }
       );
 
-      const parameterizedContainersId1 = nodeIdForParameterizedValue(
+      const parameterizedContainersArrayIdx1 = nodeIdForParameterizedValue(
         QueryRootId,
-        ['foo', 'bar', 1, 'baz'],
-        { id: 1 }
+        ['one', 'two', 1, 'three'],
+        { id: 1, withExtra: true }
       );
 
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          inbound: null,
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [
-            { id: QueryRootId, path: ['foo', 'bar', 0, 'baz'] },
-            { id: QueryRootId, path: ['foo', 'bar', 1, 'baz'] },
+            { id: QueryRootId, path: ['one', 'two', 0, 'three'] },
+            { id: QueryRootId, path: ['one', 'two', 1, 'three'] },
           ],
           data: {
-            foo: {
-              bar: [
-                { baz: null },
-                { baz: null },
-              ],
+            one: {
+              two: [],
             },
           },
         },
-        [parameterizedContainersId0]: {
-          inbound: [{ id: QueryRootId, path: ['foo', 'bar', 0, 'baz'] }],
-          outbound: [{ id: 'baz0', path: [] }],
+        [parameterizedContainersArrayIdx0]: {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          inbound: [{ id: QueryRootId, path: ['one', 'two', 0, 'three'] }],
+          outbound: [{ id: '30', path: [] }],
         },
-        'baz0': {
+        '30': {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [],
-          outbound: null,
           data: {
-            id: 'baz0',
-            name: 'BAZ0',
-            extra: false,
+            id: '30',
+            name: 'Three0',
+            extraValue: '30-42',
           },
         },
-        [parameterizedContainersId1]: {
-          inbound: [{ id: QueryRootId, path: ['foo', 'bar', 1, 'baz'] }],
-          outbound: [{ id: 'baz0', path: [] }],
+        [parameterizedContainersArrayIdx1]: {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
+          outbound: [{ id: '31', path: [] }],
         },
-        'baz1': {
-          inbound: [],
-          outbound: null,
+        '31': {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          inbound: [{ id: parameterizedContainersArrayIdx1, path: [] }],
           data: {
-            id: 'baz1',
-            name: 'BAZ1',
-            extra: false,
+            id: '31',
+            name: 'Three1',
+            extraValue: '31-42',
           },
         },
       });

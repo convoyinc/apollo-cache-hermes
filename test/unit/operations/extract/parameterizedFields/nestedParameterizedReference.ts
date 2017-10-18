@@ -13,21 +13,21 @@ describe.skip(`operations.extract`, () => {
     beforeAll(() => {
       const snapshot = createSnapshot(
         {
-          foo: {
-            bar: {
-              baz: {
-                id: 'baz0',
-                name: 'Foo',
-                extra: false,
+          one: {
+            two: {
+              three: {
+                id: '31',
+                name: 'Three',
+                extraValue: 42,
               },
             },
           },
         },
         `query getAFoo($id: ID!) {
-          foo {
-            bar {
-              baz(id: $id, withExtra: true) {
-                id name extra
+          one {
+            two {
+              three(id: $id, withExtra: true) {
+                id name extraValue
               }
             }
           }
@@ -41,32 +41,27 @@ describe.skip(`operations.extract`, () => {
     it(`extract Json serialization object`, () => {
       const parameterizedContainersId = nodeIdForParameterizedValue(
         QueryRootId,
-        ['foo', 'bar', 'baz'],
-        { id: 1 }
+        ['one', 'two', 'three'],
+        { id: 1, withExtra: true }
       );
+
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          inbound: null,
-          outbound: [{ id: QueryRootId, path: ['foo', 'bar', 'baz'] }],
-          data: {
-            foo: {
-              bar: {
-                baz: null,
-              },
-            },
-          },
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          outbound: [{ id: parameterizedContainersId, path: ['one', 'two', 'three'] }],
         },
         [parameterizedContainersId]: {
-          inbound: [{ id: QueryRootId, path: ['foo', 'bar', 'baz'] }],
-          outbound: [{ id: 'baz0', path: [] }],
+          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          inbound: [{ id: QueryRootId, path: ['one', 'two', 'three'] }],
+          outbound: [{ id: '31', path: [] }],
         },
         'baz0': {
-          inbound: [],
-          outbound: null,
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          inbound: [{ id: parameterizedContainersId, path: [] }],
           data: {
-            id: 'baz0',
-            name: 'Foo',
-            extra: false,
+            id: '31',
+            name: 'Three',
+            extraValue: 42,
           },
         },
       });

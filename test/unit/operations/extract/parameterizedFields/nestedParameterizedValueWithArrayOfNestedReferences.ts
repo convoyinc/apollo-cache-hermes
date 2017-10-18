@@ -49,79 +49,69 @@ describe.skip(`operations.extract`, () => {
     });
 
     it(`extract Json serialization object`, () => {
-      const parameterizedTopContainerId0 = nodeIdForParameterizedValue(
+      const parameterizedTopContainerId = nodeIdForParameterizedValue(
         QueryRootId,
-        ['one', 'two', 0],
-        { id: 0 }
-      );
-      const parameterizedTopContainerId1 = nodeIdForParameterizedValue(
-        QueryRootId,
-        ['one', 'two', 1],
+        ['one', 'two'],
         { id: 1 }
       );
 
       const nestedParameterizedValueId0 = nodeIdForParameterizedValue(
         '31',
-        ['one', 'two', 0, 'three', 'four'],
-        { extra: true  }
+        ['four'],
+        { extra: true },
       );
+
       const nestedParameterizedValueId1 = nodeIdForParameterizedValue(
         '32',
-        ['one', 'two', 1, 'three', 'four'],
-        { extra: true }
+        ['four'],
+        { extra: true },
       );
 
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          inbound: null,
-          outbound: [
-            { id: parameterizedTopContainerId0, path: ['one', 'two', 0] },
-            { id: parameterizedTopContainerId1, path: ['one', 'two', 1] },
-          ],
-          data: {
-            one: {
-              two: [],
-            },
-          },
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          outbound: [{ id: parameterizedTopContainerId, path: ['one', 'two'] }],
         },
-        [parameterizedTopContainerId0]: {
-          inbound: [{ id: QueryRootId, path: ['one', 'two', 0] }],
-          outbound: [{ id: 31, path: [31, 'three'] }],
-          data: {
-            three: null,
-          },
+        [parameterizedTopContainerId]: {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          inbound: [{ id: QueryRootId, path: ['one', 'two'] }],
+          outbound: [
+            { id: 31, path: ['0', 'three'] },
+            { id: 32, path: ['1', 'three'] },
+          ],
+          isParameterizedValueSnapshot: true,
+          data: [
+            { three: {} },
+            { three: {} },
+          ],
         },
         '31': {
-          inbound: [{ id: parameterizedTopContainerId0, path: [31, 'three'] }],
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          inbound: [{ id: parameterizedTopContainerId, path: ['0', 'three'] }],
           outbound: [{ id: nestedParameterizedValueId0, path: ['four'] }],
           data: {
             id: 31,
           },
         },
         [nestedParameterizedValueId0]: {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: '31', path: ['four'] }],
-          outbound: null,
+          isParameterizedValueSnapshot: true,
           data: {
             five: 1,
           },
         },
-        [parameterizedTopContainerId1]: {
-          inbound: [{ id: QueryRootId, path: ['one', 'two', 1] }],
-          outbound: [{ id: 32, path: [32, 'three'] }],
-          data: {
-            three: null,
-          },
-        },
         '32': {
-          inbound: [{ id: parameterizedTopContainerId1, path: [32, 'three'] }],
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          inbound: [{ id: parameterizedTopContainerId, path: ['1', 'three'] }],
           outbound: [{ id: nestedParameterizedValueId1, path: ['four'] }],
           data: {
-            id: 31,
+            id: 32,
           },
         },
         [nestedParameterizedValueId1]: {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: '32', path: ['four'] }],
-          outbound: null,
           data: {
             five: 1,
           },

@@ -44,46 +44,33 @@ describe.skip(`operations.extract`, () => {
     });
 
     it(`extract Json serialization object`, () => {
-      const parameterizedTopContainerId0 = nodeIdForParameterizedValue(
+      const parameterizedTopContainerId = nodeIdForParameterizedValue(
         QueryRootId,
-        ['one', 'two', 0],
+        ['one', 'two'],
         { id: 0 }
       );
-      const parameterizedTopContainerId1 = nodeIdForParameterizedValue(
-        QueryRootId,
-        ['one', 'two', 1],
-        { id: 1 }
-      );
+
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          inbound: null,
-          outbound: [
-            { id: parameterizedTopContainerId0, path: ['one', 'two', 0] },
-            { id: parameterizedTopContainerId1, path: ['one', 'two', 1] },
+          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          outbound: [{ id: parameterizedTopContainerId, path: ['one', 'two'] }],
+        },
+        [parameterizedTopContainerId]: {
+          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          inbound: [{ id: QueryRootId, path: ['one', 'two'] }],
+          isParameterizedValueSnapshot: true,
+          data: [
+            {
+              three: {
+                threeValue: 'first',
+              },
+            },
+            {
+              three: {
+                threeValue: 'second',
+              },
+            },
           ],
-          data: {
-            one: {
-              two: [],
-            },
-          },
-        },
-        [parameterizedTopContainerId0]: {
-          inbound: [{ id: QueryRootId, path: ['one', 'two', 0] }],
-          outbound: null,
-          data: {
-            three: {
-              threeValue: 'first',
-            },
-          },
-        },
-        [parameterizedTopContainerId1]: {
-          inbound: [{ id: QueryRootId, path: ['one', 'two', 1] }],
-          outbound: null,
-          data: {
-            three: {
-              threeValue: 'second',
-            },
-          },
         },
       });
     });
