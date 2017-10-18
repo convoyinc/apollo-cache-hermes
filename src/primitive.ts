@@ -69,16 +69,26 @@ export namespace Serializeable {
   }
 
   /**
-   * Json serializable type of GraphSnapshot
+   * Json serializable type of NodeSnapshot in GraphSnapshot
    *
    * This is used when doing extract and restore cache's stage
    */
   export interface GraphSnapshot {
     [key: string]: {
-      inbound: null | Serializeable.NodeReference[],
-      outbound: null | Serializeable.NodeReference[],
-      data: null | JsonObject,
+      nodeSnapshotType: Serializeable.NodeSnapshotType,
+      inbound?: Serializeable.NodeReference[],
+      outbound?: Serializeable.NodeReference[],
+      data?: JsonValue,
     };
   }
 
+  /**
+   * Type of NodeSnapshot. We need this so that when deserialize, we can
+   * correct create NodeSnapshot.
+   *
+   */
+  export enum NodeSnapshotType {
+    EntitySnapshot,
+    ParameterizedValueSnapshot
+  }
 }
