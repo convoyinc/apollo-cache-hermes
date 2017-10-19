@@ -2,7 +2,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 
 import { QueryInfo } from './context';
 import { ParsedQuery } from './ParsedQueryNode';
-import { JsonObject } from './primitive';
+import { JsonObject, JsonScalar, JsonValue } from './primitive';
 
 /**
  * Change ids track diffs to the store that may eventually be rolled back.
@@ -66,4 +66,41 @@ export interface OperationInstance {
 export interface QuerySnapshot {
   query: RawOperation;
   payload?: JsonObject;
+}
+
+/**
+ * Lists of types which are JSON serializable
+ */
+export namespace Serializeable {
+  /**
+   * JSON serializable type of NodeReference
+   */
+  export interface NodeReference {
+    id: JsonScalar;
+    path: JsonScalar[];
+  }
+
+  /**
+   * JSON serializable type of NodeSnapshot in GraphSnapshot
+   *
+   * This is used when doing extract and restore cache's stage
+   */
+  export interface GraphSnapshot {
+    [key: string]: {
+      type: Serializeable.NodeSnapshotType,
+      inbound?: Serializeable.NodeReference[],
+      outbound?: Serializeable.NodeReference[],
+      data?: JsonValue,
+    };
+  }
+
+  /**
+   * Type of NodeSnapshot. We need this so that when deserialize, we can
+   * correct create NodeSnapshot.
+   *
+   */
+  export const enum NodeSnapshotType {
+    EntitySnapshot = 0,
+    ParameterizedValueSnapshot = 1,
+  }
 }
