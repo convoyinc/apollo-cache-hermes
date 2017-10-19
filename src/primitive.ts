@@ -61,7 +61,7 @@ export type JsonArray = NestedArray<JsonScalar>;
  */
 export namespace Serializeable {
   /**
-   * Json serializable type of NodeReference
+   * JSON serializable type of NodeReference
    */
   export interface NodeReference {
     id: JsonScalar;
@@ -69,7 +69,7 @@ export namespace Serializeable {
   }
 
   /**
-   * Json serializable type of NodeSnapshot in GraphSnapshot
+   * JSON serializable type of NodeSnapshot in GraphSnapshot
    *
    * This is used when doing extract and restore cache's stage
    */

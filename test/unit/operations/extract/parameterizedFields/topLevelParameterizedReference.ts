@@ -30,7 +30,7 @@ describe.skip(`operations.extract`, () => {
       extractResult = extract(snapshot);
     });
 
-    it(`extract Json serialization object`, () => {
+    it(`extract JSON serialization object`, () => {
       const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1 });
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
