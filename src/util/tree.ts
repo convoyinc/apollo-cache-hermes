@@ -61,7 +61,8 @@ export function walkOperation(document: DocumentNode, result: JsonObject | undef
       if (selection.kind === 'Field') {
         fields.push(selection);
         if (selection.selectionSet) {
-          const child = get(parent, selection.name.value);
+          const nameNode = selection.alias || selection.name;
+          const child = get(parent, nameNode.value);
           stack.push(new OperationWalkNode(selection.selectionSet, child));
         }
 
