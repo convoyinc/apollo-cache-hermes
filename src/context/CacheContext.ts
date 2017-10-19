@@ -130,12 +130,12 @@ export class CacheContext {
 
     this._addTypename = config.addTypename || false;
     this._logger = config.logger || {
-      debug: console.debug ? console.debug.bind(console) : console.log.bind(console), // eslint-disable-line no-console
-      warn:  console.warn  ? console.warn.bind(console)  : console.log.bind(console), // eslint-disable-line no-console
-      error: console.error ? console.error.bind(console) : console.log.bind(console), // eslint-disable-line no-console
+      debug: _makeDefaultLogger('debug'),
+      warn:  _makeDefaultLogger('warn'),
+      error: _makeDefaultLogger('error'),
       // Grouping:
-      group:    console.groupCollapsed ? console.groupCollapsed.bind(console) : console.log.bind(console), // eslint-disable-line no-console
-      groupEnd: console.groupEnd       ? console.groupEnd.bind(console)       : () => {}, // eslint-disable-line no-console
+      group: _makeDefaultLogger('group'),
+      groupEnd: console.groupEnd ? console.groupEnd.bind(console) : () => {}, // eslint-disable-line no-console
     };
   }
 
@@ -257,4 +257,11 @@ export function defaultEntityIdMapper(node: { id?: any }) {
 
 export function operationCacheKey(document: DocumentNode) {
   return document.loc!.source.body;
+}
+
+function _makeDefaultLogger(level: 'debug' | 'info' | 'warn' | 'error' | 'group') {
+  const method = console[level] || console.log; // eslint-disable-line no-console
+  return function defaultLogger(message: string, ...args: any[]) {
+    method.call(console, `[Cache] ${message}`, ...args);
+  };
 }
