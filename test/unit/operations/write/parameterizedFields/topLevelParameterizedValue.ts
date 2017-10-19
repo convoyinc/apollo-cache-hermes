@@ -19,7 +19,7 @@ describe(`operations.write`, () => {
   const context = new CacheContext(strictConfig);
   const empty = new GraphSnapshot();
 
-  describe(`top-level non-entity parameterized field`, () => {
+  describe(`top-level parameterized value`, () => {
 
     let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
     beforeAll(() => {

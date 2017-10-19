@@ -1,10 +1,12 @@
+import lodashGet = require('lodash.get');
+
 import { ParsedQuery } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 import { isNil, walkOperation } from '../util';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { NodeId, OperationInstance, RawOperation } from '../schema';
+import { NodeId, OperationInstance, RawOperation, StaticNodeId } from '../schema';
 import { isObject } from '../util';
 
 export interface QueryResult {
@@ -109,16 +111,34 @@ export function _walkAndOverlayDynamicValues(
 
     for (const key in parsedMap) {
       let node = parsedMap[key];
-      let child, childId;
+      let child;
       let fieldName = key;
 
       // This is an alias if we have a schemaName declared.
       fieldName = node.schemaName ? node.schemaName : key;
 
       if (node.args) {
-        childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
-        const childSnapshot = snapshot.getNodeSnapshot(childId);
+        let childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
+        let childSnapshot = snapshot.getNodeSnapshot(childId);
+        if (!childSnapshot) {
+          let typeName = value.__typename;
+          if (!typeName && containerId === StaticNodeId.QueryRoot) {
+            typeName = 'Query'; // Preserve the default cache's behavior.
+          }
+
+          // Should we fall back to a redirect?
+          const redirect = lodashGet(context.resolverRedirects, [typeName, fieldName]) as CacheContext.ResolverRedirect | undefined;
+          if (redirect) {
+            childId = redirect(node.args);
+            if (!isNil(childId)) {
+              childSnapshot = snapshot.getNodeSnapshot(childId);
+            }
+          }
+        }
+
+        // Still no snapshot? Ok we're done here.
         if (!childSnapshot) continue;
+
         child = childSnapshot.data;
       } else {
         child = value[fieldName];
