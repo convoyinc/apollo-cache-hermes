@@ -150,8 +150,16 @@ function _buildNodeMap(
         }
       }
 
+    } else if (selection.kind === 'InlineFragment') {
+      const fragmentMap = _buildNodeMap(variables, context, fragments, selection.selectionSet, path);
+      if (fragmentMap) {
+        for (const name in fragmentMap) {
+          nodeMap[name] = _mergeNodes([...path, name], fragmentMap[name], nodeMap[name]);
+        }
+      }
+
     } else if (context.tracer.warning) {
-      context.tracer.warning(`${selection.kind} selections are not supported; query may misbehave`);
+      context.tracer.warning(`${(selection as any).kind} selections are not supported; query may misbehave`);
     }
 
     _collectDirectiveVariables(variables, selection);
