@@ -34,7 +34,7 @@ describe.skip(`operations.extract`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
-          outbound: [{ id: 0, path: ['one', 'two', 'three'] }],
+          outbound: [{ id: '0', path: ['one', 'two', 'three'] }],
           data: {
             one: {
               two: {},

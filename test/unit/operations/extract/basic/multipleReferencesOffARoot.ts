@@ -35,8 +35,8 @@ describe.skip(`operations.extract`, () => {
         [QueryRootId]: {
           nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [
-            { id: 123, path: ['bar'] },
-            { id: 456, path: ['foo'] },
+            { id: '123', path: ['bar'] },
+            { id: '456', path: ['foo'] },
           ],
           data: {},
         },

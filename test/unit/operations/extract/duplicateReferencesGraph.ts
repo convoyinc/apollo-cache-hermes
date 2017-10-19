@@ -68,7 +68,7 @@ describe.skip(`operations.extract`, () => {
             { id: QueryRootId, path: ['foo', 3] },
             { id: QueryRootId, path: ['baz'] },
           ],
-          outbound: [{ id: 1, path: ['bar'] }],
+          outbound: [{ id: '1', path: ['bar'] }],
           data: {
             id: 'a',
           },
@@ -80,7 +80,7 @@ describe.skip(`operations.extract`, () => {
             { id: QueryRootId, path: ['foo', 4] },
             { id: QueryRootId, path: ['baz'] },
           ],
-          outbound: [{ id: 1, path: ['bar'] }],
+          outbound: [{ id: '1', path: ['bar'] }],
           data: {
             id: 'b',
           },

@@ -76,8 +76,8 @@ describe.skip(`operations.extract`, () => {
           nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two'] }],
           outbound: [
-            { id: 31, path: ['0', 'three'] },
-            { id: 32, path: ['1', 'three'] },
+            { id: '31', path: ['0', 'three'] },
+            { id: '32', path: ['1', 'three'] },
           ],
           isParameterizedValueSnapshot: true,
           data: [
