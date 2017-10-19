@@ -2,6 +2,7 @@ import { isEqual, valueFromNode } from 'apollo-utilities';
 import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
   ArgumentNode,
   SelectionSetNode,
+  SelectionNode,
   ValueNode,
 } from 'graphql';
 
@@ -144,6 +145,8 @@ function _buildNodeMap(
     } else {
       context.warn(`${selection.kind} selections are not supported; query may misbehave`);
     }
+
+    _collectDirectiveVariables(variables, selection);
   }
 
   return Object.keys(nodeMap).length ? nodeMap : undefined;
@@ -186,6 +189,24 @@ function _valueFromNode(variables: Set<string>, node: ValueNode): JsonValue {
     variables.add(value);
     return new VariableArgument(value);
   });
+}
+
+/**
+ * Collect the variables in use by any directives on the node.
+ */
+function _collectDirectiveVariables(variables: Set<string>, node: SelectionNode) {
+  const { directives } = node;
+  if (!directives) return;
+
+  for (const directive of directives) {
+    if (!directive.arguments) continue;
+
+    for (const argument of directive.arguments) {
+      valueFromNode(argument.value, ({ name: { value } }) => {
+        variables.add(value);
+      });
+    }
+  }
 }
 
 /**
