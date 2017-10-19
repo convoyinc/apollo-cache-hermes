@@ -146,7 +146,6 @@ export class CacheContext {
    * any other method in the cache.
    */
   transformDocument(document: DocumentNode): DocumentNode {
-    // TODO: memoize?
     return this._addTypename ? addTypenameToDocument(document) : document;
   }
 
