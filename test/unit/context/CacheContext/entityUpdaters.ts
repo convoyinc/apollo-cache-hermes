@@ -13,6 +13,7 @@ describe(`operations.read`, () => {
         user(id: $id) { __typename id name active }
       }
     `);
+    const fooQuery = query(`{ foo }`);
 
     const entityUpdaters: CacheContext.EntityUpdaters = {
       User(dataProxy, user, previous) {
@@ -40,9 +41,12 @@ describe(`operations.read`, () => {
           data: { activeUsers: newActiveUsers },
         });
       },
+
+      Query() {},
     };
 
     const userUpdater = jest.spyOn(entityUpdaters, 'User');
+    const rootUpdater = jest.spyOn(entityUpdaters, 'Query');
 
     let cache: Cache;
     beforeEach(() => {
@@ -55,6 +59,7 @@ describe(`operations.read`, () => {
       });
 
       userUpdater.mockClear();
+      rootUpdater.mockClear();
     });
 
     it(`triggers updaters when an entity is first seen`, () => {
@@ -91,6 +96,14 @@ describe(`operations.read`, () => {
           { __typename: 'User', id: 1, name: 'Gouda', active: true },
         ],
       });
+    });
+
+    it(`triggers updates to the root node via the Query type`, () => {
+      cache.write(fooQuery, { foo: 123 });
+      expect(rootUpdater.mock.calls.length).to.eq(1);
+      const [, root, previous] = rootUpdater.mock.calls[0];
+      expect(root.foo).to.eq(123);
+      expect(previous.foo).to.eq(undefined);
     });
 
   });
