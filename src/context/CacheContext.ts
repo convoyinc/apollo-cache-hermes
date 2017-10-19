@@ -1,7 +1,9 @@
+
 import { addTypenameToDocument, isEqual } from 'apollo-utilities';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import lodashGet = require('lodash.get');
 
+import { ApolloTransaction } from '../apollo/Transaction';
 import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
@@ -34,6 +36,20 @@ export namespace CacheContext {
       [fieldName: string]: ResolverRedirect,
     },
   };
+
+  /**
+   * Callback that is triggered when an entity is edited within the cache.
+   */
+  export interface EntityUpdater {
+    // TODO: It's a bit odd that this is the _only_ Apollo-specific interface
+    // that we're exposing.  Do we want to keep that?  It does mirror a
+    // mutation's update callback nicely.
+    (dataProxy: ApolloTransaction, entity: any, previous: any): void;
+  }
+
+  export interface EntityUpdaters {
+    [typeName: string]: EntityUpdater;
+  }
 
   /**
    * Configuration for a Hermes cache.
@@ -86,6 +102,18 @@ export namespace CacheContext {
      * Redirection to arbitrary nodes is not supported.
      */
     resolverRedirects?: ResolverRedirects;
+
+    /**
+     * Callbacks that are triggered when entities of a given type are changed.
+     *
+     * These provide the opportunity to make edits to the cache based on the
+     * values that were edited within entities.  For example: keeping a filtered
+     * list in sync w/ the values within it.
+     *
+     * Note that these callbacks are called immediately before a transaction is
+     * committed.  You will not see their effect _during_ a transaction.
+     */
+    entityUpdaters?: EntityUpdaters;
   }
 
 }
@@ -110,6 +138,9 @@ export class CacheContext {
   /** Configured resolver redirects. */
   readonly resolverRedirects: CacheContext.ResolverRedirects;
 
+  /** Configured entity updaters. */
+  readonly entityUpdaters: CacheContext.EntityUpdaters;
+
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
@@ -127,6 +158,7 @@ export class CacheContext {
       : lodashGet(global, 'process.env.NODE_ENV') !== 'production';
     this.verbose = !!config.verbose;
     this.resolverRedirects = config.resolverRedirects || {};
+    this.entityUpdaters = config.entityUpdaters || {};
 
     this._addTypename = config.addTypename || false;
     this._logger = config.logger || {
