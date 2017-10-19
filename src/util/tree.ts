@@ -68,9 +68,12 @@ export function walkOperation(document: DocumentNode, result: JsonObject | undef
         }
         stack.push(new OperationWalkNode(fragment.selectionSet, parent));
 
-      // TODO: Inline fragments.
+      } else if (selection.kind === 'InlineFragment') {
+        stack.push(new OperationWalkNode(selection.selectionSet, parent));
+
       } else {
-        throw new Error(`Unsupported GraphQL AST Node ${selection.kind}`);
+        throw new Error(`Unsupported GraphQL AST Node ${(selection as any).kind}`);
+
       }
     }
 
