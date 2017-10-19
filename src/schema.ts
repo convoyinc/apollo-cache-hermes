@@ -71,7 +71,7 @@ export interface QuerySnapshot {
 /**
  * Lists of types which are JSON serializable
  */
-export namespace Serializeable {
+export namespace Serializable {
   /**
    * JSON serializable type of NodeReference
    */
@@ -86,12 +86,14 @@ export namespace Serializeable {
    * This is used when doing extract and restore cache's stage
    */
   export interface GraphSnapshot {
-    [key: string]: {
-      type: Serializeable.NodeSnapshotType,
-      inbound?: Serializeable.NodeReference[],
-      outbound?: Serializeable.NodeReference[],
-      data?: JsonValue,
-    };
+    [key: string]: Serializable.NodeSnapshot;
+  }
+
+  export interface NodeSnapshot {
+    type: Serializable.NodeSnapshotType;
+    inbound?: Serializable.NodeReference[];
+    outbound?: Serializable.NodeReference[];
+    data?: JsonValue;
   }
 
   /**

@@ -1,6 +1,6 @@
 import { GraphSnapshot } from '../GraphSnapshot';
-import { Serializeable } from '../schema';
+import { Serializable } from '../schema';
 
-export function extract(data: GraphSnapshot): Serializeable.GraphSnapshot {
+export function extract(data: GraphSnapshot): Serializable.GraphSnapshot {
   return { };
 }

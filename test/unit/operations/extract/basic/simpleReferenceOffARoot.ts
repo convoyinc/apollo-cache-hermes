@@ -1,5 +1,5 @@
 import { extract } from '../../../../../src/operations/extract';
-import { Serializeable, StaticNodeId } from '../../../../../src/schema';
+import { Serializable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -7,7 +7,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 describe.skip(`operations.extract`, () => {
   describe(`simple references hanging off a root`, () => {
 
-    let extractResult: Serializeable.GraphSnapshot;
+    let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const snapshot = createSnapshot(
         {
@@ -15,8 +15,15 @@ describe.skip(`operations.extract`, () => {
             id: 123,
             name: 'Gouda',
           },
+          justValue: '42',
         },
-        `{ viewer { id name } }`
+        `{
+          viewer {
+            id
+            name
+          }
+          justValue
+        }`
       ).snapshot;
 
       extractResult = extract(snapshot);
@@ -25,12 +32,14 @@ describe.skip(`operations.extract`, () => {
     it(`extracts JSON serializable object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: '123', path: ['viewer'] }],
-          data: {},
+          data: {
+            justValue: '42',
+          },
         },
         '123': {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['viewer'] }],
           data: { id: 123, name: 'Gouda' },
         },
