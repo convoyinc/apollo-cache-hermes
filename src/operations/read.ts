@@ -219,7 +219,8 @@ export function _visitSelection(
     }
 
     for (const field of fields) {
-      if (!(field.name.value in value)) {
+      const nameNode = field.alias || field.name;
+      if (!(nameNode.value in value)) {
         complete = false;
         break;
       }
