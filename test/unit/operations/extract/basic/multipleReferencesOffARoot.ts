@@ -30,7 +30,7 @@ describe.skip(`operations.extract`, () => {
       extractResult = extract(snapshot);
     });
 
-    it(`extract JSON serializable object`, () => {
+    it(`extracts JSON serializable object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,

@@ -38,7 +38,7 @@ describe.skip(`operations.extract`, () => {
       extractResult = extract(snapshot);
     });
 
-    it(`extract JSON serialization object`, () => {
+    it(`extracts JSON serialization object`, () => {
       const parameterizedId = nodeIdForParameterizedValue(
         QueryRootId,
         ['one', 'two', 'three'],
