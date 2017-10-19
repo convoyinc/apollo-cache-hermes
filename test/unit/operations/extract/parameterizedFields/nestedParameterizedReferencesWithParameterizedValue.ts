@@ -41,13 +41,13 @@ describe.skip(`operations.extract`, () => {
     });
 
     it(`extract Json serialization object`, () => {
-      const parameterizedContainersId = nodeIdForParameterizedValue(
+      const parameterizedId = nodeIdForParameterizedValue(
         QueryRootId,
         ['one', 'two'],
         { id: 1 }
       );
 
-      const nestedParameterizedContainersId = nodeIdForParameterizedValue(
+      const nestedParameterizedId = nodeIdForParameterizedValue(
         QueryRootId,
         ['31', 'four'],
         { extra: true }
@@ -56,9 +56,9 @@ describe.skip(`operations.extract`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
-          outbound: [{ id: parameterizedContainersId, path: ['one', 'two'] }],
+          outbound: [{ id: parameterizedId, path: ['one', 'two'] }],
         },
-        [parameterizedContainersId]: {
+        [parameterizedId]: {
           nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: [] }],
           outbound: [{ id: 31, path: ['three'] }],
@@ -66,15 +66,15 @@ describe.skip(`operations.extract`, () => {
         },
         '31': {
           nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: parameterizedContainersId, path: ['three'] }],
-          outbound: [{ id: nestedParameterizedContainersId, path: ['four'] }],
+          inbound: [{ id: parameterizedId, path: ['three'] }],
+          outbound: [{ id: nestedParameterizedId, path: ['four'] }],
           data: {
             id: 31,
           },
         },
-        [nestedParameterizedContainersId]: {
+        [nestedParameterizedId]: {
           nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
-          inbound: [{ id: parameterizedContainersId, path: ['four'] }],
+          inbound: [{ id: parameterizedId, path: ['four'] }],
           data: {
             five: 1,
           },

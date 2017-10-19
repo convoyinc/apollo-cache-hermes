@@ -39,7 +39,7 @@ describe.skip(`operations.extract`, () => {
     });
 
     it(`extract Json serialization object`, () => {
-      const parameterizedContainersId = nodeIdForParameterizedValue(
+      const parameterizedId = nodeIdForParameterizedValue(
         QueryRootId,
         ['one', 'two', 'three'],
         { id: 1, withExtra: true }
@@ -48,16 +48,16 @@ describe.skip(`operations.extract`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
-          outbound: [{ id: parameterizedContainersId, path: ['one', 'two', 'three'] }],
+          outbound: [{ id: parameterizedId, path: ['one', 'two', 'three'] }],
         },
-        [parameterizedContainersId]: {
+        [parameterizedId]: {
           nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 'three'] }],
           outbound: [{ id: '31', path: [] }],
         },
         'baz0': {
           nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: parameterizedContainersId, path: [] }],
+          inbound: [{ id: parameterizedId, path: [] }],
           data: {
             id: '31',
             name: 'Three',
