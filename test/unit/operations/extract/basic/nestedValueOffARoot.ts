@@ -6,7 +6,7 @@ import { createSnapshot } from '../../../../helpers';
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe.skip(`operations.extract`, () => {
-  describe(`<>`, () => {
+  describe(`nested values hanging off of a root`, () => {
 
     let extractResult: Serializeable.GraphSnapshot;
     beforeAll(() => {
