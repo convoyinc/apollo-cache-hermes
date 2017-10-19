@@ -1,7 +1,6 @@
 import { extract } from '../../../../../src/operations/extract';
 import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
-import { Serializeable } from '../../../../../src/primitive';
-import { StaticNodeId } from '../../../../../src/schema';
+import { Serializeable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -34,16 +33,16 @@ describe.skip(`operations.extract`, () => {
       const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1 });
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: parameterizedId, path: ['foo'] }],
         },
         [parameterizedId]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['foo'] }],
           outbound: [{ id: '1', path: [] }],
         },
         '1': {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: parameterizedId, path: ['foo'] }],
           data: {
             id: 1,

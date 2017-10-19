@@ -1,7 +1,6 @@
 import { extract } from '../../../../../src/operations/extract';
 import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
-import { Serializeable } from '../../../../../src/primitive';
-import { StaticNodeId } from '../../../../../src/schema';
+import { Serializeable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -62,7 +61,7 @@ describe.skip(`operations.extract`, () => {
 
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [
             { id: QueryRootId, path: ['one', 'two', 0, 'three'] },
             { id: QueryRootId, path: ['one', 'two', 1, 'three'] },
@@ -74,12 +73,12 @@ describe.skip(`operations.extract`, () => {
           },
         },
         [parameterizedId0]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 0, 'three'] }],
           outbound: [{ id: '30', path: [] }],
         },
         '30': {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [],
           data: {
             id: '30',
@@ -88,12 +87,12 @@ describe.skip(`operations.extract`, () => {
           },
         },
         [parameterizedId1]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
           outbound: [{ id: '31', path: [] }],
         },
         '31': {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: parameterizedId1, path: [] }],
           data: {
             id: '31',

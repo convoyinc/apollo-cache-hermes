@@ -1,7 +1,6 @@
 import { extract } from '../../../../../src/operations/extract';
 import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
-import { Serializeable } from '../../../../../src/primitive';
-import { StaticNodeId } from '../../../../../src/schema';
+import { Serializeable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -55,17 +54,17 @@ describe.skip(`operations.extract`, () => {
 
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: parameterizedId, path: ['one', 'two'] }],
         },
         [parameterizedId]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: [] }],
           outbound: [{ id: '31', path: ['three'] }],
           data: {},
         },
         '31': {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: parameterizedId, path: ['three'] }],
           outbound: [{ id: nestedParameterizedId, path: ['four'] }],
           data: {
@@ -73,7 +72,7 @@ describe.skip(`operations.extract`, () => {
           },
         },
         [nestedParameterizedId]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: parameterizedId, path: ['four'] }],
           data: {
             five: 1,

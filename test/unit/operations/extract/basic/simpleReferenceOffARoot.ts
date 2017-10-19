@@ -1,6 +1,5 @@
 import { extract } from '../../../../../src/operations/extract';
-import { Serializeable } from '../../../../../src/primitive';
-import { StaticNodeId } from '../../../../../src/schema';
+import { Serializeable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -26,12 +25,12 @@ describe.skip(`operations.extract`, () => {
     it(`extracts JSON serializable object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: '123', path: ['viewer'] }],
           data: {},
         },
         '123': {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['viewer'] }],
           data: { id: 123, name: 'Gouda' },
         },

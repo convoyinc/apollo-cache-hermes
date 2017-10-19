@@ -1,7 +1,6 @@
 import { extract } from '../../../../../src/operations/extract';
 import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
-import { Serializeable } from '../../../../../src/primitive';
-import { StaticNodeId } from '../../../../../src/schema';
+import { Serializeable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -69,11 +68,11 @@ describe.skip(`operations.extract`, () => {
 
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: parameterizedTopContainerId, path: ['one', 'two'] }],
         },
         [parameterizedTopContainerId]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two'] }],
           outbound: [
             { id: '31', path: ['0', 'three'] },
@@ -86,7 +85,7 @@ describe.skip(`operations.extract`, () => {
           ],
         },
         '31': {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: parameterizedTopContainerId, path: ['0', 'three'] }],
           outbound: [{ id: nestedParameterizedValueId0, path: ['four'] }],
           data: {
@@ -94,7 +93,7 @@ describe.skip(`operations.extract`, () => {
           },
         },
         [nestedParameterizedValueId0]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: '31', path: ['four'] }],
           isParameterizedValueSnapshot: true,
           data: {
@@ -102,7 +101,7 @@ describe.skip(`operations.extract`, () => {
           },
         },
         '32': {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializeable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: parameterizedTopContainerId, path: ['1', 'three'] }],
           outbound: [{ id: nestedParameterizedValueId1, path: ['four'] }],
           data: {
@@ -110,7 +109,7 @@ describe.skip(`operations.extract`, () => {
           },
         },
         [nestedParameterizedValueId1]: {
-          nodeSnapshotType: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: '32', path: ['four'] }],
           data: {
             five: 1,
