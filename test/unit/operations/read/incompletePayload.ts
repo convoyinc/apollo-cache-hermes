@@ -22,6 +22,9 @@ describe(`operations.read`, () => {
         id
         type
       }
+      vehicle: truck(index: 0) {
+        capacity
+      }
     }
   }`);
 
@@ -54,6 +57,9 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
+            vehicle: {
+              capacity: 100,
+            },
           },
           {
             id: '1',
@@ -71,6 +77,9 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
+            vehicle: {
+              capacity: 200,
+            },
           },
           {
             driver: {
@@ -109,6 +118,9 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
+            vehicle: {
+              capacity: 100,
+            },
           },
           {
             id: '1',
@@ -126,6 +138,9 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
+            vehicle: {
+              capacity: 200,
+            },
           },
           {
             id: null,
@@ -136,6 +151,7 @@ describe(`operations.read`, () => {
               seniority: null,
             },
             stopEtaSummary: null,
+            vehicle: null,
           },
         ],
       });
