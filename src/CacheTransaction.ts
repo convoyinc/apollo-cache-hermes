@@ -1,13 +1,15 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
+import { ApolloTransaction } from './apollo/Transaction';
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
+import { EntitySnapshot } from './nodes';
 import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, OperationInstance, RawOperation, QuerySnapshot } from './schema';
-import { addToSet } from './util';
+import { addToSet, isObject } from './util';
 
 /**
  * Collects a set of edits against a version of the cache, eventually committing
@@ -27,11 +29,16 @@ export class CacheTransaction implements Queryable {
   /** All queries written during the transaction. */
   private _writtenQueries = new Set<OperationInstance>();
 
+  /** The original snapshot before the transaction began. */
+  private _parentSnapshot: CacheSnapshot;
+
   constructor(
     private _context: CacheContext,
     private _snapshot: CacheSnapshot,
     private _optimisticChangeId?: ChangeId,
-  ) {}
+  ) {
+    this._parentSnapshot = _snapshot;
+  }
 
   transformDocument(document: DocumentNode): DocumentNode {
     return this._context.transformDocument(document);
@@ -84,6 +91,8 @@ export class CacheTransaction implements Queryable {
    * nodes that were edited.
    */
   commit(): { snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>, writtenQueries: Set<OperationInstance> } {
+    this._triggerEntityUpdaters();
+
     let snapshot = this._snapshot;
     if (this._optimisticChangeId) {
       snapshot = {
@@ -93,6 +102,41 @@ export class CacheTransaction implements Queryable {
     }
 
     return { snapshot, editedNodeIds: this._editedNodeIds, writtenQueries: this._writtenQueries };
+  }
+
+  private _triggerEntityUpdaters() {
+    const { entityUpdaters } = this._context;
+    if (!Object.keys(entityUpdaters).length) return;
+
+    const nextSnapshot = this._optimisticChangeId ? this._snapshot.baseline : this._snapshot.optimistic;
+    const prevSnapshot = this._optimisticChangeId ? this._parentSnapshot.baseline : this._parentSnapshot.optimistic;
+
+    // Capture a static set of nodes, as the updaters may add to _editedNodeIds.
+    const nodesToEmit = [];
+    for (const nodeId of this._editedNodeIds) {
+      const node = nextSnapshot.getNodeSnapshot(nodeId);
+      const previous = prevSnapshot.getNodeSnapshot(nodeId);
+      // One of them may be undefined; but we are guaranteed that both represent
+      // the same entity.
+      const either = node || previous;
+
+      if (!(either instanceof EntitySnapshot)) continue; // Only entities
+      const typeName = isObject(either.data) && either.data.__typename as string | undefined;
+      if (!typeName) continue; // Must have a typename for now.
+      const updater = entityUpdaters[typeName];
+      if (!updater) continue;
+
+      nodesToEmit.push([updater, node && node.data, prevSnapshot.getNodeData(nodeId)]);
+    }
+
+    if (!nodesToEmit.length) return;
+
+    // TODO: This is weirdly the only place where we assume an Apollo interface.
+    // Can we clean this up? :(
+    const dataProxy = new ApolloTransaction(this);
+    for (const [updater, node, previous] of nodesToEmit) {
+      updater(dataProxy, node, previous);
+    }
   }
 
   /**
