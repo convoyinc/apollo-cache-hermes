@@ -8,7 +8,7 @@ import { EntitySnapshot } from './nodes';
 import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, OperationInstance, RawOperation, QuerySnapshot } from './schema';
+import { ChangeId, NodeId, OperationInstance, QuerySnapshot, RawOperation, StaticNodeId } from './schema';
 import { addToSet, isObject } from './util';
 
 /**
@@ -104,6 +104,10 @@ export class CacheTransaction implements Queryable {
     return { snapshot, editedNodeIds: this._editedNodeIds, writtenQueries: this._writtenQueries };
   }
 
+  /**
+   * Emits change events for any callbacks configured via
+   * CacheContext#entityUpdaters.
+   */
   private _triggerEntityUpdaters() {
     const { entityUpdaters } = this._context;
     if (!Object.keys(entityUpdaters).length) return;
@@ -121,8 +125,12 @@ export class CacheTransaction implements Queryable {
       const either = node || previous;
 
       if (!(either instanceof EntitySnapshot)) continue; // Only entities
-      const typeName = isObject(either.data) && either.data.__typename as string | undefined;
+      let typeName = isObject(either.data) && either.data.__typename as string | undefined;
+      if (!typeName && nodeId === StaticNodeId.QueryRoot) {
+        typeName = 'Query';
+      }
       if (!typeName) continue; // Must have a typename for now.
+
       const updater = entityUpdaters[typeName];
       if (!updater) continue;
 
