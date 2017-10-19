@@ -1,6 +1,6 @@
 import { extract } from '../../../../../src/operations/extract';
 import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
-import { Serializeable, StaticNodeId } from '../../../../../src/schema';
+import { Serializable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -8,7 +8,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 describe.skip(`operations.extract`, () => {
   describe(`nested parameterized references with parameterized value`, () => {
 
-    let extractResult: Serializeable.GraphSnapshot;
+    let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const snapshot = createSnapshot(
         {
@@ -54,17 +54,17 @@ describe.skip(`operations.extract`, () => {
 
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: parameterizedId, path: ['one', 'two'] }],
         },
         [parameterizedId]: {
-          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: [] }],
           outbound: [{ id: '31', path: ['three'] }],
           data: {},
         },
         '31': {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: parameterizedId, path: ['three'] }],
           outbound: [{ id: nestedParameterizedId, path: ['four'] }],
           data: {
@@ -72,7 +72,7 @@ describe.skip(`operations.extract`, () => {
           },
         },
         [nestedParameterizedId]: {
-          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: parameterizedId, path: ['four'] }],
           data: {
             five: 1,

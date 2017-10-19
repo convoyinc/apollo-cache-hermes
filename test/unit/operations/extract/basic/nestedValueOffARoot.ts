@@ -1,5 +1,5 @@
 import { extract } from '../../../../../src/operations/extract';
-import { Serializeable, StaticNodeId } from '../../../../../src/schema';
+import { Serializable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -7,7 +7,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 describe.skip(`operations.extract`, () => {
   describe(`nested values hanging off of a root`, () => {
 
-    let extractResult: Serializeable.GraphSnapshot;
+    let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const snapshot = createSnapshot(
         {
@@ -37,7 +37,7 @@ describe.skip(`operations.extract`, () => {
     it(`extracts JSON serialization object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           data: {
             bar: {
               value: 42,

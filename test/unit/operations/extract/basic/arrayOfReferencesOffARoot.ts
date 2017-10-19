@@ -1,5 +1,5 @@
 import { extract } from '../../../../../src/operations/extract';
-import { Serializeable, StaticNodeId } from '../../../../../src/schema';
+import { Serializable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -7,7 +7,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 describe.skip(`operations.extract`, () => {
   describe(`new array of references hanging off of a root`, () => {
 
-    let extractResult: Serializeable.GraphSnapshot;
+    let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const snapshot = createSnapshot(
         {
@@ -31,7 +31,7 @@ describe.skip(`operations.extract`, () => {
     it(`extracts JSON serializable object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [
             { id: '123', path: ['viewer', 0] },
             { id: '456', path: ['viewer', 1] },
@@ -41,12 +41,12 @@ describe.skip(`operations.extract`, () => {
           },
         },
         '123': {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['viewer', 0] }],
           data: { id: 123, name: 'Gouda' },
         },
         '456': {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['viewer', 1] }],
           data: { id: 456, name: 'Brie' },
         },

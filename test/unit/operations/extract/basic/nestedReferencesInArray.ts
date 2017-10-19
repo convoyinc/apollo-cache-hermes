@@ -1,5 +1,5 @@
 import { extract } from '../../../../../src/operations/extract';
-import { Serializeable, StaticNodeId } from '../../../../../src/schema';
+import { Serializable, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -7,7 +7,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 describe.skip(`operations.extract`, () => {
   describe(`nested references in an array`, () => {
 
-    let extractResult: Serializeable.GraphSnapshot;
+    let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const snapshot = createSnapshot(
         {
@@ -33,7 +33,7 @@ describe.skip(`operations.extract`, () => {
     it(`extracts JSON serialization object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [
             { id: '0', path: ['one', 'two', 0, 'three'] },
             { id: '1', path: ['one', 'two', 1, 'three'] },
@@ -45,12 +45,12 @@ describe.skip(`operations.extract`, () => {
           },
         },
         '0': {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 0, 'three'] }],
           data: { id: 0 },
         },
         '1': {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
           data: { id: 1 },
         },
