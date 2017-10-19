@@ -16,6 +16,7 @@ describe(`operations.read`, () => {
         messages(count: 2) {
           details
         }
+        seniority: tenure(unit: DAYS)
       }
       stopEtaSummary(limit: 2) {
         id
@@ -41,6 +42,7 @@ describe(`operations.read`, () => {
                 { details: 'Hello' },
                 { details: 'world' },
               ],
+              seniority: 10,
             },
             stopEtaSummary: [
               {
@@ -61,6 +63,7 @@ describe(`operations.read`, () => {
               messages: [
                 { details: 'Hello' },
               ],
+              seniority: 20,
             },
             stopEtaSummary: [
               {
@@ -94,6 +97,7 @@ describe(`operations.read`, () => {
                 { details: 'Hello' },
                 { details: 'world' },
               ],
+              seniority: 10,
             },
             stopEtaSummary: [
               {
@@ -114,6 +118,7 @@ describe(`operations.read`, () => {
               messages: [
                 { details: 'Hello' },
               ],
+              seniority: 20,
             },
             stopEtaSummary: [
               {
@@ -128,6 +133,7 @@ describe(`operations.read`, () => {
               name: null,
               id: null,
               messages: null,
+              seniority: null,
             },
             stopEtaSummary: null,
           },
