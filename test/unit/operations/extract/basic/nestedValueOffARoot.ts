@@ -19,6 +19,7 @@ describe.skip(`operations.extract`, () => {
               nestedProp1: 1000,
               nestedProp2: 'world',
             },
+            prop3: ['hello', 'world'],
           },
         },
         `{
@@ -26,6 +27,7 @@ describe.skip(`operations.extract`, () => {
             value
             prop1
             prop2
+            prop3
           }
         }`
       ).snapshot;
@@ -45,6 +47,7 @@ describe.skip(`operations.extract`, () => {
                 nestedProp1: 1000,
                 nestedProp2: 'world',
               },
+              prop3: ['hello', 'world'],
             },
           },
         },

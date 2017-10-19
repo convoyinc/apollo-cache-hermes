@@ -43,12 +43,12 @@ describe.skip(`operations.extract`, () => {
         },
         '123': {
           nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: QueryRootId, path: ['viewer'] }],
+          inbound: [{ id: QueryRootId, path: ['viewer', 0] }],
           data: { id: 123, name: 'Gouda' },
         },
         '456': {
           nodeSnapshotType: Serializeable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: QueryRootId, path: ['viewer'] }],
+          inbound: [{ id: QueryRootId, path: ['viewer', 1] }],
           data: { id: 456, name: 'Brie' },
         },
       });
