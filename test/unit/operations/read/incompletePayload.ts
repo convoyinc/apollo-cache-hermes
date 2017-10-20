@@ -16,10 +16,14 @@ describe(`operations.read`, () => {
         messages(count: 2) {
           details
         }
+        seniority: tenure(unit: DAYS)
       }
       stopEtaSummary(limit: 2) {
         id
         type
+      }
+      vehicle: truck(index: 0) {
+        capacity
       }
     }
   }`);
@@ -41,6 +45,7 @@ describe(`operations.read`, () => {
                 { details: 'Hello' },
                 { details: 'world' },
               ],
+              seniority: 10,
             },
             stopEtaSummary: [
               {
@@ -52,6 +57,9 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
+            vehicle: {
+              capacity: 100,
+            },
           },
           {
             id: '1',
@@ -61,6 +69,7 @@ describe(`operations.read`, () => {
               messages: [
                 { details: 'Hello' },
               ],
+              seniority: 20,
             },
             stopEtaSummary: [
               {
@@ -68,6 +77,9 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
+            vehicle: {
+              capacity: 200,
+            },
           },
           {
             driver: {
@@ -94,6 +106,7 @@ describe(`operations.read`, () => {
                 { details: 'Hello' },
                 { details: 'world' },
               ],
+              seniority: 10,
             },
             stopEtaSummary: [
               {
@@ -105,6 +118,9 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
+            vehicle: {
+              capacity: 100,
+            },
           },
           {
             id: '1',
@@ -114,6 +130,7 @@ describe(`operations.read`, () => {
               messages: [
                 { details: 'Hello' },
               ],
+              seniority: 20,
             },
             stopEtaSummary: [
               {
@@ -121,6 +138,9 @@ describe(`operations.read`, () => {
                 type: 'warning',
               },
             ],
+            vehicle: {
+              capacity: 200,
+            },
           },
           {
             id: null,
@@ -128,8 +148,10 @@ describe(`operations.read`, () => {
               name: null,
               id: null,
               messages: null,
+              seniority: null,
             },
             stopEtaSummary: null,
+            vehicle: null,
           },
         ],
       });
