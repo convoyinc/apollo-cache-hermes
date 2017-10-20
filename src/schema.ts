@@ -1,8 +1,10 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
 import { QueryInfo } from './context';
 import { ParsedQuery } from './ParsedQueryNode';
 import { JsonObject, JsonScalar, JsonValue } from './primitive';
+import { isScalar } from './util';
 
 /**
  * Change ids track diffs to the store that may eventually be rolled back.
@@ -104,5 +106,27 @@ export namespace Serializable {
   export const enum NodeSnapshotType {
     EntitySnapshot = 0,
     ParameterizedValueSnapshot = 1,
+  }
+
+  export function isSerializable(value: any): boolean {
+    if (isScalar(value)) {
+      // NaN is considered to typeof number
+      return !Number.isNaN(value as any);
+    }
+
+    if (_.isPlainObject(value)) {
+      for (const propName of Object.getOwnPropertyNames(value)) {
+        if (!isSerializable(value[propName])) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (_.isArray(value)) {
+      return value.every(element => isSerializable(element));
+    }
+
+    return false;
   }
 }

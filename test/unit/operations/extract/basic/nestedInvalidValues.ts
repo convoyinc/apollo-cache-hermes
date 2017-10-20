@@ -8,10 +8,17 @@ describe(`operations.extract`, () => {
     let snapshot: GraphSnapshot;
     beforeAll(() => {
       snapshot = createSnapshot(
-        { nan: NaN, func: (() => {}) as any },
-        `{
-          nan
-          func
+        {
+          nestedInvalid: {
+            nan: NaN,
+            func: (() => {}) as any,
+          },
+        },
+        `{ 
+          nestedInvalid {
+            nan
+            func
+          }
         }`
       ).snapshot;
     });
