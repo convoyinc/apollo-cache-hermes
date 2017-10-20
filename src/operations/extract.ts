@@ -184,10 +184,9 @@ function createSerializableData(entity: NodeSnapshot, id: NodeId, cacheContext?:
         : entity.data instanceof Array ? [] : Object.create(null);
       currentTreeNode = topLevelOutboundTree!;
     } else {
-      // We probably should check that when
-      // outboundPath.length === 0 -> there is only one outboundRef
-      // path === [] -> the entire data is a references
+      // path === [] then the entire data is a references
       // stop right here.
+      // TODO (yuisu): We should assert that outboud array is of length 1
       break;
     }
 
@@ -195,14 +194,14 @@ function createSerializableData(entity: NodeSnapshot, id: NodeId, cacheContext?:
       const currentPath = outboundPath[i];
       if (_.isArray(currentTreeNode)) {
         // If the currentPath is an number then there should already be an array
-        // Only create an tree node if we still have more paths to explore
+        // Only create a object tree node if we still have more paths to explore
         if (currentTreeNode.length === 0 && outboundPath[i+1] !== undefined) {
           currentTreeNode.push({});
         }
         currentTreeNode = currentTreeNode[0];
       } else {
         if (currentTreeNode[currentPath] === undefined) {
-          // End of the array path
+          // End of the path then this property must be reference
           if (outboundPath[i+1] === undefined) {
             currentTreeNode[currentPath] = null;
           } else if (typeof outboundPath[i+1] === 'number') {
@@ -216,7 +215,7 @@ function createSerializableData(entity: NodeSnapshot, id: NodeId, cacheContext?:
     }
   }
 
-  // There is no outboundTree so the entire data is just a reference
+  // There is no topLevelOutboundTree so the entire data is just a reference
   // see: topLevelParameterizedReference
   return topLevelOutboundTree ? getOnlyValuesFromData(entity.data, topLevelOutboundTree) : undefined;
 
@@ -234,7 +233,7 @@ function createSerializableData(entity: NodeSnapshot, id: NodeId, cacheContext?:
         const element = data[i];
         result[i] = element
           ? getOnlyValuesFromData(element, outboundTree[0])
-          : null;  // null is a place holder in case of a sparse array
+          : null;  // null is a place holder for a sparse array
       }
       return result;
     }
