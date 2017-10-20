@@ -4,7 +4,7 @@ import { createSnapshot } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`duplicate GraphSnapshot`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
@@ -49,7 +49,9 @@ describe.skip(`operations.extract`, () => {
             { id: 'b', path: ['foo', 4] },
             { id: 'a', path: ['baz'] },
           ],
-          data: {},
+          data: {
+            foo: [],
+          },
         },
         '1': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
@@ -77,7 +79,6 @@ describe.skip(`operations.extract`, () => {
           inbound: [
             { id: QueryRootId, path: ['foo', 2] },
             { id: QueryRootId, path: ['foo', 4] },
-            { id: QueryRootId, path: ['baz'] },
           ],
           outbound: [{ id: '1', path: ['bar'] }],
           data: {
