@@ -8,13 +8,6 @@ import { Serializable, NodeId } from '../schema';
 import { isScalar } from '../util';
 
 export function extract(data: GraphSnapshot, cacheContext?: CacheContext): Serializable.GraphSnapshot {
-  /* Loop through values of data
-   *  check instanceof NodeSnapshot -> set 'type'
-   *  outbound is not undefined -> copy over
-   *  inbound is not undefined -> copy over
-   *  data check-if-property-is-ref, if not -> copy
-   */
-
   const result: Serializable.GraphSnapshot = {};
   const entities = data._values;
   // We don't need to check for hasOwnProperty because
@@ -172,7 +165,7 @@ function createSerializableData(entity: NodeSnapshot, id: NodeId, cacheContext?:
   // if there is no outbound references then data is just values so return that.
   // if data is not an object or array just return it out.
   if (entity.data === undefined || !entity.outbound || isScalar(entity.data)) {
-    // TODO (yuisu): should this we copy if it is an object
+    // TODO (yuisu): should this be copied if it is an object
     //  or just return the existed value
     reportUnSerializableError(entity.data);
     return entity.data;
