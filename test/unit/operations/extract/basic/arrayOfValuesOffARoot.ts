@@ -4,7 +4,7 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`new array of values hanging off of a root`, () => {
 
     let extractResult: Serializable.GraphSnapshot;

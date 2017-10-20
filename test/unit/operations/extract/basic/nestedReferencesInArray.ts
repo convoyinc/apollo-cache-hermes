@@ -4,7 +4,7 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`nested references in an array`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
@@ -40,7 +40,7 @@ describe.skip(`operations.extract`, () => {
           ],
           data: {
             one: {
-              two: [{}, {}],
+              two: [{ }, { }],
             },
           },
         },
