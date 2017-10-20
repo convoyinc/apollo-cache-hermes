@@ -5,7 +5,7 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`nested parameterized value with array of nested references`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
@@ -75,18 +75,14 @@ describe.skip(`operations.extract`, () => {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two'] }],
           outbound: [
-            { id: '31', path: ['0', 'three'] },
-            { id: '32', path: ['1', 'three'] },
+            { id: '31', path: [0, 'three'] },
+            { id: '32', path: [1, 'three'] },
           ],
-          isParameterizedValueSnapshot: true,
-          data: [
-            { three: {} },
-            { three: {} },
-          ],
+          data: [{ }, { }],
         },
         '31': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: parameterizedTopContainerId, path: ['0', 'three'] }],
+          inbound: [{ id: parameterizedTopContainerId, path: [0, 'three'] }],
           outbound: [{ id: nestedParameterizedValueId0, path: ['four'] }],
           data: {
             id: 31,
@@ -95,14 +91,13 @@ describe.skip(`operations.extract`, () => {
         [nestedParameterizedValueId0]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: '31', path: ['four'] }],
-          isParameterizedValueSnapshot: true,
           data: {
             five: 1,
           },
         },
         '32': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: parameterizedTopContainerId, path: ['1', 'three'] }],
+          inbound: [{ id: parameterizedTopContainerId, path: [1, 'three'] }],
           outbound: [{ id: nestedParameterizedValueId1, path: ['four'] }],
           data: {
             id: 32,

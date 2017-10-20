@@ -5,7 +5,7 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`nested parameterized value`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
@@ -48,7 +48,7 @@ describe.skip(`operations.extract`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          outbound: [{ id: QueryRootId, path: ['one', 'two', 'three'] }],
+          outbound: [{ id: parameterizedId, path: ['one', 'two', 'three'] }],
           data: {
             one: {
               two: {

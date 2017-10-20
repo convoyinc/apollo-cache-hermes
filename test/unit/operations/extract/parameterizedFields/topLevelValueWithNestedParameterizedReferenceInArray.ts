@@ -5,25 +5,28 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`operations.extract`, () => {
-  describe(`nested parameterized value`, () => {
+describe.skip(`operations.extract`, () => {
+  describe(`top-level values wtih nested parameterized value`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const snapshot = createSnapshot(
         {
           one: {
+            four: 'FOUR',
             two: [
               {
                 three: {
+                  id: '30',
                   name: 'Three0',
-                  extra: false,
+                  extraValue: '30-42',
                 },
               },
               {
                 three: {
+                  id: '31',
                   name: 'Three1',
-                  extra: true,
+                  extraValue: '31-42',
                 },
               },
             ],
@@ -31,9 +34,10 @@ describe(`operations.extract`, () => {
         },
         `query getAFoo($id: ID!) {
           one {
+            four
             two {
-              three (id: $id, withExtra: true) {
-                name extra
+              three(id: $id, withExtra: true) {
+                id name extraValue
               }
             }
           }
@@ -50,6 +54,7 @@ describe(`operations.extract`, () => {
         ['one', 'two', 0, 'three'],
         { id: 1, withExtra: true }
       );
+
       const parameterizedId1 = nodeIdForParameterizedValue(
         QueryRootId,
         ['one', 'two', 1, 'three'],
@@ -65,25 +70,37 @@ describe(`operations.extract`, () => {
           ],
           data: {
             one: {
-              // null is a place holder, original value is a spares array
-              two: [null, null],
+              four: 'FOUR',
+              two: [],
             },
           },
         },
         [parameterizedId0]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 0, 'three'] }],
+          outbound: [{ id: '30', path: [] }],
+        },
+        '30': {
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
+          inbound: [],
           data: {
+            id: '30',
             name: 'Three0',
-            extra: false,
+            extraValue: '30-42',
           },
         },
         [parameterizedId1]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
+          outbound: [{ id: '31', path: [] }],
+        },
+        '31': {
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
+          inbound: [{ id: parameterizedId1, path: [] }],
           data: {
+            id: '31',
             name: 'Three1',
-            extra: true,
+            extraValue: '31-42',
           },
         },
       });

@@ -5,7 +5,7 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`nested parameterized references with parameterized value`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
@@ -47,8 +47,8 @@ describe.skip(`operations.extract`, () => {
       );
 
       const nestedParameterizedId = nodeIdForParameterizedValue(
-        QueryRootId,
-        ['31', 'four'],
+        '31',
+        ['four'],
         { extra: true }
       );
 
@@ -59,7 +59,7 @@ describe.skip(`operations.extract`, () => {
         },
         [parameterizedId]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
-          inbound: [{ id: QueryRootId, path: [] }],
+          inbound: [{ id: QueryRootId, path: ['one', 'two'] }],
           outbound: [{ id: '31', path: ['three'] }],
           data: {},
         },
@@ -73,7 +73,7 @@ describe.skip(`operations.extract`, () => {
         },
         [nestedParameterizedId]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
-          inbound: [{ id: parameterizedId, path: ['four'] }],
+          inbound: [{ id: '31', path: ['four'] }],
           data: {
             five: 1,
           },
