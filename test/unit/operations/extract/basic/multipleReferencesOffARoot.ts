@@ -4,8 +4,8 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
-  describe(`simple references hanging off a root`, () => {
+describe(`operations.extract`, () => {
+  describe(`multiple references hanging off a root`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {

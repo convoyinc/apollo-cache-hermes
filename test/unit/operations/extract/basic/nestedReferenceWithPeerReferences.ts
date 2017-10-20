@@ -5,50 +5,55 @@ import { createSnapshot } from '../../../../helpers';
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.extract`, () => {
-  describe(`new array of references hanging off of a root`, () => {
+  describe(`nested references hanging off of a root`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const snapshot = createSnapshot(
         {
-          viewer: [
-            {
-              id: 123,
-              name: 'Gouda',
+          one: {
+            two: {
+              three: { id: 0 },
+              four: { id: 1 },
             },
-            {
-              id: 456,
-              name: 'Brie',
-            },
-          ],
+          },
         },
-        `{ viewer { id name } }`
+        `{ 
+            one {
+              two {
+                three { id }
+                four { id }
+              }
+            }
+        }`,
       ).snapshot;
 
       extractResult = extract(snapshot);
     });
 
-    it(`extracts JSON serializable object`, () => {
+    it(`extracts JSON serialization object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [
-            { id: '123', path: ['viewer', 0] },
-            { id: '456', path: ['viewer', 1] },
+            { id: '0', path: ['one', 'two', 'three'] },
+            { id: '1', path: ['one', 'two', 'four'] },
           ],
           data: {
-            viewer: [],
+            one: {
+              two: {},
+            },
           },
         },
-        '123': {
+        '0': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: QueryRootId, path: ['viewer', 0] }],
-          data: { id: 123, name: 'Gouda' },
+          inbound: [{ id: QueryRootId, path: ['one', 'two', 'three'] }],
+          data: { id: 0 },
         },
-        '456': {
+        '1': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: QueryRootId, path: ['viewer', 1] }],
-          data: { id: 456, name: 'Brie' },
+          inbound: [{ id: QueryRootId, path: ['one', 'two', 'four'] }],
+          data: { id: 1 },
         },
       });
     });
