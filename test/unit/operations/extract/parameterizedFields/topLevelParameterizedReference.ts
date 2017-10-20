@@ -5,7 +5,7 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`top-level parameterized reference`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
@@ -30,7 +30,11 @@ describe.skip(`operations.extract`, () => {
     });
 
     it(`extracts JSON serialization object`, () => {
-      const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['foo'], { id: 1 });
+      const parameterizedId = nodeIdForParameterizedValue(QueryRootId,
+        ['foo'],
+        { id: 1, withExtra: true }
+      );
+
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
@@ -43,7 +47,7 @@ describe.skip(`operations.extract`, () => {
         },
         '1': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: parameterizedId, path: ['foo'] }],
+          inbound: [{ id: parameterizedId, path: [] }],
           data: {
             id: 1,
             name: 'Foo',

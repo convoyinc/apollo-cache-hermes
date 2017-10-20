@@ -5,7 +5,7 @@ import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`nested parameterized value`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
@@ -68,7 +68,7 @@ describe.skip(`operations.extract`, () => {
           ],
           data: {
             one: {
-              two: [],
+              two: [null, null],
             },
           },
         },
@@ -79,7 +79,7 @@ describe.skip(`operations.extract`, () => {
         },
         '30': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [],
+          inbound: [{ id: parameterizedId0, path: [] }],
           data: {
             id: '30',
             name: 'Three0',
