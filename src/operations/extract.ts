@@ -3,7 +3,7 @@ import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-depende
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonValue } from '../primitive';
-import { Serializable } from '../schema';
+import { Serializable, NodeId } from '../schema';
 import { isScalar } from '../util';
 
 export function extract(data: GraphSnapshot): Serializable.GraphSnapshot {
@@ -41,7 +41,7 @@ export function extract(data: GraphSnapshot): Serializable.GraphSnapshot {
       serializedEntity.inbound = entity.inbound;
     }
 
-    const serializedData = createDataWithoutReferences(entity);
+    const serializedData = createDataWithoutReferences(entity, id);
     if (serializedData) {
       serializedEntity.data = serializedData;
     }
@@ -56,7 +56,7 @@ interface OutboundTree {
   [key: string]: OutboundTree | never[] | [OutboundTree] | null;
 }
 
-function createDataWithoutReferences(entity: NodeSnapshot): JsonValue | undefined {
+function createDataWithoutReferences(entity: NodeSnapshot, id: NodeId): JsonValue | undefined {
   /*
    * - data === undefined -> the entire data is a reference
    * No outbound then just return the data as it must be a value
@@ -77,6 +77,9 @@ function createDataWithoutReferences(entity: NodeSnapshot): JsonValue | undefine
   if (entity.data === undefined || !entity.outbound || isScalar(entity.data)) {
     // TODO (yuisu): should this we copy if it is an object
     //  or just return the existed value
+    if (!Serializable.isSerializable(entity.data)) {
+      throw new Error(`Data at entityID ${id} is unserializable`);
+    }
     return entity.data;
   }
 
@@ -154,6 +157,9 @@ function getValuesFromDataProperty(data: JsonValue, outboundTree: OutboundTree |
     const outboundTreeNode = (outboundTree as OutboundTree)[dataName];
     // Doesn't exist in outboundTree, it is a value
     if (outboundTreeNode === undefined) {
+      if (!Serializable.isSerializable(data[dataName])) {
+        throw new Error(`Value at ${dataName} is unserializable`);
+      }
       output[dataName] = data[dataName];
     } else if (outboundTreeNode === null) {
       continue;
