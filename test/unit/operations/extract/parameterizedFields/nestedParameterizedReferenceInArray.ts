@@ -76,6 +76,7 @@ describe(`operations.extract`, () => {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 0, 'three'] }],
           outbound: [{ id: '30', path: [] }],
+          data: null,
         },
         '30': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
@@ -90,6 +91,7 @@ describe(`operations.extract`, () => {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
           outbound: [{ id: '31', path: [] }],
+          data: null,
         },
         '31': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,

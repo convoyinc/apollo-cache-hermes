@@ -34,7 +34,7 @@ export function extract(data: GraphSnapshot, cacheContext?: CacheContext): Seria
     }
 
     const serializedData = createSerializableData(entity, id, cacheContext);
-    if (serializedData) {
+    if (serializedData !== undefined) {
       serializedEntity.data = serializedData;
     }
 
@@ -217,7 +217,7 @@ function createSerializableData(entity: NodeSnapshot, id: NodeId, cacheContext?:
 
   // There is no topLevelOutboundTree so the entire data is just a reference
   // see: topLevelParameterizedReference
-  return topLevelOutboundTree ? getOnlyValuesFromData(entity.data, topLevelOutboundTree) : undefined;
+  return topLevelOutboundTree ? getOnlyValuesFromData(entity.data, topLevelOutboundTree) : null;
 
   function getOnlyValuesFromData(data: JsonValue, outboundTree: OutboundTree | [OutboundTree]): JsonValue {
     if (isScalar(data)) {

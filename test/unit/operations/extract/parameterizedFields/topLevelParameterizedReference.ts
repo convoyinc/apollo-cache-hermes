@@ -44,6 +44,7 @@ describe(`operations.extract`, () => {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['foo'] }],
           outbound: [{ id: '1', path: [] }],
+          data: null,
         },
         '1': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
