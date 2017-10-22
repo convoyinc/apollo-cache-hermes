@@ -107,7 +107,7 @@ rules:
   key-spacing: [error, { mode: minimum }]
   keyword-spacing: error
   linebreak-style: error
-  lines-between-class-members: error
+  lines-between-class-members: [error, always, { exceptAfterSingleLine: true }]
   max-len: [error, { code: 140, comments: 80, tabWidth: 2, ignoreUrls: true }]
   new-cap: error
   newline-per-chained-call: [error, { ignoreChainWithDepth: 3 }]

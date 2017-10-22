@@ -4,7 +4,7 @@
  * Several specialized tree walkers for cache operations.
  */
 
-import { // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { // eslint-disable-line import/no-extraneous-dependencies
   DocumentNode,
   FieldNode,
   SelectionSetNode,

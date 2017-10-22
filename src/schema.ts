@@ -1,4 +1,4 @@
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 
 import { QueryInfo } from './context';
 import { ParsedQuery } from './ParsedQueryNode';
