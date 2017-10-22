@@ -16,6 +16,7 @@ fi
 
 OPTIONS=(
   "${OPTIONS_FLAGS[@]}"
+  --report-unused-disable-directives
 )
 
 eslint "${OPTIONS[@]}" "${FILES[@]}"

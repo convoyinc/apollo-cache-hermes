@@ -1,8 +1,5 @@
-import {
-  DataProxy,
-  Cache,
-} from 'apollo-cache';
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { Cache, DataProxy } from 'apollo-cache';
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 
 import { JsonObject } from '../primitive';
 import { Queryable } from '../Queryable';
@@ -70,6 +67,11 @@ export abstract class ApolloQueryable implements DataProxy {
 
   transformDocument(doc: DocumentNode): DocumentNode {
     return this._queryable.transformDocument(doc);
+  }
+
+  public transformForLink(document: DocumentNode): DocumentNode { // eslint-disable-line class-methods-use-this
+    // TODO: Actually transform it (and/or make it optional upstream).
+    return document;
   }
 
   evict(options: Cache.EvictOptions): Cache.EvictionResult {

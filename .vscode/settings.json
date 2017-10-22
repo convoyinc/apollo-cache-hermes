@@ -16,6 +16,9 @@
     "typescript",
     "typescriptreact"
   ],
+  "eslint.options": {
+    "reportUnusedDisableDirectives": true
+  },
   "jsDocCompletion.enabled": false,
   "todohighlight.keywordsPattern": "TODO(\\(\\w+\\))?:"
 }
