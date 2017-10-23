@@ -1,5 +1,4 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
-import { EntitySnapshot } from '../../../../../src/nodes';
 import { NodeId, StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
