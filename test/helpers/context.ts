@@ -27,3 +27,6 @@ export const silentConfig: CacheContext.Configuration = {
     groupEnd: jest.fn(),
   },
 };
+
+/** Cache context created using strictConfig */
+export const strictCacheContext = new CacheContext(strictConfig);
