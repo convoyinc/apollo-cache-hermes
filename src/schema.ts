@@ -2,8 +2,9 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 
 import { QueryInfo } from './context';
+import { NodeReference } from './nodes';
 import { ParsedQuery } from './ParsedQueryNode';
-import { JsonObject, JsonScalar, JsonValue } from './primitive';
+import { JsonObject, JsonValue, NestedValue } from './primitive';
 import { isScalar } from './util';
 
 /**
@@ -75,14 +76,6 @@ export interface QuerySnapshot {
  */
 export namespace Serializable {
   /**
-   * JSON serializable type of NodeReference
-   */
-  export interface NodeReference {
-    id: JsonScalar;
-    path: JsonScalar[];
-  }
-
-  /**
    * JSON serializable type of NodeSnapshot in GraphSnapshot
    *
    * This is used when doing extract and restore cache's stage
@@ -91,11 +84,13 @@ export namespace Serializable {
     [key: string]: Serializable.NodeSnapshot;
   }
 
+  export type StringifyReadyType = NestedValue<JsonValue | undefined>;
+
   export interface NodeSnapshot {
     type: Serializable.NodeSnapshotType;
-    inbound?: Serializable.NodeReference[];
-    outbound?: Serializable.NodeReference[];
-    data?: JsonValue;
+    inbound?: NodeReference[];
+    outbound?: NodeReference[];
+    data?: StringifyReadyType;
   }
 
   /**
@@ -104,6 +99,7 @@ export namespace Serializable {
    *
    */
   export const enum NodeSnapshotType {
+    Invalid = -1,
     EntitySnapshot = 0,
     ParameterizedValueSnapshot = 1,
   }
