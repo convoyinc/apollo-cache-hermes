@@ -37,7 +37,10 @@ describe(`operations.extract`, () => {
             { id: '123', path: ['bar'] },
             { id: '456', path: ['foo'] },
           ],
-          data: {},
+          data: {
+            bar: undefined,
+            foo: undefined,
+          },
         },
         '123': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,

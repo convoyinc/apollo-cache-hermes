@@ -71,7 +71,7 @@ describe.skip(`operations.extract`, () => {
           data: {
             one: {
               four: 'FOUR',
-              two: [],
+              two: [undefined, undefined],
             },
           },
         },
