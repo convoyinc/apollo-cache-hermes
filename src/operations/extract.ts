@@ -1,4 +1,4 @@
-import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-dependencies
 
 import { CacheContext } from '../context/CacheContext';
 import { GraphSnapshot } from '../GraphSnapshot';

@@ -1,5 +1,5 @@
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
-import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
+import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-dependencies
 
 import { QueryInfo } from './context';
 import { NodeReference } from './nodes';
