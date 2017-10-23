@@ -120,7 +120,12 @@ export namespace Serializable {
     }
 
     if (_.isArray(value)) {
-      return value.every(element => isSerializable(element));
+      for (const element of value) {
+        if (!isSerializable(element)) {
+          return false;
+        }
+      }
+      return true;
     }
 
     return false;
