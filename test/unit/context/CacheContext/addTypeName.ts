@@ -1,4 +1,4 @@
-import { SelectionSetNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
+import { SelectionSetNode } from 'graphql';
 import gql from 'graphql-tag';
 
 import { CacheContext } from '../../../../src/context/CacheContext';
