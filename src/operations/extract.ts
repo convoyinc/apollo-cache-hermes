@@ -5,13 +5,21 @@ import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonValue } from '../primitive';
 import { Serializable, NodeId } from '../schema';
-import { isScalar } from '../util';
+import { lazyImmutableDeepSet } from '../util';
 
-export function extract(data: GraphSnapshot, cacheContext?: CacheContext): Serializable.GraphSnapshot {
+/**
+ * Create serializable representation of GraphSnapshot.
+ *
+ * The output still contains 'undefined' value as it is expected that caller
+ * will perform JSON.stringify which will strip off 'undefined' value or
+ * turn it into 'null' if 'undefined' is in an array.
+ *
+ */
+export function extract(data: GraphSnapshot, cacheContext: CacheContext): Serializable.GraphSnapshot {
   const result: Serializable.GraphSnapshot = {};
   const entities = data._values;
-  // We don't need to check for hasOwnProperty because
-  // _values are created with prototype null
+  // We don't need to check for hasOwnProperty because data._values is
+  // created with prototype of 'null'
   for (const id in entities) {
     const entity = entities[id];
 
@@ -21,8 +29,10 @@ export function extract(data: GraphSnapshot, cacheContext?: CacheContext): Seria
     } else if (entity instanceof ParameterizedValueSnapshot) {
       type = Serializable.NodeSnapshotType.ParameterizedValueSnapshot;
     } else {
-      throw new Error('All types of NodeSnapshot should have corresponding enum value in Serializable.NodeSnapshotType');
+      cacheContext.error(`${entity.constructor.name} does not have corresponding enum value in Serializable.NodeSnapshotType`);
+      type = Serializable.NodeSnapshotType.Invalid;
     }
+
     const serializedEntity: Serializable.NodeSnapshot = { type };
 
     if (entity.outbound) {
@@ -33,9 +43,13 @@ export function extract(data: GraphSnapshot, cacheContext?: CacheContext): Seria
       serializedEntity.inbound = entity.inbound;
     }
 
-    const serializedData = createSerializableData(entity, id, cacheContext);
-    if (serializedData !== undefined) {
-      serializedEntity.data = serializedData;
+    // Extract data value
+    const extractedData = extractSerializableData(entity, id);
+    if (extractedData !== undefined) {
+      if (!Serializable.isSerializable(extractedData)) {
+        cacheContext.error(`Data of value ${extractedData} at entityID ${id} is unserializable`);
+      }
+      serializedEntity.data = extractedData;
     }
 
     result[id] = serializedEntity;
@@ -44,229 +58,35 @@ export function extract(data: GraphSnapshot, cacheContext?: CacheContext): Seria
   return result;
 }
 
-/**
- * Constructed tree from walking outbound references path.
- * We use this tructure to help determine whether value at
- * particular property is a reference of not.
- *
- * - outboundTree value : null -> that property is a reference
- *   don't output in the serializable data
- * - outboundTree value : undefined -> that property is a value
- *   output in the serializable data
- * - outboundTree value : an object -> children contains references
- *   recursively walk
- * - outboundTree value : an array of size 1 -> property is an array
- *   use the first element and recursively walk for each element.
- *   for an array, we garuntee that all elements have the same structure
- *   that is why we only store one element.
- *
- * Examples of the outboundTree and corresponding data
- *
- * 1)
- * OutboundTree -> {
- *  one: {
- *    two: {
- *      three: null,
- *    },
- *  },
- * }
- *
- * data -> {
- *  one: {
- *    two: {
- *      three: { id : 1 },
- *    }
- *    four: '4',
- *  },
- * }
- *
- * outputData -> {
- *  one: {
- *    two: { },
- *    four: '4'
- *  }
- * }
- *
- * 2)
- * OutboundTree -> {
- *  one: {
- *    two: [
- *      { three: null }
- *    ],
- *  },
- * }
- *
- * data -> {
- *  one: {
- *    two: [
- *      { three: { id : 1 } },
- *      { three: { id : 2 } },
- *    ],
- *    four: '4',
- *  },
- * }
- *
- * outputData -> {
- *  one: {
- *    two: [{} , {}]
- *    four: '4',
- *  },
- * }
- *
- * 3)
- * OutboundTree -> {
- *  one: {
- *    two: [
- *      { three: null }
- *    ],
- *  },
- * }
- *
- * data -> {
- *  one: {
- *    two: [
- *      { id : 1 },
- *      { id : 2 },
- *    ]
- *    four: '4',
- *  },
- * }
- *
- * outputData -> {
- *  one: {
- *    two: []
- *    four: '4',
- *  },
- * }
- *
- */
-interface OutboundTree {
-  [key: string]: OutboundTree | never[] | [OutboundTree] | null;
-}
-
-function createSerializableData(entity: NodeSnapshot, id: NodeId, cacheContext?: CacheContext): JsonValue | undefined {
-  /*
-   * - data === undefined -> the entire data is a reference
-   *   like those of ParameterizedValueSnapshot.
-   * - No outbound -> data as it must be a value
-   * - data is not undefined and outbound is not empty:
-   *  Walk each outbound reference:
-   *    path === [] -> the entire data is a references, return undefined
-   *    path is not empty -> build an outboundTree
-   *  Walk data object for each property.
-   *    Check if at each property exist in outboundTree
-   *      not exist -> that property is a value so copy
-   *      exist as null -> that property is a reference, then null
-   *      an object -> one of child contains a reference, recursively
-   *      an array -> recursively apply on each element
-   */
-
-  // if data is undefined then the entire data is a reference
-  // if there is no outbound references then data is just values so return that.
-  // if data is not an object or array just return it out.
-  if (entity.data === undefined || !entity.outbound || isScalar(entity.data)) {
-    // TODO (yuisu): should this be copied if it is an object
-    //  or just return the existed value
-    reportUnSerializableError(entity.data);
+function extractSerializableData(entity: NodeSnapshot, id: NodeId): Serializable.StringifyReadyType {
+  // If there is no outbound, then data is a value
+  if (!entity.outbound || !entity.data) {
     return entity.data;
   }
 
-  let topLevelOutboundTree: OutboundTree | [OutboundTree] | undefined;
-  let currentTreeNode: OutboundTree | [OutboundTree];
+  // Shallow clone the original data
+  let extractedData: JsonValue | undefined = _.clone(entity.data);
 
-  for (const outboundRef of entity.outbound) {
-    const outboundPath = outboundRef.path;
-    if (outboundPath.length > 0) {
-      // entity.data can be array if
-      // the entity is ParameterizedValueNodeSnapshot
-      topLevelOutboundTree = topLevelOutboundTree
-        ? topLevelOutboundTree
-        : entity.data instanceof Array ? [] : Object.create(null);
-      currentTreeNode = topLevelOutboundTree!;
-    } else {
-      // path === [] then the entire data is a references
-      // stop right here.
-      // TODO (yuisu): We should assert that outboud array is of length 1
+  // Set all the outbound path (e.g reference) to undefined.
+  for (const outbound of entity.outbound) {
+    if (outbound.path.length === 0) {
+      // we have to write out 'null' here to differentiate between
+      // data doesn't exist and data is a reference.
+      //
+      // In the case of parameterized field hanging off of a root
+      // the data at the ROOTQUERY node will be undefined with outbound
+      // reference to the parameterized node.
+      extractedData = null;
       break;
     }
-
-    for (let i = 0; i < outboundPath.length; ++i) {
-      const currentPath = outboundPath[i];
-      if (_.isArray(currentTreeNode)) {
-        // If the currentPath is an number then there should already be an array
-        // Only create a object tree node if we still have more paths to explore
-        if (currentTreeNode.length === 0 && outboundPath[i+1] !== undefined) {
-          currentTreeNode.push({});
-        }
-        currentTreeNode = currentTreeNode[0];
-      } else {
-        if (currentTreeNode[currentPath] === undefined) {
-          // End of the path then this property must be reference
-          if (outboundPath[i+1] === undefined) {
-            currentTreeNode[currentPath] = null;
-          } else if (typeof outboundPath[i+1] === 'number') {
-            currentTreeNode[currentPath] = [];
-          } else {
-            currentTreeNode[currentPath] = {};
-          }
-        }
-        currentTreeNode = currentTreeNode[currentPath] as OutboundTree;
-      }
+    // We have to check if the value exists at the path because
+    // in the case of parametrized field, the value will not exist
+    // even though there is outbound reference.
+    // So we didn't end up set the value to be 'undefined' in the output
+    if (_.get(entity.data, outbound.path)) {
+      lazyImmutableDeepSet(extractedData, entity.data, outbound.path, undefined);
     }
   }
 
-  // There is no topLevelOutboundTree so the entire data is just a reference
-  // see: topLevelParameterizedReference
-  return topLevelOutboundTree ? getOnlyValuesFromData(entity.data, topLevelOutboundTree) : null;
-
-  function getOnlyValuesFromData(data: JsonValue, outboundTree: OutboundTree | [OutboundTree]): JsonValue {
-    if (isScalar(data)) {
-      return data;
-    }
-
-    // ParameterizedValueNodeSnapshot can have array as top-level data value.
-    if (data instanceof Array) {
-      // For array outboundTree should only need to store
-      // one node per an entire array.
-      const result = new Array(data.length);
-      for (let i = 0; i < data.length; ++i) {
-        const element = data[i];
-        result[i] = element
-          ? getOnlyValuesFromData(element, outboundTree[0])
-          : null;  // null is a place holder for a sparse array
-      }
-      return result;
-    }
-
-    // Data is an object type
-    const output = {};
-    for (const dataName of Object.getOwnPropertyNames(data)) {
-      const outboundTreeNode = (outboundTree as OutboundTree)[dataName];
-      // Doesn't exist in outboundTree, it is a value
-      if (outboundTreeNode === undefined) {
-        reportUnSerializableError(data[dataName]);
-        output[dataName] = data[dataName];
-      } else if (outboundTreeNode === null) {
-        continue;
-      } else if (_.isArray(outboundTreeNode)) {
-        output[dataName] = outboundTreeNode.length === 0
-          ? [] : getOnlyValuesFromData(data[dataName], outboundTreeNode as [OutboundTree]);
-      } else if (_.isPlainObject(outboundTreeNode)) {
-        // exist in outboundTree as an object then
-        // one of its children is a reference so walk it
-        output[dataName] = getOnlyValuesFromData(data[dataName], outboundTreeNode);
-      }
-    }
-    return output;
-  }
-
-  function reportUnSerializableError(value: any) {
-    if (!Serializable.isSerializable(value)) {
-      if (cacheContext) {
-        cacheContext.debug(`Data of value ${value} at entityID ${id} is unserializable`);
-      } else {
-        throw new Error(`Data of value ${value} at entityID ${id} is unserializable`);
-      }
-    }
-  }
+  return extractedData;
 }
