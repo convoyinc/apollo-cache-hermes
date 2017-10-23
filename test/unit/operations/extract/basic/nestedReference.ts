@@ -1,6 +1,6 @@
 import { extract } from '../../../../../src/operations/extract';
 import { Serializable, StaticNodeId } from '../../../../../src/schema';
-import { createSnapshot } from '../../../../helpers';
+import { createOriginalGraphSnapshot, strictCacheContext } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -9,7 +9,7 @@ describe(`operations.extract`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
-      const snapshot = createSnapshot(
+      const snapshot = createOriginalGraphSnapshot(
         {
           one: {
             two: {
@@ -24,9 +24,9 @@ describe(`operations.extract`, () => {
               }
             }
         }`,
-      ).snapshot;
+      );
 
-      extractResult = extract(snapshot);
+      extractResult = extract(snapshot, strictCacheContext);
     });
 
     it(`extracts JSON serialization object`, () => {
