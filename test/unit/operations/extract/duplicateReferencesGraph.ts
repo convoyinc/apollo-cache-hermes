@@ -50,7 +50,8 @@ describe(`operations.extract`, () => {
             { id: 'a', path: ['baz'] },
           ],
           data: {
-            foo: [],
+            foo: [undefined, undefined, undefined, undefined, undefined],
+            baz: undefined,
           },
         },
         '1': {
@@ -59,7 +60,9 @@ describe(`operations.extract`, () => {
             { id: 'a', path: ['bar'] },
             { id: 'b', path: ['bar'] },
           ],
-          data: { id: 1 },
+          data: {
+            id: 1,
+          },
         },
         'a': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
@@ -72,6 +75,7 @@ describe(`operations.extract`, () => {
           outbound: [{ id: '1', path: ['bar'] }],
           data: {
             id: 'a',
+            bar: undefined,
           },
         },
         'b': {
@@ -83,6 +87,7 @@ describe(`operations.extract`, () => {
           outbound: [{ id: '1', path: ['bar'] }],
           data: {
             id: 'b',
+            bar: undefined,
           },
         },
       });

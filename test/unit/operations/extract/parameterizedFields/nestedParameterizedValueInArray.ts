@@ -65,8 +65,7 @@ describe(`operations.extract`, () => {
           ],
           data: {
             one: {
-              // null is a place holder, original value is a spares array
-              two: [null, null],
+              two: [undefined, undefined],
             },
           },
         },

@@ -36,7 +36,9 @@ describe(`operations.extract`, () => {
           outbound: [{ id: '0', path: ['one', 'two', 'three'] }],
           data: {
             one: {
-              two: {},
+              two: {
+                three: undefined,
+              },
             },
           },
         },

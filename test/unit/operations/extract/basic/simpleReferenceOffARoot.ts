@@ -36,6 +36,7 @@ describe(`operations.extract`, () => {
           outbound: [{ id: '123', path: ['viewer'] }],
           data: {
             justValue: '42',
+            viewer: undefined,
           },
         },
         '123': {

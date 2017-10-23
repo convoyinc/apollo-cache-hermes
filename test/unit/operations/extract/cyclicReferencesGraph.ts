@@ -44,7 +44,9 @@ describe(`operations.extract`, () => {
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: '1', path: ['foo'] }],
-          data: {},
+          data: {
+            foo: undefined,
+          },
         },
         '1': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
@@ -55,7 +57,11 @@ describe(`operations.extract`, () => {
           outbound: [
             { id: '2', path: ['bar'] },
           ],
-          data: { id: 1, name: 'Foo' },
+          data: {
+            id: 1,
+            name: 'Foo',
+            bar: undefined,
+          },
         },
         '2': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
@@ -67,7 +73,12 @@ describe(`operations.extract`, () => {
             { id: '1', path: ['fizz'] },
             { id: '2', path: ['buzz'] },
           ],
-          data: { id: 2, name: 'Bar' },
+          data: {
+            id: 2,
+            name: 'Bar',
+            fizz: undefined,
+            buzz: undefined,
+          },
         },
       });
     });

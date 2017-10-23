@@ -37,7 +37,7 @@ describe(`operations.extract`, () => {
             { id: '456', path: ['viewer', 1] },
           ],
           data: {
-            viewer: [],
+            viewer: [undefined, undefined],
           },
         },
         '123': {
