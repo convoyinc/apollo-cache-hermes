@@ -10,6 +10,7 @@
     "<rootDir>/test/"
   ],
   "mapCoverage": true,
+  "maxWorker": 2,  // this is to prevent running out-of memory on CI
   "rootDir": "../..",
   "setupTestFrameworkScriptFile": "./test/env/unit.js",
   "testMatch": ["<rootDir>/test/unit/**/*.js"],
