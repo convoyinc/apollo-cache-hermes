@@ -84,13 +84,11 @@ export namespace Serializable {
     [key: string]: Serializable.NodeSnapshot;
   }
 
-  export type StringifyReadyType = NestedValue<JsonValue | undefined>;
-
   export interface NodeSnapshot {
     type: Serializable.NodeSnapshotType;
     inbound?: NodeReference[];
     outbound?: NodeReference[];
-    data?: StringifyReadyType;
+    data?: NestedValue<JsonValue | undefined>;
   }
 
   /**

@@ -3,7 +3,7 @@ import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-depende
 import { CacheContext } from '../context/CacheContext';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
-import { JsonValue } from '../primitive';
+import { JsonValue, NestedValue } from '../primitive';
 import { Serializable, NodeId } from '../schema';
 import { lazyImmutableDeepSet } from '../util';
 
@@ -58,7 +58,7 @@ export function extract(data: GraphSnapshot, cacheContext: CacheContext): Serial
   return result;
 }
 
-function extractSerializableData(entity: NodeSnapshot, id: NodeId): Serializable.StringifyReadyType {
+function extractSerializableData(graphSnapshot: GraphSnapshot, entity: NodeSnapshot, id: NodeId): NestedValue<JsonValue | undefined> {
   // If there is no outbound, then data is a value
   if (!entity.outbound || !entity.data) {
     return entity.data;
