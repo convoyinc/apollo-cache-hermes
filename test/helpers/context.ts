@@ -29,4 +29,6 @@ export const silentConfig: CacheContext.Configuration = {
 };
 
 /** Cache context created using strictConfig */
-export const strictCacheContext = new CacheContext(strictConfig);
+export function createStrictCacheContext() {
+  return new CacheContext(strictConfig);
+}

@@ -2,7 +2,7 @@ import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { NodeSnapshot } from '../../../../../src/nodes';
 import { extract } from '../../../../../src/operations/extract';
 import { JsonValue } from '../../../../../src/primitive';
-import { strictCacheContext } from '../../../../helpers';
+import { createStrictCacheContext } from '../../../../helpers';
 
 describe(`operations.extract`, () => {
   describe(`invalid NodeSnapshot type`, () => {
@@ -20,7 +20,7 @@ describe(`operations.extract`, () => {
 
     it(`throws error when extracting invalid NodeSnapshot type`, () => {
       expect(() => {
-        extract(snapshot, strictCacheContext);
+        extract(snapshot, createStrictCacheContext());
       }).to.throw(/Serializable.NodeSnapshotType/i);
     });
 

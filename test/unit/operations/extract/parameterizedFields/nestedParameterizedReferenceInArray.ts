@@ -1,7 +1,7 @@
 import { extract } from '../../../../../src/operations/extract';
 import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
 import { Serializable, StaticNodeId } from '../../../../../src/schema';
-import { createParameterizedOriginalGraphSnapshot, strictCacheContext } from '../../../../helpers';
+import { createParameterizedOriginalGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -43,7 +43,7 @@ describe(`operations.extract`, () => {
         { id: 1 }
       );
 
-      extractResult = extract(snapshot, strictCacheContext);
+      extractResult = extract(snapshot, createStrictCacheContext());
     });
 
     it(`extracts JSON serialization object`, () => {

@@ -1,6 +1,6 @@
 import { extract } from '../../../../../src/operations/extract';
 import { Serializable, StaticNodeId } from '../../../../../src/schema';
-import { createOriginalGraphSnapshot, strictCacheContext } from '../../../../helpers';
+import { createOriginalGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -14,7 +14,7 @@ describe(`operations.extract`, () => {
         `{ foo bar }`
       );
 
-      extractResult = extract(snapshot, strictCacheContext);
+      extractResult = extract(snapshot, createStrictCacheContext());
     });
 
     it(`extracts JSON serializable object`, () => {
