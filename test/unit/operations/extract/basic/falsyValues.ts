@@ -1,26 +1,28 @@
 import { extract } from '../../../../../src/operations/extract';
-import { Serializeable, StaticNodeId } from '../../../../../src/schema';
-import { createSnapshot } from '../../../../helpers';
+import { Serializable, StaticNodeId } from '../../../../../src/schema';
+import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`falsy values`, () => {
 
-    let extractResult: Serializeable.GraphSnapshot;
+    let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
-      const snapshot = createSnapshot(
+      const cacheContext = createStrictCacheContext();
+      const snapshot = createGraphSnapshot(
         { null: null, false: false, zero: 0, string: '' },
-        `{ null, false, zero, string }`
-      ).snapshot;
+        `{ null, false, zero, string }`,
+        cacheContext
+      );
 
-      extractResult = extract(snapshot);
+      extractResult = extract(snapshot, cacheContext);
     });
 
     it(`extracts JSON serializable object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           data: { null: null, false: false, zero: 0, string: '' },
         },
       });

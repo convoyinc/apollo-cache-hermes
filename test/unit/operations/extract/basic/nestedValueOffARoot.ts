@@ -1,15 +1,16 @@
 import { extract } from '../../../../../src/operations/extract';
-import { Serializeable, StaticNodeId } from '../../../../../src/schema';
-import { createSnapshot } from '../../../../helpers';
+import { Serializable, StaticNodeId } from '../../../../../src/schema';
+import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`nested values hanging off of a root`, () => {
 
-    let extractResult: Serializeable.GraphSnapshot;
+    let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
-      const snapshot = createSnapshot(
+      const cacheContext = createStrictCacheContext();
+      const snapshot = createGraphSnapshot(
         {
           bar: {
             value: 42,
@@ -28,16 +29,17 @@ describe.skip(`operations.extract`, () => {
             prop2
             prop3
           }
-        }`
-      ).snapshot;
+        }`,
+        cacheContext
+      );
 
-      extractResult = extract(snapshot);
+      extractResult = extract(snapshot, cacheContext);
     });
 
     it(`extracts JSON serialization object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           data: {
             bar: {
               value: 42,

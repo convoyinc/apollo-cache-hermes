@@ -1,8 +1,11 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
+import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-dependencies
 
 import { QueryInfo } from './context';
+import { NodeReference } from './nodes';
 import { ParsedQuery } from './ParsedQueryNode';
-import { JsonObject, JsonScalar, JsonValue } from './primitive';
+import { JsonObject, JsonValue, NestedValue } from './primitive';
+import { isScalar } from './util';
 
 /**
  * Change ids track diffs to the store that may eventually be rolled back.
@@ -71,27 +74,21 @@ export interface QuerySnapshot {
 /**
  * Lists of types which are JSON serializable
  */
-export namespace Serializeable {
-  /**
-   * JSON serializable type of NodeReference
-   */
-  export interface NodeReference {
-    id: JsonScalar;
-    path: JsonScalar[];
-  }
-
+export namespace Serializable {
   /**
    * JSON serializable type of NodeSnapshot in GraphSnapshot
    *
    * This is used when doing extract and restore cache's stage
    */
   export interface GraphSnapshot {
-    [key: string]: {
-      type: Serializeable.NodeSnapshotType,
-      inbound?: Serializeable.NodeReference[],
-      outbound?: Serializeable.NodeReference[],
-      data?: JsonValue,
-    };
+    [key: string]: Serializable.NodeSnapshot;
+  }
+
+  export interface NodeSnapshot {
+    type: Serializable.NodeSnapshotType;
+    inbound?: NodeReference[];
+    outbound?: NodeReference[];
+    data?: NestedValue<JsonValue | undefined>;
   }
 
   /**
@@ -102,5 +99,33 @@ export namespace Serializeable {
   export const enum NodeSnapshotType {
     EntitySnapshot = 0,
     ParameterizedValueSnapshot = 1,
+  }
+
+  export function isSerializable(value: any, allowUndefined?: boolean): boolean {
+    if (isScalar(value)) {
+      // NaN is considered to typeof number
+      const isNaNValue = Number.isNaN(value as any);
+      return allowUndefined ? !isNaNValue : !isNaNValue && value !== undefined;
+    }
+
+    if (_.isPlainObject(value)) {
+      for (const propName of Object.getOwnPropertyNames(value)) {
+        if (!isSerializable(value[propName], allowUndefined)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    if (_.isArray(value)) {
+      for (const element of value) {
+        if (!isSerializable(element, allowUndefined)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    return false;
   }
 }

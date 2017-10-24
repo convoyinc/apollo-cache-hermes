@@ -1,4 +1,4 @@
-import { CacheContext } from '../../../../../src/context/index';
+import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { extract } from '../../../../../src/operations/extract';
 import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
@@ -10,10 +10,17 @@ describe(`operations.extract`, () => {
     beforeAll(() => {
       cacheContext = createStrictCacheContext();
       snapshot = createGraphSnapshot(
-        { nan: NaN, func: (() => {}) as any },
-        `{
-          nan
-          func
+        {
+          nestedInvalid: {
+            nan: NaN,
+            func: (() => {}) as any,
+          },
+        },
+        `{ 
+          nestedInvalid {
+            nan
+            func
+          }
         }`,
         cacheContext
       );
