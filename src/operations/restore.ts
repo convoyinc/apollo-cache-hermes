@@ -1,6 +1,6 @@
 import { GraphSnapshot } from '../GraphSnapshot';
-import { Serializeable } from '../schema';
+import { Serializable } from '../schema';
 
-export function restore(serializedState: Serializeable.GraphSnapshot): GraphSnapshot {
+export function restore(serializedState: Serializable.GraphSnapshot): GraphSnapshot {
   return new GraphSnapshot();
 }

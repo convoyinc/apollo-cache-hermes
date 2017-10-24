@@ -1,16 +1,17 @@
 import { extract } from '../../../../../src/operations/extract';
 import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
-import { Serializeable, StaticNodeId } from '../../../../../src/schema';
-import { createSnapshot } from '../../../../helpers';
+import { Serializable, StaticNodeId } from '../../../../../src/schema';
+import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`nested parameterized value with an array of nested values`, () => {
 
-    let extractResult: Serializeable.GraphSnapshot;
+    let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
-      const snapshot = createSnapshot(
+      const cacheContext = createStrictCacheContext();
+      const snapshot = createGraphSnapshot(
         {
           one: {
             two: [
@@ -24,6 +25,7 @@ describe.skip(`operations.extract`, () => {
                   threeValue: 'second',
                 },
               },
+              null,
             ],
           },
         },
@@ -36,28 +38,28 @@ describe.skip(`operations.extract`, () => {
             }
           }
         }`,
+        cacheContext,
         { id: 1 }
-      ).snapshot;
+      );
 
-      extractResult = extract(snapshot);
+      extractResult = extract(snapshot, cacheContext);
     });
 
     it(`extracts JSON serialization object`, () => {
       const parameterizedId = nodeIdForParameterizedValue(
         QueryRootId,
         ['one', 'two'],
-        { id: 0 }
+        { id: 1 }
       );
 
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: parameterizedId, path: ['one', 'two'] }],
         },
         [parameterizedId]: {
-          type: Serializeable.NodeSnapshotType.ParameterizedValueSnapshot,
+          type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two'] }],
-          isParameterizedValueSnapshot: true,
           data: [
             {
               three: {
@@ -69,6 +71,7 @@ describe.skip(`operations.extract`, () => {
                 threeValue: 'second',
               },
             },
+            null,
           ],
         },
       });

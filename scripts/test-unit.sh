@@ -23,7 +23,7 @@ for i in "${!FILES[@]}"; do
 done
 
 OPTIONS=(
-  --config ./test/unit/jest.json
+  --maxWorkers=2 --config ./test/unit/jest.json
 )
 # Jest doesn't handle debugger flags directly.
 NODE_OPTIONS=()
