@@ -101,15 +101,16 @@ export namespace Serializable {
     ParameterizedValueSnapshot = 1,
   }
 
-  export function isSerializable(value: any): boolean {
+  export function isSerializable(value: any, allowUndefined?: boolean): boolean {
     if (isScalar(value)) {
       // NaN is considered to typeof number
-      return !Number.isNaN(value as any);
+      const isNaNValue = Number.isNaN(value as any);
+      return allowUndefined ? !isNaNValue : !isNaNValue && value !== undefined;
     }
 
     if (_.isPlainObject(value)) {
       for (const propName of Object.getOwnPropertyNames(value)) {
-        if (!isSerializable(value[propName])) {
+        if (!isSerializable(value[propName], allowUndefined)) {
           return false;
         }
       }
@@ -118,7 +119,7 @@ export namespace Serializable {
 
     if (_.isArray(value)) {
       for (const element of value) {
-        if (!isSerializable(element)) {
+        if (!isSerializable(element, allowUndefined)) {
           return false;
         }
       }

@@ -19,7 +19,7 @@ describe(`operations.extract`, () => {
     it(`throws error when extracting invalid values`, () => {
       expect(() => {
         extract(snapshot, strictCacheContext);
-      }).to.throw(/unserializable/);
+      }).to.throw(/unserializable/i);
     });
 
   });
