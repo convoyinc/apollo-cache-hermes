@@ -64,27 +64,23 @@ function extractSerializableData(entity: NodeSnapshot, id: NodeId): Serializable
     return entity.data;
   }
 
-  // Shallow clone the original data
-  let extractedData: JsonValue | undefined = _.clone(entity.data);
+  // Type annotation is needed otherwise type of entity.data is not nullable
+  // and so does extractedData which will cause an error when we assing 'null'.
+  let extractedData: JsonValue | null = entity.data;
 
   // Set all the outbound path (e.g reference) to undefined.
   for (const outbound of entity.outbound) {
-    if (outbound.path.length === 0) {
+    // Only reference to EntitySnapshot is recorded in the data property
+    // So we didn't end up set the value to be 'undefined' in the output
+    // in every case
+    if (graphSnapshot.getNodeSnapshot(outbound.id) instanceof EntitySnapshot) {
       // we have to write out 'null' here to differentiate between
       // data doesn't exist and data is a reference.
       //
       // In the case of parameterized field hanging off of a root
       // the data at the ROOTQUERY node will be undefined with outbound
       // reference to the parameterized node.
-      extractedData = null;
-      break;
-    }
-    // We have to check if the value exists at the path because
-    // in the case of parametrized field, the value will not exist
-    // even though there is outbound reference.
-    // So we didn't end up set the value to be 'undefined' in the output
-    if (_.get(entity.data, outbound.path)) {
-      lazyImmutableDeepSet(extractedData, entity.data, outbound.path, undefined);
+      extractedData = lazyImmutableDeepSet(extractedData, entity.data, outbound.path, outbound.path.length === 0 ? null : undefined);
     }
   }
 
