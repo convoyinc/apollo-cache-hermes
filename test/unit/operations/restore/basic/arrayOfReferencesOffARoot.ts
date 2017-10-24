@@ -8,21 +8,21 @@ import { createGraphSnapshot, strictConfig } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-function entityTransformer(node: JsonObject) {
-  class Viewer {
-    name: string;
-    id: string;
-    getName() {
-      return this.name;
-    }
-
-    getId() {
-      return this.id;
-    }
+class Viewer {
+  name: string;
+  id: string;
+  getName() {
+    return this.name;
   }
 
+  getId() {
+    return this.id;
+  }
+}
+
+function entityTransformer(node: JsonObject) {
   if (node['__typename'] === 'viewer') {
-    Object.setPrototypeOf(node, Viewer);
+    Object.setPrototypeOf(node, Viewer.prototype);
   }
 }
 
@@ -33,7 +33,6 @@ describe.skip(`operations.restore`, () => {
     beforeAll(() => {
       const cacheContext = new CacheContext({
         ...strictConfig,
-        addTypename: true,
         entityTransformer,
       });
 
@@ -53,7 +52,7 @@ describe.skip(`operations.restore`, () => {
             null,
           ],
         },
-        `{ viewer { id name } }`,
+        `{ viewer { __typename id name } }`,
         cacheContext
       );
 

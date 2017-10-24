@@ -8,20 +8,21 @@ import { createSnapshot, strictConfig } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-function entityTransformer(node: JsonObject) {
-  class Three {
-    id: string;
+class Three {
+  id: string;
 
-    getId() {
-      return this.id;
-    }
-
-    static getValue() {
-      return 3;
-    }
+  getId() {
+    return this.id;
   }
+
+  getValue() {
+    return 3 + this.id;
+  }
+}
+
+function entityTransformer(node: JsonObject) {
   if (node['__typename'] === 'Three') {
-    Object.setPrototypeOf(node, Three);
+    Object.setPrototypeOf(node, Three.prototype);
   }
 }
 
@@ -32,7 +33,6 @@ describe.skip(`operations.restore`, () => {
     beforeAll(() => {
       const cacheContext = new CacheContext({
         ...strictConfig,
-        addTypename: true,
         entityTransformer,
       });
 
@@ -49,7 +49,7 @@ describe.skip(`operations.restore`, () => {
         `{ 
             one {
               two {
-                three { id }
+                three { __typename id }
               }
             }
         }`,
@@ -74,12 +74,12 @@ describe.skip(`operations.restore`, () => {
         '0': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 0, 'three'] }],
-          data: { id: 0 },
+          data: { __typename: 'Three', id: 0 },
         },
         '1': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
-          data: { id: 1 },
+          data: { __typename: 'Three', id: 1 },
         },
       }, cacheContext);
     });

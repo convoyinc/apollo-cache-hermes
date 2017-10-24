@@ -8,49 +8,49 @@ import { createSnapshot, strictConfig } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
+class Foo {
+  id: string;
+  name: string;
+  isFoo: boolean;
+
+  getId() {
+    return this.id;
+  }
+
+  getName() {
+    return this.name;
+  }
+
+  isFooInstance() {
+    return this.isFoo;
+  }
+}
+
+class Bar {
+  id: string;
+  name: string;
+  isBar: boolean;
+
+  getId() {
+    return this.id;
+  }
+
+  getName() {
+    return this.name;
+  }
+
+  isBarInstance() {
+    return this.isBar;
+  }
+}
+
 function entityTransformer(node: JsonObject) {
-  class Foo {
-    id: string;
-    name: string;
-    isFoo: boolean;
-
-    getId() {
-      return this.id;
-    }
-
-    getName() {
-      return this.name;
-    }
-
-    isFooInstance() {
-      return this.isFoo;
-    }
-  }
-
-  class Bar {
-    id: string;
-    name: string;
-    isBar: boolean;
-
-    getId() {
-      return this.id;
-    }
-
-    getName() {
-      return this.name;
-    }
-
-    isBarInstance() {
-      return this.isBar;
-    }
-  }
-
   switch (node['__typename']) {
     case 'Foo':
-      Object.setPrototypeOf(node, Foo);
+      Object.setPrototypeOf(node, Foo.prototype);
       break;
     case 'Bar':
-      Object.setPrototypeOf(node, Bar);
+      Object.setPrototypeOf(node, Bar.prototype);
       break;
   }
 }
@@ -62,7 +62,6 @@ describe.skip(`operations.restore`, () => {
     beforeAll(() => {
       const cacheContext = new CacheContext({
         ...strictConfig,
-        addTypename: true,
         entityTransformer,
       });
 
@@ -82,8 +81,8 @@ describe.skip(`operations.restore`, () => {
           },
         },
         `{
-          bar { id name }
-          foo { id name }
+          bar { __typename id name isBar }
+          foo { __typename id name isFoo }
         }`,
         /* gqlVariables */ undefined,
         /* rootId */ undefined,
