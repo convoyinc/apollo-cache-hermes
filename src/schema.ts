@@ -99,7 +99,6 @@ export namespace Serializable {
    *
    */
   export const enum NodeSnapshotType {
-    Invalid = -1,
     EntitySnapshot = 0,
     ParameterizedValueSnapshot = 1,
   }

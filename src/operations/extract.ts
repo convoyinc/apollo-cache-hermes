@@ -14,6 +14,7 @@ import { lazyImmutableDeepSet } from '../util';
  * will perform JSON.stringify which will strip off 'undefined' value or
  * turn it into 'null' if 'undefined' is in an array.
  *
+ * @throws Will throw an error if there is no corresponding node type
  */
 export function extract(data: GraphSnapshot, cacheContext: CacheContext): Serializable.GraphSnapshot {
   const result: Serializable.GraphSnapshot = {};
@@ -29,8 +30,7 @@ export function extract(data: GraphSnapshot, cacheContext: CacheContext): Serial
     } else if (entity instanceof ParameterizedValueSnapshot) {
       type = Serializable.NodeSnapshotType.ParameterizedValueSnapshot;
     } else {
-      cacheContext.error(`${entity.constructor.name} does not have corresponding enum value in Serializable.NodeSnapshotType`);
-      type = Serializable.NodeSnapshotType.Invalid;
+      throw new Error(`${entity.constructor.name} does not have corresponding enum value in Serializable.NodeSnapshotType`);
     }
 
     const serializedEntity: Serializable.NodeSnapshot = { type };
