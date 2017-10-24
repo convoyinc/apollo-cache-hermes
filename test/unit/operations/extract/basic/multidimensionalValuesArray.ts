@@ -5,14 +5,29 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.extract`, () => {
-  describe(`simple leaf-values hanging off a root`, () => {
+  describe(`2d array of  values hanging off of a root`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const cacheContext = createStrictCacheContext();
       const snapshot = createGraphSnapshot(
-        { foo: 123, bar: 'asdf' },
-        `{ foo bar }`,
+        {
+          rows: [
+            [
+              { value: 1 },
+              { value: 2 },
+            ],
+            [
+              { value: 3 },
+              { value: 4 },
+            ],
+          ],
+        },
+        `{ 
+          rows {
+            value
+          }
+        }`,
         cacheContext
       );
 
@@ -23,7 +38,18 @@ describe(`operations.extract`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          data: { foo: 123, bar: 'asdf' },
+          data: {
+            rows: [
+              [
+                { value: 1 },
+                { value: 2 },
+              ],
+              [
+                { value: 3 },
+                { value: 4 },
+              ],
+            ],
+          },
         },
       });
     });
