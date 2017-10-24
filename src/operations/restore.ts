@@ -11,7 +11,8 @@ import { isNumber, isObject } from '../util';
  * Restore GraphSnapshot from serializable representation.
  *
  * The parameter 'serializedState' is likely to be result running JSON.stringify
- * on a result of 'extract' method.
+ * on a result of 'extract' method. This function will directly reference object
+ * in the serializedState.
  *
  * @throws Will throw an error if 'type' in serializedState cannot be mapped to
  *    different sub-class of NodeSnapshot.
