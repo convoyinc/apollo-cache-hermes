@@ -52,6 +52,13 @@ describe(`operations.write`, () => {
       });
     });
 
+    it(`creates entity node in each row`, () => {
+      expect(snapshot.getNodeData('a')).to.deep.eq({ id: 'a', value: 1 });
+      expect(snapshot.getNodeData('b')).to.deep.eq({ id: 'b', value: 2 });
+      expect(snapshot.getNodeData('c')).to.deep.eq({ id: 'c', value: 3 });
+      expect(snapshot.getNodeData('d')).to.deep.eq({ id: 'd', value: 4 });
+    });
+
     it(`records the outbound references from the query root`, () => {
       expect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).to.have.deep.members([
         { id: 'a', path: ['rows', 0, 0] },
@@ -62,10 +69,11 @@ describe(`operations.write`, () => {
     });
 
     it(`directly reference each row from the query root`, () => {
-      expect(snapshot.getNodeData('a')).to.deep.eq({ id: 'a', value: 1 });
-      expect(snapshot.getNodeData('b')).to.deep.eq({ id: 'b', value: 2 });
-      expect(snapshot.getNodeData('c')).to.deep.eq({ id: 'c', value: 3 });
-      expect(snapshot.getNodeData('d')).to.deep.eq({ id: 'd', value: 4 });
+      const rows = snapshot.getNodeData(QueryRootId).rows;
+      expect(rows[0][0]).to.eq(snapshot.getNodeData('a'));
+      expect(rows[0][1]).to.eq(snapshot.getNodeData('b'));
+      expect(rows[1][0]).to.eq(snapshot.getNodeData('c'));
+      expect(rows[1][1]).to.eq(snapshot.getNodeData('d'));
     });
 
   });
