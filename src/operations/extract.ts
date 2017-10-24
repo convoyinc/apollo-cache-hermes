@@ -1,10 +1,8 @@
-import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-dependencies
-
 import { CacheContext } from '../context/CacheContext';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonValue, NestedValue } from '../primitive';
-import { Serializable, NodeId } from '../schema';
+import { Serializable } from '../schema';
 import { lazyImmutableDeepSet } from '../util';
 
 /**
@@ -16,35 +14,36 @@ import { lazyImmutableDeepSet } from '../util';
  *
  * @throws Will throw an error if there is no corresponding node type
  */
-export function extract(data: GraphSnapshot, cacheContext: CacheContext): Serializable.GraphSnapshot {
+export function extract(graphSnapshot: GraphSnapshot, cacheContext: CacheContext): Serializable.GraphSnapshot {
   const result: Serializable.GraphSnapshot = {};
-  const entities = data._values;
+  const entities = graphSnapshot._values;
   // We don't need to check for hasOwnProperty because data._values is
   // created with prototype of 'null'
   for (const id in entities) {
-    const entity = entities[id];
+    const nodeSnapshot = entities[id];
+    const { outbound, inbound } = nodeSnapshot;
 
     let type: Serializable.NodeSnapshotType;
-    if (entity instanceof EntitySnapshot) {
+    if (nodeSnapshot instanceof EntitySnapshot) {
       type = Serializable.NodeSnapshotType.EntitySnapshot;
-    } else if (entity instanceof ParameterizedValueSnapshot) {
+    } else if (nodeSnapshot instanceof ParameterizedValueSnapshot) {
       type = Serializable.NodeSnapshotType.ParameterizedValueSnapshot;
     } else {
-      throw new Error(`${entity.constructor.name} does not have corresponding enum value in Serializable.NodeSnapshotType`);
+      throw new Error(`${nodeSnapshot.constructor.name} does not have corresponding enum value in Serializable.NodeSnapshotType`);
     }
 
     const serializedEntity: Serializable.NodeSnapshot = { type };
 
-    if (entity.outbound) {
-      serializedEntity.outbound = entity.outbound;
+    if (outbound) {
+      serializedEntity.outbound = outbound;
     }
 
-    if (entity.inbound) {
-      serializedEntity.inbound = entity.inbound;
+    if (inbound) {
+      serializedEntity.inbound = inbound;
     }
 
     // Extract data value
-    const extractedData = extractSerializableData(entity, id);
+    const extractedData = extractSerializableData(graphSnapshot, nodeSnapshot);
     if (extractedData !== undefined) {
       if (!Serializable.isSerializable(extractedData)) {
         cacheContext.error(`Data of value ${extractedData} at entityID ${id} is unserializable`);
@@ -58,18 +57,18 @@ export function extract(data: GraphSnapshot, cacheContext: CacheContext): Serial
   return result;
 }
 
-function extractSerializableData(graphSnapshot: GraphSnapshot, entity: NodeSnapshot, id: NodeId): NestedValue<JsonValue | undefined> {
+function extractSerializableData(graphSnapshot: GraphSnapshot, nodeSnapshot: NodeSnapshot): NestedValue<JsonValue | undefined> {
   // If there is no outbound, then data is a value
-  if (!entity.outbound || !entity.data) {
-    return entity.data;
+  if (!nodeSnapshot.outbound || !nodeSnapshot.data) {
+    return nodeSnapshot.data;
   }
 
   // Type annotation is needed otherwise type of entity.data is not nullable
   // and so does extractedData which will cause an error when we assing 'null'.
-  let extractedData: JsonValue | null = entity.data;
+  let extractedData: JsonValue | null = nodeSnapshot.data;
 
   // Set all the outbound path (e.g reference) to undefined.
-  for (const outbound of entity.outbound) {
+  for (const outbound of nodeSnapshot.outbound) {
     // Only reference to EntitySnapshot is recorded in the data property
     // So we didn't end up set the value to be 'undefined' in the output
     // in every case
@@ -80,7 +79,7 @@ function extractSerializableData(graphSnapshot: GraphSnapshot, entity: NodeSnaps
       // In the case of parameterized field hanging off of a root
       // the data at the ROOTQUERY node will be undefined with outbound
       // reference to the parameterized node.
-      extractedData = lazyImmutableDeepSet(extractedData, entity.data, outbound.path, outbound.path.length === 0 ? null : undefined);
+      extractedData = lazyImmutableDeepSet(extractedData, nodeSnapshot.data, outbound.path, outbound.path.length === 0 ? null : undefined);
     }
   }
 
