@@ -6,32 +6,17 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.extract`, () => {
-  describe(`nested parameterized value`, () => {
+  describe(`top-level parameterized leaf value`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const cacheContext = createStrictCacheContext();
       const snapshot = createGraphSnapshot(
         {
-          one: {
-            two: {
-              bee: 'BEEZ',
-              three: {
-                name: 'ThreeName',
-                extraValue: 42,
-              },
-            },
-          },
+          foo: null,
         },
         `query getAFoo($id: ID!) {
-          one {
-            two {
-              bee
-              three(id: $id, withExtra: true) {
-                name extraValue
-              }
-            }
-          }
+          foo(id: $id, withExtra: true) 
         }`,
         cacheContext,
         { id: 1 }
@@ -43,29 +28,19 @@ describe(`operations.extract`, () => {
     it(`extracts JSON serialization object`, () => {
       const parameterizedId = nodeIdForParameterizedValue(
         QueryRootId,
-        ['one', 'two', 'three'],
+        ['foo'],
         { id: 1, withExtra: true }
       );
 
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          outbound: [{ id: parameterizedId, path: ['one', 'two', 'three'] }],
-          data: {
-            one: {
-              two: {
-                bee: 'BEEZ',
-              },
-            },
-          },
+          outbound: [{ id: parameterizedId, path: ['foo'] }],
         },
         [parameterizedId]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
-          inbound: [{ id: QueryRootId, path: ['one', 'two', 'three'] }],
-          data: {
-            name: 'ThreeName',
-            extraValue: 42,
-          },
+          inbound: [{ id: QueryRootId, path: ['foo'] }],
+          data: null,
         },
       });
     });

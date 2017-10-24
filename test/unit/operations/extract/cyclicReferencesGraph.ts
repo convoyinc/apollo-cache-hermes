@@ -1,15 +1,16 @@
 import { extract } from '../../../../src/operations/extract';
-import { Serializeable, StaticNodeId } from '../../../../src/schema';
-import { createSnapshot } from '../../../helpers';
+import { Serializable, StaticNodeId } from '../../../../src/schema';
+import { createGraphSnapshot, createStrictCacheContext } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`cyclic GraphSnapshot`, () => {
 
-    let extractResult: Serializeable.GraphSnapshot;
+    let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
-      const snapshot = createSnapshot(
+      const cacheContext = createStrictCacheContext();
+      const snapshot = createGraphSnapshot(
         {
           foo: {
             id: 1,
@@ -33,21 +34,24 @@ describe.skip(`operations.extract`, () => {
               buzz { id }
             }
           }
-        }`
-      ).snapshot;
+        }`,
+        cacheContext
+      );
 
-      extractResult = extract(snapshot);
+      extractResult = extract(snapshot, cacheContext);
     });
 
     it(`extracts JSON serialization object`, () => {
       expect(extractResult).to.deep.eq({
         [QueryRootId]: {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [{ id: '1', path: ['foo'] }],
-          data: {},
+          data: {
+            foo: undefined,
+          },
         },
         '1': {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [
             { id: QueryRootId, path: ['foo'] },
             { id: '2', path: ['fizz'] },
@@ -55,10 +59,14 @@ describe.skip(`operations.extract`, () => {
           outbound: [
             { id: '2', path: ['bar'] },
           ],
-          data: { id: 1, name: 'Foo' },
+          data: {
+            id: 1,
+            name: 'Foo',
+            bar: undefined,
+          },
         },
         '2': {
-          type: Serializeable.NodeSnapshotType.EntitySnapshot,
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [
             { id: '1', path: ['bar'] },
             { id: '2', path: ['buzz'] },
@@ -67,7 +75,12 @@ describe.skip(`operations.extract`, () => {
             { id: '1', path: ['fizz'] },
             { id: '2', path: ['buzz'] },
           ],
-          data: { id: 2, name: 'Bar' },
+          data: {
+            id: 2,
+            name: 'Bar',
+            fizz: undefined,
+            buzz: undefined,
+          },
         },
       });
     });
