@@ -25,6 +25,7 @@ describe(`operations.extract`, () => {
                   threeValue: 'second',
                 },
               },
+              null,
             ],
           },
         },
@@ -70,6 +71,7 @@ describe(`operations.extract`, () => {
                 threeValue: 'second',
               },
             },
+            null,
           ],
         },
       });

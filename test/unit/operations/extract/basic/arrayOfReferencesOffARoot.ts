@@ -21,6 +21,7 @@ describe(`operations.extract`, () => {
               id: 456,
               name: 'Brie',
             },
+            null,
           ],
         },
         `{ viewer { id name } }`,
@@ -39,7 +40,7 @@ describe(`operations.extract`, () => {
             { id: '456', path: ['viewer', 1] },
           ],
           data: {
-            viewer: [undefined, undefined],
+            viewer: [undefined, undefined, null],
           },
         },
         '123': {

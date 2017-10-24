@@ -27,6 +27,7 @@ describe(`operations.extract`, () => {
                   extra: true,
                 },
               },
+              null,
             ],
           },
         },
@@ -67,7 +68,7 @@ describe(`operations.extract`, () => {
           ],
           data: {
             one: {
-              two: [undefined, undefined],
+              two: [undefined, undefined, null],
             },
           },
         },

@@ -29,6 +29,7 @@ describe(`operations.extract`, () => {
                   extraValue: '31-42',
                 },
               },
+              null,
             ],
           },
         },
@@ -70,7 +71,7 @@ describe(`operations.extract`, () => {
           ],
           data: {
             one: {
-              two: [undefined, undefined],
+              two: [undefined, undefined, null],
             },
           },
         },

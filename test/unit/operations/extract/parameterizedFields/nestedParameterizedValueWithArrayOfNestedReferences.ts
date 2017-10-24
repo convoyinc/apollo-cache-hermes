@@ -27,6 +27,7 @@ describe(`operations.extract`, () => {
                   four: { five: 1 },
                 },
               },
+              null,
             ],
           },
         },
@@ -80,7 +81,7 @@ describe(`operations.extract`, () => {
             { id: '31', path: [0, 'three'] },
             { id: '32', path: [1, 'three'] },
           ],
-          data: [{ three: undefined }, { three: undefined }],
+          data: [{ three: undefined }, { three: undefined }, null],
         },
         '31': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,

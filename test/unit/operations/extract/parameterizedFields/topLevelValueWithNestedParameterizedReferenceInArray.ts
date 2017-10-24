@@ -30,6 +30,7 @@ describe.skip(`operations.extract`, () => {
                   extraValue: '31-42',
                 },
               },
+              null,
             ],
           },
         },
@@ -73,7 +74,7 @@ describe.skip(`operations.extract`, () => {
           data: {
             one: {
               four: 'FOUR',
-              two: [undefined, undefined],
+              two: [undefined, undefined, null],
             },
           },
         },

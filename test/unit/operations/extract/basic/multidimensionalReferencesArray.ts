@@ -20,6 +20,7 @@ describe(`operations.extract`, () => {
             [
               { id: 'c', value: 3 },
               { id: 'd', value: 4 },
+              null,
             ],
           ],
         },
@@ -54,6 +55,7 @@ describe(`operations.extract`, () => {
               [
                 undefined,
                 undefined,
+                null,
               ],
             ],
           },
