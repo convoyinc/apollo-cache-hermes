@@ -5,7 +5,7 @@ import { createOriginalGraphSnapshot, strictCacheContext } from '../../../../hel
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.extract`, () => {
-  describe(`new array of values hanging off of a root`, () => {
+  describe(`2d array of references hanging off of a root`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
