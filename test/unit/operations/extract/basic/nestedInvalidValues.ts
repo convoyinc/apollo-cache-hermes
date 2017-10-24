@@ -1,7 +1,7 @@
 import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { extract } from '../../../../../src/operations/extract';
-import { createOriginalGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
+import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
 
 describe(`operations.extract`, () => {
   describe(`invalid values`, () => {
@@ -9,7 +9,7 @@ describe(`operations.extract`, () => {
     let snapshot: GraphSnapshot, cacheContext: CacheContext;
     beforeAll(() => {
       cacheContext = createStrictCacheContext();
-      snapshot = createOriginalGraphSnapshot(
+      snapshot = createGraphSnapshot(
         {
           nestedInvalid: {
             nan: NaN,

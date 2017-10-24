@@ -1,7 +1,7 @@
 import { extract } from '../../../../../src/operations/extract';
 import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
 import { Serializable, StaticNodeId } from '../../../../../src/schema';
-import { createOriginalGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
+import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -11,7 +11,7 @@ describe(`operations.extract`, () => {
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
       const cacheContext = createStrictCacheContext();
-      const snapshot = createOriginalGraphSnapshot(
+      const snapshot = createGraphSnapshot(
         {
           foo: null,
         },

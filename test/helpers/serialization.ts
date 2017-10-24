@@ -6,10 +6,10 @@ import { NodeId } from '../../src/schema';
 import { createSnapshot } from './write';
 
 /**
- * Helper for testing extract and restore functions
+ * Helper for creating graphSnapshot used by
+ * extract or restore function.
  */
-
-export function createOriginalGraphSnapshot(
+export function createGraphSnapshot(
   payload: JsonObject,
   gqlString: string,
   cacheContext: CacheContext,
