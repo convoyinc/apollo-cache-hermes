@@ -9,6 +9,7 @@ describe(`operations.extract`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
+      const cacheContext = createStrictCacheContext();
       const snapshot = createOriginalGraphSnapshot(
         {
           viewer: [
@@ -22,10 +23,11 @@ describe(`operations.extract`, () => {
             },
           ],
         },
-        `{ viewer { id name } }`
+        `{ viewer { id name } }`,
+        cacheContext
       );
 
-      extractResult = extract(snapshot, createStrictCacheContext());
+      extractResult = extract(snapshot, cacheContext);
     });
 
     it(`extracts JSON serializable object`, () => {

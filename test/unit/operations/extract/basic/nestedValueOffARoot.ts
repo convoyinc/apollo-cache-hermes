@@ -9,6 +9,7 @@ describe(`operations.extract`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
+      const cacheContext = createStrictCacheContext();
       const snapshot = createOriginalGraphSnapshot(
         {
           bar: {
@@ -28,10 +29,11 @@ describe(`operations.extract`, () => {
             prop2
             prop3
           }
-        }`
+        }`,
+        cacheContext
       );
 
-      extractResult = extract(snapshot, createStrictCacheContext());
+      extractResult = extract(snapshot, cacheContext);
     });
 
     it(`extracts JSON serialization object`, () => {

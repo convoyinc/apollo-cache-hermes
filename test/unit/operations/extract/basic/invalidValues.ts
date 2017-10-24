@@ -1,3 +1,4 @@
+import { CacheContext } from '../../../../../src/context/index';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { extract } from '../../../../../src/operations/extract';
 import { createOriginalGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
@@ -5,20 +6,22 @@ import { createOriginalGraphSnapshot, createStrictCacheContext } from '../../../
 describe(`operations.extract`, () => {
   describe(`invalid values`, () => {
 
-    let snapshot: GraphSnapshot;
+    let snapshot: GraphSnapshot, cacheContext: CacheContext;
     beforeAll(() => {
+      cacheContext = createStrictCacheContext();
       snapshot = createOriginalGraphSnapshot(
         { nan: NaN, func: (() => {}) as any },
         `{
           nan
           func
-        }`
+        }`,
+        cacheContext
       );
     });
 
     it(`throws error when extracting invalid values`, () => {
       expect(() => {
-        extract(snapshot, createStrictCacheContext());
+        extract(snapshot, cacheContext);
       }).to.throw(/unserializable/i);
     });
 

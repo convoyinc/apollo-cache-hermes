@@ -20,7 +20,8 @@ describe(`operations.extract`, () => {
 
     it(`throws error when extracting invalid NodeSnapshot type`, () => {
       expect(() => {
-        extract(snapshot, createStrictCacheContext());
+        const cacheContext = createStrictCacheContext();
+        extract(snapshot, cacheContext);
       }).to.throw(/Serializable.NodeSnapshotType/i);
     });
 
