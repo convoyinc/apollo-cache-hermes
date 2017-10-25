@@ -1,6 +1,6 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 import lodashIsArray = require('lodash.isarray');
-import lodashIsPlainObject = require('lodash.isplainobject');;
+import lodashIsPlainObject = require('lodash.isplainobject');
 
 import { QueryInfo } from './context';
 import { NodeReference } from './nodes';
