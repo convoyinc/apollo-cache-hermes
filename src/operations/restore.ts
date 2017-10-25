@@ -69,12 +69,15 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
         // We will remove null to re-create a sparse array.
         const indexToArrayIndex = _.findIndex(path, isNumber);
         if (indexToArrayIndex !== -1) {
+          // Get the reference to an array
           const pathToArrayData = path.slice(0, indexToArrayIndex);
           const arrayData = _.get(data, pathToArrayData);
+
           if (Array.isArray(arrayData)) {
             delete arrayData[path[indexToArrayIndex]];
           } else {
             // We report an error if we receive incorrect serialized result
+            // as we expect an array at this path.
             cacheContext.error(`Expect an array at following path [${pathToArrayData}] from serialized object at nodeID ${nodeId}`);
           }
         }
