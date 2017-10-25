@@ -64,6 +64,7 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
         // This is specifically to handle a sparse array which happen
         // when each element in the array reference data in a
         // ParameterizedValueSnapshot.
+        // (see: parameterizedFields/nestedParameterizedReferenceInArray.ts)
         // When we do extraction of sparse array, we will represent
         // each hole in the array as null.
         // We will remove null to re-create a sparse array.
