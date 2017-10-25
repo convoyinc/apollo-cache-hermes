@@ -17,5 +17,5 @@ export function isNil(value: any): value is nil {
 }
 
 export function isNumber(element: any): element is Number {
-  return !Number.isNaN(element) && typeof element === 'number';
+  return typeof element === 'number' && !Number.isNaN(element);
 }
