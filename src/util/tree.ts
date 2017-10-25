@@ -1,14 +1,9 @@
-/**
- * @fileoverview
- *
- * Several specialized tree walkers for cache operations.
- */
-
 import { // eslint-disable-line import/no-extraneous-dependencies
   DocumentNode,
   FieldNode,
   SelectionSetNode,
 } from 'graphql';
+import lodashIsArray = require('lodash.isarray');
 
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 
@@ -46,7 +41,7 @@ export function walkOperation(document: DocumentNode, result: JsonObject | undef
     if (parent === null) continue;
 
     // Fan-out for arrays.
-    if (Array.isArray(parent)) {
+    if (lodashIsArray(parent)) {
       // Push in reverse purely for ergonomics: they'll be pulled off in order.
       for (let i = parent.length - 1; i >= 0; i--) {
         stack.push(new OperationWalkNode(selectionSet, parent[i]));
