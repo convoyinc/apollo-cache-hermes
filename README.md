@@ -10,7 +10,7 @@ _This is very much a work in progress!_ It currently meets most of our needs int
 
 ## What Makes It Different?
 
-This cache maintains an immutable & normalized _graph_ of the values received from your GraphQL server.  It enables the cache to return _direct references_ to the cache, in order to satisfy queries<sup>1</sup>.  As a result, reads from the cache require minimal work (and can be optimized to constant time lookups in some cases).
+This cache maintains an immutable & normalized _graph_ of the values received from your GraphQL server.  It enables the cache to return _direct references_ to the cache, in order to satisfy queries<sup>1</sup>.  As a result, reads from the cache require minimal work (and can be optimized to constant time lookups in some cases).  The tradeoff is that rather than receiving only the fields selected by a GraphQL query, there may be additional fields.
 
 This is in contrast to the built in cache for Apollo (and Relay), which maintain a normalized _map_ of values.  The unfortunate reality of those caches is that read operations impose _considerable_ overhead (in CPU and memory) in order to build a result payload.  See [the motivation behind this cache](https://github.com/convoyinc/apollo-cache-hermes/blob/master/docs/Motivation.md), as well as [the design exploration](https://github.com/convoyinc/apollo-cache-hermes/blob/master/docs/Design%20Exploration.md) for a deeper discussion.
 
