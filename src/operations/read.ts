@@ -1,4 +1,5 @@
 import lodashGet = require('lodash.get');
+import lodashIsArray = require('lodash.isarray');
 
 import { ParsedQuery } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
@@ -121,13 +122,13 @@ export function _walkAndOverlayDynamicValues(
         let childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
         let childSnapshot = snapshot.getNodeSnapshot(childId);
         if (!childSnapshot) {
-          let typeName = value.__typename;
+          let typeName = value.__typename as string;
           if (!typeName && containerId === StaticNodeId.QueryRoot) {
             typeName = 'Query'; // Preserve the default cache's behavior.
           }
 
           // Should we fall back to a redirect?
-          const redirect = lodashGet(context.resolverRedirects, [typeName, fieldName]) as CacheContext.ResolverRedirect | undefined;
+          const redirect: CacheContext.ResolverRedirect | undefined = lodashGet(context.resolverRedirects, [typeName, fieldName]) as any;
           if (redirect) {
             childId = redirect(node.args);
             if (!isNil(childId)) {
@@ -146,7 +147,7 @@ export function _walkAndOverlayDynamicValues(
 
       // Have we reached a leaf (either in the query, or in the cache)?
       if (node.hasParameterizedChildren && node.children && child !== null) {
-        if (Array.isArray(child)) {
+        if (lodashIsArray(child)) {
           child = [...child];
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
@@ -171,7 +172,7 @@ export function _walkAndOverlayDynamicValues(
 
 function _wrapValue(value: JsonValue | undefined, context: CacheContext): any {
   if (value === undefined) return {};
-  if (Array.isArray(value)) return [...value];
+  if (lodashIsArray(value)) return [...value];
   if (isObject(value)) {
     const newValue = { ...value };
     if (context.entityTransformer && context.entityIdForValue(value)) {

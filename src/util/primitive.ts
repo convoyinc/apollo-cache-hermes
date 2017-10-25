@@ -1,3 +1,5 @@
+import lodashIsArray = require('lodash.isarray');
+
 import { JsonObject, nil, scalar } from '../primitive';
 
 export function isScalar(value: any): value is scalar {
@@ -5,11 +7,11 @@ export function isScalar(value: any): value is scalar {
 }
 
 export function isObject(value: any): value is JsonObject {
-  return value !== null && typeof value === 'object' && !Array.isArray(value);
+  return value !== null && typeof value === 'object' && !lodashIsArray(value);
 }
 
 export function isObjectOrNull(value: any): value is JsonObject | null {
-  return typeof value === 'object' && !Array.isArray(value);
+  return typeof value === 'object' && !lodashIsArray(value);
 }
 
 export function isNil(value: any): value is nil {
