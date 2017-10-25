@@ -59,6 +59,9 @@ export function extract(graphSnapshot: GraphSnapshot, cacheContext: CacheContext
 
 function extractSerializableData(graphSnapshot: GraphSnapshot, nodeSnapshot: NodeSnapshot): NestedValue<JsonValue | undefined> {
   // If there is no outbound, then data is a value
+  // 'data' can also be undefined or null even though there exist an
+  // outbound reference (e.g referencing ParameterizedValueSnapshot).
+  // We can simply skip extraction of such data.
   if (!nodeSnapshot.outbound || !nodeSnapshot.data) {
     return nodeSnapshot.data;
   }
