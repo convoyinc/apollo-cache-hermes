@@ -23,17 +23,28 @@ for i in "${!FILES[@]}"; do
 done
 
 OPTIONS=(
-  --maxWorkers=2 --config ./test/unit/jest.json
+  --config ./test/unit/jest.json
 )
+DEBUGGING=false
+
 # Jest doesn't handle debugger flags directly.
 NODE_OPTIONS=()
 for option in "${OPTIONS_FLAGS[@]}"; do
-  if [[ "${option}" =~ ^--(inspect|debug-brk|nolazy) ]]; then
+  if [[ "${option}" =~ ^--(inspect|debug-brk) ]]; then
+    DEBUGGING=true
+    NODE_OPTIONS+=("${option}")
+  elif [[ "${option}" =~ ^--(nolazy) ]]; then
     NODE_OPTIONS+=("${option}")
   else
     OPTIONS+=("${option}")
   fi
 done
+
+# --runInBand and --maxWorkers can't work together
+# only set --maxWorkers if we are not debugging and vice versa
+if [ "$DEBUGGING" == false ]; then
+  OPTIONS+=("--maxWorkers=2")
+fi
 
 # For jest-junit
 export JEST_SUITE_NAME="test-unit"
