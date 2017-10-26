@@ -1,5 +1,5 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
-import * as _ from 'lodash'; // eslint-disable-line import/no-extraneous-dependencies
+import lodashIsPlainObject = require('lodash.isplainobject');
 
 import { QueryInfo } from './context';
 import { NodeReference } from './nodes';
@@ -108,7 +108,7 @@ export namespace Serializable {
       return allowUndefined ? !isNaNValue : !isNaNValue && value !== undefined;
     }
 
-    if (_.isPlainObject(value)) {
+    if (lodashIsPlainObject(value)) {
       for (const propName of Object.getOwnPropertyNames(value)) {
         if (!isSerializable(value[propName], allowUndefined)) {
           return false;
@@ -117,7 +117,7 @@ export namespace Serializable {
       return true;
     }
 
-    if (_.isArray(value)) {
+    if (Array.isArray(value)) {
       for (const element of value) {
         if (!isSerializable(element, allowUndefined)) {
           return false;
