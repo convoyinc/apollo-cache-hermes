@@ -1,4 +1,5 @@
-import * as _ from 'lodash';  // eslint-disable-line import/no-extraneous-dependencies
+import lodashSet = require('lodash.set');
+import lodashFindIndex = require('lodash.findindex');
 
 import { CacheContext } from '../context';
 import { GraphSnapshot, GraphSnapshotNodesMap } from '../GraphSnapshot';
@@ -80,15 +81,15 @@ function restoreReferenceInDataProperty(nodesMap: GraphSnapshotNodesMap, cacheCo
         // When we do extraction of sparse array, we will represent
         // each hole in the array as null.
         // We will remove null to re-create a sparse array.
-        const indexToArrayIndex = _.findIndex(path, isNumber);
+        const indexToArrayIndex = lodashFindIndex(path, isNumber);
         if (indexToArrayIndex !== -1) {
           // Get the reference to an array
           const pathToSetValue = path.slice(0, indexToArrayIndex + 1);
 
-          _.set(data as object, pathToSetValue, undefined);
+          lodashSet(data as object, pathToSetValue, undefined);
         }
-      } else if (Array.isArray(data) || _.isPlainObject(data)) {
-        _.set(data as object, path, referenceNode.data);
+      } else if (Array.isArray(data) || isObject(data)) {
+        lodashSet(data, path, referenceNode.data);
       }
     }
   }
