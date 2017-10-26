@@ -5,11 +5,11 @@ import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
-import { QueryObserver, read } from './operations';
+import { extract, QueryObserver, read, restore } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, RawOperation } from './schema';
+import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
 
@@ -40,12 +40,15 @@ export class Cache implements Queryable {
     return this._context.transformDocument(document);
   }
 
-  restore(data: GraphSnapshot): Cache {
-    throw new Error('restore() is not implemented on Cache');
+  restore(data: Serializable.GraphSnapshot) {
+    this._snapshot.baseline = restore(data, this._context);
   }
 
-  extract() {
-    throw new Error('extract() is not implemented on Cache');
+  extract(optimistic: boolean): Serializable.GraphSnapshot {
+    if (optimistic) {
+      return extract(this._snapshot.optimistic, this._context);
+    }
+    return extract(this._snapshot.baseline, this._context);
   }
 
   evict(query: RawOperation): { success: boolean } {
