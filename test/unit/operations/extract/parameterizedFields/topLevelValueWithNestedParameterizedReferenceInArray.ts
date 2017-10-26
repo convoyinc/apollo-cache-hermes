@@ -5,7 +5,7 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.extract`, () => {
+describe(`operations.extract`, () => {
   describe(`top-level values wtih nested parameterized value`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
@@ -82,10 +82,11 @@ describe.skip(`operations.extract`, () => {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 0, 'three'] }],
           outbound: [{ id: '30', path: [] }],
+          data: null,
         },
         '30': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [],
+          inbound: [{ id: parameterizedId0, path: [] }],
           data: {
             id: '30',
             name: 'Three0',
@@ -96,6 +97,7 @@ describe.skip(`operations.extract`, () => {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
           outbound: [{ id: '31', path: [] }],
+          data: null,
         },
         '31': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
