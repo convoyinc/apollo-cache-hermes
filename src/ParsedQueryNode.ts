@@ -1,5 +1,4 @@
 import { isEqual, valueFromNode } from 'apollo-utilities';
-import lodashIsArray = require('lodash.isarray');
 import { // eslint-disable-line import/no-extraneous-dependencies
   ArgumentNode,
   SelectionSetNode,
@@ -290,7 +289,7 @@ export function _expandArgument(
       throw new Error(`Expected variable $${arg.name} to exist for query`);
     }
     return variables[arg.name];
-  } else if (lodashIsArray(arg)) {
+  } else if (Array.isArray(arg)) {
     return arg.map(v => _expandArgument(v, variables));
   } else if (isObject(arg)) {
     const expanded = {};
