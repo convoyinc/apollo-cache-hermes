@@ -1,5 +1,4 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
-import lodashIsArray = require('lodash.isarray');
 import lodashIsPlainObject = require('lodash.isplainobject');
 
 import { QueryInfo } from './context';
@@ -118,7 +117,7 @@ export namespace Serializable {
       return true;
     }
 
-    if (lodashIsArray(value)) {
+    if (Array.isArray(value)) {
       for (const element of value) {
         if (!isSerializable(element, allowUndefined)) {
           return false;
