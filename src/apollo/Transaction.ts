@@ -8,7 +8,7 @@ import { ApolloQueryable } from './Queryable';
 /**
  * Apollo-specific transaction interface.
  */
-export class ApolloTransaction extends ApolloQueryable implements ApolloCache<GraphSnapshot> {
+export class ApolloTransaction extends ApolloQueryable<GraphSnapshot> {
 
   constructor(
     /** The underlying transaction. */

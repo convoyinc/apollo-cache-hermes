@@ -1,4 +1,4 @@
-import { Cache, DataProxy } from 'apollo-cache';
+import { ApolloCache, Cache, DataProxy } from 'apollo-cache';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 
 import { JsonObject } from '../primitive';
@@ -9,7 +9,7 @@ import { toQuery } from './util';
 /**
  * Apollo-specific interface to the cache.
  */
-export abstract class ApolloQueryable implements DataProxy {
+export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerialized> {
   /** The underlying Hermes cache. */
   protected abstract _queryable: Queryable;
 

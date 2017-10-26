@@ -15,7 +15,7 @@ import { toQuery } from './util';
 /**
  * Apollo-specific interface to the cache.
  */
-export class Hermes extends ApolloQueryable implements ApolloCache<GraphSnapshot> {
+export class Hermes extends ApolloQueryable<GraphSnapshot> {
   /** The underlying Hermes cache. */
   protected _queryable: Cache;
 
