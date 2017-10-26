@@ -121,13 +121,13 @@ export function _walkAndOverlayDynamicValues(
         let childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
         let childSnapshot = snapshot.getNodeSnapshot(childId);
         if (!childSnapshot) {
-          let typeName = value.__typename;
+          let typeName = value.__typename as string;
           if (!typeName && containerId === StaticNodeId.QueryRoot) {
             typeName = 'Query'; // Preserve the default cache's behavior.
           }
 
           // Should we fall back to a redirect?
-          const redirect = lodashGet(context.resolverRedirects, [typeName, fieldName]) as CacheContext.ResolverRedirect | undefined;
+          const redirect: CacheContext.ResolverRedirect | undefined = lodashGet(context.resolverRedirects, [typeName, fieldName]) as any;
           if (redirect) {
             childId = redirect(node.args);
             if (!isNil(childId)) {
