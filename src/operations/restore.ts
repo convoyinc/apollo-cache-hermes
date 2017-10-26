@@ -19,11 +19,11 @@ import { isNumber, isObject } from '../util';
  *    different sub-class of NodeSnapshot.
  */
 export function restore(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshot {
-  const _values = createValuesOfGraphSnapshot(serializedState, cacheContext);
+  const _values = createGraphSnapshotNodes(serializedState, cacheContext);
   return new GraphSnapshot(_values);
 }
 
-function createValuesOfGraphSnapshot(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshotNodesMap {
+function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshotNodesMap {
   const nodesMap: GraphSnapshotNodesMap = Object.create(null);
 
   // Create entity nodes in the GraphSnapshot
@@ -46,12 +46,12 @@ function createValuesOfGraphSnapshot(serializedState: Serializable.GraphSnapshot
   }
 
   // Patch data property and reconstruct references
-  restoreReferenceInDataProperty(nodesMap, cacheContext);
+  restoreEntityReferences(nodesMap, cacheContext);
 
   return nodesMap;
 }
 
-function restoreReferenceInDataProperty(nodesMap: GraphSnapshotNodesMap, cacheContext: CacheContext) {
+function restoreEntityReferences(nodesMap: GraphSnapshotNodesMap, cacheContext: CacheContext) {
   const { entityTransformer, entityIdForValue } = cacheContext;
 
   for (const nodeId in nodesMap) {
