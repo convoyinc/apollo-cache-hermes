@@ -83,16 +83,9 @@ function restoreReferenceInDataProperty(nodesMap: GraphSnapshotNodesMap, cacheCo
         const indexToArrayIndex = _.findIndex(path, isNumber);
         if (indexToArrayIndex !== -1) {
           // Get the reference to an array
-          const pathToArrayData = path.slice(0, indexToArrayIndex);
-          const arrayData = _.get(data, pathToArrayData);
+          const pathToSetValue = path.slice(0, indexToArrayIndex + 1);
 
-          if (Array.isArray(arrayData)) {
-            delete arrayData[path[indexToArrayIndex]];
-          } else {
-            // We report an error if we receive incorrect serialized result
-            // as we expect an array at this path.
-            cacheContext.error(`Expect an array at following path [${pathToArrayData}] from serialized object at nodeID ${nodeId}`);
-          }
+          _.set(data as object, pathToSetValue, undefined);
         }
       } else if (Array.isArray(data) || _.isPlainObject(data)) {
         _.set(data as object, path, referenceNode.data);
