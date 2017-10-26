@@ -1,17 +1,31 @@
-import { extract } from '../../../../../src/operations/extract';
+import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
+import { EntitySnapshot, ParameterizedValueSnapshot } from '../../../../../src/nodes';
+import { restore } from '../../../../../src/operations';
 import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
 import { Serializable, StaticNodeId } from '../../../../../src/schema';
 import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`operations.extract`, () => {
-  describe(`top-level values wtih nested parameterized value`, () => {
+describe.skip(`operations.restore`, () => {
+  describe(`top-level values wtih nested parameterized value in an array`, () => {
 
-    let extractResult: Serializable.GraphSnapshot;
+    const parameterizedId0 = nodeIdForParameterizedValue(
+      QueryRootId,
+      ['one', 'two', 0, 'three'],
+      { id: 1, withExtra: true }
+    );
+
+    const parameterizedId1 = nodeIdForParameterizedValue(
+      QueryRootId,
+      ['one', 'two', 1, 'three'],
+      { id: 1, withExtra: true }
+    );
+
+    let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
     beforeAll(() => {
       const cacheContext = createStrictCacheContext();
-      const snapshot = createGraphSnapshot(
+      originalGraphSnapshot = createGraphSnapshot(
         {
           one: {
             four: 'FOUR',
@@ -48,23 +62,7 @@ describe(`operations.extract`, () => {
         { id: 1 }
       );
 
-      extractResult = extract(snapshot, cacheContext);
-    });
-
-    it(`extracts JSON serialization object`, () => {
-      const parameterizedId0 = nodeIdForParameterizedValue(
-        QueryRootId,
-        ['one', 'two', 0, 'three'],
-        { id: 1, withExtra: true }
-      );
-
-      const parameterizedId1 = nodeIdForParameterizedValue(
-        QueryRootId,
-        ['one', 'two', 1, 'three'],
-        { id: 1, withExtra: true }
-      );
-
-      expect(extractResult).to.deep.eq({
+      restoreGraphSnapshot = restore({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [
@@ -74,7 +72,7 @@ describe(`operations.extract`, () => {
           data: {
             one: {
               four: 'FOUR',
-              two: [undefined, undefined, null],
+              two: [null, null, null],
             },
           },
         },
@@ -108,7 +106,19 @@ describe(`operations.extract`, () => {
             extraValue: '31-42',
           },
         },
-      });
+      }, cacheContext);
+    });
+
+    it(`restores GraphSnapshot from JSON serializable object`, () => {
+      expect(restoreGraphSnapshot).to.deep.eq(originalGraphSnapshot);
+    });
+
+    it(`correctly restores different types of NodeSnapshot`, () => {
+      expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot(parameterizedId0)).to.be.an.instanceof(ParameterizedValueSnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot('30')).to.be.an.instanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot(parameterizedId1)).to.be.an.instanceof(ParameterizedValueSnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot('31')).to.be.an.instanceOf(EntitySnapshot);
     });
 
   });

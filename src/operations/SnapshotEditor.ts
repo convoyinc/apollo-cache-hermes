@@ -1,6 +1,5 @@
 import { isEqual } from 'apollo-utilities';
 import deepFreeze = require('deep-freeze-strict');
-import lodashIsArray = require('lodash.isarray');
 
 import { CacheContext } from '../context';
 import { InvalidPayloadError, OperationError } from '../errors';
@@ -156,11 +155,11 @@ export class SnapshotEditor {
     const previousValue = deepGet(this._getNodeData(containerId), path);
 
     // Recurse into arrays.
-    if (lodashIsArray(payload) || lodashIsArray(previousValue)) {
-      if (!isNil(previousValue) && !lodashIsArray(previousValue)) {
+    if (Array.isArray(payload) || Array.isArray(previousValue)) {
+      if (!isNil(previousValue) && !Array.isArray(previousValue)) {
         throw new InvalidPayloadError(`Unsupported transition from a non-list to list value`, prefixPath, containerId, path, payload);
       }
-      if (!isNil(payload) && !lodashIsArray(payload)) {
+      if (!isNil(payload) && !Array.isArray(payload)) {
         throw new InvalidPayloadError(`Unsupported transition from a list to a non-list value`, prefixPath, containerId, path, payload);
       }
 
@@ -349,7 +348,7 @@ export class SnapshotEditor {
     //
     // So, we resize the array to our desired size before walking.
     if (payloadLength !== previousLength || !previousValue) {
-      const newArray = lodashIsArray(previousValue)
+      const newArray = Array.isArray(previousValue)
         ? previousValue.slice(0, payloadLength) : new Array(payloadLength);
       this._setValue(containerId, path, newArray);
 
