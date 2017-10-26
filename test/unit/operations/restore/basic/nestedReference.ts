@@ -84,11 +84,11 @@ describe.skip(`operations.restore`, () => {
     });
 
     it(`correctly restore NodeSnapshot, entity transformation on specific entity`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('0'))).to.include.all.keys(['getValue', 'getId']);
+      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('0'))).to.be.an.instanceOf(Three);
     });
 
     it(`correctly restore NodeSnapshot, no entity transformation on QueryRootId`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData(QueryRootId))).to.not.include.all.keys(['getValue', 'getId']);
+      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData(QueryRootId))).to.not.be.an.instanceOf(Three);
     });
 
   });

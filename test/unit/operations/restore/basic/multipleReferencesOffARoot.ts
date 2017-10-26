@@ -132,12 +132,13 @@ describe.skip(`operations.restore`, () => {
     });
 
     it(`correctly restore NodeSnapshot, entity transformation on specific entity`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('123'))).to.include.all.keys(['getName', 'getId', 'isBarInstance']);
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('456'))).to.include.all.keys(['getName', 'getId', 'isFooInstance']);
+      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('123'))).to.be.an.instanceOf(Bar);
+      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('456'))).to.be.an.instanceOf(Foo);
     });
 
     it(`correctly restore NodeSnapshot, no entity transformation on QueryRootId`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData(QueryRootId))).to.not.include.all.keys(['getName', 'getId']);
+      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData(QueryRootId))).to.not.be.an.instanceOf(Bar);
+      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData(QueryRootId))).to.not.be.an.instanceOf(Foo);
     });
 
   });
