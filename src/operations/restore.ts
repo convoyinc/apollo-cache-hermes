@@ -1,7 +1,7 @@
 import * as _ from 'lodash';  // eslint-disable-line import/no-extraneous-dependencies
 
 import { CacheContext } from '../context';
-import { GraphSnapshot } from '../GraphSnapshot';
+import { GraphSnapshot, GraphSnapshotNodesMap } from '../GraphSnapshot';
 import { NodeSnapshot, EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonObject, JsonValue } from '../primitive';
 import { Serializable } from '../schema';
@@ -18,8 +18,13 @@ import { isNumber, isObject } from '../util';
  *    different sub-class of NodeSnapshot.
  */
 export function restore(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshot {
-  const graphSnapshot = new GraphSnapshot();
+  const _values = createValuesOfGraphSnapshot(serializedState, cacheContext);
+  return new GraphSnapshot(_values);
+}
+
+function createValuesOfGraphSnapshot(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshotNodesMap {
   const { entityTransformer, entityIdForValue } = cacheContext;
+  const _values: GraphSnapshotNodesMap = Object.create(null);
 
   // Create entity nodes in the GraphSnapshot
   for (const nodeId in serializedState) {
@@ -37,12 +42,12 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
         throw new Error(`Invalid Serializable.NodeSnapshotType ${type} at ${nodeId}`);
     }
 
-    graphSnapshot._values[nodeId] = nodeSnapshot!;
+    _values[nodeId] = nodeSnapshot!;
   }
 
   // Patch data property and reconstruct references
-  for (const nodeId in graphSnapshot._values) {
-    const { data, outbound } = graphSnapshot._values[nodeId];
+  for (const nodeId in _values) {
+    const { data, outbound } = _values[nodeId];
 
     if (entityTransformer && isObject(data) && entityIdForValue(data)) {
       entityTransformer(data);
@@ -56,10 +61,10 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
     }
 
     for (const { id: referenceId, path } of outbound) {
-      const referenceNode = graphSnapshot._values[referenceId];
+      const referenceNode = _values[referenceId];
       if (data === null) {
         // data itsels is a reference.
-        graphSnapshot._values[nodeId].data = referenceNode.data;
+        _values[nodeId].data = referenceNode.data;
       } else if (referenceNode instanceof ParameterizedValueSnapshot) {
         // This is specifically to handle a sparse array which happen
         // when each element in the array reference data in a
@@ -87,6 +92,5 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
       }
     }
   }
-
-  return graphSnapshot;
+  return _values;
 }
