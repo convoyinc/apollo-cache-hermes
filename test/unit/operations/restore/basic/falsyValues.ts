@@ -1,3 +1,4 @@
+import { CacheContext } from '../../../../../src/context/CacheContext';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../../src/nodes';
 import { restore } from '../../../../../src/operations';
@@ -9,15 +10,9 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 describe.skip(`operations.restore`, () => {
   describe(`falsy values`, () => {
 
-    let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
+    let restoreGraphSnapshot: GraphSnapshot, cacheContext: CacheContext;
     beforeAll(() => {
-      const cacheContext = createStrictCacheContext();
-      originalGraphSnapshot = createGraphSnapshot(
-        { null: null, false: false, zero: 0, string: '' },
-        `{ null, false, zero, string }`,
-        cacheContext
-      );
-
+      cacheContext = createStrictCacheContext();
       restoreGraphSnapshot = restore({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
@@ -27,6 +22,11 @@ describe.skip(`operations.restore`, () => {
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
+      const originalGraphSnapshot = createGraphSnapshot(
+        { null: null, false: false, zero: 0, string: '' },
+        `{ null, false, zero, string }`,
+        cacheContext
+      );
       expect(restoreGraphSnapshot).to.deep.eq(originalGraphSnapshot);
     });
 
