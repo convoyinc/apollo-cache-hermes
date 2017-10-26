@@ -7,7 +7,7 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`top-level values wtih nested parameterized value in an array`, () => {
 
     const parameterizedId0 = nodeIdForParameterizedValue(

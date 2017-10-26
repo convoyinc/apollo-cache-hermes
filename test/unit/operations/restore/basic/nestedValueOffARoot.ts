@@ -6,7 +6,7 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`nested values hanging off of a root`, () => {
 
     let restoreGraphSnapshot: GraphSnapshot, originalSnapshot: GraphSnapshot;

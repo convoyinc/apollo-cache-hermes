@@ -6,7 +6,7 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../helpers'
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`duplicate GraphSnapshot`, () => {
 
     let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
