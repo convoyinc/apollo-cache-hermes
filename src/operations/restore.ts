@@ -57,7 +57,7 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
 
     for (const { id: referenceId, path } of outbound) {
       const referenceNode = graphSnapshot._values[referenceId];
-      if (path.length === 0) {
+      if (data === null) {
         // data itsels is a reference.
         graphSnapshot._values[nodeId].data = referenceNode.data;
       } else if (referenceNode instanceof ParameterizedValueSnapshot) {
@@ -82,8 +82,8 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
             cacheContext.error(`Expect an array at following path [${pathToArrayData}] from serialized object at nodeID ${nodeId}`);
           }
         }
-      } else {
-        _.set(data, path, referenceNode.data);
+      } else if (Array.isArray(data) || _.isPlainObject(data)) {
+        _.set(data as object, path, referenceNode.data);
       }
     }
   }
