@@ -30,10 +30,10 @@ DEBUGGING=false
 # Jest doesn't handle debugger flags directly.
 NODE_OPTIONS=()
 for option in "${OPTIONS_FLAGS[@]}"; do
-  if [[ "${option}" =~ ^--(debug-brk) ]]; then
+  if [[ "${option}" =~ ^--(inspect|debug-brk) ]]; then
     DEBUGGING=true
     NODE_OPTIONS+=("${option}")
-  elif [[ "${option}" =~ ^--(inspect|nolazy) ]]; then
+  elif [[ "${option}" =~ ^--(nolazy) ]]; then
     NODE_OPTIONS+=("${option}")
   else
     OPTIONS+=("${option}")
