@@ -7,7 +7,7 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe.skip(`operations.restore`, () => {
-  describe(`2d array of values hanging off of a root`, () => {
+  describe(`2d array of parameterized references`, () => {
 
     let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
     beforeAll(() => {
