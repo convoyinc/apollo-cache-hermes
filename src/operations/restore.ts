@@ -23,8 +23,7 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
 }
 
 function createValuesOfGraphSnapshot(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshotNodesMap {
-  const { entityTransformer, entityIdForValue } = cacheContext;
-  const _values: GraphSnapshotNodesMap = Object.create(null);
+  const nodesMap: GraphSnapshotNodesMap = Object.create(null);
 
   // Create entity nodes in the GraphSnapshot
   for (const nodeId in serializedState) {
@@ -42,13 +41,21 @@ function createValuesOfGraphSnapshot(serializedState: Serializable.GraphSnapshot
         throw new Error(`Invalid Serializable.NodeSnapshotType ${type} at ${nodeId}`);
     }
 
-    _values[nodeId] = nodeSnapshot!;
+    nodesMap[nodeId] = nodeSnapshot!;
   }
 
   // Patch data property and reconstruct references
-  for (const nodeId in _values) {
-    const { data, outbound } = _values[nodeId];
+  restoreReferenceInDataProperty(nodesMap, cacheContext);
 
+  return nodesMap;
+}
+
+function restoreReferenceInDataProperty(nodesMap: GraphSnapshotNodesMap, cacheContext: CacheContext) {
+  const { entityTransformer, entityIdForValue } = cacheContext;
+
+  for (const nodeId in nodesMap) {
+
+    const { data, outbound } = nodesMap[nodeId];
     if (entityTransformer && isObject(data) && entityIdForValue(data)) {
       entityTransformer(data);
     }
@@ -61,10 +68,10 @@ function createValuesOfGraphSnapshot(serializedState: Serializable.GraphSnapshot
     }
 
     for (const { id: referenceId, path } of outbound) {
-      const referenceNode = _values[referenceId];
+      const referenceNode = nodesMap[referenceId];
       if (data === null) {
         // data itsels is a reference.
-        _values[nodeId].data = referenceNode.data;
+        nodesMap[nodeId].data = referenceNode.data;
       } else if (referenceNode instanceof ParameterizedValueSnapshot) {
         // This is specifically to handle a sparse array which happen
         // when each element in the array reference data in a
@@ -92,5 +99,4 @@ function createValuesOfGraphSnapshot(serializedState: Serializable.GraphSnapshot
       }
     }
   }
-  return _values;
 }
