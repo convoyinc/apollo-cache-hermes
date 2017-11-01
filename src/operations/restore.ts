@@ -2,7 +2,7 @@ import lodashSet = require('lodash.set');
 import lodashFindIndex = require('lodash.findindex');
 
 import { CacheContext } from '../context';
-import { GraphSnapshot, GraphSnapshotNodesMap } from '../GraphSnapshot';
+import { GraphSnapshot, NodeSnapshotMap } from '../GraphSnapshot';
 import { NodeSnapshot, EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonObject, JsonValue } from '../primitive';
 import { Serializable } from '../schema';
@@ -23,8 +23,8 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
   return new GraphSnapshot(_values);
 }
 
-function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshotNodesMap {
-  const nodesMap: GraphSnapshotNodesMap = Object.create(null);
+function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): NodeSnapshotMap {
+  const nodesMap: NodeSnapshotMap = Object.create(null);
 
   // Create entity nodes in the GraphSnapshot
   for (const nodeId in serializedState) {
@@ -51,7 +51,7 @@ function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, c
   return nodesMap;
 }
 
-function restoreEntityReferences(nodesMap: GraphSnapshotNodesMap, cacheContext: CacheContext) {
+function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheContext) {
   const { entityTransformer, entityIdForValue } = cacheContext;
 
   for (const nodeId in nodesMap) {

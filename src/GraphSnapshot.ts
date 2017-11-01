@@ -2,7 +2,7 @@ import { NodeSnapshot } from './nodes';
 import { QueryResult, QueryResultWithNodeIds } from './operations/read';
 import { NodeId, OperationInstance } from './schema';
 
-export type GraphSnapshotNodesMap = { [Key in NodeId]: NodeSnapshot; };
+export type NodeSnapshotMap = { [Key in NodeId]: NodeSnapshot; };
 /**
  * Maintains an identity map of all value snapshots that reference into a
  * particular version of the graph.
@@ -21,7 +21,7 @@ export class GraphSnapshot {
    */
   constructor(
     // TODO: Profile Object.create(null) vs Map.
-    public _values: GraphSnapshotNodesMap = Object.create(null),
+    public _values: NodeSnapshotMap = Object.create(null),
   ) {}
 
   /**
