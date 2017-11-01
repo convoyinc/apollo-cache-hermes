@@ -69,7 +69,7 @@ function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheC
 
     for (const { id: referenceId, path } of outbound) {
       const referenceNode = nodesMap[referenceId];
-      if (data === null) {
+      if (referenceNode instanceof EntitySnapshot && data === null) {
         // data is a reference.
         nodesMap[nodeId].data = referenceNode.data;
       } else if (referenceNode instanceof ParameterizedValueSnapshot) {
