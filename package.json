@@ -53,7 +53,7 @@
     "jest": "^21.0.1",
     "jest-junit": "^3.0.0",
     "rimraf": "^2.6.1",
-    "typescript": "^2.5.2",
+    "typescript": "~2.5.2",
     "typescript-eslint-parser": "^8.0.1"
   },
   "dependencies": {
