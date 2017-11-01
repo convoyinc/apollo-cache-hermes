@@ -3,7 +3,7 @@ import lodashFindIndex = require('lodash.findindex');
 
 import { CacheContext } from '../context';
 import { GraphSnapshot, NodeSnapshotMap } from '../GraphSnapshot';
-import { NodeSnapshot, EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
+import { EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonObject, JsonValue } from '../primitive';
 import { Serializable } from '../schema';
 import { isNumber, isObject } from '../util';
@@ -30,7 +30,7 @@ function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, c
   for (const nodeId in serializedState) {
     const { type, data, inbound, outbound } = serializedState[nodeId];
 
-    let nodeSnapshot: NodeSnapshot | undefined;
+    let nodeSnapshot;
     switch (type) {
       case Serializable.NodeSnapshotType.EntitySnapshot:
         nodeSnapshot = new EntitySnapshot(data as JsonObject, inbound, outbound);
@@ -55,7 +55,6 @@ function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheC
   const { entityTransformer, entityIdForValue } = cacheContext;
 
   for (const nodeId in nodesMap) {
-
     const { data, outbound } = nodesMap[nodeId];
     if (entityTransformer && isObject(data) && entityIdForValue(data)) {
       entityTransformer(data);
@@ -71,7 +70,7 @@ function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheC
     for (const { id: referenceId, path } of outbound) {
       const referenceNode = nodesMap[referenceId];
       if (data === null) {
-        // data itsels is a reference.
+        // data is a reference.
         nodesMap[nodeId].data = referenceNode.data;
       } else if (referenceNode instanceof ParameterizedValueSnapshot) {
         // This is specifically to handle a sparse array which happen
