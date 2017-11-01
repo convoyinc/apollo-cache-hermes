@@ -4,6 +4,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import lodashGet = require('lodash.get');
 
 import { ApolloTransaction } from '../apollo/Transaction';
+import { CacheSnapshot } from '../CacheSnapshot';
 import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
@@ -18,6 +19,8 @@ export namespace CacheContext {
   export type EntityIdMapper = (node: JsonObject) => string | number | undefined;
   export type EntityTransformer = (node: JsonObject) => void;
   export type LogEmitter = (message: string, ...metadata: any[]) => void;
+  export type OnChangeCallBack = (newCacheShapshot: CacheSnapshot, editedNodeIds: Set<String>) => void;
+
   export interface Logger {
     debug: LogEmitter;
     warn: LogEmitter;
@@ -114,6 +117,14 @@ export namespace CacheContext {
      * committed.  You will not see their effect _during_ a transaction.
      */
     entityUpdaters?: EntityUpdaters;
+
+    /**
+     * Callback that is triggered when there is a change in the cache.
+     *
+     * This allow the cache to be integrated with external tools such as Redux.
+     * It allows other tools to be notified when there are changes.
+     */
+    onChange?: OnChangeCallBack;
   }
 
 }
@@ -141,6 +152,9 @@ export class CacheContext {
   /** Configured entity updaters. */
   readonly entityUpdaters: CacheContext.EntityUpdaters;
 
+  /** Configured on-change callback */
+  readonly onChange: CacheContext.OnChangeCallBack | undefined;
+
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
@@ -158,6 +172,7 @@ export class CacheContext {
       : lodashGet(global, 'process.env.NODE_ENV') !== 'production';
     this.verbose = !!config.verbose;
     this.resolverRedirects = config.resolverRedirects || {};
+    this.onChange = config.onChange;
     this.entityUpdaters = config.entityUpdaters || {};
 
     this._addTypename = config.addTypename || false;

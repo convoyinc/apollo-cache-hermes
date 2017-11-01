@@ -124,6 +124,10 @@ export class Cache implements Queryable {
     const { snapshot, editedNodeIds } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
 
+    // Call the on-change callback here to notify any change
+    if (this._context.onChange && typeof this._context.onChange === 'function') {
+      this._context.onChange(this._snapshot, editedNodeIds);
+    }
     return true;
   }
 
