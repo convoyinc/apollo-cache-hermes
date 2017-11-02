@@ -80,7 +80,7 @@ function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheC
         // We only want to try walking if its data contains an array
         const indexToArrayIndex = lodashFindIndex(path, isNumber);
         if (indexToArrayIndex !== -1) {
-          replaceNullInArrayWithUnderfined(data, path, 0);
+          tryRestoreSparseArray(data, path, 0);
         }
       } else if (Array.isArray(data) || isObject(data)) {
         lodashSet(data, path, referenceNode.data);
@@ -89,7 +89,7 @@ function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheC
   }
 }
 
-function replaceNullInArrayWithUnderfined(data: NestedValue<JsonValue | undefined>, possibleSparseArrayPaths: PathPart[], idx: number) {
+function tryRestoreSparseArray(data: NestedValue<JsonValue | undefined>, possibleSparseArrayPaths: PathPart[], idx: number) {
   if (data === undefined) {
     // There should never be 'undefined'
     throw new Error(`Unexpected 'undefined' in the path [${possibleSparseArrayPaths}] at index ${idx}`);
@@ -106,5 +106,5 @@ function replaceNullInArrayWithUnderfined(data: NestedValue<JsonValue | undefine
     return;
   }
 
-  replaceNullInArrayWithUnderfined(data[prop], possibleSparseArrayPaths, idx+1);
+  tryRestoreSparseArray(data[prop], possibleSparseArrayPaths, idx+1);
 }
