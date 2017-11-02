@@ -14,7 +14,7 @@ describe.skip(`Cache`, () => {
           }
         }
       }
-    }`);
+    }`, { id: 0 });
 
     let originalCacheSnapshot: CacheSnapshot, extractResult: Serializable.GraphSnapshot, storedExtractResult: string;
     beforeEach(() => {
@@ -54,10 +54,11 @@ describe.skip(`Cache`, () => {
       expect(newCache.getSnapshot()).to.deep.eq(originalCacheSnapshot);
     });
 
-    it(`extract and restore cache`, () => {
+    it(`extract and restore cache without JSON.stringify`, () => {
       const newCache = new Cache();
-      newCache.restore(extractResult);
-      expect(newCache.getSnapshot()).to.deep.eq(originalCacheSnapshot);
+      expect(() => {
+        newCache.restore(extractResult);
+      }).to.throw(/Unexpected 'undefined'/);
     });
 
   });
