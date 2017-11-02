@@ -56,7 +56,7 @@ export class Hermes extends ApolloQueryable implements ApolloCache<GraphSnapshot
     return this._queryable.watch(query, options.callback);
   }
 
-  getCacheSnapshot(): CacheSnapshot {
+  getCurrentCacheSnapshot(): CacheSnapshot {
     return this._queryable.getSnapshot();
   }
 }

@@ -124,10 +124,6 @@ export class Cache implements Queryable {
     const { snapshot, editedNodeIds } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
 
-    // Call the on-change callback here to notify any change
-    if (this._context.onChange && typeof this._context.onChange === 'function') {
-      this._context.onChange(this._snapshot, editedNodeIds);
-    }
     return true;
   }
 
@@ -168,12 +164,17 @@ export class Cache implements Queryable {
 
   /**
    * Point the cache to a new snapshot, and let observers know of the change.
+   * Call onChange callback if one exist to notify cache users of any change.
    */
   private _setSnapshot(snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>): void {
     this._snapshot = snapshot;
 
     for (const observer of this._observers) {
       observer.consumeChanges(snapshot.optimistic, editedNodeIds);
+    }
+
+    if (this._context.onChange) {
+      this._context.onChange(this._snapshot, editedNodeIds);
     }
   }
 

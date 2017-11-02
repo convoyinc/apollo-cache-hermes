@@ -19,7 +19,7 @@ export namespace CacheContext {
   export type EntityIdMapper = (node: JsonObject) => string | number | undefined;
   export type EntityTransformer = (node: JsonObject) => void;
   export type LogEmitter = (message: string, ...metadata: any[]) => void;
-  export type OnChangeCallBack = (newCacheShapshot: CacheSnapshot, editedNodeIds: Set<String>) => void;
+  export type OnChangeCallback = (newCacheShapshot: CacheSnapshot, editedNodeIds: Set<String>) => void;
 
   export interface Logger {
     debug: LogEmitter;
@@ -124,7 +124,7 @@ export namespace CacheContext {
      * This allow the cache to be integrated with external tools such as Redux.
      * It allows other tools to be notified when there are changes.
      */
-    onChange?: OnChangeCallBack;
+    onChange?: OnChangeCallback;
   }
 
 }
@@ -153,7 +153,7 @@ export class CacheContext {
   readonly entityUpdaters: CacheContext.EntityUpdaters;
 
   /** Configured on-change callback */
-  readonly onChange: CacheContext.OnChangeCallBack | undefined;
+  readonly onChange: CacheContext.OnChangeCallback | undefined;
 
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
