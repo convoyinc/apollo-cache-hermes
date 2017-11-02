@@ -48,6 +48,7 @@ describe(`operations.restore`, () => {
                 null,
               ],
             },
+            null,
           ],
         },
         `query getAFoo($id: ID!) {
@@ -77,6 +78,7 @@ describe(`operations.restore`, () => {
                 four: 'FOUR',
                 two: [null, null, null],
               },
+              null,
             ],
           },
         },
