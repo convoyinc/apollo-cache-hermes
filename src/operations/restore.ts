@@ -4,9 +4,9 @@ import lodashFindIndex = require('lodash.findindex');
 import { CacheContext } from '../context';
 import { GraphSnapshot, NodeSnapshotMap } from '../GraphSnapshot';
 import { EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
-import { JsonObject, JsonValue } from '../primitive';
+import { JsonObject, JsonValue, NestedValue, PathPart } from '../primitive';
 import { Serializable } from '../schema';
-import { isNumber, isObject } from '../util';
+import { isNumber, isObject, isScalar } from '../util';
 
 /**
  * Restore GraphSnapshot from serializable representation.
@@ -77,19 +77,34 @@ function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheC
         // when each element in the array reference data in a
         // ParameterizedValueSnapshot.
         // (see: parameterizedFields/nestedParameterizedReferenceInArray.ts)
-        // When we do extraction of sparse array, we will represent
-        // each hole in the array as null.
-        // We will remove null to re-create a sparse array.
+        // We only want to try walking if its data contains an array
         const indexToArrayIndex = lodashFindIndex(path, isNumber);
         if (indexToArrayIndex !== -1) {
-          // Get the reference to an array
-          const pathToSetValue = path.slice(0, indexToArrayIndex + 1);
-
-          lodashSet(data as object, pathToSetValue, undefined);
+          replaceNullInArrayWithUnderfined(data, path, 0);
         }
       } else if (Array.isArray(data) || isObject(data)) {
         lodashSet(data, path, referenceNode.data);
       }
     }
   }
+}
+
+function replaceNullInArrayWithUnderfined(data: NestedValue<JsonValue | undefined>, possibleSparseArrayPaths: PathPart[], idx: number) {
+  if (data === undefined) {
+    // There should never be 'undefined'
+    throw new Error(`Unexpected 'undefined' in the path [${possibleSparseArrayPaths}] at index ${idx}`);
+  }
+
+  if (idx >= possibleSparseArrayPaths.length || data === null || isScalar(data)) {
+    return;
+  }
+
+  const prop = possibleSparseArrayPaths[idx];
+  if (Array.isArray(data) && typeof prop === 'number' && data[prop] === null) {
+    // truely make it sparse rather than just set "undefined'"
+    delete data[prop];
+    return;
+  }
+
+  replaceNullInArrayWithUnderfined(data[prop], possibleSparseArrayPaths, idx+1);
 }
