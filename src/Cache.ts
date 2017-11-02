@@ -144,7 +144,7 @@ export class Cache implements Queryable {
     const optimistic = baseline;
     const optimisticQueue = new OptimisticUpdateQueue();
 
-    this._setSnapshot({ baseline, optimistic, optimisticQueue }, allIds);
+    this._setSnapshot(new CacheSnapshot(baseline, optimistic, optimisticQueue), allIds);
   }
 
   // Internal

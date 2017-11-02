@@ -95,10 +95,11 @@ export class CacheTransaction implements Queryable {
 
     let snapshot = this._snapshot;
     if (this._optimisticChangeId) {
-      snapshot = {
-        ...snapshot,
-        optimisticQueue: snapshot.optimisticQueue.enqueue(this._optimisticChangeId, this._deltas),
-      };
+      snapshot = new CacheSnapshot(
+        snapshot.baseline,
+        snapshot.optimistic,
+        snapshot.optimisticQueue.enqueue(this._optimisticChangeId, this._deltas),
+      );
     }
 
     return { snapshot, editedNodeIds: this._editedNodeIds, writtenQueries: this._writtenQueries };
