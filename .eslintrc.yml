@@ -1,5 +1,6 @@
 extends:
   - eslint:recommended
+  - plugin:eslint-comments/recommended
 
 parser: typescript-eslint-parser
 parserOptions:
