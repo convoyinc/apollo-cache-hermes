@@ -93,19 +93,19 @@ function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheC
  * Helper function to walk 'data' according to the given path
  * and try to recreate sparse array when encounter 'null' in array along
  * the path.
- * 
+ *
  * The function assumes that the given data already has the shape of the path
  * For example:
  *    path -> ['one', 0, 'two', 1] will be with
- *    data -> 
+ *    data ->
  *    { one: [
  *        two: [null, <some data>]
  *    ]}
- * 
+ *
  * This is garunteed to be such a case because when we extract sparse array,
  * we will set 'undefined' as value of an array which will then be
  * JSON.stringify to 'null' and will preserve the structure along the path
- * 
+ *
  */
 function tryRestoreSparseArray(data: NestedValue<JsonValue | undefined>, possibleSparseArrayPaths: PathPart[], idx: number) {
   if (data === undefined) {
