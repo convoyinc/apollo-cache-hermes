@@ -34,6 +34,7 @@ describe(`operations.extract`, () => {
                 null,
               ],
             },
+            null,
           ],
         },
         `query getAFoo($id: ID!) {
@@ -79,6 +80,7 @@ describe(`operations.extract`, () => {
                 four: 'FOUR',
                 two: [undefined, undefined, null],
               },
+              null,
             ],
           },
         },
