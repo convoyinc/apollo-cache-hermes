@@ -19,8 +19,7 @@ import { isNumber, isObject, isScalar } from '../util';
  *    different sub-class of NodeSnapshot.
  */
 export function restore(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshot {
-  const values = createGraphSnapshotNodes(serializedState, cacheContext);
-  return new GraphSnapshot(values);
+  return new GraphSnapshot(createGraphSnapshotNodes(serializedState, cacheContext));
 }
 
 function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): NodeSnapshotMap {
