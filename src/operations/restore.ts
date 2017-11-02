@@ -17,6 +17,7 @@ import { isNumber, isObject, isScalar } from '../util';
  *
  * @throws Will throw an error if 'type' in serializedState cannot be mapped to
  *    different sub-class of NodeSnapshot.
+ * @throws Will throw an error if there is undefined in sparse array
  */
 export function restore(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshot {
   return new GraphSnapshot(createGraphSnapshotNodes(serializedState, cacheContext));
