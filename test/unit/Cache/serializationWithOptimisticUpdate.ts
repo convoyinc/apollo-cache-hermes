@@ -76,10 +76,11 @@ describe.skip(`Cache`, () => {
       expect(newCache.getSnapshot().baseline).to.deep.eq(originalCacheSnapshot.optimistic);
     });
 
-    it(`extract and restore cache`, () => {
+    it(`extract and restore cache without JSON.stringify`, () => {
       const newCache = new Cache();
-      newCache.restore(extractResult);
-      expect(newCache.getSnapshot().baseline).to.deep.eq(originalCacheSnapshot.optimistic);
+      expect(() => {
+        newCache.restore(extractResult);
+      }).to.throw(/Unexpected 'undefined'/);
     });
 
   });
