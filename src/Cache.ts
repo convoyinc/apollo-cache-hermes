@@ -32,11 +32,7 @@ export class Cache implements Queryable {
 
   constructor(config?: CacheContext.Configuration) {
     const initialGraphSnapshot = new GraphSnapshot();
-    this._snapshot = {
-      baseline: initialGraphSnapshot,
-      optimistic: initialGraphSnapshot,
-      optimisticQueue: new OptimisticUpdateQueue(),
-    };
+    this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
     this._context = new CacheContext(config);
   }
 
