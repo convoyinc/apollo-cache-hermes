@@ -37,7 +37,6 @@
     "@types/deep-freeze-strict": "^1.1.0",
     "@types/graphql": "^0.11.5",
     "@types/lodash.get": "^4.4.3",
-    "@types/lodash.isplainobject": "^4.0.3",
     "@types/node": "^8.0.16",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
