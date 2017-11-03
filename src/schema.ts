@@ -1,11 +1,10 @@
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
-import lodashIsPlainObject = require('lodash.isplainobject');
 
 import { QueryInfo } from './context';
 import { NodeReference } from './nodes';
 import { ParsedQuery } from './ParsedQueryNode';
 import { JsonObject, JsonValue, NestedValue } from './primitive';
-import { isScalar } from './util';
+import { isScalar, isObject } from './util';
 
 /**
  * Change ids track diffs to the store that may eventually be rolled back.
@@ -108,7 +107,7 @@ export namespace Serializable {
       return allowUndefined ? !isNaNValue : !isNaNValue && value !== undefined;
     }
 
-    if (lodashIsPlainObject(value)) {
+    if (isObject(value)) {
       for (const propName of Object.getOwnPropertyNames(value)) {
         if (!isSerializable(value[propName], allowUndefined)) {
           return false;
