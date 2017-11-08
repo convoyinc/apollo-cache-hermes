@@ -148,7 +148,7 @@ export class Cache implements Queryable {
     const optimistic = baseline;
     const optimisticQueue = new OptimisticUpdateQueue();
 
-    this._setSnapshot({ baseline, optimistic, optimisticQueue }, allIds);
+    this._setSnapshot(new CacheSnapshot(baseline, optimistic, optimisticQueue), allIds);
   }
 
   // Internal
@@ -164,12 +164,17 @@ export class Cache implements Queryable {
 
   /**
    * Point the cache to a new snapshot, and let observers know of the change.
+   * Call onChange callback if one exist to notify cache users of any change.
    */
   private _setSnapshot(snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>): void {
     this._snapshot = snapshot;
 
     for (const observer of this._observers) {
       observer.consumeChanges(snapshot.optimistic, editedNodeIds);
+    }
+
+    if (this._context.onChange) {
+      this._context.onChange(this._snapshot, editedNodeIds);
     }
   }
 

@@ -3,6 +3,10 @@ import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 
 /**
  * Maintains an immutable, point-in-time view of the cache.
+ *
+ * We make CacheSnapshot a class instead of an interface because
+ * to garuntee consistentcy of properties and their order. This
+ * improves performance as JavaScript VM can do better optimization.
  */
 export class CacheSnapshot {
   constructor(
