@@ -6,7 +6,7 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.extract`, () => {
-  describe(`top-level values wtih nested parameterized value`, () => {
+  describe(`top-level values with nested parameterized value`, () => {
 
     let extractResult: Serializable.GraphSnapshot;
     beforeAll(() => {
