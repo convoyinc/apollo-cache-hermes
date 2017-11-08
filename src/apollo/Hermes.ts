@@ -5,6 +5,7 @@ import {
 } from 'apollo-cache';
 
 import { Cache } from '../Cache';
+import { CacheSnapshot } from '../CacheSnapshot';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 
@@ -53,5 +54,9 @@ export class Hermes extends ApolloQueryable implements ApolloCache<GraphSnapshot
   watch(options: CacheInterface.WatchOptions): () => void {
     const query = toQuery(options.query, options.variables, options.rootId);
     return this._queryable.watch(query, options.callback);
+  }
+
+  getCurrentCacheSnapshot(): CacheSnapshot {
+    return this._queryable.getSnapshot();
   }
 }
