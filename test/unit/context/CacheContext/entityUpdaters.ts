@@ -2,8 +2,8 @@ import { Cache } from '../../../../src';
 import { CacheContext } from '../../../../src/context';
 import { query, strictConfig } from '../../../helpers';
 
-describe(`operations.read`, () => {
-  describe(`with entity updaters`, () => {
+describe(`context.CacheContext`, () => {
+  describe(` entity updaters`, () => {
 
     const activeUsersQuery = query(`{
       activeUsers { __typename id name active }
