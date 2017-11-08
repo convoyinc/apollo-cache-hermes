@@ -5,11 +5,11 @@ import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
-import { QueryObserver, read } from './operations';
+import { extract, QueryObserver, read, restore } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, RawOperation } from './schema';
+import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
 
 export type TransactionCallback = (transaction: CacheTransaction) => void;
 
@@ -40,12 +40,16 @@ export class Cache implements Queryable {
     return this._context.transformDocument(document);
   }
 
-  restore(data: GraphSnapshot): Cache {
-    throw new Error('restore() is not implemented on Cache');
+  restore(data: Serializable.GraphSnapshot) {
+    const restoreResult = restore(data, this._context);
+    this._setSnapshot(new CacheSnapshot(restoreResult, restoreResult, new OptimisticUpdateQueue()), new Set<NodeId>());
   }
 
-  extract() {
-    throw new Error('extract() is not implemented on Cache');
+  extract(optimistic: boolean): Serializable.GraphSnapshot {
+    if (optimistic) {
+      return extract(this._snapshot.optimistic, this._context);
+    }
+    return extract(this._snapshot.baseline, this._context);
   }
 
   evict(query: RawOperation): { success: boolean } {
@@ -144,7 +148,7 @@ export class Cache implements Queryable {
     const optimistic = baseline;
     const optimisticQueue = new OptimisticUpdateQueue();
 
-    this._setSnapshot({ baseline, optimistic, optimisticQueue }, allIds);
+    this._setSnapshot(new CacheSnapshot(baseline, optimistic, optimisticQueue), allIds);
   }
 
   // Internal
@@ -160,12 +164,17 @@ export class Cache implements Queryable {
 
   /**
    * Point the cache to a new snapshot, and let observers know of the change.
+   * Call onChange callback if one exist to notify cache users of any change.
    */
   private _setSnapshot(snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>): void {
     this._snapshot = snapshot;
 
     for (const observer of this._observers) {
       observer.consumeChanges(snapshot.optimistic, editedNodeIds);
+    }
+
+    if (this._context.onChange) {
+      this._context.onChange(this._snapshot, editedNodeIds);
     }
   }
 

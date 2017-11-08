@@ -75,7 +75,7 @@ export class CacheTransaction implements Queryable {
     const optimisticQueue = current.optimisticQueue.remove(changeId);
     const optimistic = this._buildOptimisticSnapshot(current.baseline);
 
-    this._snapshot = { ...current, optimistic, optimisticQueue };
+    this._snapshot = new CacheSnapshot(current.baseline, optimistic, optimisticQueue);
   }
 
   /**
@@ -95,10 +95,11 @@ export class CacheTransaction implements Queryable {
 
     let snapshot = this._snapshot;
     if (this._optimisticChangeId) {
-      snapshot = {
-        ...snapshot,
-        optimisticQueue: snapshot.optimisticQueue.enqueue(this._optimisticChangeId, this._deltas),
-      };
+      snapshot = new CacheSnapshot(
+        snapshot.baseline,
+        snapshot.optimistic,
+        snapshot.optimisticQueue.enqueue(this._optimisticChangeId, this._deltas),
+      );
     }
 
     return { snapshot, editedNodeIds: this._editedNodeIds, writtenQueries: this._writtenQueries };
@@ -159,7 +160,7 @@ export class CacheTransaction implements Queryable {
 
     const optimistic = this._buildOptimisticSnapshot(baseline);
 
-    this._snapshot = { ...current, baseline, optimistic };
+    this._snapshot = new CacheSnapshot(baseline, optimistic, current.optimisticQueue);
   }
 
   /**
@@ -185,7 +186,7 @@ export class CacheTransaction implements Queryable {
     addToSet(this._writtenQueries, writtenQueries);
     addToSet(this._editedNodeIds, editedNodeIds);
 
-    this._snapshot = { ...this._snapshot, optimistic };
+    this._snapshot = new CacheSnapshot(this._snapshot.baseline, optimistic, this._snapshot.optimisticQueue);
   }
 
 }
