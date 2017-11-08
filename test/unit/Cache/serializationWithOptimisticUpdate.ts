@@ -3,7 +3,7 @@ import { CacheSnapshot } from '../../../src/CacheSnapshot';
 import { Serializable } from '../../../src/schema';
 import { query, strictConfig } from '../../helpers';
 
-describe.skip(`Cache`, () => {
+describe(`Cache`, () => {
   describe(`serialization with optimistic update`, () => {
 
     const getAFooQuery =  query(`query getAFoo($id: ID!) {
