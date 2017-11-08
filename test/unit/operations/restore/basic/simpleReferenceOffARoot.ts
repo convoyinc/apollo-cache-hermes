@@ -43,7 +43,7 @@ describe(`operations.restore`, () => {
           inbound: [{ id: QueryRootId, path: ['viewer'] }],
           data: { id: 123, name: 'Gouda' },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

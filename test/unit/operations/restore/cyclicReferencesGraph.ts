@@ -69,7 +69,7 @@ describe(`operations.restore`, () => {
           ],
           data: { id: 2, name: 'Bar' },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

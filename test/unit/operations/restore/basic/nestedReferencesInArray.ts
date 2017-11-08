@@ -81,7 +81,7 @@ describe(`operations.restore`, () => {
           inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
           data: { __typename: 'Three', id: 1 },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

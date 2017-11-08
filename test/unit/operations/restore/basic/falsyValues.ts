@@ -18,7 +18,7 @@ describe(`operations.restore`, () => {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           data: { null: null, false: false, zero: 0, string: '' },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

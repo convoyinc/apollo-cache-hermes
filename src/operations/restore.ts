@@ -1,11 +1,13 @@
 import lodashSet = require('lodash.set');
 import lodashFindIndex = require('lodash.findindex');
 
+import { CacheSnapshot } from '../CacheSnapshot';
 import { CacheContext } from '../context';
 import { GraphSnapshot, NodeSnapshotMap } from '../GraphSnapshot';
 import { EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
+import { OptimisticUpdateQueue } from '../OptimisticUpdateQueue';
 import { JsonObject, JsonValue, NestedValue, PathPart } from '../primitive';
-import { Serializable } from '../schema';
+import { Serializable, NodeId } from '../schema';
 import { isNumber, isObject, isScalar } from '../util';
 
 /**
@@ -19,12 +21,19 @@ import { isNumber, isObject, isScalar } from '../util';
  *    different sub-class of NodeSnapshot.
  * @throws Will throw an error if there is undefined in sparse array
  */
-export function restore(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): GraphSnapshot {
-  return new GraphSnapshot(createGraphSnapshotNodes(serializedState, cacheContext));
+export function restore(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext) {
+  const { nodesMap, editedNodeIds } = createGraphSnapshotNodes(serializedState, cacheContext);
+  const graphSnapshot = new GraphSnapshot(nodesMap);
+
+  return {
+    cacheSnapshot: new CacheSnapshot(graphSnapshot, graphSnapshot, new OptimisticUpdateQueue()),
+    editedNodeIds,
+  };
 }
 
-function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext): NodeSnapshotMap {
+function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext) {
   const nodesMap: NodeSnapshotMap = Object.create(null);
+  const editedNodeIds = new Set<NodeId>();
 
   // Create entity nodes in the GraphSnapshot
   for (const nodeId in serializedState) {
@@ -43,12 +52,13 @@ function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, c
     }
 
     nodesMap[nodeId] = nodeSnapshot!;
+    editedNodeIds.add(nodeId);
   }
 
   // Patch data property and reconstruct references
   restoreEntityReferences(nodesMap, cacheContext);
 
-  return nodesMap;
+  return { nodesMap, editedNodeIds };
 }
 
 function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheContext) {

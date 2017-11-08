@@ -23,7 +23,7 @@ describe(`operations.restore`, () => {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           data: { foo: 123, bar: 'asdf' },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

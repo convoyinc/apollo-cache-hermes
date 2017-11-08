@@ -77,7 +77,7 @@ describe(`operations.restore`, () => {
           inbound: [{ id: QueryRootId, path: ['viewer', 1] }],
           data: {  __typename: 'viewer', id: 456, name: 'Brie' },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

@@ -93,7 +93,7 @@ describe(`operations.restore`, () => {
           inbound: [{ id: parameterizedId, path: [1, 1] }],
           data: { id: 'd', value: 4 },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

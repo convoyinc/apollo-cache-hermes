@@ -55,7 +55,7 @@ describe(`operations.restore`, () => {
             extra: false,
           },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
