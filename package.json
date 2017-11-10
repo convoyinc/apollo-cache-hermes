@@ -53,7 +53,7 @@
     "jest-junit": "^3.0.0",
     "rimraf": "^2.6.1",
     "typescript": "~2.5.2",
-    "typescript-eslint-parser": "^8.0.1"
+    "typescript-eslint-parser": "^9.0.0"
   },
   "dependencies": {
     "apollo-cache": "^1.0.0",
