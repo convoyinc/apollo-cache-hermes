@@ -5,7 +5,7 @@ import { Serializable, StaticNodeId } from '../../../../../src/schema';
 import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpers';
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`2d array of values hanging off of a root`, () => {
 
     let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
@@ -77,7 +77,7 @@ describe.skip(`operations.restore`, () => {
           inbound: [{ id: QueryRootId, path: ['rows', 1, 1] }],
           data: { id: 'd', value: 4 },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

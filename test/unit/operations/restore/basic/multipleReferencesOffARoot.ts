@@ -55,7 +55,7 @@ function entityTransformer(node: JsonObject) {
   }
 }
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`multiple references hanging off a root`, () => {
 
     let restoreGraphSnapshot: GraphSnapshot, originaGraphSnapshot: GraphSnapshot;
@@ -118,7 +118,7 @@ describe.skip(`operations.restore`, () => {
             isFoo: true,
           },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
@@ -132,13 +132,13 @@ describe.skip(`operations.restore`, () => {
     });
 
     it(`correctly restore NodeSnapshot, entity transformation on specific entity`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('123'))).to.be.an.instanceOf(Bar);
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('456'))).to.be.an.instanceOf(Foo);
+      expect(restoreGraphSnapshot.getNodeData('123')).to.be.an.instanceOf(Bar);
+      expect(restoreGraphSnapshot.getNodeData('456')).to.be.an.instanceOf(Foo);
     });
 
     it(`correctly restore NodeSnapshot, no entity transformation on QueryRootId`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData(QueryRootId))).to.not.be.an.instanceOf(Bar);
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData(QueryRootId))).to.not.be.an.instanceOf(Foo);
+      expect(restoreGraphSnapshot.getNodeData(QueryRootId)).to.not.be.an.instanceOf(Bar);
+      expect(restoreGraphSnapshot.getNodeData(QueryRootId)).to.not.be.an.instanceOf(Foo);
     });
 
   });

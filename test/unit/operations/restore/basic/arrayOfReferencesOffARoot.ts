@@ -26,7 +26,7 @@ function entityTransformer(node: JsonObject) {
   }
 }
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`new array of references hanging off of a root`, () => {
 
     let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
@@ -77,7 +77,7 @@ describe.skip(`operations.restore`, () => {
           inbound: [{ id: QueryRootId, path: ['viewer', 1] }],
           data: {  __typename: 'viewer', id: 456, name: 'Brie' },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
@@ -91,12 +91,12 @@ describe.skip(`operations.restore`, () => {
     });
 
     it(`correctly restores NodeSnapshot, entity transformation on specific entity`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('123'))).to.be.an.instanceOf(Viewer);
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('456'))).to.be.an.instanceOf(Viewer);
+      expect(restoreGraphSnapshot.getNodeData('123')).to.be.an.instanceOf(Viewer);
+      expect(restoreGraphSnapshot.getNodeData('456')).to.be.an.instanceOf(Viewer);
     });
 
     it(`correctly restores NodeSnapshot, no entity transformation on QueryRootId`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData(QueryRootId))).to.not.be.an.instanceOf(Viewer);
+      expect(restoreGraphSnapshot.getNodeData(QueryRootId)).to.not.be.an.instanceOf(Viewer);
     });
 
   });

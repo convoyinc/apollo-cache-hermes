@@ -7,7 +7,7 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`nested parameterized value with an array of nested values`, () => {
 
     const parameterizedId = nodeIdForParameterizedValue(
@@ -72,7 +72,7 @@ describe.skip(`operations.restore`, () => {
             null,
           ],
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

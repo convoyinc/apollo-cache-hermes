@@ -6,7 +6,7 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`simple leaf-values hanging off a root`, () => {
 
     let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
@@ -23,7 +23,7 @@ describe.skip(`operations.restore`, () => {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           data: { foo: 123, bar: 'asdf' },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

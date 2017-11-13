@@ -6,7 +6,7 @@ import { createGraphSnapshot, createStrictCacheContext } from '../../../../helpe
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`nested references with peer references`, () => {
 
     let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
@@ -55,7 +55,7 @@ describe.skip(`operations.restore`, () => {
           inbound: [{ id: QueryRootId, path: ['one', 'two', 'four'] }],
           data: { id: 1 },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {

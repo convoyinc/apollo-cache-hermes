@@ -41,8 +41,8 @@ export class Cache implements Queryable {
   }
 
   restore(data: Serializable.GraphSnapshot) {
-    const restoreResult = restore(data, this._context);
-    this._setSnapshot(new CacheSnapshot(restoreResult, restoreResult, new OptimisticUpdateQueue()), new Set<NodeId>());
+    const { cacheSnapshot, editedNodeIds } = restore(data, this._context);
+    this._setSnapshot(cacheSnapshot, editedNodeIds);
   }
 
   extract(optimistic: boolean): Serializable.GraphSnapshot {

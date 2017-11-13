@@ -12,13 +12,13 @@ describe(`operations.restore`, () => {
 
     const parameterizedId0 = nodeIdForParameterizedValue(
       QueryRootId,
-      ['one', 'two', 0, 'three'],
+      ['one', 0, 'two', 0, 'three'],
       { id: 1, withExtra: true }
     );
 
     const parameterizedId1 = nodeIdForParameterizedValue(
       QueryRootId,
-      ['one', 'two', 1, 'three'],
+      ['one', 0, 'two', 1, 'three'],
       { id: 1, withExtra: true }
     );
 
@@ -27,26 +27,29 @@ describe(`operations.restore`, () => {
       const cacheContext = createStrictCacheContext();
       originalGraphSnapshot = createGraphSnapshot(
         {
-          one: {
-            four: 'FOUR',
-            two: [
-              {
-                three: {
-                  id: '30',
-                  name: 'Three0',
-                  extraValue: '30-42',
+          one: [
+            {
+              four: 'FOUR',
+              two: [
+                {
+                  three: {
+                    id: '30',
+                    name: 'Three0',
+                    extraValue: '30-42',
+                  },
                 },
-              },
-              {
-                three: {
-                  id: '31',
-                  name: 'Three1',
-                  extraValue: '31-42',
+                {
+                  three: {
+                    id: '31',
+                    name: 'Three1',
+                    extraValue: '31-42',
+                  },
                 },
-              },
-              null,
-            ],
-          },
+                null,
+              ],
+            },
+            null,
+          ],
         },
         `query getAFoo($id: ID!) {
           one {
@@ -66,19 +69,22 @@ describe(`operations.restore`, () => {
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [
-            { id: parameterizedId0, path: ['one', 'two', 0, 'three'] },
-            { id: parameterizedId1, path: ['one', 'two', 1, 'three'] },
+            { id: parameterizedId0, path: ['one', 0, 'two', 0, 'three'] },
+            { id: parameterizedId1, path: ['one', 0, 'two', 1, 'three'] },
           ],
           data: {
-            one: {
-              four: 'FOUR',
-              two: [null, null, null],
-            },
+            one: [
+              {
+                four: 'FOUR',
+                two: [null, null, null],
+              },
+              null,
+            ],
           },
         },
         [parameterizedId0]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
-          inbound: [{ id: QueryRootId, path: ['one', 'two', 0, 'three'] }],
+          inbound: [{ id: QueryRootId, path: ['one', 0, 'two', 0, 'three'] }],
           outbound: [{ id: '30', path: [] }],
           data: null,
         },
@@ -93,7 +99,7 @@ describe(`operations.restore`, () => {
         },
         [parameterizedId1]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
-          inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
+          inbound: [{ id: QueryRootId, path: ['one', 0, 'two', 1, 'three'] }],
           outbound: [{ id: '31', path: [] }],
           data: null,
         },

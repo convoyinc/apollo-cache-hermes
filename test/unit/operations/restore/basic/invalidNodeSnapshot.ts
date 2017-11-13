@@ -4,7 +4,7 @@ import { createStrictCacheContext } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`invalid NodeSnapshot type`, () => {
 
     it(`throws error when restore invalid NodeSnapshot type`, () => {

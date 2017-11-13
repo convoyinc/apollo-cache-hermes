@@ -26,7 +26,7 @@ function entityTransformer(node: JsonObject) {
   }
 }
 
-describe.skip(`operations.restore`, () => {
+describe(`operations.restore`, () => {
   describe(`nested references in an array`, () => {
 
     let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
@@ -81,7 +81,7 @@ describe.skip(`operations.restore`, () => {
           inbound: [{ id: QueryRootId, path: ['one', 'two', 1, 'three'] }],
           data: { __typename: 'Three', id: 1 },
         },
-      }, cacheContext);
+      }, cacheContext).cacheSnapshot.baseline;
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
@@ -95,12 +95,12 @@ describe.skip(`operations.restore`, () => {
     });
 
     it(`correctly restore NodeSnapshot, entity transformation on specific entity`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('0'))).to.be.an.instanceOf(Three);
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData('1'))).to.be.an.instanceOf(Three);
+      expect(restoreGraphSnapshot.getNodeData('0')).to.be.an.instanceOf(Three);
+      expect(restoreGraphSnapshot.getNodeData('1')).to.be.an.instanceOf(Three);
     });
 
     it(`correctly restore NodeSnapshot, no entity transformation on QueryRootId`, () => {
-      expect(Object.getPrototypeOf(restoreGraphSnapshot.getNodeData(QueryRootId))).to.not.be.an.instanceOf(Three);
+      expect(restoreGraphSnapshot.getNodeData(QueryRootId)).to.not.be.an.instanceOf(Three);
     });
 
   });

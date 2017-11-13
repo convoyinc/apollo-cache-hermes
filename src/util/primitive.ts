@@ -15,3 +15,7 @@ export function isObjectOrNull(value: any): value is JsonObject | null {
 export function isNil(value: any): value is nil {
   return value === null || value === undefined || Number.isNaN(value);
 }
+
+export function isNumber(element: any): element is Number {
+  return typeof element === 'number' && !Number.isNaN(element);
+}

@@ -20,11 +20,7 @@ describe(`operations.restore`, () => {
       const cacheContext = createStrictCacheContext();
       originalGraphSnapshot = createGraphSnapshot(
         {
-          foo: {
-            id: 1,
-            name: 'Foo',
-            extra: false,
-          },
+          foo: null,
         },
         `query getAFoo($id: ID!) {
           foo(id: $id, withExtra: true) {
@@ -43,17 +39,7 @@ describe(`operations.restore`, () => {
         [parameterizedId]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: QueryRootId, path: ['foo'] }],
-          outbound: [{ id: '1', path: [] }],
           data: null,
-        },
-        '1': {
-          type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: parameterizedId, path: [] }],
-          data: {
-            id: 1,
-            name: 'Foo',
-            extra: false,
-          },
         },
       }, cacheContext).cacheSnapshot.baseline;
     });
@@ -65,15 +51,6 @@ describe(`operations.restore`, () => {
     it(`correctly restores different types of NodeSnapshot`, () => {
       expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
       expect(restoreGraphSnapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceof(ParameterizedValueSnapshot);
-    });
-
-    it(`restores parameterized RootQuery NodeSnapshot from JSON serialization object`, () => {
-      const parameterizedNode = restoreGraphSnapshot.getNodeSnapshot(parameterizedId)!;
-      const entityData = restoreGraphSnapshot.getNodeData('1');
-
-      expect(parameterizedNode.inbound).to.have.deep.members([{ id: QueryRootId, path: ['foo'] }]);
-      expect(parameterizedNode.outbound).to.have.deep.members([{ id: '1', path: [] }]);
-      expect(parameterizedNode.data).to.eq(entityData);
     });
 
   });
