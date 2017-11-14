@@ -239,28 +239,28 @@ export class CacheContext {
    */
   debug(message: string, ...metadata: any[]): void {
     if (!this.verbose) return;
-    this._logger.debug(`[Cache] ${message}`, ...metadata);
+    this._logger.debug(message, ...metadata);
   }
 
   /**
    * Emit a warning.
    */
   warn(message: string, ...metadata: any[]): void {
-    this._logger.warn(`[Cache] ${message}`, ...metadata);
+    this._logger.warn(message, ...metadata);
   }
 
   /**
    * Emit a non-blocking error.
    */
   error(message: string, ...metadata: any[]): void {
-    this._logger.error(`[Cache] ${message}`, ...metadata);
+    this._logger.error(message, ...metadata);
   }
 
   /**
    * Emit log events in a (collapsed) group.
    */
   logGroup(message: string, callback: () => void): void {
-    this._logger.group(`[Cache] ${message}`);
+    this._logger.group(message);
     try {
       callback();
     } finally {
