@@ -1,4 +1,4 @@
-import { Tracer } from '../tracing/Tracer';
+import { Tracer } from './Tracer';
 
 /**
  * The default tracer used by the cache.

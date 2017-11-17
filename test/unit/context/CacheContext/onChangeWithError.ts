@@ -18,7 +18,6 @@ describe(`context.CacheContext`, () => {
       logger: {
         debug: jest.fn(),
         warn: jest.fn(),
-        error: jest.fn(),
         group: jest.fn(),
         groupEnd: jest.fn(),
       },
