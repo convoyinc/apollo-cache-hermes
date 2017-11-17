@@ -21,12 +21,12 @@ export function write(context: CacheContext, snapshot: GraphSnapshot, raw: RawOp
   // convenient to follow the builder function instead - it'd end up passing
   // around a context object anyway.
   const editor = new SnapshotEditor(context, snapshot);
-  editor.mergePayload(raw, payload);
-  const result = editor.commit();
+  const { warnings } = editor.mergePayload(raw, payload);
+  const newSnapshot = editor.commit();
 
   if (context.tracer.writeEnd) {
-    context.tracer.writeEnd(context.parseOperation(raw), payload, result, tracerContext);
+    context.tracer.writeEnd(context.parseOperation(raw), { payload, newSnapshot, warnings }, tracerContext);
   }
 
-  return result;
+  return newSnapshot;
 }

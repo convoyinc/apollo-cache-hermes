@@ -8,6 +8,12 @@ export namespace Tracer {
     result: QueryResult;
     cacheHit: boolean;
   }
+
+  export interface WriteResult {
+    payload: JsonObject;
+    newSnapshot: EditedSnapshot;
+    warnings?: string[];
+  }
 }
 
 /**
@@ -46,6 +52,6 @@ export interface Tracer<TActionContext = any> {
   /**
    *
    */
-  writeEnd?: (operation: OperationInstance, payload: JsonObject, newSnapshot: EditedSnapshot, context: TActionContext) => void;
+  writeEnd?: (operation: OperationInstance, result: Tracer.WriteResult, context: TActionContext) => void;
 
 }

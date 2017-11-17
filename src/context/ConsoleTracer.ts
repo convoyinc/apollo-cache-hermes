@@ -30,9 +30,23 @@ export class ConsoleTracer implements Tracer<void> {
     }
   }
 
-  writeEnd(operation: OperationInstance, payload: JsonObject, newSnapshot: EditedSnapshot) {
+  writeEnd(operation: OperationInstance, result: Tracer.WriteResult) {
     if (!this._verbose) return;
-    this._logger.debug(this.formatOperation('write', operation), { payload, newSnapshot });
+    const { payload, newSnapshot, warnings } = result;
+    const message = this.formatOperation('write', operation);
+
+    // Extended logging for writes that trigger warnings.
+    if (warnings) {
+      this._logger.group(message);
+      this._logger.warn('payload with warnings:', payload);
+      for (const warning of warnings) {
+        this._logger.warn(warning);
+      }
+      this._logger.debug('new snapshot:', newSnapshot);
+      this._logger.groupEnd();
+    } else {
+      this._logger.debug(message, { payload, newSnapshot });
+    }
   }
 
   // eslint-disable-next-line class-methods-use-this
