@@ -1,4 +1,3 @@
-
 import { addTypenameToDocument, isEqual } from 'apollo-utilities';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 import lodashGet = require('lodash.get');
@@ -10,7 +9,9 @@ import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
 import { isObject } from '../util';
 
+import { ConsoleTracer } from './ConsoleTracer';
 import { QueryInfo } from './QueryInfo';
+import { Tracer } from './Tracer';
 
 export namespace CacheContext {
 
@@ -18,15 +19,7 @@ export namespace CacheContext {
   export type EntityIdForValue = (value: any) => EntityId | undefined;
   export type EntityIdMapper = (node: JsonObject) => string | number | undefined;
   export type EntityTransformer = (node: JsonObject) => void;
-  export type LogEmitter = (message: string, ...metadata: any[]) => void;
   export type OnChangeCallback = (newCacheShapshot: CacheSnapshot, editedNodeIds: Set<String>) => void;
-
-  export interface Logger {
-    debug: LogEmitter;
-    warn: LogEmitter;
-    group: LogEmitter;
-    groupEnd: () => void;
-  }
 
   /**
    * Expected to return an EntityId or undefined, but we loosen the restrictions
@@ -73,7 +66,12 @@ export namespace CacheContext {
     /**
      * The logger to use when emitting messages. By default, `console`.
      */
-    logger?: Logger;
+    logger?: ConsoleTracer.Logger;
+
+    /**
+     * TODO:
+     */
+    tracer?: Tracer;
 
     /**
      * Whether debugging information should be logged out.
@@ -161,7 +159,9 @@ export class CacheContext {
   /** All currently known & parsed queries, for identity mapping. */
   private readonly _operationMap = new Map<string, OperationInstance[]>();
   /** The logger we should use. */
-  private readonly _logger: CacheContext.Logger;
+  private readonly _logger: ConsoleTracer.Logger;
+  /** The tracer we should use. */
+  private readonly _tracer: Tracer;
 
   constructor(config: CacheContext.Configuration = {}) {
     this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
@@ -175,6 +175,7 @@ export class CacheContext {
     this.entityUpdaters = config.entityUpdaters || {};
 
     this._addTypename = config.addTypename || false;
+    this._tracer = config.tracer || new ConsoleTracer(!!config.verbose, config.logger);
     this._logger = config.logger || {
       debug: _makeDefaultLogger('debug'),
       warn:  _makeDefaultLogger('warn'),
@@ -244,7 +245,8 @@ export class CacheContext {
    * Emit a warning.
    */
   warn(message: string, ...metadata: any[]): void {
-    this._logger.warn(message, ...metadata);
+    if (!this._tracer.warning) return;
+    this._tracer.warning(message, ...metadata);
   }
 
   /**
