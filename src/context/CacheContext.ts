@@ -64,24 +64,6 @@ export namespace CacheContext {
     entityIdForNode?: EntityIdMapper;
 
     /**
-     * The logger to use when emitting messages. By default, `console`.
-     */
-    logger?: ConsoleTracer.Logger;
-
-    /**
-     * TODO:
-     */
-    tracer?: Tracer;
-
-    /**
-     * Whether debugging information should be logged out.
-     *
-     * Enabling this will cause the cache to emit log events for most operations
-     * performed against it.
-     */
-    verbose?: boolean;
-
-    /**
      * Transformation function to be run on entity nodes that change during
      * write operation; an entity node is defined by `entityIdForNode`.
      */
@@ -122,6 +104,24 @@ export namespace CacheContext {
      * It allows other tools to be notified when there are changes.
      */
     onChange?: OnChangeCallback;
+
+    /**
+     * TODO:
+     */
+    tracer?: Tracer;
+
+    /**
+     * Whether debugging information should be logged out.
+     *
+     * Enabling this will cause the cache to emit log events for most operations
+     * performed against it.
+     */
+    verbose?: boolean;
+
+    /**
+     * The logger to use when emitting messages. By default, `console`.
+     */
+    logger?: ConsoleTracer.Logger;
   }
 
 }
@@ -161,8 +161,6 @@ export class CacheContext {
   private readonly _queryInfoMap = new Map<string, QueryInfo>();
   /** All currently known & parsed queries, for identity mapping. */
   private readonly _operationMap = new Map<string, OperationInstance[]>();
-  /** The logger we should use. */
-  private readonly _logger: ConsoleTracer.Logger;
 
   constructor(config: CacheContext.Configuration = {}) {
     this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
@@ -177,14 +175,6 @@ export class CacheContext {
     this.tracer = config.tracer || new ConsoleTracer(!!config.verbose, config.logger);
 
     this._addTypename = config.addTypename || false;
-    this._logger = config.logger || {
-      debug: _makeDefaultLogger('debug'),
-      info:  _makeDefaultLogger('info'),
-      warn:  _makeDefaultLogger('warn'),
-      // Grouping:
-      group: _makeDefaultLogger('group'),
-      groupEnd: console.groupEnd ? console.groupEnd.bind(console) : () => {}, // eslint-disable-line no-console
-    };
   }
 
   /**
@@ -236,18 +226,6 @@ export class CacheContext {
   }
 
   /**
-   * Emit log events in a (collapsed) group.
-   */
-  logGroup(message: string, callback: () => void): void {
-    this._logger.group(message);
-    try {
-      callback();
-    } finally {
-      this._logger.groupEnd();
-    }
-  }
-
-  /**
    * Retrieves a memoized QueryInfo for a given GraphQL document.
    */
   private _queryInfo(document: DocumentNode): QueryInfo {
@@ -283,11 +261,4 @@ export function defaultEntityIdMapper(node: { id?: any }) {
 
 export function operationCacheKey(document: DocumentNode) {
   return document.loc!.source.body;
-}
-
-function _makeDefaultLogger(level: 'debug' | 'info' | 'warn' | 'group') {
-  const method = console[level] || console.log; // eslint-disable-line no-console
-  return function defaultLogger(message: string, ...args: any[]) {
-    method.call(console, `[Cache] ${message}`, ...args);
-  };
 }
