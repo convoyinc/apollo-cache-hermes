@@ -6,6 +6,7 @@ export const strictConfig: CacheContext.Configuration = {
   freeze: true,
   logger: {
     debug: jest.fn(),
+    info: jest.fn(),
     warn(message: string, ...args: any[]) {
       throw new Error(util.format(`warn:`, message, ...args));
     },
@@ -18,6 +19,7 @@ export const silentConfig: CacheContext.Configuration = {
   freeze: true,
   logger: {
     debug: jest.fn(),
+    info: jest.fn(),
     warn: jest.fn(),
     group: jest.fn(),
     groupEnd: jest.fn(),

@@ -1,3 +1,6 @@
+import { QueryResult } from '../operations/read';
+import { OperationInstance } from '../schema';
+
 import { Tracer } from './Tracer';
 
 /**
@@ -6,7 +9,7 @@ import { Tracer } from './Tracer';
  * By default it logs only warnings, but a verbose mode can be enabled to log
  * out all cache operations.
  */
-export class ConsoleTracer implements Tracer {
+export class ConsoleTracer implements Tracer<void> {
 
   constructor(
     private _verbose: boolean,
@@ -16,6 +19,18 @@ export class ConsoleTracer implements Tracer {
   warning(message: string, ...metadata: any[]) {
     if (this._verbose) return;
     this._logger.warn(message, ...metadata);
+  }
+
+  readEnd(operation: OperationInstance, result: QueryResult, cacheHit: boolean) {
+    if (!this._verbose) return;
+    const { operationType, operationName } = operation.info;
+
+    const message = `read(${operationType} ${operationName})`;
+    if (cacheHit) {
+      this._logger.debug(`${message} (cached)`, result);
+    } else {
+      this._logger.info(message, result);
+    }
   }
 
 }
@@ -29,6 +44,7 @@ export namespace ConsoleTracer {
    */
   export interface Logger {
     debug: LogEmitter;
+    info: LogEmitter;
     warn: LogEmitter;
     group: LogEmitter;
     groupEnd: () => void;
@@ -36,6 +52,7 @@ export namespace ConsoleTracer {
 
   export const DefaultLogger: Logger = {
     debug: _makeDefaultEmitter('debug'),
+    info: _makeDefaultEmitter('info'),
     warn:  _makeDefaultEmitter('warn'),
     // Grouping:
     group: _makeDefaultEmitter('group'),

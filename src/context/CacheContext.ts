@@ -179,6 +179,7 @@ export class CacheContext {
     this._addTypename = config.addTypename || false;
     this._logger = config.logger || {
       debug: _makeDefaultLogger('debug'),
+      info:  _makeDefaultLogger('info'),
       warn:  _makeDefaultLogger('warn'),
       // Grouping:
       group: _makeDefaultLogger('group'),

@@ -22,6 +22,6 @@ export interface Tracer<TActionContext = any> {
   /**
    *
    */
-  readEnd?: (operation: OperationInstance, result: QueryResult, cached: boolean, context: TActionContext) => void;
+  readEnd?: (operation: OperationInstance, result: QueryResult, cacheHit: boolean, context: TActionContext) => void;
 
 }
