@@ -106,7 +106,10 @@ export namespace CacheContext {
     onChange?: OnChangeCallback;
 
     /**
-     * TODO:
+     * The tracer to instrument the cache with.
+     *
+     * If not supplied, a ConsoleTracer will be constructed, with `verbose` and
+     * `logger` passed as its arguments.
      */
     tracer?: Tracer;
 
@@ -115,11 +118,15 @@ export namespace CacheContext {
      *
      * Enabling this will cause the cache to emit log events for most operations
      * performed against it.
+     *
+     * Ignored if `tracer` is supplied.
      */
     verbose?: boolean;
 
     /**
      * The logger to use when emitting messages. By default, `console`.
+     *
+     * Ignored if `tracer` is supplied.
      */
     logger?: ConsoleTracer.Logger;
   }

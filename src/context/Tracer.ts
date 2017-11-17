@@ -5,13 +5,18 @@ import { RawOperation, OperationInstance } from '../schema';
 
 export namespace Tracer {
   export interface ReadResult {
+    /** The result payload that satisfies the query. */
     result: QueryResult;
+    /** Whether this request was memoized. */
     cacheHit: boolean;
   }
 
   export interface WriteResult {
+    /** The payload to be written to the cache. */
     payload: JsonObject;
+    /** The new snapshot (and metadata) after the write is complete. */
     newSnapshot: EditedSnapshot;
+    /** Any warnings that occurred during the write. */
     warnings?: string[];
   }
 }
@@ -35,22 +40,22 @@ export interface Tracer<TActionContext = any> {
   warning?: (message: string, ...metadata: any[]) => void;
 
   /**
-   *
+   * Start of a request to read from the cache.
    */
   readStart?: (rawOperation: RawOperation) => TActionContext;
 
   /**
-   *
+   * Successful end of a request to read from the cache.
    */
   readEnd?: (operation: OperationInstance, result: Tracer.ReadResult, context: TActionContext) => void;
 
   /**
-   *
+   * Start of a request to write to the cache.
    */
   writeStart?: (rawOperation: RawOperation, payload: JsonObject) => TActionContext;
 
   /**
-   *
+   * Successful end of a request to write to the cache.
    */
   writeEnd?: (operation: OperationInstance, result: Tracer.WriteResult, context: TActionContext) => void;
 
