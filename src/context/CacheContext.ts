@@ -152,6 +152,9 @@ export class CacheContext {
   /** Configured on-change callback */
   readonly onChange: CacheContext.OnChangeCallback | undefined;
 
+  /** The tracer we should use. */
+  readonly tracer: Tracer;
+
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
@@ -160,8 +163,6 @@ export class CacheContext {
   private readonly _operationMap = new Map<string, OperationInstance[]>();
   /** The logger we should use. */
   private readonly _logger: ConsoleTracer.Logger;
-  /** The tracer we should use. */
-  private readonly _tracer: Tracer;
 
   constructor(config: CacheContext.Configuration = {}) {
     this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
@@ -173,9 +174,9 @@ export class CacheContext {
     this.resolverRedirects = config.resolverRedirects || {};
     this.onChange = config.onChange;
     this.entityUpdaters = config.entityUpdaters || {};
+    this.tracer = config.tracer || new ConsoleTracer(!!config.verbose, config.logger);
 
     this._addTypename = config.addTypename || false;
-    this._tracer = config.tracer || new ConsoleTracer(!!config.verbose, config.logger);
     this._logger = config.logger || {
       debug: _makeDefaultLogger('debug'),
       warn:  _makeDefaultLogger('warn'),
@@ -239,14 +240,6 @@ export class CacheContext {
   debug(message: string, ...metadata: any[]): void {
     if (!this.verbose) return;
     this._logger.debug(message, ...metadata);
-  }
-
-  /**
-   * Emit a warning.
-   */
-  warn(message: string, ...metadata: any[]): void {
-    if (!this._tracer.warning) return;
-    this._tracer.warning(message, ...metadata);
   }
 
   /**

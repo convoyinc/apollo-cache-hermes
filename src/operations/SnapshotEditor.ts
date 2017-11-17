@@ -115,12 +115,12 @@ export class SnapshotEditor {
     // The query should now be considered complete for future reads.
     this._writtenQueries.add(parsed);
 
-    if (warnings.length) {
+    if (warnings.length && this._context.tracer.warning) {
       const { info } = parsed;
       this._context.logGroup(`Warnings when writing payload for ${info.operationType} ${info.operationName}:`, () => {
-        this._context.warn(`Payload:`, payload);
+        this._context.tracer.warning!(`Payload:`, payload);
         for (const warning of warnings) {
-          this._context.warn(warning);
+          this._context.tracer.warning!(warning);
         }
       });
     }
