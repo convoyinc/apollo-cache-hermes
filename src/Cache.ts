@@ -171,12 +171,21 @@ export class Cache implements Queryable {
   private _setSnapshot(snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>): void {
     this._snapshot = snapshot;
 
+    let tracerContext;
+    if (this._context.tracer.broadcastStart) {
+      tracerContext = this._context.tracer.broadcastStart({ snapshot, editedNodeIds })
+    }
+
     for (const observer of this._observers) {
       observer.consumeChanges(snapshot.optimistic, editedNodeIds);
     }
 
     if (this._context.onChange) {
       this._context.onChange(this._snapshot, editedNodeIds);
+    }
+
+    if (this._context.tracer.broadcastEnd) {
+      this._context.tracer.broadcastEnd({ snapshot, editedNodeIds }, tracerContext);
     }
   }
 

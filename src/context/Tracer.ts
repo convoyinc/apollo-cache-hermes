@@ -1,23 +1,31 @@
+import { CacheSnapshot } from '../CacheSnapshot';
 import { QueryResult } from '../operations/read';
 import { EditedSnapshot } from '../operations/SnapshotEditor';
 import { JsonObject } from '../primitive';
-import { RawOperation, OperationInstance } from '../schema';
+import { NodeId, OperationInstance, RawOperation } from '../schema';
 
 export namespace Tracer {
-  export interface ReadResult {
+  export interface ReadInfo {
     /** The result payload that satisfies the query. */
     result: QueryResult;
     /** Whether this request was memoized. */
     cacheHit: boolean;
   }
 
-  export interface WriteResult {
+  export interface WriteInfo {
     /** The payload to be written to the cache. */
     payload: JsonObject;
     /** The new snapshot (and metadata) after the write is complete. */
     newSnapshot: EditedSnapshot;
     /** Any warnings that occurred during the write. */
     warnings?: string[];
+  }
+
+  export interface BroadcastInfo {
+    /** The snapshot being broadcast. */
+    snapshot: CacheSnapshot;
+    /** Nodes within the snapshot that were edited. */
+    editedNodeIds: Set<NodeId>;
   }
 }
 
@@ -47,7 +55,7 @@ export interface Tracer<TActionContext = any> {
   /**
    * Successful end of a request to read from the cache.
    */
-  readEnd?: (operation: OperationInstance, result: Tracer.ReadResult, context: TActionContext) => void;
+  readEnd?: (operation: OperationInstance, info: Tracer.ReadInfo, context: TActionContext) => void;
 
   /**
    * Start of a request to write to the cache.
@@ -57,6 +65,16 @@ export interface Tracer<TActionContext = any> {
   /**
    * Successful end of a request to write to the cache.
    */
-  writeEnd?: (operation: OperationInstance, result: Tracer.WriteResult, context: TActionContext) => void;
+  writeEnd?: (operation: OperationInstance, info: Tracer.WriteInfo, context: TActionContext) => void;
+
+  /**
+   * Start of a request to broadcast changes to cache observers.
+   */
+  broadcastStart?: (info: Tracer.BroadcastInfo) => TActionContext;
+
+  /**
+   * End of a request to broadcast changes to cache observers.
+   */
+  broadcastEnd?: (info: Tracer.BroadcastInfo, contet: TActionContext) => void;
 
 }

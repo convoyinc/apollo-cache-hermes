@@ -20,19 +20,19 @@ export class ConsoleTracer implements Tracer<void> {
     this._logger.warn(message, ...metadata);
   }
 
-  readEnd(operation: OperationInstance, result: Tracer.ReadResult) {
+  readEnd(operation: OperationInstance, info: Tracer.ReadInfo) {
     if (!this._verbose) return;
     const message = this.formatOperation('read', operation);
-    if (result.cacheHit) {
-      this._logger.debug(`${message} (cached)`, result.result);
+    if (info.cacheHit) {
+      this._logger.debug(`${message} (cached)`, info.result);
     } else {
-      this._logger.info(message, result.result);
+      this._logger.info(message, info.result);
     }
   }
 
-  writeEnd(operation: OperationInstance, result: Tracer.WriteResult) {
+  writeEnd(operation: OperationInstance, info: Tracer.WriteInfo) {
     if (!this._verbose) return;
-    const { payload, newSnapshot, warnings } = result;
+    const { payload, newSnapshot, warnings } = info;
     const message = this.formatOperation('write', operation);
 
     // Extended logging for writes that trigger warnings.
