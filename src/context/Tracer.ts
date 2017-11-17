@@ -1,4 +1,6 @@
 import { QueryResult } from '../operations/read';
+import { EditedSnapshot } from '../operations/SnapshotEditor';
+import { JsonObject } from '../primitive';
 import { RawOperation, OperationInstance } from '../schema';
 
 /**
@@ -23,5 +25,15 @@ export interface Tracer<TActionContext = any> {
    *
    */
   readEnd?: (operation: OperationInstance, result: QueryResult, cacheHit: boolean, context: TActionContext) => void;
+
+  /**
+   *
+   */
+  writeStart?: (rawOperation: RawOperation, payload: JsonObject) => TActionContext;
+
+  /**
+   *
+   */
+  writeEnd?: (operation: OperationInstance, payload: JsonObject, newSnapshot: EditedSnapshot, context: TActionContext) => void;
 
 }

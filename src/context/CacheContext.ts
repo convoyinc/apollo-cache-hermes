@@ -236,14 +236,6 @@ export class CacheContext {
   }
 
   /**
-   * Emit a debugging message.
-   */
-  debug(message: string, ...metadata: any[]): void {
-    if (!this.verbose) return;
-    this._logger.debug(message, ...metadata);
-  }
-
-  /**
    * Emit log events in a (collapsed) group.
    */
   logGroup(message: string, callback: () => void): void {
