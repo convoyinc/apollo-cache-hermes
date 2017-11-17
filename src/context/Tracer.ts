@@ -3,11 +3,23 @@ import { EditedSnapshot } from '../operations/SnapshotEditor';
 import { JsonObject } from '../primitive';
 import { RawOperation, OperationInstance } from '../schema';
 
+export namespace Tracer {
+  export interface ReadResult {
+    result: QueryResult;
+    cacheHit: boolean;
+  }
+}
+
 /**
  * Event handlers that are called at various locations within the cache.
  *
  * Generally, this is expected to be used for instrumentation of the cache:
  * logging, performance monitoring, etc.
+ *
+ * Many actions are grouped into start/end pairs.  If a value is returned from
+ * the start handler, it will be passed to the corresponding end handler as its
+ * last (context) argument.  Handy for passing timestamps, ids, etc between
+ * paired handlers.
  */
 export interface Tracer<TActionContext = any> {
 
@@ -24,7 +36,7 @@ export interface Tracer<TActionContext = any> {
   /**
    *
    */
-  readEnd?: (operation: OperationInstance, result: QueryResult, cacheHit: boolean, context: TActionContext) => void;
+  readEnd?: (operation: OperationInstance, result: Tracer.ReadResult, context: TActionContext) => void;
 
   /**
    *

@@ -61,7 +61,8 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
   }
 
   if (context.tracer.readEnd) {
-    context.tracer.readEnd(operation, queryResult as QueryResult, cacheHit, tracerContext);
+    const result = { result: queryResult as QueryResult, cacheHit };
+    context.tracer.readEnd(operation, result, tracerContext);
   }
 
   return queryResult;

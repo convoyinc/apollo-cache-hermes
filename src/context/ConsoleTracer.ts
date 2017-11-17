@@ -1,6 +1,3 @@
-import { QueryResult } from '../operations/read';
-import { EditedSnapshot } from '../operations/SnapshotEditor';
-import { JsonObject } from '../primitive';
 import { OperationInstance } from '../schema';
 
 import { Tracer } from './Tracer';
@@ -23,13 +20,13 @@ export class ConsoleTracer implements Tracer<void> {
     this._logger.warn(message, ...metadata);
   }
 
-  readEnd(operation: OperationInstance, result: QueryResult, cacheHit: boolean) {
+  readEnd(operation: OperationInstance, result: Tracer.ReadResult) {
     if (!this._verbose) return;
     const message = this.formatOperation('read', operation);
-    if (cacheHit) {
-      this._logger.debug(`${message} (cached)`, result);
+    if (result.cacheHit) {
+      this._logger.debug(`${message} (cached)`, result.result);
     } else {
-      this._logger.info(message, result);
+      this._logger.info(message, result.result);
     }
   }
 
