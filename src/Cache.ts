@@ -117,7 +117,7 @@ export class Cache implements Queryable {
     try {
       callback(transaction);
     } catch (error) {
-      this._context.error(`Rolling back transaction due to error:`, error);
+      this._context.warn(`Rolling transaction back due to error:`, error);
       return false;
     }
 

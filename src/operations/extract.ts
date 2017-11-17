@@ -46,7 +46,7 @@ export function extract(graphSnapshot: GraphSnapshot, cacheContext: CacheContext
     const extractedData = extractSerializableData(graphSnapshot, nodeSnapshot);
     if (extractedData !== undefined) {
       if (!Serializable.isSerializable(extractedData, /* allowUndefined */ true)) {
-        cacheContext.error(`Data at entityID ${id} is unserializable`);
+        cacheContext.warn(`Data at entityID ${id} is unserializable`);
       }
       serializedEntity.data = extractedData;
     }

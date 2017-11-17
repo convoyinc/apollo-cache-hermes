@@ -24,7 +24,6 @@ export namespace CacheContext {
   export interface Logger {
     debug: LogEmitter;
     warn: LogEmitter;
-    error: LogEmitter;
     group: LogEmitter;
     groupEnd: () => void;
   }
@@ -179,7 +178,6 @@ export class CacheContext {
     this._logger = config.logger || {
       debug: _makeDefaultLogger('debug'),
       warn:  _makeDefaultLogger('warn'),
-      error: _makeDefaultLogger('error'),
       // Grouping:
       group: _makeDefaultLogger('group'),
       groupEnd: console.groupEnd ? console.groupEnd.bind(console) : () => {}, // eslint-disable-line no-console
@@ -250,13 +248,6 @@ export class CacheContext {
   }
 
   /**
-   * Emit a non-blocking error.
-   */
-  error(message: string, ...metadata: any[]): void {
-    this._logger.error(message, ...metadata);
-  }
-
-  /**
    * Emit log events in a (collapsed) group.
    */
   logGroup(message: string, callback: () => void): void {
@@ -306,7 +297,7 @@ export function operationCacheKey(document: DocumentNode) {
   return document.loc!.source.body;
 }
 
-function _makeDefaultLogger(level: 'debug' | 'info' | 'warn' | 'error' | 'group') {
+function _makeDefaultLogger(level: 'debug' | 'info' | 'warn' | 'group') {
   const method = console[level] || console.log; // eslint-disable-line no-console
   return function defaultLogger(message: string, ...args: any[]) {
     method.call(console, `[Cache] ${message}`, ...args);
