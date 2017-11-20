@@ -2,6 +2,8 @@ import { OperationInstance } from '../schema';
 
 import { Tracer } from './Tracer';
 
+const INDENT = '  ';
+
 /**
  * The default tracer used by the cache.
  *
@@ -10,6 +12,9 @@ import { Tracer } from './Tracer';
  */
 export class ConsoleTracer implements Tracer<void> {
 
+  // Used when emulating grouping behavior.
+  private _indent = 0;
+
   constructor(
     private _verbose: boolean,
     private _logger: ConsoleTracer.Logger = ConsoleTracer.DefaultLogger,
@@ -17,16 +22,16 @@ export class ConsoleTracer implements Tracer<void> {
 
   warning(message: string, ...metadata: any[]) {
     if (this._verbose) return;
-    this._logger.warn(message, ...metadata);
+    this._emit('warn', message, ...metadata);
   }
 
   readEnd(operation: OperationInstance, info: Tracer.ReadInfo) {
     if (!this._verbose) return;
     const message = this.formatOperation('read', operation);
     if (info.cacheHit) {
-      this._logger.debug(`${message} (cached)`, info.result);
+      this._emit('debug', `${message} (cached)`, info.result);
     } else {
-      this._logger.info(message, info.result);
+      this._emit('info', message, info.result);
     }
   }
 
@@ -37,15 +42,15 @@ export class ConsoleTracer implements Tracer<void> {
 
     // Extended logging for writes that trigger warnings.
     if (warnings) {
-      this._logger.group(message);
-      this._logger.warn('payload with warnings:', payload);
-      for (const warning of warnings) {
-        this._logger.warn(warning);
-      }
-      this._logger.debug('new snapshot:', newSnapshot);
-      this._logger.groupEnd();
+      this._group(message, () => {
+        this._emit('warn', 'payload with warnings:', payload);
+        for (const warning of warnings) {
+          this._emit('warn', warning);
+        }
+        this._emit('debug', 'new snapshot:', newSnapshot);
+      });
     } else {
-      this._logger.debug(message, { payload, newSnapshot });
+      this._emit('debug', message, { payload, newSnapshot });
     }
   }
 
@@ -53,6 +58,44 @@ export class ConsoleTracer implements Tracer<void> {
   protected formatOperation(action: string, operation: OperationInstance) {
     const { operationType, operationName } = operation.info;
     return `${action}(${operationType} ${operationName})`;
+  }
+
+  // Internal
+
+  private _emit(level: 'debug' | 'info' | 'warn', message: string, ...metadata: any[]) {
+    if (this._indent) {
+      for (let i = 0; i < this._indent; i++) {
+        message = `${INDENT}${message}`;
+      }
+    }
+
+    this._logger[level](message, ...metadata);
+  }
+
+  private _group(message: string, callback: () => void) {
+    this._groupStart(message);
+    try {
+      callback();
+    } finally {
+      this._groupEnd();
+    }
+  }
+
+  private _groupStart(message: string) {
+    if (this._logger.group && this._logger.groupEnd) {
+      this._logger.group(message);
+    } else {
+      this._indent += 1;
+      this._logger.info(message);
+    }
+  }
+
+  private _groupEnd() {
+    if (this._logger.group && this._logger.groupEnd) {
+      this._logger.groupEnd();
+    } else {
+      this._indent -= 1;
+    }
   }
 
 }
@@ -63,13 +106,16 @@ export namespace ConsoleTracer {
   /**
    * The minimal implementation of a logger required for ConsoleTracer to
    * perform its duties.  This is a slimmed down interface for Console.
+   *
+   * If either `group` or `groupEnd` are omitted, they will be approximated via
+   * regular log entries.
    */
   export interface Logger {
     debug: LogEmitter;
     info: LogEmitter;
     warn: LogEmitter;
-    group: LogEmitter;
-    groupEnd: () => void;
+    group?: LogEmitter;
+    groupEnd?: () => void;
   }
 
   export const DefaultLogger: Logger = {
