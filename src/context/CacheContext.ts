@@ -1,4 +1,3 @@
-
 import { addTypenameToDocument, isEqual } from 'apollo-utilities';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 import lodashGet = require('lodash.get');
@@ -10,7 +9,9 @@ import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
 import { isObject } from '../util';
 
+import { ConsoleTracer } from './ConsoleTracer';
 import { QueryInfo } from './QueryInfo';
+import { Tracer } from './Tracer';
 
 export namespace CacheContext {
 
@@ -18,16 +19,7 @@ export namespace CacheContext {
   export type EntityIdForValue = (value: any) => EntityId | undefined;
   export type EntityIdMapper = (node: JsonObject) => string | number | undefined;
   export type EntityTransformer = (node: JsonObject) => void;
-  export type LogEmitter = (message: string, ...metadata: any[]) => void;
   export type OnChangeCallback = (newCacheShapshot: CacheSnapshot, editedNodeIds: Set<String>) => void;
-
-  export interface Logger {
-    debug: LogEmitter;
-    warn: LogEmitter;
-    error: LogEmitter;
-    group: LogEmitter;
-    groupEnd: () => void;
-  }
 
   /**
    * Expected to return an EntityId or undefined, but we loosen the restrictions
@@ -72,19 +64,6 @@ export namespace CacheContext {
     entityIdForNode?: EntityIdMapper;
 
     /**
-     * The logger to use when emitting messages. By default, `console`.
-     */
-    logger?: Logger;
-
-    /**
-     * Whether debugging information should be logged out.
-     *
-     * Enabling this will cause the cache to emit log events for most operations
-     * performed against it.
-     */
-    verbose?: boolean;
-
-    /**
      * Transformation function to be run on entity nodes that change during
      * write operation; an entity node is defined by `entityIdForNode`.
      */
@@ -125,6 +104,31 @@ export namespace CacheContext {
      * It allows other tools to be notified when there are changes.
      */
     onChange?: OnChangeCallback;
+
+    /**
+     * The tracer to instrument the cache with.
+     *
+     * If not supplied, a ConsoleTracer will be constructed, with `verbose` and
+     * `logger` passed as its arguments.
+     */
+    tracer?: Tracer;
+
+    /**
+     * Whether debugging information should be logged out.
+     *
+     * Enabling this will cause the cache to emit log events for most operations
+     * performed against it.
+     *
+     * Ignored if `tracer` is supplied.
+     */
+    verbose?: boolean;
+
+    /**
+     * The logger to use when emitting messages. By default, `console`.
+     *
+     * Ignored if `tracer` is supplied.
+     */
+    logger?: ConsoleTracer.Logger;
   }
 
 }
@@ -155,14 +159,15 @@ export class CacheContext {
   /** Configured on-change callback */
   readonly onChange: CacheContext.OnChangeCallback | undefined;
 
+  /** The tracer we should use. */
+  readonly tracer: Tracer;
+
   /** Whether __typename should be injected into nodes in queries. */
   private readonly _addTypename: boolean;
   /** All currently known & processed GraphQL documents. */
   private readonly _queryInfoMap = new Map<string, QueryInfo>();
   /** All currently known & parsed queries, for identity mapping. */
   private readonly _operationMap = new Map<string, OperationInstance[]>();
-  /** The logger we should use. */
-  private readonly _logger: CacheContext.Logger;
 
   constructor(config: CacheContext.Configuration = {}) {
     this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
@@ -174,16 +179,9 @@ export class CacheContext {
     this.resolverRedirects = config.resolverRedirects || {};
     this.onChange = config.onChange;
     this.entityUpdaters = config.entityUpdaters || {};
+    this.tracer = config.tracer || new ConsoleTracer(!!config.verbose, config.logger);
 
     this._addTypename = config.addTypename || false;
-    this._logger = config.logger || {
-      debug: _makeDefaultLogger('debug'),
-      warn:  _makeDefaultLogger('warn'),
-      error: _makeDefaultLogger('error'),
-      // Grouping:
-      group: _makeDefaultLogger('group'),
-      groupEnd: console.groupEnd ? console.groupEnd.bind(console) : () => {}, // eslint-disable-line no-console
-    };
   }
 
   /**
@@ -235,40 +233,6 @@ export class CacheContext {
   }
 
   /**
-   * Emit a debugging message.
-   */
-  debug(message: string, ...metadata: any[]): void {
-    if (!this.verbose) return;
-    this._logger.debug(message, ...metadata);
-  }
-
-  /**
-   * Emit a warning.
-   */
-  warn(message: string, ...metadata: any[]): void {
-    this._logger.warn(message, ...metadata);
-  }
-
-  /**
-   * Emit a non-blocking error.
-   */
-  error(message: string, ...metadata: any[]): void {
-    this._logger.error(message, ...metadata);
-  }
-
-  /**
-   * Emit log events in a (collapsed) group.
-   */
-  logGroup(message: string, callback: () => void): void {
-    this._logger.group(message);
-    try {
-      callback();
-    } finally {
-      this._logger.groupEnd();
-    }
-  }
-
-  /**
    * Retrieves a memoized QueryInfo for a given GraphQL document.
    */
   private _queryInfo(document: DocumentNode): QueryInfo {
@@ -304,11 +268,4 @@ export function defaultEntityIdMapper(node: { id?: any }) {
 
 export function operationCacheKey(document: DocumentNode) {
   return document.loc!.source.body;
-}
-
-function _makeDefaultLogger(level: 'debug' | 'info' | 'warn' | 'error' | 'group') {
-  const method = console[level] || console.log; // eslint-disable-line no-console
-  return function defaultLogger(message: string, ...args: any[]) {
-    method.call(console, `[Cache] ${message}`, ...args);
-  };
 }

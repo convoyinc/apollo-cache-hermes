@@ -17,8 +17,8 @@ describe(`context.CacheContext`, () => {
     const cache = new Cache({
       logger: {
         debug: jest.fn(),
+        info: jest.fn(),
         warn: jest.fn(),
-        error: jest.fn(),
         group: jest.fn(),
         groupEnd: jest.fn(),
       },

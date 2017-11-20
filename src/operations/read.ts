@@ -24,12 +24,19 @@ export interface QueryResultWithNodeIds extends QueryResult {
 /**
  * Get you some data.
  */
-export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot): QueryResult;
-export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
-export function read(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: true) {
-  const operation = context.parseOperation(query);
+export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot): QueryResult;
+export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
+export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: true) {
+  let tracerContext;
+  if (context.tracer.readStart) {
+    tracerContext = context.tracer.readStart(raw)
+  }
+
+  const operation = context.parseOperation(raw);
   let queryResult = snapshot.readCache.get(operation) as Partial<QueryResultWithNodeIds>;
+  let cacheHit = true;
   if (!queryResult) {
+    cacheHit = false;
     const staticResult = snapshot.getNodeData(operation.rootId);
 
     let result = staticResult;
@@ -41,20 +48,21 @@ export function read(context: CacheContext, query: RawOperation, snapshot: Graph
 
     queryResult = { result, complete, nodeIds };
     snapshot.readCache.set(operation, queryResult as QueryResult);
-
-    if (context.verbose) {
-      const { info } = operation;
-      context.debug(`read(${info.operationType} ${info.operationName})`, { result, complete, nodeIds, snapshot });
-    }
   }
 
   // We can potentially ask for results without node ids first, and then follow
   // up with an ask for them.  In that case, we need to fill in the cache a bit
   // more.
   if (includeNodeIds && !queryResult.nodeIds) {
+    cacheHit = false;
     const { complete, nodeIds } = _visitSelection(operation, context, queryResult.result, includeNodeIds);
     queryResult.complete = complete;
     queryResult.nodeIds = nodeIds;
+  }
+
+  if (context.tracer.readEnd) {
+    const result = { result: queryResult as QueryResult, cacheHit };
+    context.tracer.readEnd(operation, result, tracerContext);
   }
 
   return queryResult;

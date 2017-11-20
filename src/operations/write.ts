@@ -11,18 +11,22 @@ import { EditedSnapshot, SnapshotEditor } from './SnapshotEditor';
  * Performs the minimal set of edits to generate new immutable versions of each
  * node, while preserving immutability of the parent snapshot.
  */
-export function write(context: CacheContext, snapshot: GraphSnapshot, operation: RawOperation, payload: JsonObject): EditedSnapshot {
+export function write(context: CacheContext, snapshot: GraphSnapshot, raw: RawOperation, payload: JsonObject): EditedSnapshot {
+  let tracerContext;
+  if (context.tracer.writeStart) {
+    tracerContext = context.tracer.writeStart(raw, payload);
+  }
+
   // We _could_ go purely functional with the editor, but it's honestly pretty
   // convenient to follow the builder function instead - it'd end up passing
   // around a context object anyway.
   const editor = new SnapshotEditor(context, snapshot);
-  editor.mergePayload(operation, payload);
-  const result = editor.commit();
+  const { warnings } = editor.mergePayload(raw, payload);
+  const newSnapshot = editor.commit();
 
-  if (context.verbose) {
-    const { info } = context.parseOperation(operation);
-    context.debug(`write(${info.operationType} ${info.operationName})`, { payload, result });
+  if (context.tracer.writeEnd) {
+    context.tracer.writeEnd(context.parseOperation(raw), { payload, newSnapshot, warnings }, tracerContext);
   }
 
-  return result;
+  return newSnapshot;
 }

@@ -142,8 +142,8 @@ function _buildNodeMap(
         }
       }
 
-    } else {
-      context.warn(`${selection.kind} selections are not supported; query may misbehave`);
+    } else if (context.tracer.warning) {
+      context.tracer.warning(`${selection.kind} selections are not supported; query may misbehave`);
     }
 
     _collectDirectiveVariables(variables, selection);

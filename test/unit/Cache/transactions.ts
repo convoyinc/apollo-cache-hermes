@@ -14,13 +14,13 @@ describe(`Cache`, () => {
       }
     }`);
 
-    let cache: Cache, debug: jest.Mock<any>, warn: jest.Mock<any>, error: jest.Mock<any>;
+    let cache: Cache, debug: jest.Mock<any>, info: jest.Mock<any>, warn: jest.Mock<any>;
     beforeEach(() => {
       debug = jest.fn();
+      info = jest.fn();
       warn = jest.fn();
-      error = jest.fn();
       cache = new Cache({
-        logger: { debug, warn, error, group: jest.fn(), groupEnd: jest.fn() },
+        logger: { debug, info, warn, group: jest.fn(), groupEnd: jest.fn() },
       });
     });
 
@@ -58,8 +58,8 @@ describe(`Cache`, () => {
         throw exception;
       });
 
-      expect(error.mock.calls.length).to.eq(1);
-      expect(error.mock.calls[0]).to.include(exception);
+      expect(warn.mock.calls.length).to.eq(1);
+      expect(warn.mock.calls[0]).to.include(exception);
     });
 
   });
