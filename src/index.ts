@@ -1,4 +1,3 @@
-import { Hermes } from './apollo';
+export { Hermes } from './apollo';
 export { Cache } from './Cache';
-
-export { Hermes };
+export { ConsoleTracer } from './context/ConsoleTracer';
