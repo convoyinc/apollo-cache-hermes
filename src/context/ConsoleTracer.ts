@@ -54,6 +54,12 @@ export class ConsoleTracer implements Tracer<void> {
     }
   }
 
+  transactionEnd(error: any) {
+    if (error) {
+      this._emit('warn', `Rolling transaction back due to error:`, error);
+    }
+  }
+
   // eslint-disable-next-line class-methods-use-this
   protected formatOperation(action: string, operation: OperationInstance) {
     const { operationType, operationName } = operation.info;
