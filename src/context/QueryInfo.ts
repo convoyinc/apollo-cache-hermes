@@ -6,6 +6,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies
 
 import { ParsedQueryWithVariables, parseQuery } from '../ParsedQueryNode';
 import { JsonValue } from '../primitive';
+import { RawOperation } from '../schema';
 import {
   FragmentMap,
   fragmentMapForDocument,
@@ -50,20 +51,25 @@ export class QueryInfo {
    */
   public readonly variableDefaults: { [Key: string]: JsonValue }
 
-  constructor(context: CacheContext, document: DocumentNode) {
-    this.document = document;
-    this.operation = getOperationOrDie(document);
+  constructor(context: CacheContext, raw: RawOperation) {
+    this.document = raw.document;
+    this.operation = getOperationOrDie(raw.document);
     this.operationType = this.operation.operation;
     this.operationName = this.operation.name && this.operation.name.value;
     this.operationSource = this.operation.loc && this.operation.loc.source.body;
-    this.fragmentMap = fragmentMapForDocument(document);
+    this.fragmentMap = fragmentMapForDocument(raw.document);
 
     const { parsedQuery, variables } = parseQuery(context, this.fragmentMap, this.operation.selectionSet);
     this.parsed = parsedQuery;
     this.variables = variables;
     this.variableDefaults = variableDefaultsInOperation(this.operation);
 
-    this._assertValid();
+    // Skip verification if rawOperation is constructed from fragments
+    // (e.g readFragment/writeFragment) because fragment will not declare
+    // variables. Users will have to know to provide `variables` parameter
+    if (!raw.fromFragmentDocument) {
+      this._assertValid();
+    }
   }
 
   private _assertValid() {

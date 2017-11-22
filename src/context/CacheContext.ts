@@ -204,7 +204,7 @@ export class CacheContext {
     // It appears like Apollo or someone upstream is cloning or otherwise
     // modifying the queries that are passed down.  Thus, the operation source
     // is a more reliable cache key…
-    const cacheKey = operationCacheKey(raw.document);
+    const cacheKey = operationCacheKey(raw.document, raw.fragmentName);
     let operationInstances = this._operationMap.get(cacheKey);
     if (!operationInstances) {
       operationInstances = [];
@@ -218,7 +218,7 @@ export class CacheContext {
       return instance;
     }
 
-    const info = this._queryInfo(raw.document);
+    const info = this._queryInfo(cacheKey, raw);
     const fullVariables = { ...info.variableDefaults, ...raw.variables } as JsonObject;
     const operation = {
       info,
@@ -235,10 +235,9 @@ export class CacheContext {
   /**
    * Retrieves a memoized QueryInfo for a given GraphQL document.
    */
-  private _queryInfo(document: DocumentNode): QueryInfo {
-    const cacheKey = operationCacheKey(document);
+  private _queryInfo(cacheKey: string, raw: RawOperation): QueryInfo {
     if (!this._queryInfoMap.has(cacheKey)) {
-      this._queryInfoMap.set(cacheKey, new QueryInfo(this, document));
+      this._queryInfoMap.set(cacheKey, new QueryInfo(this, raw));
     }
     return this._queryInfoMap.get(cacheKey)!;
   }
@@ -266,6 +265,9 @@ export function defaultEntityIdMapper(node: { id?: any }) {
   return node.id;
 }
 
-export function operationCacheKey(document: DocumentNode) {
+export function operationCacheKey(document: DocumentNode, fragmentName?: string) {
+  if (fragmentName) {
+    return `${fragmentName}❖${document.loc!.source.body}`;
+  }
   return document.loc!.source.body;
 }
