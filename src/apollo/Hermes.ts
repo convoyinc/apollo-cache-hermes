@@ -11,7 +11,7 @@ import { GraphSnapshot } from '../GraphSnapshot';
 
 import { ApolloQueryable } from './Queryable';
 import { ApolloTransaction } from './Transaction';
-import { buildRawOperation } from './util';
+import { buildRawOperationFromQuery } from './util';
 
 /**
  * Apollo-specific interface to the cache.
@@ -53,7 +53,7 @@ export class Hermes extends ApolloQueryable implements ApolloCache<GraphSnapshot
   }
 
   watch(options: CacheInterface.WatchOptions): () => void {
-    const query = buildRawOperation(options.query, options.variables, options.rootId);
+    const query = buildRawOperationFromQuery(options.query, options.variables, options.rootId);
     return this._queryable.watch(query, options.callback);
   }
 

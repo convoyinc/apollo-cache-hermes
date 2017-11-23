@@ -4,7 +4,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import { JsonObject } from '../primitive';
 import { Queryable } from '../Queryable';
 
-import { buildRawOperation, buildRawOperationFromFragmentDocument } from './util';
+import { buildRawOperationFromQuery, buildRawOperationFromFragmentDocument } from './util';
 
 /**
  * Apollo-specific interface to the cache.
@@ -14,7 +14,7 @@ export abstract class ApolloQueryable implements DataProxy {
   protected abstract _queryable: Queryable;
 
   diff<T>(options: Cache.DiffOptions): Cache.DiffResult<T | any> {
-    const rawOperation = buildRawOperation(options.query, options.variables);
+    const rawOperation = buildRawOperationFromQuery(options.query, options.variables);
     const { result, complete } = this._queryable.read(rawOperation, options.optimistic);
     if (options.returnPartialData === false && !complete) {
       // TODO: Include more detail with this error.
@@ -25,7 +25,7 @@ export abstract class ApolloQueryable implements DataProxy {
   }
 
   read(options: Cache.ReadOptions): any {
-    const rawOperation = buildRawOperation(options.query, options.variables, options.rootId);
+    const rawOperation = buildRawOperationFromQuery(options.query, options.variables, options.rootId);
     const { result, complete } = this._queryable.read(rawOperation, options.optimistic);
     if (!complete) {
       // TODO: Include more detail with this error.
@@ -55,12 +55,12 @@ export abstract class ApolloQueryable implements DataProxy {
   }
 
   write(options: Cache.WriteOptions): void {
-    const rawOperation = buildRawOperation(options.query, options.variables as JsonObject, options.dataId);
+    const rawOperation = buildRawOperationFromQuery(options.query, options.variables as JsonObject, options.dataId);
     this._queryable.write(rawOperation, options.result);
   }
 
   writeQuery(options: Cache.WriteQueryOptions): void {
-    const rawOperation = buildRawOperation(options.query, options.variables as JsonObject);
+    const rawOperation = buildRawOperationFromQuery(options.query, options.variables as JsonObject);
     this._queryable.write(rawOperation, options.data);
   }
 
@@ -85,7 +85,7 @@ export abstract class ApolloQueryable implements DataProxy {
   }
 
   evict(options: Cache.EvictOptions): Cache.EvictionResult {
-    const rawOperation = buildRawOperation(options.query, options.variables);
+    const rawOperation = buildRawOperationFromQuery(options.query, options.variables);
     return this._queryable.evict(rawOperation);
   }
 }

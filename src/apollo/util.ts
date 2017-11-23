@@ -7,7 +7,7 @@ import { NodeId, RawOperation, StaticNodeId } from '../schema';
 /**
  * Builds a query.
  */
-export function buildRawOperation(document: DocumentNode, variables?: JsonObject, rootId?: NodeId): RawOperation {
+export function buildRawOperationFromQuery(document: DocumentNode, variables?: JsonObject, rootId?: NodeId): RawOperation {
   return {
     rootId: rootId || StaticNodeId.QueryRoot,
     document,
