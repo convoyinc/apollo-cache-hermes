@@ -15,7 +15,7 @@ export function buildRawOperationFromQuery(document: DocumentNode, variables?: J
   };
 }
 
-export function buildRawOperationFromFragmentDocument(
+export function buildRawOperationFromFragment(
   fragmentDocument: DocumentNode,
   rootId: NodeId,
   variables?: JsonObject,

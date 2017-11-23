@@ -4,7 +4,7 @@ import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extrane
 import { JsonObject } from '../primitive';
 import { Queryable } from '../Queryable';
 
-import { buildRawOperationFromQuery, buildRawOperationFromFragmentDocument } from './util';
+import { buildRawOperationFromQuery, buildRawOperationFromFragment } from './util';
 
 /**
  * Apollo-specific interface to the cache.
@@ -45,7 +45,7 @@ export abstract class ApolloQueryable implements DataProxy {
 
   readFragment<FragmentType>(options: DataProxy.Fragment, optimistic?: true): FragmentType | null {
     // TODO: Support nested fragments.
-    const rawOperation = buildRawOperationFromFragmentDocument(
+    const rawOperation = buildRawOperationFromFragment(
       options.fragment,
       options.id,
       options.variables as JsonObject,
@@ -66,7 +66,7 @@ export abstract class ApolloQueryable implements DataProxy {
 
   writeFragment(options: Cache.WriteFragmentOptions): void {
     // TODO: Support nested fragments.
-    const rawOperation = buildRawOperationFromFragmentDocument(
+    const rawOperation = buildRawOperationFromFragment(
       options.fragment,
       options.id,
       options.variables as JsonObject,
