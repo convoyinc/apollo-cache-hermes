@@ -68,6 +68,16 @@ export interface Tracer<TActionContext = any> {
   writeEnd?: (operation: OperationInstance, info: Tracer.WriteInfo, context: TActionContext) => void;
 
   /**
+   * Start of a transaction within the cache.
+   */
+  transactionStart?: () => TActionContext;
+
+  /**
+   * End of a transaction, and associated error if it was a failure.
+   */
+  transactionEnd?: (error: any, context: TActionContext) => void;
+
+  /**
    * Start of a request to broadcast changes to cache observers.
    */
   broadcastStart?: (info: Tracer.BroadcastInfo) => TActionContext;
@@ -75,6 +85,6 @@ export interface Tracer<TActionContext = any> {
   /**
    * End of a request to broadcast changes to cache observers.
    */
-  broadcastEnd?: (info: Tracer.BroadcastInfo, contet: TActionContext) => void;
+  broadcastEnd?: (info: Tracer.BroadcastInfo, context: TActionContext) => void;
 
 }
