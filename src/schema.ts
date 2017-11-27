@@ -49,7 +49,7 @@ export interface RawOperation {
    * from fragment only document.
    * This is used to skip queryInfo._assertAllVariablesDeclared
    **/
-  fromFragmentDocument?: boolean;
+  readonly fromFragmentDocument?: boolean;
 }
 
 /**
