@@ -106,6 +106,8 @@ export class Cache implements Queryable {
   transaction(callback: TransactionCallback): boolean;
   transaction(changeIdOrCallback: ChangeId, callback: TransactionCallback): boolean;
   transaction(changeIdOrCallback: ChangeId | TransactionCallback, callback?: TransactionCallback): boolean {
+    const { tracer } = this._context;
+
     let changeId;
     if (typeof callback !== 'function') {
       callback = changeIdOrCallback as TransactionCallback;
@@ -113,18 +115,27 @@ export class Cache implements Queryable {
       changeId = changeIdOrCallback as ChangeId;
     }
 
+    let tracerContext;
+    if (tracer.transactionStart) {
+      tracerContext = tracer.transactionStart();
+    }
+
     const transaction = new CacheTransaction(this._context, this._snapshot, changeId);
     try {
       callback(transaction);
     } catch (error) {
-      if (this._context.tracer.warning) {
-        this._context.tracer.warning(`Rolling transaction back due to error:`, error.toString());
+      if (tracer.transactionEnd) {
+        tracer.transactionEnd(error.toString(), tracerContext);
       }
       return false;
     }
 
     const { snapshot, editedNodeIds } = transaction.commit();
     this._setSnapshot(snapshot, editedNodeIds);
+
+    if (tracer.transactionEnd) {
+      tracer.transactionEnd(undefined, tracerContext);
+    }
 
     return true;
   }
