@@ -1,9 +1,9 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read, write } from '../../../../src/operations';
-import { query, strictConfig } from '../../../helpers';
-import { StaticNodeId } from '../../../../src/schema';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
+import { StaticNodeId } from '../../../../src/schema';
+import { query, strictConfig } from '../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
@@ -44,7 +44,7 @@ describe(`operations.read`, () => {
         const { nodeIds } = read(context, parameterizedQuery, snapshot, true);
         expect(Array.from(nodeIds)).to.have.members([
           QueryRootId,
-          nodeIdForParameterizedValue(QueryRootId, ['user'], {id: 1, withExtra: true}),
+          nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 1, withExtra: true }),
           '1',
         ]);
       });
@@ -116,11 +116,11 @@ describe(`operations.read`, () => {
           const { nodeIds } = read(context, nestedQuery, snapshot, true);
           expect(Array.from(nodeIds)).to.have.members([
             QueryRootId,
-            nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], {id: 1}),
+            nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 }),
             '1',
-            nodeIdForParameterizedValue('1', ['three', 'four'], {extra: true}),
+            nodeIdForParameterizedValue('1', ['three', 'four'], { extra: true }),
             '2',
-            nodeIdForParameterizedValue('2', ['three', 'four'], {extra: true}),
+            nodeIdForParameterizedValue('2', ['three', 'four'], { extra: true }),
           ]);
         });
 
