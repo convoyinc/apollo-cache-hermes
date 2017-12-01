@@ -1,6 +1,6 @@
 import { Cache, DataProxy } from 'apollo-cache';
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 import { removeDirectivesFromDocument } from 'apollo-utilities';
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 
 import { UnsatisfiedCacheError } from '../errors';
 import { JsonObject } from '../primitive';
@@ -84,7 +84,7 @@ export abstract class ApolloQueryable implements DataProxy {
   public transformForLink(document: DocumentNode): DocumentNode { // eslint-disable-line class-methods-use-this
     // @static directives are for the cache only.
     return removeDirectivesFromDocument(
-      [{name: 'static'}],
+      [{ name: 'static' }],
       document
     )!;
   }
