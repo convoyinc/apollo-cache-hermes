@@ -89,8 +89,8 @@ export function _walkAndOverlayDynamicValues(
   query: OperationInstance,
   context: CacheContext,
   snapshot: GraphSnapshot,
-  result: JsonObject,
-): JsonObject {
+  result: JsonObject | undefined,
+): JsonObject | undefined {
   // Corner case: We stop walking once we reach a parameterized field with no
   // snapshot, but we should also preemptively stop walking if there are no
   // dynamic values to be overlaid
@@ -208,8 +208,7 @@ export function _visitSelection(
     }
   }
 
-  // TODO: Memoize per query, and propagate through cache snapshots.
-  walkOperation(query.info.document, result, (value, fields) => {
+  walkOperation(query.info.parsed, result, (value, fields) => {
     if (value === undefined) {
       complete = false;
     }
@@ -227,8 +226,7 @@ export function _visitSelection(
     }
 
     for (const field of fields) {
-      const nameNode = field.alias || field.name;
-      if (!(nameNode.value in value)) {
+      if (!(field in value)) {
         complete = false;
         break;
       }
