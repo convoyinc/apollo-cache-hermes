@@ -117,7 +117,7 @@ export class CacheTransaction implements Queryable {
     const prevSnapshot = this._optimisticChangeId ? this._parentSnapshot.baseline : this._parentSnapshot.optimistic;
 
     // Capture a static set of nodes, as the updaters may add to _editedNodeIds.
-    const nodesToEmit = [];
+    const nodesToEmit: [CacheContext.EntityUpdater, JsonValue | undefined, JsonValue | undefined][] = [];
     for (const nodeId of this._editedNodeIds) {
       const node = nextSnapshot.getNodeSnapshot(nodeId);
       const previous = prevSnapshot.getNodeSnapshot(nodeId);
