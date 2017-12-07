@@ -25,7 +25,7 @@ import { ApolloClient } from 'apollo-client';
 import { Hermes } from 'apollo-cache-hermes';
 
 const client = new ApolloClient({
-  initialCache: new Hermes({ … }),
+  cache: new Hermes({ … }),
   // …
 });
 ```
