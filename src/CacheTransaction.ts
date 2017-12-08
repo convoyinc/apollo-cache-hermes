@@ -10,6 +10,7 @@ import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, OperationInstance, QuerySnapshot, RawOperation, StaticNodeId } from './schema';
 import { addToSet, isObject } from './util';
+import { NodeSnapshot } from './nodes/NodeSnapshot';
 
 /**
  * Collects a set of edits against a version of the cache, eventually committing
@@ -103,6 +104,16 @@ export class CacheTransaction implements Queryable {
     }
 
     return { snapshot, editedNodeIds: this._editedNodeIds, writtenQueries: this._writtenQueries };
+  }
+
+  getPreviousNodeSnapshot(nodeId: NodeId): NodeSnapshot | undefined {
+    const prevSnapshot = this._optimisticChangeId ? this._parentSnapshot.baseline : this._parentSnapshot.optimistic;
+    return prevSnapshot.getNodeSnapshot(nodeId);
+  }
+
+  getCurrentNodeSnapshot(nodeId: NodeId): NodeSnapshot | undefined {
+    const currentSnapshot = this._optimisticChangeId ? this._snapshot.baseline : this._snapshot.optimistic;
+    return currentSnapshot.getNodeSnapshot(nodeId);
   }
 
   /**
