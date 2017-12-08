@@ -13,6 +13,17 @@ import { ConsoleTracer } from './ConsoleTracer';
 import { QueryInfo } from './QueryInfo';
 import { Tracer } from './Tracer';
 
+// Augment DocumentNode type with Hermes's properties
+// Because react-apollo can call us without doing transformDocument
+// to be safe, we will always call transformDocument then flag that
+// we have already done so to not repeating the process.
+declare module 'graphql/language/ast' {
+  export interface DocumentNode {
+    /** Indicating that query has already ran transformDocument */
+    hasBeenTransformed?: boolean;
+  }
+}
+
 export namespace CacheContext {
 
   export type EntityIdForNode = (node: JsonObject) => EntityId | undefined;
@@ -191,7 +202,12 @@ export class CacheContext {
    * any other method in the cache.
    */
   transformDocument(document: DocumentNode): DocumentNode {
-    return this._addTypename ? addTypenameToDocument(document) : document;
+    if (this._addTypename && !document.hasBeenTransformed) {
+      const transformedDocument = addTypenameToDocument(document);
+      transformedDocument.hasBeenTransform = true;
+      return transformedDocument;
+    }
+    return document;
   }
 
   /**
