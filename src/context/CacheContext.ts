@@ -234,14 +234,19 @@ export class CacheContext {
       return instance;
     }
 
-    const info = this._queryInfo(cacheKey, raw);
-    const fullVariables = { ...info.variableDefaults, ...raw.variables } as JsonObject;
+    const updateRaw: RawOperation = {
+      ...raw,
+      document: this.transformDocument(raw.document),
+    };
+
+    const info = this._queryInfo(cacheKey, updateRaw);
+    const fullVariables = { ...info.variableDefaults, ...updateRaw.variables } as JsonObject;
     const operation = {
       info,
-      rootId: raw.rootId,
+      rootId: updateRaw.rootId,
       parsedQuery: expandVariables(info.parsed, fullVariables),
       isStatic: !areChildrenDynamic(info.parsed),
-      variables: raw.variables,
+      variables: updateRaw.variables,
     };
     operationInstances.push(operation);
 

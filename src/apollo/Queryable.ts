@@ -14,7 +14,6 @@ export abstract class ApolloQueryable implements DataProxy {
   protected abstract _queryable: Queryable;
 
   diff<T>(options: Cache.DiffOptions): Cache.DiffResult<T | any> {
-    options.query = this.transformDocument(options.query);
     const rawOperation = buildRawOperationFromQuery(options.query, options.variables);
     const { result, complete } = this._queryable.read(rawOperation, options.optimistic);
     if (options.returnPartialData === false && !complete) {
@@ -26,7 +25,6 @@ export abstract class ApolloQueryable implements DataProxy {
   }
 
   read(options: Cache.ReadOptions): any {
-    options.query = this.transformDocument(options.query);
     const rawOperation = buildRawOperationFromQuery(options.query, options.variables, options.rootId);
     const { result, complete } = this._queryable.read(rawOperation, options.optimistic);
     if (!complete) {
@@ -46,7 +44,6 @@ export abstract class ApolloQueryable implements DataProxy {
   }
 
   readFragment<FragmentType>(options: DataProxy.Fragment, optimistic?: true): FragmentType | null {
-    options.fragment = this.transformDocument(options.fragment);
     // TODO: Support nested fragments.
     const rawOperation = buildRawOperationFromFragment(
       options.fragment,
@@ -58,19 +55,16 @@ export abstract class ApolloQueryable implements DataProxy {
   }
 
   write(options: Cache.WriteOptions): void {
-    options.query = this.transformDocument(options.query);
     const rawOperation = buildRawOperationFromQuery(options.query, options.variables as JsonObject, options.dataId);
     this._queryable.write(rawOperation, options.result);
   }
 
   writeQuery(options: Cache.WriteQueryOptions): void {
-    options.query = this.transformDocument(options.query);
     const rawOperation = buildRawOperationFromQuery(options.query, options.variables as JsonObject);
     this._queryable.write(rawOperation, options.data);
   }
 
   writeFragment(options: Cache.WriteFragmentOptions): void {
-    options.fragment = this.transformDocument(options.fragment);
     // TODO: Support nested fragments.
     const rawOperation = buildRawOperationFromFragment(
       options.fragment,
