@@ -20,7 +20,7 @@ export class Hermes extends ApolloQueryable implements ApolloCache<GraphSnapshot
   /** The underlying Hermes cache. */
   protected _queryable: Cache;
 
-  constructor(configuration?: CacheContext) {
+  constructor(configuration?: CacheContext.Configuration) {
     super();
     this._queryable = new Cache(configuration);
   }
