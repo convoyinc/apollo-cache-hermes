@@ -43,6 +43,13 @@ export interface RawOperation {
   readonly document: DocumentNode;
   /** Any variables used by parameterized fields within the selection set. */
   readonly variables?: JsonObject;
+  /** Fragment's name in readFragment/writeFragment with multiple fragments */
+  readonly fragmentName?: string;
+  /** A boolean flag indicating whether the operation is constructed
+   * from fragment only document.
+   * This is used to skip queryInfo._assertAllVariablesDeclared
+   **/
+  readonly fromFragmentDocument?: boolean;
 }
 
 /**

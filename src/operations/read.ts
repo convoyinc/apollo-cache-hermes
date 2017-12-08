@@ -89,8 +89,8 @@ export function _walkAndOverlayDynamicValues(
   query: OperationInstance,
   context: CacheContext,
   snapshot: GraphSnapshot,
-  result: JsonObject,
-): JsonObject {
+  result: JsonObject | undefined,
+): JsonObject | undefined {
   // Corner case: We stop walking once we reach a parameterized field with no
   // snapshot, but we should also preemptively stop walking if there are no
   // dynamic values to be overlaid

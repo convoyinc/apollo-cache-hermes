@@ -1,6 +1,7 @@
 import { DocumentNode } from 'graphql';
 import gql from 'graphql-tag';
 
+import { buildRawOperationFromQuery } from '../../../src/apollo/util';
 import { CacheContext } from '../../../src/context';
 import { QueryInfo } from '../../../src/context/QueryInfo';
 import { strictConfig } from '../../helpers';
@@ -33,7 +34,7 @@ describe(`context.QueryInfo`, () => {
         }
       `;
 
-      info = new QueryInfo(context, query);
+      info = new QueryInfo(context, buildRawOperationFromQuery(query));
     });
 
     it(`hangs onto the document, with no changes`, () => {
@@ -69,7 +70,7 @@ describe(`context.QueryInfo`, () => {
         }
       `;
 
-      info = new QueryInfo(context, query);
+      info = new QueryInfo(context, buildRawOperationFromQuery(query));
     });
 
     it(`collects the variables that are used`, () => {
@@ -94,17 +95,17 @@ describe(`context.QueryInfo`, () => {
 
     it(`asserts that all variables are declared`, () => {
       expect(() => {
-        new QueryInfo(context, gql`
+        new QueryInfo(context, buildRawOperationFromQuery(gql`
           query whoops($foo: Number) {
             thing(foo: $foo, bar: $bar, baz: $baz)
           }
-        `);
+        `));
       }).to.throw(/\$bar(.|\n)*\$baz/);
     });
 
     it(`asserts that all variables are declared, when used via fragments`, () => {
       expect(() => {
-        new QueryInfo(context, gql`
+        new QueryInfo(context, buildRawOperationFromQuery(gql`
           query whoops($foo: Number) {
             thing { ...stuff }
           }
@@ -112,23 +113,23 @@ describe(`context.QueryInfo`, () => {
           fragment stuff on Thing {
             stuff(foo: $foo, bar: $bar, baz: $baz)
           }
-        `);
+        `));
       }).to.throw(/\$bar(.|\n)*\$baz/);
     });
 
     it(`asserts that all variables are used`, () => {
       expect(() => {
-        new QueryInfo(context, gql`
+        new QueryInfo(context, buildRawOperationFromQuery(gql`
           query whoops($foo: Number, $bar: String, $baz: ID) {
             thing(bar: $bar)
           }
-        `);
+        `));
       }).to.throw(/\$foo(.|\n)*\$baz/);
     });
 
     it(`asserts that all variables are used, including fragments`, () => {
       expect(() => {
-        new QueryInfo(context, gql`
+        new QueryInfo(context, buildRawOperationFromQuery(gql`
           query whoops($foo: Number, $bar: String, $baz: ID) {
             thing { ...stuff }
           }
@@ -136,7 +137,7 @@ describe(`context.QueryInfo`, () => {
           fragment stuff on Thing {
             thing(bar: $bar)
           }
-        `);
+        `));
       }).to.throw(/\$foo(.|\n)*\$baz/);
     });
 

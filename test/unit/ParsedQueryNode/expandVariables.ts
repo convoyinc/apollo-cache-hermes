@@ -1,5 +1,6 @@
 import gql from 'graphql-tag';
 
+import { buildRawOperationFromQuery } from '../../../src/apollo/util';
 import { CacheContext, QueryInfo } from '../../../src/context';
 import { ParsedQueryNode, expandVariables } from '../../../src/ParsedQueryNode';
 import { JsonScalar } from '../../../src/primitive';
@@ -10,7 +11,7 @@ describe(`ParsedQueryNode.expandVariables`, () => {
   const context = new CacheContext(strictConfig);
 
   function makeFieldMap(query: string) {
-    return new QueryInfo(context, gql(query)).parsed;
+    return new QueryInfo(context, buildRawOperationFromQuery(gql(query))).parsed;
   }
 
   it(`handles static queries`, () => {

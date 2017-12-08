@@ -125,7 +125,7 @@ export class Cache implements Queryable {
       callback(transaction);
     } catch (error) {
       if (tracer.transactionEnd) {
-        tracer.transactionEnd(error, tracerContext);
+        tracer.transactionEnd(error.toString(), tracerContext);
       }
       return false;
     }
