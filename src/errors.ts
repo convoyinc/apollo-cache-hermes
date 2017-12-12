@@ -28,11 +28,7 @@ export class QueryError extends CacheError {
  * An error with a read query - generally occurs when data in cache is partial
  * or missing.
  */
-export class UnsatisfiedCacheError extends CacheError {
-  constructor(message: string) {
-    super(message);
-  }
-}
+export class UnsatisfiedCacheError extends CacheError {}
 
 /**
  * An error thrown when multiple fields within a query disagree about what they
