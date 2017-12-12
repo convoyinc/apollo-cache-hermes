@@ -60,65 +60,44 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
   }
 
   /**
+   * A helper function to be used when doing EntityUpdate.
+   * The method enable users to interate different parameterized at an editPath
+   * of a given container Id.
    * 
+   * The write will then be performed using writeFragment using a given fragment
+   * information.
+   * See: writeFragment parameter for more information about the fragment
    */
   updateFieldInstances(
     containerId: NodeId,
     editPath: PathPart[],
-    { fragment, fragmentName }: {fragment: DocumentNode, fragmentName: string},
+    { fragment, fragmentName }: {fragment: DocumentNode, fragmentName?: string},
     updateFieldCallback: (previousValues: StoreValue | undefined, fieldArgs: { [argName: string]: string }) => any
   ) {
-    const currentNode = this._queryable.getCurrentNodeSnapshot(containerId);
-    if (!currentNode || !currentNode.outbound) {
+    const currentContainerNode = this._queryable.getCurrentNodeSnapshot(containerId);
+    if (!currentContainerNode || !currentContainerNode.outbound) {
       // TODO (yuisu): error handling
       return;
     }
 
-    for (const { id: outboundId, path } of currentNode.outbound) {
+    for (const { id: outboundId, path } of currentContainerNode.outbound) {
       if (lodashIsEqual(editPath, path)) {
-        const prevValue = this._queryable.getPreviousNodeSnapshot(outboundId);
         const fieldArguments = getOriginalFieldArguments(outboundId);
         if (fieldArguments) {
-          const newValue = updateFieldCallback(prevValue && prevValue.data, fieldArguments);
-          // TODO(yuisu): determine if we should call writeFragment
-          this.writeFragment({
-            id: outboundId,
-            fragment,
-            fragmentName,
-            data: newValue,
-          });
+          const previousNode = this._queryable.getPreviousNodeSnapshot(outboundId);
+          const previousData = previousNode && previousNode.data;
+          const updateData = updateFieldCallback(previousData, fieldArguments);
+          if (updateData !== previousData) {
+            this.writeFragment({
+              id: outboundId,
+              fragment,
+              fragmentName,
+              data: updateData,
+            });
+          }
         }
       }
     }
-    // const previousValues = _.get(parentNodeSnapshot.data, paths);
-    // const parentId = _.get(parentNodeSnapshot.data, 'id');
-
-    // for (const fieldArg of fieldArgs) {
-    //   const newValues = updateFieldCallback(previousValues, fieldArg);
-    //   if (newValues === previousValues) continue;
-      
-    //   this._writeFragment({
-    //     id: parentId,
-    //     data: _.set({}, paths, newValues),
-    //     parsedQuery: makeNestedParsedQuery(paths, parseQuery(fragment))
-    //   });
-  
-    // }
-
-
-    // const parsedFullShipment = parsequery(fragment);
-    // new ParsedQueryNode({
-    //   children: {
-    //     shipments: parsedFullShipment,
-    //   }
-    // })
-
-
-    // this.writeFragment({
-    //   id: parentId,
-    //   data: _.set({}, paths, newValues),
-    //   ...fragmentInfo,
-    // });
   }
 
 }
