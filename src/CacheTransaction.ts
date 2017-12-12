@@ -107,12 +107,12 @@ export class CacheTransaction implements Queryable {
   }
 
   getPreviousNodeSnapshot(nodeId: NodeId): NodeSnapshot | undefined {
-    const prevSnapshot = this._optimisticChangeId ? this._parentSnapshot.baseline : this._parentSnapshot.optimistic;
+    const prevSnapshot = this._optimisticChangeId ? this._parentSnapshot.optimistic : this._parentSnapshot.baseline;
     return prevSnapshot.getNodeSnapshot(nodeId);
   }
 
   getCurrentNodeSnapshot(nodeId: NodeId): NodeSnapshot | undefined {
-    const currentSnapshot = this._optimisticChangeId ? this._snapshot.baseline : this._snapshot.optimistic;
+    const currentSnapshot = this._optimisticChangeId ? this._snapshot.optimistic : this._snapshot.baseline;
     return currentSnapshot.getNodeSnapshot(nodeId);
   }
 
@@ -124,14 +124,11 @@ export class CacheTransaction implements Queryable {
     const { entityUpdaters } = this._context;
     if (!Object.keys(entityUpdaters).length) return;
 
-    const nextSnapshot = this._optimisticChangeId ? this._snapshot.baseline : this._snapshot.optimistic;
-    const prevSnapshot = this._optimisticChangeId ? this._parentSnapshot.baseline : this._parentSnapshot.optimistic;
-
     // Capture a static set of nodes, as the updaters may add to _editedNodeIds.
     const nodesToEmit: [CacheContext.EntityUpdater, JsonValue | undefined, JsonValue | undefined][] = [];
     for (const nodeId of this._editedNodeIds) {
-      const node = nextSnapshot.getNodeSnapshot(nodeId);
-      const previous = prevSnapshot.getNodeSnapshot(nodeId);
+      const node = this.getCurrentNodeSnapshot(nodeId);
+      const previous = this.getPreviousNodeSnapshot(nodeId);
       // One of them may be undefined; but we are guaranteed that both represent
       // the same entity.
       const either = node || previous;
@@ -146,7 +143,7 @@ export class CacheTransaction implements Queryable {
       const updater = entityUpdaters[typeName];
       if (!updater) continue;
 
-      nodesToEmit.push([updater, node && node.data, prevSnapshot.getNodeData(nodeId)]);
+      nodesToEmit.push([updater, node && node.data, previous && previous.data]);
     }
 
     if (!nodesToEmit.length) return;
