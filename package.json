@@ -1,6 +1,6 @@
 {
   "name": "apollo-cache-hermes",
-  "version": "0.4.1-alpha",
+  "version": "0.4.0-alpha",
   "description": "A cache implementation for Apollo Client, tuned for performance",
   "license": "Apache-2.0",
   "repository": "convoyinc/apollo-cache-hermes",
