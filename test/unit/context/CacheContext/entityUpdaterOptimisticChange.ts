@@ -3,7 +3,7 @@ import { CacheContext } from '../../../../src/context';
 import { query, strictConfig } from '../../../helpers';
 
 describe(`context.CacheContext`, () => {
-  describe(`entity updaters`, () => {
+  describe(` entity updaters when updating optimistically`, () => {
 
     const activeUsersQuery = query(`{
       activeUsers { __typename id name active }
@@ -63,9 +63,15 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`triggers updaters when an entity is first seen`, () => {
-      cache.write({ ...getUserQuery, variables: { id: 3 } }, {
-        user: { __typename: 'User', id: 3, name: 'Cheddar', active: true },
-      });
+      cache.transaction(
+        /** changeIdOrCallBack */ '1',
+        transaction => transaction.write(
+          { ...getUserQuery, variables: { id: 3 } },
+          {
+            user: { __typename: 'User', id: 3, name: 'Cheddar', active: true },
+          }
+        ),
+      );
 
       expect(userUpdater.mock.calls.length).to.eq(1);
       const [, user, previous] = userUpdater.mock.calls[0];
@@ -74,11 +80,17 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`triggers updaters when an entity is orphaned`, () => {
-      cache.write(activeUsersQuery, {
-        activeUsers: [
-          { __typename: 'User', id: 2, name: 'Munster', active: true },
-        ],
-      });
+      cache.transaction(
+        /** changeIdOrCallBack */ '2',
+        transaction => transaction.write(
+          activeUsersQuery,
+          {
+            activeUsers: [
+              { __typename: 'User', id: 2, name: 'Munster', active: true },
+            ],
+          }
+        ),
+      );
 
       expect(userUpdater.mock.calls.length).to.eq(1);
       const [, user, previous] = userUpdater.mock.calls[0];
@@ -87,11 +99,24 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`respects writes by updaters`, () => {
-      cache.write({ ...getUserQuery, variables: { id: 2 } }, {
-        user: { __typename: 'User', id: 2, name: 'Munster', active: false },
-      });
+      cache.transaction(
+        /** changeIdOrCallBack */ '3',
+        transaction => transaction.write(
+          { ...getUserQuery, variables: { id: 2 } },
+          {
+            user: { __typename: 'User', id: 2, name: 'Munster', active: false },
+          }
+        ),
+      );
 
       expect(cache.read(activeUsersQuery).result).to.deep.eq({
+        activeUsers: [
+          { __typename: 'User', id: 1, name: 'Gouda', active: true },
+          { __typename: 'User', id: 2, name: 'Munster', active: true },
+        ],
+      });
+
+      expect(cache.read(activeUsersQuery, /* optimistic */ true).result).to.deep.eq({
         activeUsers: [
           { __typename: 'User', id: 1, name: 'Gouda', active: true },
         ],
@@ -99,7 +124,14 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`triggers updates to the root node via the Query type`, () => {
-      cache.write(fooQuery, { foo: 123 });
+      cache.transaction(
+        /** changeIdOrCallBack */ '4',
+        transaction => transaction.write(
+          fooQuery,
+          { foo: 123 }
+        ),
+      );
+
       expect(rootUpdater.mock.calls.length).to.eq(1);
       const [, root, previous] = rootUpdater.mock.calls[0];
       expect(root.foo).to.eq(123);
