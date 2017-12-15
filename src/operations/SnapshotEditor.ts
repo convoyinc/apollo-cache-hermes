@@ -1,5 +1,4 @@
 import { isEqual } from 'apollo-utilities';
-import deepFreeze = require('deep-freeze-strict');
 
 import { CacheContext } from '../context';
 import { InvalidPayloadError, OperationError } from '../errors';
@@ -442,7 +441,7 @@ export class SnapshotEditor {
 
     const snapshot = this._buildNewSnapshot();
     if (this._context.freezeSnapshots) {
-      deepFreeze(snapshot);
+      snapshot.freeze();
     }
 
     return {
