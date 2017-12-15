@@ -18,8 +18,7 @@
     "noImplicitThis": true,
     "noUnusedLocals": true,
     "pretty": true,
-    "stripInternal": true,
-    "strictNullChecks": true,
+    "strict": true,
     "suppressImplicitAnyIndexErrors": true,
     "target": "es5"
   }
