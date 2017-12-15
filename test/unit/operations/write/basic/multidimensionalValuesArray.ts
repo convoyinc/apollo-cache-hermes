@@ -1,5 +1,5 @@
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
-import { NodeId, StaticNodeId } from '../../../../../src/schema';
+import { StaticNodeId } from '../../../../../src/schema';
 import { createSnapshot } from '../../../../helpers';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
@@ -11,7 +11,7 @@ const { QueryRoot: QueryRootId } = StaticNodeId;
 describe(`operations.write`, () => {
   describe(`simple leaf-values hanging off a root`, () => {
 
-    let snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>;
+    let snapshot: GraphSnapshot;
     beforeAll(() => {
       const result = createSnapshot(
         {
@@ -26,14 +26,13 @@ describe(`operations.write`, () => {
             ],
           ],
         },
-        `{ 
+        `{
           rows {
             value
           }
         }`
       );
       snapshot = result.snapshot;
-      editedNodeIds = result.editedNodeIds;
     });
 
     it(`creates the query root, with the values`, () => {
