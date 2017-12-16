@@ -146,6 +146,7 @@ rules:
   arrow-spacing: error
   generator-star-spacing: error
   no-confusing-arrow: error
+  no-dupe-class-members: off # Enforced by TypeScript
   no-var: error
   object-shorthand: error
   prefer-arrow-callback: [error, { allowNamedFunctions: true }]

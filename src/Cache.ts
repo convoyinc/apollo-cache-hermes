@@ -1,5 +1,5 @@
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies, import/no-unresolved
 import { Cache as CacheInterface } from 'apollo-cache';
+import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';
@@ -52,7 +52,7 @@ export class Cache implements Queryable {
     return extract(this._snapshot.baseline, this._context);
   }
 
-  evict(_query: RawOperation): { success: boolean } {
+  evict(_query: RawOperation): { success: boolean } { // eslint-disable-line class-methods-use-this
     throw new Error(`evict() is not implemented on Cache`);
   }
 
@@ -184,7 +184,7 @@ export class Cache implements Queryable {
 
     let tracerContext;
     if (this._context.tracer.broadcastStart) {
-      tracerContext = this._context.tracer.broadcastStart({ snapshot, editedNodeIds })
+      tracerContext = this._context.tracer.broadcastStart({ snapshot, editedNodeIds });
     }
 
     for (const observer of this._observers) {
