@@ -39,9 +39,8 @@ rules:
   for-direction: error
   getter-return: error
   no-prototype-builtins: error
-  no-unused-vars: off # Superceded by typescript/no-unused-vars
-  # Until https://github.com/eslint/typescript-eslint-parser/issues/77
-  no-undef: off
+  no-undef: off # enforced by TypeScript
+  no-unused-vars: off # enforced by TypeScript
 
   # Best Practices
 

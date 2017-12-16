@@ -52,7 +52,7 @@ export class Cache implements Queryable {
     return extract(this._snapshot.baseline, this._context);
   }
 
-  evict(query: RawOperation): { success: boolean } {
+  evict(_query: RawOperation): { success: boolean } {
     throw new Error(`evict() is not implemented on Cache`);
   }
 
