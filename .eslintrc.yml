@@ -7,7 +7,6 @@ parserOptions:
   ecmaVersion: 2017
   sourceType: module
   jsx: true
-  comment: true # Until https://github.com/benmosher/eslint-plugin-import/issues/842
 
 plugins:
   - eslint-comments
