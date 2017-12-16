@@ -12,7 +12,7 @@ describe(`operations.restore`, () => {
     let restoreGraphSnapshot: GraphSnapshot, originalGraphSnapshot: GraphSnapshot;
     beforeAll(() => {
       const cacheContext = createStrictCacheContext();
-      originalGraphSnapshot= createGraphSnapshot(
+      originalGraphSnapshot = createGraphSnapshot(
         {
           viewer: {
             id: 123,
