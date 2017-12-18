@@ -64,8 +64,10 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
    * A helper function to be used when doing EntityUpdate.
    * The method enable users to interate different parameterized at an editPath
    * of a given container Id.
-   * 
-   * @param updateFieldCallback is a callback to compute new value given
+   *
+   * The 'updateFieldCallback' is a callback to compute new value given previous
+   * list of references and an object literal of parameterized arguments at the
+   * given path.
    */
   updateListOfReferences(
     containerId: NodeId,
