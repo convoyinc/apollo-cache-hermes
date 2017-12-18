@@ -2,6 +2,7 @@ import { ApolloCache, Cache, Transaction } from 'apollo-cache';
 import { StoreValue } from 'apollo-utilities';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 import lodashIsEqual = require('lodash.isequal');
+import lodasGet = require('lodash.get');
 
 import { CacheTransaction } from '../CacheTransaction';
 import { GraphSnapshot } from '../GraphSnapshot';
@@ -64,19 +65,17 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
    * The method enable users to interate different parameterized at an editPath
    * of a given container Id.
    * 
-   * The write will then be performed using writeFragment using a given fragment
-   * information.
-   * See: writeFragment parameter for more information about the fragment
+   * @param updateFieldCallback is a callback to compute new value given
    */
-  updateFieldInstances(
+  updateListOfReferences(
     containerId: NodeId,
     editPath: PathPart[],
-    { fragment, fragmentName }: {fragment: DocumentNode, fragmentName?: string},
-    updateFieldCallback: (previousValues: StoreValue | undefined, fieldArgs: { [argName: string]: string }) => any
+    { writeFragment, writeFragmentName }: { writeFragment: DocumentNode, writeFragmentName?: string },
+    { readFragment, readFragmentName }: { readFragment: DocumentNode, readFragmentName?: string },
+    updateFieldCallback: (previousList: StoreValue | undefined, fieldArgs: { [argName: string]: string }) => any
   ) {
     const currentContainerNode = this._queryable.getCurrentNodeSnapshot(containerId);
-    if (!currentContainerNode || !currentContainerNode.outbound) {
-      // TODO (yuisu): error handling
+    if (!currentContainerNode|| !currentContainerNode.outbound) {
       return;
     }
 
@@ -84,14 +83,28 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
       if (lodashIsEqual(editPath, path)) {
         const fieldArguments = getOriginalFieldArguments(outboundId);
         if (fieldArguments) {
-          const previousNode = this._queryable.getPreviousNodeSnapshot(outboundId);
-          const previousData = previousNode && previousNode.data;
+          const cacheResult = this.readFragment(
+            {
+              id: containerId,
+              fragment: readFragment,
+              fragmentName: readFragmentName,
+              variables: fieldArguments,
+            },
+            this._queryable.isOptimisticTransaction()
+          );
+          const previousData = lodasGet(cacheResult, path);
+
+          if (!Array.isArray(previousData)) {
+            throw new Error(`updateListOfReferences() expects previousData to be an array.`);
+          }
+
           const updateData = updateFieldCallback(previousData, fieldArguments);
           if (updateData !== previousData) {
             this.writeFragment({
               id: outboundId,
-              fragment,
-              fragmentName,
+              fragment: writeFragment,
+              fragmentName: writeFragmentName,
+              variables: fieldArguments,
               data: updateData,
             });
           }
