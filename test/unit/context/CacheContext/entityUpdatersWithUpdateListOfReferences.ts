@@ -72,7 +72,7 @@ describe(`context.CacheContext`, () => {
               }
             `),
           },
-          (previousUsers: any[], fieldArgs) => {
+          (previousUsers) => {
             if (!previousUsers) {
               return previousUsers;
             }

@@ -1,5 +1,5 @@
 import { ApolloCache, Cache, Transaction } from 'apollo-cache';
-import { StoreValue } from 'apollo-utilities';
+import { JsonValue } from 'apollo-utilities';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 import lodashIsEqual = require('lodash.isequal');
 import lodasGet = require('lodash.get');
@@ -74,7 +74,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
     editPath: PathPart[],
     { writeFragment, writeFragmentName }: { writeFragment: DocumentNode, writeFragmentName?: string },
     { readFragment, readFragmentName }: { readFragment: DocumentNode, readFragmentName?: string },
-    updateFieldCallback: (previousList: StoreValue | undefined, fieldArgs: { [argName: string]: string }) => any
+    updateFieldCallback: (previousList: JsonValue[], fieldArgs: { [argName: string]: string }) => any
   ) {
     const currentContainerNode = this._queryable.getCurrentNodeSnapshot(containerId);
     if (!currentContainerNode|| !currentContainerNode.outbound) {
