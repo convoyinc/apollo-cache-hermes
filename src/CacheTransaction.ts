@@ -49,7 +49,11 @@ export class CacheTransaction implements Queryable {
    * Executes reads against the current values in the transaction.
    */
   read(query: RawOperation): { result?: JsonValue, complete: boolean } {
-    return read(this._context, query, this._snapshot.optimistic);
+    return read(
+      this._context,
+      query,
+      this._optimisticChangeId ? this._snapshot.optimistic : this._snapshot.baseline
+    );
   }
 
   /**
