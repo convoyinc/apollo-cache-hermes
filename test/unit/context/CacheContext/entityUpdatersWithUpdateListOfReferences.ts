@@ -5,7 +5,7 @@ import { CacheContext } from '../../../../src/context';
 import { query, strictConfig } from '../../../helpers';
 
 describe(`context.CacheContext`, () => {
-  describe(`entity updaters with updateFieldInstance`, () => {
+  describe(`entityUpdaters with updateListOfReferences`, () => {
 
     const dashboardQuery = query(`
       query dashboard {
@@ -45,17 +45,30 @@ describe(`context.CacheContext`, () => {
         const dashboardId = user ? user.currentDashboard.id : previous.currentDashboard.id;
         const userId = user ? user.id : previous.id;
 
-        dataProxy.updateFieldInstances(
+        dataProxy.updateListOfReferences(
           dashboardId,
           ['users'],
           {
-            fragment: gql(`
-              fragment user on User {
-                __typename
+            writeFragment: gql(`
+              fragment dashboard on Dashboard {
                 id
-                name
-                active
-                currentDashboard { id }
+                users(active: $active) {
+                  id
+                }
+              }
+            `),
+          },
+          {
+            readFragment: gql(`
+              fragment dashboard on Dashboard {
+                id
+                users(active: $active) {
+                  __typename
+                  id
+                  name
+                  active
+                  currentDashboard { id }
+                }
               }
             `),
           },
@@ -113,15 +126,18 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`triggers updaters when an entity is first seen`, () => {
-      cache.write({ ...getUserQuery, variables: { id: 3 } }, {
-        user: {
-          __typename: 'User',
-          id: 3,
-          name: 'Cheddar',
-          active: true,
-          currentDashboard: { id: 'dash0' },
-        },
-      });
+      cache.write(
+        { ...getUserQuery, variables: { id: 3 } },
+        {
+          user: {
+            __typename: 'User',
+            id: 3,
+            name: 'Cheddar',
+            active: true,
+            currentDashboard: { id: 'dash0' },
+          },
+        }
+      );
 
       expect(userUpdater.mock.calls.length).to.eq(1);
       const [, user, previous] = userUpdater.mock.calls[0];
