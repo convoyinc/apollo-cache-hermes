@@ -1,4 +1,0 @@
-# Files that eslint can't parse (bugs in typescript-eslint-parser) due to
-# https://github.com/eslint/typescript-eslint-parser/issues/253
-src/operations/read.ts
-src/Cache.ts
