@@ -44,7 +44,7 @@
     "chai-as-promised": "^7.1.1",
     "chai-jest-diff": "nevir/chai-jest-diff#built-member-assertions",
     "codecov": "^3.0.0",
-    "eslint": "^4.9.0",
+    "eslint": "^4.13.1",
     "eslint-plugin-eslint-comments": "^2.0.1",
     "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
     "eslint-plugin-jest": "^21.5.0",
