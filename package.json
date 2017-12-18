@@ -32,7 +32,7 @@
     "test-unit-coverage": "./scripts/test-unit-coverage.sh"
   },
   "devDependencies": {
-    "@types/chai": "^4.0.1",
+    "@types/chai": "^4.0.10",
     "@types/chai-as-promised": "^7.1.0",
     "@types/deep-freeze-strict": "^1.1.0",
     "@types/graphql": "^0.11.5",
@@ -40,7 +40,7 @@
     "@types/lodash.get": "^4.4.3",
     "@types/lodash.set": "^4.3.3",
     "@types/node": "^8.0.16",
-    "chai": "^4.1.0",
+    "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "chai-jest-diff": "nevir/chai-jest-diff#built-member-assertions",
     "codecov": "^3.0.0",
