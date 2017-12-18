@@ -4,13 +4,12 @@ import { ApolloTransaction } from './apollo/Transaction';
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
-import { EntitySnapshot } from './nodes';
+import { EntitySnapshot, NodeSnapshot } from './nodes';
 import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, OperationInstance, QuerySnapshot, RawOperation, StaticNodeId } from './schema';
 import { addToSet, isObject } from './util';
-import { NodeSnapshot } from './nodes/NodeSnapshot';
 
 /**
  * Collects a set of edits against a version of the cache, eventually committing
@@ -39,6 +38,10 @@ export class CacheTransaction implements Queryable {
     private _optimisticChangeId?: ChangeId,
   ) {
     this._parentSnapshot = _snapshot;
+  }
+
+  isOptimisticTransaction(): true | undefined {
+    return this._optimisticChangeId ? true : undefined;
   }
 
   transformDocument(document: DocumentNode): DocumentNode {
