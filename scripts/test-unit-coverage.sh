@@ -6,7 +6,7 @@ source ./scripts/include/node.sh
 OPTIONS=()
 if [[ "${CI}" == "" ]]; then
   OPTIONS+=(
-    --coverageReporters html
+    --coverageReporters=html
   )
 fi
 
