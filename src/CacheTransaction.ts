@@ -90,7 +90,7 @@ export class CacheTransaction implements Queryable {
    * Removes values from the current transaction
    */
   // eslint-disable-next-line class-methods-use-this
-  evict(query: RawOperation): { success: boolean } {
+  evict(_query: RawOperation): { success: boolean } {
     throw new Error('evict() is not implemented on CacheTransaction');
   }
 
@@ -132,7 +132,7 @@ export class CacheTransaction implements Queryable {
     if (!Object.keys(entityUpdaters).length) return;
 
     // Capture a static set of nodes, as the updaters may add to _editedNodeIds.
-    const nodesToEmit: [CacheContext.EntityUpdater, JsonValue | undefined, JsonValue | undefined][] = [];
+    const nodesToEmit = [];
     for (const nodeId of this._editedNodeIds) {
       const node = this.getCurrentNodeSnapshot(nodeId);
       const previous = this.getPreviousNodeSnapshot(nodeId);
@@ -150,7 +150,11 @@ export class CacheTransaction implements Queryable {
       const updater = entityUpdaters[typeName];
       if (!updater) continue;
 
-      nodesToEmit.push([updater, node && node.data, previous && previous.data]);
+      nodesToEmit.push({
+        updater,
+        node: node && node.data,
+        previous: previous && previous.data,
+      });
     }
 
     if (!nodesToEmit.length) return;
@@ -158,7 +162,7 @@ export class CacheTransaction implements Queryable {
     // TODO: This is weirdly the only place where we assume an Apollo interface.
     // Can we clean this up? :(
     const dataProxy = new ApolloTransaction(this);
-    for (const [updater, node, previous] of nodesToEmit) {
+    for (const { updater, node, previous } of nodesToEmit) {
       updater(dataProxy, node, previous);
     }
   }

@@ -18,7 +18,7 @@ describe(`operations.write`, () => {
 
   describe(`orphans value in array with nested parameterized references`, () => {
 
-    let rootedQuery: RawOperation, snapshot: GraphSnapshot, entityBarId0: NodeId, entityBarId1: NodeId;
+    let rootedQuery: RawOperation, snapshot: GraphSnapshot, entityBarId1: NodeId;
     beforeAll(() => {
       rootedQuery = query(`{
         foo {
@@ -28,7 +28,6 @@ describe(`operations.write`, () => {
         }
       }`);
 
-      entityBarId0 = nodeIdForParameterizedValue(QueryRootId, ['foo', 0, 'bar'], { extra: true });
       entityBarId1 = nodeIdForParameterizedValue(QueryRootId, ['foo', 1, 'bar'], { extra: true });
 
       const { snapshot: baseSnapshot } = write(context, empty, rootedQuery, {

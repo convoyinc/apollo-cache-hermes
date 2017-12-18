@@ -1,6 +1,7 @@
 import { Cache, DataProxy } from 'apollo-cache';
 import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 
+import { UnsatisfiedCacheError } from '../errors';
 import { JsonObject } from '../primitive';
 import { Queryable } from '../Queryable';
 
@@ -18,7 +19,7 @@ export abstract class ApolloQueryable implements DataProxy {
     const { result, complete } = this._queryable.read(rawOperation, options.optimistic);
     if (options.returnPartialData === false && !complete) {
       // TODO: Include more detail with this error.
-      throw new Error(`diffQuery not satisfied by the cache.`);
+      throw new UnsatisfiedCacheError(`diffQuery not satisfied by the cache.`);
     }
 
     return { result, complete };
@@ -29,7 +30,7 @@ export abstract class ApolloQueryable implements DataProxy {
     const { result, complete } = this._queryable.read(rawOperation, options.optimistic);
     if (!complete) {
       // TODO: Include more detail with this error.
-      throw new Error(`read not satisfied by the cache.`);
+      throw new UnsatisfiedCacheError(`read not satisfied by the cache.`);
     }
 
     return result;

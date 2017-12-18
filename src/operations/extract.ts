@@ -2,7 +2,7 @@ import { CacheContext } from '../context/CacheContext';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonValue, NestedValue } from '../primitive';
-import { Serializable } from '../schema';
+import { Serializable, isSerializable } from '../schema';
 import { lazyImmutableDeepSet } from '../util';
 
 /**
@@ -45,7 +45,7 @@ export function extract(graphSnapshot: GraphSnapshot, cacheContext: CacheContext
     // Extract data value
     const extractedData = extractSerializableData(graphSnapshot, nodeSnapshot);
     if (extractedData !== undefined) {
-      if (cacheContext.tracer.warning && !Serializable.isSerializable(extractedData, /* allowUndefined */ true)) {
+      if (cacheContext.tracer.warning && !isSerializable(extractedData, /* allowUndefined */ true)) {
         cacheContext.tracer.warning(`Data at entityID ${id} is unserializable`);
       }
       serializedEntity.data = extractedData;

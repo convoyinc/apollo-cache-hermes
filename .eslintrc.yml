@@ -7,7 +7,6 @@ parserOptions:
   ecmaVersion: 2017
   sourceType: module
   jsx: true
-  comment: true # Until https://github.com/benmosher/eslint-plugin-import/issues/842
 
 plugins:
   - eslint-comments
@@ -39,9 +38,8 @@ rules:
   for-direction: error
   getter-return: error
   no-prototype-builtins: error
-  no-unused-vars: off # Superceded by typescript/no-unused-vars
-  # Until https://github.com/eslint/typescript-eslint-parser/issues/77
-  no-undef: off
+  no-undef: off # enforced by TypeScript
+  no-unused-vars: off # enforced by TypeScript
 
   # Best Practices
 
@@ -148,6 +146,7 @@ rules:
   arrow-spacing: error
   generator-star-spacing: error
   no-confusing-arrow: error
+  no-dupe-class-members: off # Enforced by TypeScript
   no-var: error
   object-shorthand: error
   prefer-arrow-callback: [error, { allowNamedFunctions: true }]
@@ -165,7 +164,8 @@ rules:
   # https://github.com/benmosher/eslint-plugin-import#rules
 
   # Static Analysis:
-  import/no-unresolved: [error, { caseSensitive: true, commonjs: true, amd: true }]
+  # TODO: Enable once apollo-* fix their exports
+  # import/no-unresolved: [error, { caseSensitive: true, commonjs: true, amd: true }]
   import/named: error
   import/default: error
   import/namespace: error
@@ -207,7 +207,7 @@ rules:
 
   eslint-comments/no-use: [error, { allow: [eslint-disable-line, eslint-disable-next-line] }]
 
-  # https://github.com/facebook/jest/tree/master/packages/eslint-plugin-jest#supported-rules
+  # https://github.com/jest-community/eslint-plugin-jest#rules
 
   jest/no-focused-tests: error
   jest/no-identical-title: error
