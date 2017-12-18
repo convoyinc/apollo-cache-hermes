@@ -38,14 +38,14 @@ jobs:
           paths:
             - .
 
-  test:style:
+  test-style:
     <<: *job_common
     steps:
       - <<: *restore
       - run: yarn run test-style
       - <<: *store_artifacts
 
-  test:unit:
+  test-unit:
     <<: *job_common
     steps:
       - <<: *restore
@@ -72,16 +72,16 @@ workflows:
   build-test-release:
     jobs:
       - build
-      - test:style:
+      - test-style:
           requires:
             - build
-      - test:unit:
+      - test-unit:
           requires:
             - build
       - release:
           requires:
-            - test:style
-            - test:unit
+            - test-style
+            - test-unit
           filters:
             branches:
               only:

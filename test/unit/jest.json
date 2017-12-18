@@ -3,7 +3,7 @@
   "collectCoverageFrom": [
     "src/**/*.js"
   ],
-  "coverageDirectory": "output/test:unit",
+  "coverageDirectory": "output/test-unit",
   "coverageReporters": ["lcovonly", "text"],
   "coveragePathIgnorePatterns": [
     "<rootDir>/node_modules/",
