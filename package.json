@@ -14,7 +14,8 @@
   ],
   "files": [
     "**/*.md",
-    "src/",
+    "src/**.js",
+    "src/**.d.ts",
     "tsconfig.json"
   ],
   "main": "./src/index.js",
