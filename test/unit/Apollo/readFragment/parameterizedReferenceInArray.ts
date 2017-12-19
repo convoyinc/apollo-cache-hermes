@@ -4,8 +4,8 @@ import { Hermes } from '../../../../src/apollo/Hermes';
 import { CacheContext } from '../../../../src/context/CacheContext';
 import { strictConfig } from '../../../helpers/context';
 
-describe(`Hermes`, () => {
-  describe(`writeFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`writeFragment with parameterized reference in an array`, () => {
 
     let hermes: Hermes;
     beforeAll(() => {
@@ -72,7 +72,7 @@ describe(`Hermes`, () => {
       });
     });
 
-    it(`correctly read cache after multiple writeFragments`, () => {
+    it(`correctly return an array of value`, () => {
       expect(hermes.readFragment({
         id: '123',
         fragment: gql(`

@@ -7,8 +7,8 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`readFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`readFragment with incomplete Hermes cache`, () => {
 
     let hermes: Hermes;
     beforeAll(() => {
@@ -29,25 +29,21 @@ describe(`Hermes`, () => {
       });
     });
 
-    it(`throw an error when using multiple fragments without fragmentName`, () => {
-      expect(() => {
-        hermes.readFragment({
-          id: '123',
-          fragment: gql(`
-            fragment viewer on Viewer {
-              id
-              name
-            }
-
-            fragment shipment on Shipment {
-              id
-              name
-              startLoc
-              stopLoc
-            }
-          `),
-        });
-      }).to.throw(/Found 2 fragments. `fragmentName` must be provided/i);
+    it(`correctly return an incomplete data`, () => {
+      expect(hermes.readFragment({
+        id: '123',
+        fragment: gql(`
+          fragment viewer on Viewer {
+            id
+            name
+            location
+          }
+        `),
+      })).to.be.deep.eq({
+        id: 123,
+        name: 'Gouda',
+        __typename: 'Viewer',
+      });
     });
 
   });

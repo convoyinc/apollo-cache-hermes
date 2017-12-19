@@ -7,8 +7,8 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`writeFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`writeFragment with multiple fragments`, () => {
 
     let hermes: Hermes;
     const fragments = gql(`
@@ -56,7 +56,7 @@ describe(`Hermes`, () => {
       });
     });
 
-    it(`correctly write a viewer fragment from multiple fragments`, () => {
+    it(`correctly write a 'viewer' fragment`, () => {
       hermes.writeFragment({
         id: '123',
         fragmentName: 'viewer',
@@ -78,7 +78,7 @@ describe(`Hermes`, () => {
       });
     });
 
-    it(`correctly write a shipment fragment from multiple fragments`, () => {
+    it(`correctly write a 'shipment' fragment`, () => {
       hermes.writeFragment({
         id: 'shipment0',
         fragmentName: 'shipment',
@@ -100,7 +100,7 @@ describe(`Hermes`, () => {
       });
     });
 
-    it(`correctly modify viewer reference after multiple writeFragments`, () => {
+    it(`correctly modify 'viewer' reference`, () => {
       expect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('123')).to.deep.eq({
         id: 123,
         nameViewer: 'Munster',

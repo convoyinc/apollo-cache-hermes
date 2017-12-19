@@ -2,17 +2,24 @@ import gql from 'graphql-tag';
 
 import { Hermes } from '../../../../src/apollo/Hermes';
 import { CacheContext } from '../../../../src/context/CacheContext';
+import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { StaticNodeId, Serializable } from '../../../../src/schema';
 import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`readFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`readFragment with parameterized references`, () => {
 
     let hermes: Hermes;
     beforeAll(() => {
       hermes = new Hermes(new CacheContext(strictConfig));
+      const parameterizedId = nodeIdForParameterizedValue(
+        '123',
+        ['shipment'],
+        { city: 'Seattle' }
+      );
+
       hermes.restore({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
@@ -24,70 +31,64 @@ describe(`Hermes`, () => {
         '123': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['viewer'] }],
-          outbound: [{ id: 'shipment0', path: ['shipment'] }],
-          data: { id: 123, name: 'Gouda', __typename: 'Viewer' },
+          outbound: [{ id: parameterizedId, path: ['shipment'] }],
+          data: {
+            id: 123,
+            name: 'Gouda',
+            __typename: 'Viewer',
+          },
+        },
+        [parameterizedId]: {
+          type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
+          inbound: [{ id: '123', path: ['shipment'] }],
+          outbound: [{ id: 'shipment0', path: [] }],
+          data: null,
         },
         'shipment0': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: 123, path: ['shipment'] }],
+          inbound: [{ id: [parameterizedId], path: [] }],
           data: {
             id: 'shipment0',
-            destination: 'Seattle',
             __typename: 'Shipment',
+            destination: 'Seattle',
+            complete: false,
+            truckType: 'flat-bed',
           },
         },
       });
     });
 
-    it(`correctly read a given fragmentName in multiple fragments`, () => {
+    it(`correctly return a value`, () => {
       expect(hermes.readFragment({
         id: '123',
-        fragmentName: 'viewer',
         fragment: gql(`
           fragment viewer on Viewer {
             id
+            __typename
             name
-            __typename
-          }
-
-          fragment shipment on Shipment {
-            id
-            destination
-            __typename
+            shipment(city: $city) {
+              id
+              __typename
+              truckType
+              complete
+              destination
+            }
           }
         `),
+        variables: {
+          city: 'Seattle',
+        },
       })).to.be.deep.eq({
         id: 123,
         name: 'Gouda',
         __typename: 'Viewer',
         shipment: {
           id: 'shipment0',
-          destination: 'Seattle',
           __typename: 'Shipment',
+          destination: 'Seattle',
+          complete: false,
+          truckType: 'flat-bed',
         },
-      });
-    });
-
-    it(`correctly read another given fragmentName in multiple fragments`, () => {
-      expect(hermes.readFragment({
-        id: 'shipment0',
-        fragmentName: 'shipment',
-        fragment: gql(`
-          fragment viewer on Viewer {
-            id
-            name
-          }
-
-          fragment shipment on Shipment {
-            id
-            destination
-            __typename
-          }
-        `),
-      })).to.be.deep.eq({
-        id: 'shipment0',
-        destination: 'Seattle',
-        __typename: 'Shipment',
       });
     });
 

@@ -4,15 +4,15 @@ import { Hermes } from '../../../../src/apollo/Hermes';
 import { CacheContext } from '../../../../src/context/CacheContext';
 import { strictConfig } from '../../../helpers/context';
 
-describe(`Hermes`, () => {
-  describe(`writeFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`writeFragment with no fragment`, () => {
 
     let hermes: Hermes;
     beforeAll(() => {
       hermes = new Hermes(new CacheContext(strictConfig));
     });
 
-    it(`error no fragment`, () => {
+    it(`throw an error`, () => {
       expect(() => {
         hermes.writeFragment({
           id: '123',

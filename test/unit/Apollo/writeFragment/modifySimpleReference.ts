@@ -2,17 +2,17 @@ import gql from 'graphql-tag';
 
 import { Hermes } from '../../../../src/apollo/Hermes';
 import { CacheContext } from '../../../../src/context/CacheContext';
+import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes/EntitySnapshot';
 import { StaticNodeId, Serializable } from '../../../../src/schema';
 import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`writeFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`writeFragment with simple reference`, () => {
 
-    let hermes: Hermes;
-
+    let hermes: Hermes, baseline: GraphSnapshot;
     beforeAll(() => {
       hermes = new Hermes(new CacheContext(strictConfig));
       hermes.restore({
@@ -26,11 +26,7 @@ describe(`Hermes`, () => {
         '123': {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           inbound: [{ id: QueryRootId, path: ['viewer'] }],
-          data: {
-            id: 123,
-            name: 'Gouda',
-            __typename: 'Viewer',
-          },
+          data: { id: 123, name: 'Gouda', __typename: 'Viewer' },
         },
       });
 
@@ -39,52 +35,65 @@ describe(`Hermes`, () => {
         fragment: gql(`
           fragment viewer on Viewer {
             id
-            shipment {
-              id
-              city
-              __typename
+            name
+            notes {
+              details
             }
           }
         `),
         data: {
           id: 123,
-          shipment: {
-            id: 'shipment0',
-            city: 'Seattle',
-            __typename: 'Shipment',
-          },
+          name: 'Munster',
+          __typename: 'Viewer',
+          notes: [
+            {
+              details: 'Hello',
+            },
+            {
+              details: 'World',
+            },
+          ],
         },
       });
+      baseline = hermes.getCurrentCacheSnapshot().baseline;
     });
 
-    it(`correctly add a new reference`, () => {
-      expect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('shipment0')).to.deep.eq({
-        id: 'shipment0',
-        city: 'Seattle',
-        __typename: 'Shipment',
+    it(`correctly modify data on the reference`, () => {
+      expect(baseline.getNodeData('123')).to.deep.eq({
+        id: 123,
+        name: 'Munster',
+        __typename: 'Viewer',
+        notes: [
+          {
+            details: 'Hello',
+          },
+          {
+            details: 'World',
+          },
+        ],
       });
     });
 
-    it(`correctly references newly added reference`, () => {
-      const baseline = hermes.getCurrentCacheSnapshot().baseline;
+    it(`correctly reference from root node`, () => {
       expect(baseline.getNodeSnapshot('123')).to.deep.eq(
         new EntitySnapshot(
           {
             id: 123,
-            name: 'Gouda',
+            name: 'Munster',
             __typename: 'Viewer',
-            shipment: {
-              id: 'shipment0',
-              city: 'Seattle',
-              __typename: 'Shipment',
-            },
+            notes: [
+              {
+                details: 'Hello',
+              },
+              {
+                details: 'World',
+              },
+            ],
           },
           [{ id: QueryRootId, path: ['viewer'] }],
-          [{ id: 'shipment0', path: ['shipment'] }],
         )
       );
-
-      expect(baseline.getNodeData('123')!['shipment']).to.eq(baseline.getNodeData('shipment0'));
+      expect(baseline.getNodeData(QueryRootId)!['viewer']).to.eq(baseline.getNodeData('123'));
     });
 
   });
