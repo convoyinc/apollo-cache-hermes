@@ -4,7 +4,7 @@ import { ApolloTransaction } from './apollo/Transaction';
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
-import { EntitySnapshot } from './nodes';
+import { EntitySnapshot, NodeSnapshot } from './nodes';
 import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
@@ -40,6 +40,10 @@ export class CacheTransaction implements Queryable {
     this._parentSnapshot = _snapshot;
   }
 
+  isOptimisticTransaction(): true | undefined {
+    return this._optimisticChangeId ? true : undefined;
+  }
+
   transformDocument(document: DocumentNode): DocumentNode {
     return this._context.transformDocument(document);
   }
@@ -48,7 +52,11 @@ export class CacheTransaction implements Queryable {
    * Executes reads against the current values in the transaction.
    */
   read(query: RawOperation): { result?: JsonValue, complete: boolean } {
-    return read(this._context, query, this._snapshot.optimistic);
+    return read(
+      this._context,
+      query,
+      this._optimisticChangeId ? this._snapshot.optimistic : this._snapshot.baseline
+    );
   }
 
   /**
@@ -105,6 +113,16 @@ export class CacheTransaction implements Queryable {
     return { snapshot, editedNodeIds: this._editedNodeIds, writtenQueries: this._writtenQueries };
   }
 
+  getPreviousNodeSnapshot(nodeId: NodeId): NodeSnapshot | undefined {
+    const prevSnapshot = this._optimisticChangeId ? this._parentSnapshot.optimistic : this._parentSnapshot.baseline;
+    return prevSnapshot.getNodeSnapshot(nodeId);
+  }
+
+  getCurrentNodeSnapshot(nodeId: NodeId): NodeSnapshot | undefined {
+    const currentSnapshot = this._optimisticChangeId ? this._snapshot.optimistic : this._snapshot.baseline;
+    return currentSnapshot.getNodeSnapshot(nodeId);
+  }
+
   /**
    * Emits change events for any callbacks configured via
    * CacheContext#entityUpdaters.
@@ -113,14 +131,11 @@ export class CacheTransaction implements Queryable {
     const { entityUpdaters } = this._context;
     if (!Object.keys(entityUpdaters).length) return;
 
-    const nextSnapshot = this._optimisticChangeId ? this._snapshot.baseline : this._snapshot.optimistic;
-    const prevSnapshot = this._optimisticChangeId ? this._parentSnapshot.baseline : this._parentSnapshot.optimistic;
-
     // Capture a static set of nodes, as the updaters may add to _editedNodeIds.
     const nodesToEmit = [];
     for (const nodeId of this._editedNodeIds) {
-      const node = nextSnapshot.getNodeSnapshot(nodeId);
-      const previous = prevSnapshot.getNodeSnapshot(nodeId);
+      const node = this.getCurrentNodeSnapshot(nodeId);
+      const previous = this.getPreviousNodeSnapshot(nodeId);
       // One of them may be undefined; but we are guaranteed that both represent
       // the same entity.
       const either = node || previous;
@@ -138,7 +153,7 @@ export class CacheTransaction implements Queryable {
       nodesToEmit.push({
         updater,
         node: node && node.data,
-        previous: prevSnapshot.getNodeData(nodeId),
+        previous: previous && previous.data,
       });
     }
 
