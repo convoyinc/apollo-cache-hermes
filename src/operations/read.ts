@@ -209,6 +209,7 @@ export function _visitSelection(
     }
   }
 
+  // TODO: Memoize per query, and propagate through cache snapshots.
   walkOperation(query.info.parsed, result, (value, fields) => {
     if (value === undefined) {
       complete = false;
