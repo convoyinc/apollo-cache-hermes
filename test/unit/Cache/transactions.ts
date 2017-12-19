@@ -62,5 +62,18 @@ describe(`Cache`, () => {
       expect(warn.mock.calls[0]).to.include(exception.toString());
     });
 
+    it(`read optimistic transaction`, () => {
+      cache.transaction(
+        /** changeIdOrCallback */'123',
+        (transaction) => {
+          transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hello' } });
+        }
+      );
+
+      expect(cache.read(simpleQuery, /** optimistic */ true).result).to.deep.eq({
+        foo: { bar: 1, baz: 'hello' },
+      });
+    });
+
   });
 });
