@@ -13,6 +13,17 @@ import { ConsoleTracer } from './ConsoleTracer';
 import { QueryInfo } from './QueryInfo';
 import { Tracer } from './Tracer';
 
+// Augment DocumentNode type with Hermes's properties
+// Because react-apollo can call us without doing transformDocument
+// to be safe, we will always call transformDocument then flag that
+// we have already done so to not repeating the process.
+declare module 'graphql/language/ast' {
+  export interface DocumentNode {
+    /** Indicating that query has already ran transformDocument */
+    hasBeenTransformed?: boolean;
+  }
+}
+
 export namespace CacheContext {
 
   export type EntityIdForNode = (node: JsonObject) => EntityId | undefined;
@@ -191,7 +202,12 @@ export class CacheContext {
    * any other method in the cache.
    */
   transformDocument(document: DocumentNode): DocumentNode {
-    return this._addTypename ? addTypenameToDocument(document) : document;
+    if (this._addTypename && !document.hasBeenTransformed) {
+      const transformedDocument = addTypenameToDocument(document);
+      transformedDocument.hasBeenTransform = true;
+      return transformedDocument;
+    }
+    return document;
   }
 
   /**
@@ -204,7 +220,7 @@ export class CacheContext {
     // It appears like Apollo or someone upstream is cloning or otherwise
     // modifying the queries that are passed down.  Thus, the operation source
     // is a more reliable cache key…
-    const cacheKey = operationCacheKey(raw.document);
+    const cacheKey = operationCacheKey(raw.document, raw.fragmentName);
     let operationInstances = this._operationMap.get(cacheKey);
     if (!operationInstances) {
       operationInstances = [];
@@ -218,14 +234,19 @@ export class CacheContext {
       return instance;
     }
 
-    const info = this._queryInfo(raw.document);
-    const fullVariables = { ...info.variableDefaults, ...raw.variables } as JsonObject;
+    const updateRaw: RawOperation = {
+      ...raw,
+      document: this.transformDocument(raw.document),
+    };
+
+    const info = this._queryInfo(cacheKey, updateRaw);
+    const fullVariables = { ...info.variableDefaults, ...updateRaw.variables } as JsonObject;
     const operation = {
       info,
-      rootId: raw.rootId,
+      rootId: updateRaw.rootId,
       parsedQuery: expandVariables(info.parsed, fullVariables),
       isStatic: !areChildrenDynamic(info.parsed),
-      variables: raw.variables,
+      variables: updateRaw.variables,
     };
     operationInstances.push(operation);
 
@@ -235,10 +256,9 @@ export class CacheContext {
   /**
    * Retrieves a memoized QueryInfo for a given GraphQL document.
    */
-  private _queryInfo(document: DocumentNode): QueryInfo {
-    const cacheKey = operationCacheKey(document);
+  private _queryInfo(cacheKey: string, raw: RawOperation): QueryInfo {
     if (!this._queryInfoMap.has(cacheKey)) {
-      this._queryInfoMap.set(cacheKey, new QueryInfo(this, document));
+      this._queryInfoMap.set(cacheKey, new QueryInfo(this, raw));
     }
     return this._queryInfoMap.get(cacheKey)!;
   }
@@ -266,6 +286,9 @@ export function defaultEntityIdMapper(node: { id?: any }) {
   return node.id;
 }
 
-export function operationCacheKey(document: DocumentNode) {
+export function operationCacheKey(document: DocumentNode, fragmentName?: string) {
+  if (fragmentName) {
+    return `${fragmentName}❖${document.loc!.source.body}`;
+  }
   return document.loc!.source.body;
 }

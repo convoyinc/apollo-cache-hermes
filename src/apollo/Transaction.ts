@@ -21,7 +21,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
     throw new Error(`reset() is not allowed within a transaction`);
   }
 
-  removeOptimistic(id: string): void { // eslint-disable-line class-methods-use-this
+  removeOptimistic(_id: string): void { // eslint-disable-line class-methods-use-this
     throw new Error(`removeOptimistic() is not allowed within a transaction`);
   }
 
@@ -29,11 +29,11 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
     transaction(this);
   }
 
-  recordOptimisticTransaction(transaction: Transaction<GraphSnapshot>, id: string): void { // eslint-disable-line class-methods-use-this
+  recordOptimisticTransaction(_transaction: Transaction<GraphSnapshot>, _id: string): void { // eslint-disable-line class-methods-use-this
     throw new Error(`recordOptimisticTransaction() is not allowed within a transaction`);
   }
 
-  watch(query: Cache.WatchOptions): () => void { // eslint-disable-line class-methods-use-this
+  watch(_query: Cache.WatchOptions): () => void { // eslint-disable-line class-methods-use-this
     throw new Error(`watch() is not allowed within a transaction`);
   }
 

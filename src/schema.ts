@@ -43,6 +43,13 @@ export interface RawOperation {
   readonly document: DocumentNode;
   /** Any variables used by parameterized fields within the selection set. */
   readonly variables?: JsonObject;
+  /** Fragment's name in readFragment/writeFragment with multiple fragments */
+  readonly fragmentName?: string;
+  /** A boolean flag indicating whether the operation is constructed
+   * from fragment only document.
+   * This is used to skip queryInfo._assertAllVariablesDeclared
+   **/
+  readonly fromFragmentDocument?: boolean;
 }
 
 /**
@@ -99,32 +106,32 @@ export namespace Serializable {
     EntitySnapshot = 0,
     ParameterizedValueSnapshot = 1,
   }
+}
 
-  export function isSerializable(value: any, allowUndefined?: boolean): boolean {
-    if (isScalar(value)) {
-      // NaN is considered to typeof number
-      const isNaNValue = Number.isNaN(value as any);
-      return allowUndefined ? !isNaNValue : !isNaNValue && value !== undefined;
-    }
-
-    if (isObject(value)) {
-      for (const propName of Object.getOwnPropertyNames(value)) {
-        if (!isSerializable(value[propName], allowUndefined)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    if (Array.isArray(value)) {
-      for (const element of value) {
-        if (!isSerializable(element, allowUndefined)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    return false;
+export function isSerializable(value: any, allowUndefined?: boolean): boolean {
+  if (isScalar(value)) {
+    // NaN is considered to typeof number
+    const isNaNValue = Number.isNaN(value as any);
+    return allowUndefined ? !isNaNValue : !isNaNValue && value !== undefined;
   }
+
+  if (isObject(value)) {
+    for (const propName of Object.getOwnPropertyNames(value)) {
+      if (!isSerializable(value[propName], allowUndefined)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    for (const element of value) {
+      if (!isSerializable(element, allowUndefined)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  return false;
 }

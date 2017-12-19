@@ -1,13 +1,13 @@
 import lodashGet = require('lodash.get');
 
-import { ParsedQuery } from '../ParsedQueryNode';
-import { JsonObject, JsonValue, PathPart } from '../primitive';
-import { nodeIdForParameterizedValue } from './SnapshotEditor';
-import { isNil, walkOperation } from '../util';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
+import { ParsedQuery } from '../ParsedQueryNode';
+import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId, OperationInstance, RawOperation, StaticNodeId } from '../schema';
-import { isObject } from '../util';
+import { isNil, isObject, walkOperation } from '../util';
+
+import { nodeIdForParameterizedValue } from './SnapshotEditor';
 
 export interface QueryResult {
   /** The value of the root requested by a query. */
@@ -29,7 +29,7 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
 export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: true) {
   let tracerContext;
   if (context.tracer.readStart) {
-    tracerContext = context.tracer.readStart(raw)
+    tracerContext = context.tracer.readStart(raw);
   }
 
   const operation = context.parseOperation(raw);
@@ -44,7 +44,7 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
       result = _walkAndOverlayDynamicValues(operation, context, snapshot, staticResult);
     }
 
-    let { complete, nodeIds } = _visitSelection(operation, context, result, includeNodeIds);
+    const { complete, nodeIds } = _visitSelection(operation, context, result, includeNodeIds);
 
     queryResult = { result, complete, nodeIds };
     snapshot.readCache.set(operation, queryResult as QueryResult);
@@ -118,7 +118,7 @@ export function _walkAndOverlayDynamicValues(
     }
 
     for (const key in parsedMap) {
-      let node = parsedMap[key];
+      const node = parsedMap[key];
       let child;
       let fieldName = key;
 
@@ -191,7 +191,8 @@ function _wrapValue(value: JsonValue | undefined, context: CacheContext): any {
 }
 
 /**
- * Determines whether `result` satisfies the properties requested by `selection`.
+ * Determines whether `result` satisfies the properties requested by
+ * `selection`.
  */
 export function _visitSelection(
   query: OperationInstance,

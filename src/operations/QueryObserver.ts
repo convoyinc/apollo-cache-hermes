@@ -43,7 +43,7 @@ export class QueryObserver {
    * Whether there are any changed nodes that overlap with the ones we're
    * observing.
    */
-  private _hasUpdate(changedNodeIds: Set<NodeId>): boolean { // eslint-disable-line class-methods-use-this
+  private _hasUpdate(_changedNodeIds: Set<NodeId>): boolean { // eslint-disable-line class-methods-use-this
     return true;
     // TODO: Bring back per-node updates once it's stable!
     // for (const nodeId of changedNodeIds) {

@@ -48,6 +48,10 @@ fi
 
 # For jest-junit
 export JEST_SUITE_NAME="test-unit"
+export JEST_JUNIT_SUITE_NAME="{filepath}"
+export JEST_JUNIT_CLASSNAME="{classname}"
+export JEST_JUNIT_TITLE="{title}"
+export JEST_JUNIT_ANCESTOR_SEPARATOR=" ▸ "
 export JEST_JUNIT_OUTPUT=./output/test-unit/report.xml
 
 node "${NODE_OPTIONS[@]}" ./node_modules/.bin/jest "${OPTIONS[@]}" "${FILES[@]}"

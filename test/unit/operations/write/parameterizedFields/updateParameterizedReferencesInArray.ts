@@ -18,7 +18,7 @@ describe(`operations.write`, () => {
 
   describe(`updates parameterized references in an array`, () => {
 
-    let baseline: GraphSnapshot, snapshot: GraphSnapshot, editedNodeIds: Set<NodeId>, parameterizedId: NodeId;
+    let baseline: GraphSnapshot, snapshot: GraphSnapshot, parameterizedId: NodeId;
     beforeAll(() => {
       const parameterizedQuery = query(`query getAFoo($id: ID!) {
         foo(id: $id, withExtra: true) {
@@ -47,7 +47,6 @@ describe(`operations.write`, () => {
         ],
       });
       snapshot = result.snapshot;
-      editedNodeIds = result.editedNodeIds;
     });
 
     it(`writes nodes for each entity`, () => {

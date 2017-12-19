@@ -59,7 +59,7 @@ describe(`Cache`, () => {
       });
 
       expect(warn.mock.calls.length).to.eq(1);
-      expect(warn.mock.calls[0]).to.include(exception);
+      expect(warn.mock.calls[0]).to.include(exception.toString());
     });
 
   });
