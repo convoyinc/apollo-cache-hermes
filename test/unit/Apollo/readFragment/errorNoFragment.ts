@@ -7,8 +7,8 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`readFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`readFragment when no fragment is provided`, () => {
 
     let hermes: Hermes;
     beforeAll(() => {
@@ -29,21 +29,18 @@ describe(`Hermes`, () => {
       });
     });
 
-    it(`correctly return an incomplete data`, () => {
-      expect(hermes.readFragment({
-        id: '123',
-        fragment: gql(`
-          fragment viewer on Viewer {
-            id
-            name
-            location
-          }
-        `),
-      })).to.be.deep.eq({
-        id: 123,
-        name: 'Gouda',
-        __typename: 'Viewer',
-      });
+    it(`throw an error`, () => {
+      expect(() => {
+        hermes.readFragment({
+          id: '123',
+          fragment: gql(`
+            query viewer {
+              id
+              name
+            }
+          `),
+        });
+      }).to.throw(/No operations are allowed when using a fragment as a query/i);
     });
 
   });

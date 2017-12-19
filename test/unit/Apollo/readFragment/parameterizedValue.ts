@@ -8,8 +8,8 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`readFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`readFragment with parameterized value`, () => {
 
     let hermes: Hermes;
     beforeAll(() => {
@@ -41,14 +41,7 @@ describe(`Hermes`, () => {
         [parameterizedId]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: '123', path: ['shipment'] }],
-          outbound: [{ id: 'shipment0', path: [] }],
-          data: null,
-        },
-        'shipment0': {
-          type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: [parameterizedId], path: [] }],
           data: {
-            id: 'shipment0',
             __typename: 'Shipment',
             destination: 'Seattle',
             complete: false,
@@ -58,19 +51,18 @@ describe(`Hermes`, () => {
       });
     });
 
-    it(`correctly read a fragment with parameterized reference`, () => {
+    it(`correctly return a value`, () => {
       expect(hermes.readFragment({
         id: '123',
         fragment: gql(`
           fragment viewer on Viewer {
             id
+            name
             __typename
-            fullName: name
-            shipmentInfo: shipment(city: $city) {
-              id
+            shipment(city: $city) {
               __typename
               truckType
-              isCompleted: complete
+              complete
               destination
             }
           }
@@ -80,14 +72,11 @@ describe(`Hermes`, () => {
         },
       })).to.be.deep.eq({
         id: 123,
-        fullName: 'Gouda',
         name: 'Gouda',
         __typename: 'Viewer',
-        shipmentInfo: {
-          id: 'shipment0',
+        shipment: {
           __typename: 'Shipment',
           destination: 'Seattle',
-          isCompleted: false,
           complete: false,
           truckType: 'flat-bed',
         },

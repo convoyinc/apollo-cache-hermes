@@ -8,8 +8,8 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`readFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`readFragment with alias references`, () => {
 
     let hermes: Hermes;
     beforeAll(() => {
@@ -41,7 +41,14 @@ describe(`Hermes`, () => {
         [parameterizedId]: {
           type: Serializable.NodeSnapshotType.ParameterizedValueSnapshot,
           inbound: [{ id: '123', path: ['shipment'] }],
+          outbound: [{ id: 'shipment0', path: [] }],
+          data: null,
+        },
+        'shipment0': {
+          type: Serializable.NodeSnapshotType.EntitySnapshot,
+          inbound: [{ id: [parameterizedId], path: [] }],
           data: {
+            id: 'shipment0',
             __typename: 'Shipment',
             destination: 'Seattle',
             complete: false,
@@ -51,18 +58,19 @@ describe(`Hermes`, () => {
       });
     });
 
-    it(`correctly read a fragment with parameterized value`, () => {
+    it(`correctly read a fragment with parameterized reference`, () => {
       expect(hermes.readFragment({
         id: '123',
         fragment: gql(`
           fragment viewer on Viewer {
             id
-            name
             __typename
-            shipment(city: $city) {
+            fullName: name
+            shipmentInfo: shipment(city: $city) {
+              id
               __typename
               truckType
-              complete
+              isCompleted: complete
               destination
             }
           }
@@ -72,11 +80,14 @@ describe(`Hermes`, () => {
         },
       })).to.be.deep.eq({
         id: 123,
+        fullName: 'Gouda',
         name: 'Gouda',
         __typename: 'Viewer',
-        shipment: {
+        shipmentInfo: {
+          id: 'shipment0',
           __typename: 'Shipment',
           destination: 'Seattle',
+          isCompleted: false,
           complete: false,
           truckType: 'flat-bed',
         },
