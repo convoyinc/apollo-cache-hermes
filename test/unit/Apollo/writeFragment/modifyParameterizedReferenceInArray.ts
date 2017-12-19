@@ -7,8 +7,8 @@ import { ParameterizedValueSnapshot } from '../../../../src/nodes/ParameterizedV
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
 import { strictConfig } from '../../../helpers/context';
 
-describe(`Hermes`, () => {
-  describe(`writeFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`writeFragment with paramterized references in an array`, () => {
 
     let hermes: Hermes;
     const fragments = gql(`

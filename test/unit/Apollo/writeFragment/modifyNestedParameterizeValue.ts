@@ -10,8 +10,8 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`writeFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`writeFragment with nested paramterized value`, () => {
 
     let hermes: Hermes;
     beforeAll(() => {

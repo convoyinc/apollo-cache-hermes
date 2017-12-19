@@ -9,8 +9,8 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`writeFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`writeFragment with parameterized references`, () => {
 
     const parameterizedId = nodeIdForParameterizedValue(
       '123',
@@ -62,10 +62,10 @@ describe(`Hermes`, () => {
         fragment: gql(`
           fragment viewer on Viewer {
             id
-            shipmentInfo: shipment(city: $city) {
+            shipment(city: $city) {
               id
               complete
-              truck: truckType
+              truckType
             }
           }
         `),
@@ -74,17 +74,17 @@ describe(`Hermes`, () => {
         },
         data: {
           id: 123,
-          shipmentInfo: {
+          shipment: {
             id: 'shipment0',
             complete: true,
-            truck: 'flatbed',
+            truckType: 'flatbed',
           },
         },
       });
       baseline = hermes.getCurrentCacheSnapshot().baseline;
     });
 
-    it(`correctly modify data on parameterized reference`, () => {
+    it(`correctly modify data`, () => {
       expect(baseline.getNodeData('shipment0')).to.deep.eq({
         complete: true,
         truckType: 'flatbed',

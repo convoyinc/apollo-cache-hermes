@@ -9,8 +9,8 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes`, () => {
-  describe(`writeFragment`, () => {
+describe(`Hermes Apollo API`, () => {
+  describe(`writeFragment directly to root query`, () => {
 
     let hermes: Hermes, baseline: GraphSnapshot;
     beforeAll(() => {
@@ -33,7 +33,7 @@ describe(`Hermes`, () => {
       baseline = hermes.getCurrentCacheSnapshot().baseline;
     });
 
-    it(`correctly modify query-root ID`, () => {
+    it(`correctly modify root query`, () => {
       expect(baseline.getNodeSnapshot(QueryRootId)).to.deep.eq(
         new EntitySnapshot(
           {
