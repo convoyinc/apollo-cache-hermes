@@ -1,7 +1,11 @@
 import { CacheContext } from '../../../../src/context';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { read, write } from '../../../../src/operations';
+import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
+import { StaticNodeId } from '../../../../src/schema';
 import { query, strictConfig } from '../../../helpers';
+
+const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.read`, () => {
 
@@ -34,6 +38,15 @@ describe(`operations.read`, () => {
           user: { id: 1, name: 'Foo', extra: true },
           stuff: 123,
         });
+      });
+
+      it(`returns the nodeIds visited during reading`, () => {
+        const { nodeIds } = read(context, parameterizedQuery, snapshot, true);
+        expect(Array.from(nodeIds)).to.have.members([
+          QueryRootId,
+          nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 1, withExtra: true }),
+          '1',
+        ]);
       });
 
     });
@@ -97,6 +110,18 @@ describe(`operations.read`, () => {
               ],
             },
           });
+        });
+
+        it(`returns the nodeIds visited during reading`, () => {
+          const { nodeIds } = read(context, nestedQuery, snapshot, true);
+          expect(Array.from(nodeIds)).to.have.members([
+            QueryRootId,
+            nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 }),
+            '1',
+            nodeIdForParameterizedValue('1', ['three', 'four'], { extra: true }),
+            '2',
+            nodeIdForParameterizedValue('2', ['three', 'four'], { extra: true }),
+          ]);
         });
 
       });
@@ -298,6 +323,38 @@ describe(`operations.read`, () => {
         expect(result).to.deep.equal({
           one: {
             id: 1,
+            two: { id: 2 },
+          },
+        });
+      });
+
+    });
+
+    describe(`directly nested reference without any simple fields on the intermediate object`, () => {
+
+      const nestedQuery = query(`
+      query nested($id: ID!) {
+        one(id: $id) {
+          # Notice, no simple fields on one
+          two(extra: true) {
+            id
+          }
+        }
+      }`, { id: 1 });
+
+      let snapshot: GraphSnapshot;
+      beforeAll(() => {
+        snapshot = write(context, empty, nestedQuery, {
+          one: {
+            two: { id: 2 },
+          },
+        }).snapshot;
+      });
+
+      it(`returns the selected values, overlaid on the underlying data`, () => {
+        const { result } = read(context, nestedQuery, snapshot);
+        expect(result).to.deep.equal({
+          one: {
             two: { id: 2 },
           },
         });

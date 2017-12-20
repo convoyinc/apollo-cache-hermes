@@ -24,9 +24,8 @@ export interface QueryResultWithNodeIds extends QueryResult {
 /**
  * Get you some data.
  */
-export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot): QueryResult;
-export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
-export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: true) {
+export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: true): QueryResultWithNodeIds;
+export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds = true) {
   let tracerContext;
   if (context.tracer.readStart) {
     tracerContext = context.tracer.readStart(raw);
@@ -40,11 +39,12 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
     const staticResult = snapshot.getNodeData(operation.rootId);
 
     let result = staticResult;
+    const nodeIds = includeNodeIds ? new Set<NodeId>() : undefined;
     if (!operation.isStatic) {
-      result = _walkAndOverlayDynamicValues(operation, context, snapshot, staticResult);
+      result = _walkAndOverlayDynamicValues(operation, context, snapshot, staticResult, nodeIds);
     }
 
-    const { complete, nodeIds } = _visitSelection(operation, context, result, includeNodeIds);
+    const complete = _visitSelection(operation, context, result, nodeIds);
 
     queryResult = { result, complete, nodeIds };
     snapshot.readCache.set(operation, queryResult as QueryResult);
@@ -55,7 +55,8 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
   // more.
   if (includeNodeIds && !queryResult.nodeIds) {
     cacheHit = false;
-    const { complete, nodeIds } = _visitSelection(operation, context, queryResult.result, includeNodeIds);
+    const nodeIds = new Set<NodeId>();
+    const complete = _visitSelection(operation, context, queryResult.result, nodeIds);
     queryResult.complete = complete;
     queryResult.nodeIds = nodeIds;
   }
@@ -90,6 +91,7 @@ export function _walkAndOverlayDynamicValues(
   context: CacheContext,
   snapshot: GraphSnapshot,
   result: JsonObject | undefined,
+  nodeIds?: Set<NodeId>,
 ): JsonObject | undefined {
   // Corner case: We stop walking once we reach a parameterized field with no
   // snapshot, but we should also preemptively stop walking if there are no
@@ -125,6 +127,9 @@ export function _walkAndOverlayDynamicValues(
       // This is an alias if we have a schemaName declared.
       fieldName = node.schemaName && !node.isStatic ? node.schemaName : key;
 
+      let nextContainerId = containerId;
+      let nextPath = path;
+
       if (node.args && !node.isStatic) {
         let childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
         let childSnapshot = snapshot.getNodeSnapshot(childId);
@@ -146,9 +151,13 @@ export function _walkAndOverlayDynamicValues(
 
         // Still no snapshot? Ok we're done here.
         if (!childSnapshot) continue;
+        if (nodeIds) nodeIds.add(childId);
 
+        nextContainerId = childId;
+        nextPath = [];
         child = childSnapshot.data;
       } else {
+        nextPath = [...path, fieldName];
         child = value[fieldName];
       }
 
@@ -159,12 +168,12 @@ export function _walkAndOverlayDynamicValues(
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
             child[i] = _wrapValue(child[i], context);
-            queue.push(new OverlayWalkNode(child[i] as JsonObject, containerId, node.children, [...path, fieldName, i]));
+            queue.push(new OverlayWalkNode(child[i] as JsonObject, nextContainerId, node.children, [...nextPath, i]));
           }
 
         } else {
           child = _wrapValue(child, context);
-          queue.push(new OverlayWalkNode(child as JsonObject, containerId, node.children, [...path, fieldName]));
+          queue.push(new OverlayWalkNode(child as JsonObject, nextContainerId, node.children, nextPath));
         }
       }
 
@@ -198,15 +207,11 @@ export function _visitSelection(
   query: OperationInstance,
   context: CacheContext,
   result?: JsonObject,
-  includeNodeIds?: true,
-): { complete: boolean, nodeIds?: Set<NodeId> } {
+  nodeIds?: Set<NodeId>,
+): boolean {
   let complete = true;
-  let nodeIds: Set<NodeId> | undefined;
-  if (includeNodeIds) {
-    nodeIds = new Set<NodeId>();
-    if (result !== undefined) {
-      nodeIds.add(query.rootId);
-    }
+  if (nodeIds && result !== undefined) {
+    nodeIds.add(query.rootId);
   }
 
   // TODO: Memoize per query, and propagate through cache snapshots.
@@ -216,7 +221,7 @@ export function _visitSelection(
     }
 
     // If we're not including node ids, we can stop the walk right here.
-    if (!complete) return !includeNodeIds;
+    if (!complete) return !nodeIds;
 
     if (!isObject(value)) return false;
 
@@ -238,5 +243,5 @@ export function _visitSelection(
     return false;
   });
 
-  return { complete, nodeIds };
+  return complete;
 }
