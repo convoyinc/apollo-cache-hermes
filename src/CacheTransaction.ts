@@ -67,6 +67,12 @@ export class CacheTransaction implements Queryable {
    * baseline state (and any optimistic updates will be replayed over it).
    */
   write(query: RawOperation, payload: JsonObject): void {
+    // In the event of handled GraphQL errors, payload may be null,
+    // which we shouldn't write into the store.
+    if (!payload) {
+      return;
+    }
+
     if (this._optimisticChangeId) {
       this._writeOptimistic(query, payload);
     } else {
