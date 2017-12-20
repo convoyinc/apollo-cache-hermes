@@ -39,6 +39,10 @@ export class ParsedQueryNode<TArgTypes = JsonScalar> {
      * ignore whole subtrees in some situations if they were completely static.
      * */
     public hasParameterizedChildren?: true,
+    /**
+     * Whether the field is explicitly declared static via directive.
+     */
+    public isStatic?: true,
   ) {}
 }
 
@@ -124,9 +128,10 @@ function _buildNodeMap(
       const children = _buildNodeMap(variables, context, fragments, selection.selectionSet, [...path, name]);
       const schemaName = selection.alias ? selection.name.value : undefined;
       const args = _buildFieldArgs(variables, selection.arguments);
+      const isStatic = hasStaticDirective(selection);
       const hasParameterizedChildren = areChildrenDynamic(children);
 
-      const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren);
+      const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren, isStatic);
       nodeMap[name] = _mergeNodes([...path, name], node, nodeMap[name]);
 
     } else if (selection.kind === 'FragmentSpread') {
@@ -161,6 +166,16 @@ function _buildNodeMap(
 }
 
 /**
+ * Determine whether a given node is explicitly marked as static.
+ */
+function hasStaticDirective(node: SelectionNode) {
+  const { directives } = node;
+  if (!directives) return undefined;
+  if (directives.some(directive => directive.name.value === 'static')) return true;
+  return undefined;
+}
+
+/**
  * Well, are they?
  */
 export function areChildrenDynamic(children?: ParsedQueryWithVariables) {
@@ -168,8 +183,10 @@ export function areChildrenDynamic(children?: ParsedQueryWithVariables) {
   for (const name in children) {
     const child = children[name];
     if (child.hasParameterizedChildren) return true;
-    if (child.args) return true;
-    if (child.schemaName) return true; // Aliases are dynamic at read time.
+    if (!child.isStatic) {
+      if (child.args) return true;
+      if (child.schemaName) return true; // Aliases are dynamic at read time.
+    }
   }
   return undefined;
 }
@@ -268,6 +285,7 @@ export function _expandVariables(parsed?: ParsedQueryWithVariables, variables?: 
         node.schemaName,
         expandFieldArguments(node.args, variables),
         node.hasParameterizedChildren,
+        node.isStatic,
       );
     // No variables to substitute for this subtree.
     } else {
