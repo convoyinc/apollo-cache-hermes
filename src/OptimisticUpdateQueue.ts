@@ -38,7 +38,7 @@ export class OptimisticUpdateQueue {
    * Removes an update from the queue.
    */
   remove(id: ChangeId): OptimisticUpdateQueue {
-    return new OptimisticUpdateQueue(this._updates.filter(u => u.id === id));
+    return new OptimisticUpdateQueue(this._updates.filter(u => u.id !== id));
   }
 
   /**
