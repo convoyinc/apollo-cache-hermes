@@ -122,8 +122,16 @@ function _buildNodeMap(
       // The name of the field (as defined by the query).
       const name = selection.alias ? selection.alias.value : selection.name.value;
       const children = _buildNodeMap(variables, context, fragments, selection.selectionSet, [...path, name]);
-      const schemaName = selection.alias ? selection.name.value : undefined;
-      const args = _buildFieldArgs(variables, selection.arguments);
+
+      let args, schemaName;
+      // fields marked as @static are treated as if they are a static field in
+      // the schema.  E.g. parameters are ignored, and an alias is considered
+      // to be truth.
+      if (!hasStaticDirective(selection)) {
+        args = _buildFieldArgs(variables, selection.arguments);
+        schemaName = selection.alias ? selection.name.value : undefined;
+      }
+
       const hasParameterizedChildren = areChildrenDynamic(children);
 
       const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren);
@@ -150,6 +158,14 @@ function _buildNodeMap(
   }
 
   return Object.keys(nodeMap).length ? nodeMap : undefined;
+}
+
+/**
+ * Determine whether a given node is explicitly marked as static.
+ */
+function hasStaticDirective({ directives }: SelectionNode) {
+  if (!directives) return false;
+  return directives.some(directive => directive.name.value === 'static');
 }
 
 /**

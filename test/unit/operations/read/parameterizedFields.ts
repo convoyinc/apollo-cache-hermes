@@ -327,4 +327,80 @@ describe(`operations.read`, () => {
 
   });
 
+  describe(`with @static fields`, () => {
+
+    const staticQuery = query(`{
+      todos {
+        id
+        value: rawValue @static
+        history(limit: 2) @static {
+          changeType
+          value
+        }
+      }
+    }`);
+
+    const otherStaticQuery = query(`{
+      todos {
+        id
+        value: rawValue @static
+        history(limit: 2) @static {
+          value
+        }
+      }
+    }`);
+
+    let snapshot: GraphSnapshot;
+    beforeAll(() => {
+      snapshot = write(context, empty, staticQuery, {
+        todos: [
+          {
+            id: 1,
+            value: 'hello',
+            history: [
+              {
+                changeType: 'edit',
+                value: 'ohai',
+              },
+              {
+                changeType: 'edit',
+                value: 'hey',
+              },
+            ],
+          },
+        ],
+      }).snapshot;
+    });
+
+    it(`can be read`, () => {
+      const { result } = read(context, staticQuery, snapshot);
+      expect(result).to.deep.equal({
+        todos: [
+          {
+            id: 1,
+            value: 'hello',
+            history: [
+              {
+                changeType: 'edit',
+                value: 'ohai',
+              },
+              {
+                changeType: 'edit',
+                value: 'hey',
+              },
+            ],
+          },
+        ],
+      });
+    });
+
+    it(`is the same object between reads`, () => {
+      const result1 = read(context, staticQuery, snapshot).result;
+      const result2 = read(context, otherStaticQuery, snapshot).result;
+
+      expect(result1).to.eq(result2);
+    });
+
+  });
+
 });
