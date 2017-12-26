@@ -66,6 +66,16 @@ describe(`ast.selectionSetIsStatic`, () => {
     }`))).to.eq(true);
   });
 
+  it(`walks inline fragments`, () => {
+    expect(selectionSetIsStatic(selection(`{
+      one {
+        ... on Foo {
+          three: foo
+        }
+      }
+    }`))).to.eq(false);
+  });
+
   describe(`selections with fragment spreads`, () => {
 
     const mainSelection = selection(`{
@@ -73,8 +83,7 @@ describe(`ast.selectionSetIsStatic`, () => {
     }`);
 
     it(`supports fragment walking`, () => {
-      const fragmentGetter = jest.fn((name: string) => {
-        expect(name).to.eq('Foo');
+      const fragmentGetter = jest.fn(() => {
         return selection(`{
           one: foo
           two(bar: 123)
@@ -82,7 +91,6 @@ describe(`ast.selectionSetIsStatic`, () => {
       });
 
       expect(selectionSetIsStatic(mainSelection, fragmentGetter)).to.eq(false);
-
       expect(fragmentGetter.mock.calls).to.deep.eq([
         ['Foo'],
       ]);
@@ -103,6 +111,18 @@ describe(`ast.selectionSetIsStatic`, () => {
         selectionSetIsStatic(mainSelection);
       }).to.throw(/fragmentGetter/);
     });
+
+    it(`walks inline fragments that contain the spread`, () => {
+      const fragmentGetter = jest.fn(() => selection(`{ one: foo }`));
+      expect(selectionSetIsStatic(selection(`{
+        one {
+          ... on Foo {
+            ...Foo
+          }
+        }
+      }`), fragmentGetter)).to.eq(false);
+    });
+
   });
 
 });
