@@ -9,7 +9,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies
 import { CacheContext } from './context';
 import { ConflictingFieldsError } from './errors';
 import { DeepReadonly, JsonScalar, JsonObject, JsonValue, NestedObject, NestedValue } from './primitive';
-import { FragmentMap, isObject } from './util';
+import { FragmentMap, isObject, fieldHasStaticDirective } from './util';
 
 export type JsonAndVariables = JsonScalar | VariableArgument;
 export type FieldArguments<TArgTypes = JsonScalar> = NestedObject<TArgTypes>;
@@ -127,7 +127,7 @@ function _buildNodeMap(
       // fields marked as @static are treated as if they are a static field in
       // the schema.  E.g. parameters are ignored, and an alias is considered
       // to be truth.
-      if (!hasStaticDirective(selection)) {
+      if (!fieldHasStaticDirective(selection)) {
         args = _buildFieldArgs(variables, selection.arguments);
         schemaName = selection.alias ? selection.name.value : undefined;
       }
@@ -158,14 +158,6 @@ function _buildNodeMap(
   }
 
   return Object.keys(nodeMap).length ? nodeMap : undefined;
-}
-
-/**
- * Determine whether a given node is explicitly marked as static.
- */
-function hasStaticDirective({ directives }: SelectionNode) {
-  if (!directives) return false;
-  return directives.some(directive => directive.name.value === 'static');
 }
 
 /**
