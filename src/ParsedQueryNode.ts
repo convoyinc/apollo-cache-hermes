@@ -160,8 +160,7 @@ function _buildNodeMap(
 /**
  * Determine whether a given node is explicitly marked as static.
  */
-function hasStaticDirective(node: SelectionNode) {
-  const { directives } = node;
+function hasStaticDirective({ directives }: SelectionNode) {
   if (!directives) return undefined;
   if (directives.some(directive => directive.name.value === 'static')) return true;
   return undefined;
