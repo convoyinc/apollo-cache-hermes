@@ -31,8 +31,6 @@ declare var xit: jest.It;
 declare var test: jest.It;
 declare var xtest: jest.It;
 
-declare const expect: jest.Expect;
-
 interface NodeRequire {
   /**
    * Returns the actual module instead of a mock, bypassing all checks on
