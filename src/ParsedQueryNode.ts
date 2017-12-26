@@ -39,10 +39,6 @@ export class ParsedQueryNode<TArgTypes = JsonScalar> {
      * ignore whole subtrees in some situations if they were completely static.
      * */
     public hasParameterizedChildren?: true,
-    /**
-     * Whether the field is explicitly declared static via directive.
-     */
-    public isStatic?: true,
   ) {}
 }
 
@@ -126,12 +122,19 @@ function _buildNodeMap(
       // The name of the field (as defined by the query).
       const name = selection.alias ? selection.alias.value : selection.name.value;
       const children = _buildNodeMap(variables, context, fragments, selection.selectionSet, [...path, name]);
-      const schemaName = selection.alias ? selection.name.value : undefined;
-      const args = _buildFieldArgs(variables, selection.arguments);
-      const isStatic = hasStaticDirective(selection);
+
+      let args, schemaName;
+      // fields marked as @static are treated as if they are a static field in
+      // the schema.  E.g. parameters are ignored, and an alias is considered
+      // to be truth.
+      if (!hasStaticDirective(selection)) {
+        args = _buildFieldArgs(variables, selection.arguments);
+        schemaName = selection.alias ? selection.name.value : undefined;
+      }
+
       const hasParameterizedChildren = areChildrenDynamic(children);
 
-      const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren, isStatic);
+      const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren);
       nodeMap[name] = _mergeNodes([...path, name], node, nodeMap[name]);
 
     } else if (selection.kind === 'FragmentSpread') {
@@ -161,9 +164,8 @@ function _buildNodeMap(
  * Determine whether a given node is explicitly marked as static.
  */
 function hasStaticDirective({ directives }: SelectionNode) {
-  if (!directives) return undefined;
-  if (directives.some(directive => directive.name.value === 'static')) return true;
-  return undefined;
+  if (!directives) return false;
+  return directives.some(directive => directive.name.value === 'static');
 }
 
 /**
@@ -174,10 +176,8 @@ export function areChildrenDynamic(children?: ParsedQueryWithVariables) {
   for (const name in children) {
     const child = children[name];
     if (child.hasParameterizedChildren) return true;
-    if (!child.isStatic) {
-      if (child.args) return true;
-      if (child.schemaName) return true; // Aliases are dynamic at read time.
-    }
+    if (child.args) return true;
+    if (child.schemaName) return true; // Aliases are dynamic at read time.
   }
   return undefined;
 }

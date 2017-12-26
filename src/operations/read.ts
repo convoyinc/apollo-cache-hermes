@@ -123,9 +123,9 @@ export function _walkAndOverlayDynamicValues(
       let fieldName = key;
 
       // This is an alias if we have a schemaName declared.
-      fieldName = node.schemaName && !node.isStatic ? node.schemaName : key;
+      fieldName = node.schemaName ? node.schemaName : key;
 
-      if (node.args && !node.isStatic) {
+      if (node.args) {
         let childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
         let childSnapshot = snapshot.getNodeSnapshot(childId);
         if (!childSnapshot) {

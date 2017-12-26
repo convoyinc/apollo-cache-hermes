@@ -275,8 +275,8 @@ export class SnapshotEditor {
       // Similarly, the parameterized node contains an outbound reference to the
       // entity node, for garbage collection.
       let fieldPrefixPath = prefixPath;
-      let fieldPath = [...path, node.isStatic ? payloadName : schemaName];
-      if (node.args && !node.isStatic) {
+      let fieldPath = [...path, schemaName];
+      if (node.args) {
         // The values of a parameterized field are explicit nodes in the graph;
         // so we set up a new container & path.
         containerIdForField = this._ensureParameterizedValueSnapshot(containerId, fieldPath, node.args);
