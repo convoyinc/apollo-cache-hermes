@@ -18,7 +18,7 @@ describe(`operations.write`, () => {
       const staticQuery = query(`{
         todos {
           id
-          value
+          value: rawValue @static
           history(limit: 2) @static {
             changeType
             value

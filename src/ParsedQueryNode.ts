@@ -276,7 +276,6 @@ export function _expandVariables(parsed?: ParsedQueryWithVariables, variables?: 
         node.schemaName,
         expandFieldArguments(node.args, variables),
         node.hasParameterizedChildren,
-        node.isStatic,
       );
     // No variables to substitute for this subtree.
     } else {

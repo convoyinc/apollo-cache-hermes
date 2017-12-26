@@ -332,7 +332,7 @@ describe(`operations.read`, () => {
     const staticQuery = query(`{
       todos {
         id
-        value
+        value: rawValue @static
         history(limit: 2) @static {
           changeType
           value
@@ -343,6 +343,7 @@ describe(`operations.read`, () => {
     const otherStaticQuery = query(`{
       todos {
         id
+        value: rawValue @static
         history(limit: 2) @static {
           value
         }
