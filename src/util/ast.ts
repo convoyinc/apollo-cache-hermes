@@ -64,6 +64,7 @@ export function selectionSetIsStatic(
   for (const selection of selectionSet.selections) {
     if (selection.kind === 'Field') {
       if (!fieldIsStatic(selection)) return false;
+      if (selection.selectionSet && !selectionSetIsStatic(selection.selectionSet, fragmentGetter)) return false;
 
     } else if (selection.kind === 'FragmentSpread') {
       if (!fragmentGetter) {
@@ -74,10 +75,10 @@ export function selectionSetIsStatic(
         throw new Error(`Unknown fragment ${selection.name.value} in isSelectionSetStatic`);
       }
 
-      if (!selectionSetIsStatic(fragmentSet)) return false;
+      if (!selectionSetIsStatic(fragmentSet, fragmentGetter)) return false;
 
     } else if (selection.kind === 'InlineFragment') {
-      if (!selectionSetIsStatic(selection.selectionSet)) return false;
+      if (!selectionSetIsStatic(selection.selectionSet, fragmentGetter)) return false;
 
     } else {
       throw new Error(`Unknown selection type ${(selection as any).kind} in isSelectionSetStatic`);
@@ -88,7 +89,12 @@ export function selectionSetIsStatic(
 }
 
 export function fieldIsStatic(field: FieldNode) {
-  return !fieldIsParameterized(field) && !fieldHasStaticDirective(field);
+  const isActuallyStatic = !fieldHasAlias(field) && !fieldIsParameterized(field);
+  return isActuallyStatic || fieldHasStaticDirective(field);
+}
+
+export function fieldHasAlias(field: FieldNode) {
+  return !!field.alias;
 }
 
 export function fieldIsParameterized(field: FieldNode) {
