@@ -40,11 +40,10 @@ export function walkOperation(rootOperation: ParsedQueryWithVariables, result: J
     const fields: string[] = [];
     // TODO: Directives?
     for (const fieldName in parsedOperation) {
-      const child = get(parent, fieldName);
       fields.push(fieldName);
       const nextParsedQuery = parsedOperation[fieldName].children;
       if (nextParsedQuery) {
-        stack.push(new OperationWalkNode(nextParsedQuery, child));
+        stack.push(new OperationWalkNode(nextParsedQuery, get(parent, fieldName)));
       }
     }
 
