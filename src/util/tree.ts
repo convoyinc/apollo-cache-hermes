@@ -1,19 +1,9 @@
-import { // eslint-disable-line import/no-extraneous-dependencies
-  DocumentNode,
-  FieldNode,
-  SelectionSetNode,
-} from 'graphql';
-
+import { ParsedQueryWithVariables } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 
-import { fragmentMapForDocument, getOperationOrDie } from './ast';
-
-/**
- *
- */
 class OperationWalkNode {
   constructor(
-    public readonly selectionSet: SelectionSetNode,
+    public readonly parsedOperation: ParsedQueryWithVariables,
     public readonly parent?: JsonValue,
   ) {}
 }
@@ -21,21 +11,20 @@ class OperationWalkNode {
 /**
  * Returning true indicates that the walk should STOP.
  */
-export type OperationVisitor = (parent: JsonValue | undefined, fields: FieldNode[]) => boolean;
+export type OperationVisitor = (parent: JsonValue | undefined, fields: string[]) => boolean;
 
 /**
- *
+ * Walk and run on ParsedQueryNode and the result.
+ * This is used to verify result of the read operation.
  */
-export function walkOperation(document: DocumentNode, result: JsonObject | undefined, visitor: OperationVisitor) {
-  const operation = getOperationOrDie(document);
-  const fragmentMap = fragmentMapForDocument(document);
+export function walkOperation(rootOperation: ParsedQueryWithVariables, result: JsonObject | undefined, visitor: OperationVisitor) {
 
   // Perform the walk as a depth-first traversal; and unlike the payload walk,
   // we don't bother tracking the path.
-  const stack = [new OperationWalkNode(operation.selectionSet, result)];
+  const stack = [new OperationWalkNode(rootOperation, result)];
 
   while (stack.length) {
-    const { selectionSet, parent } = stack.pop()!;
+    const { parsedOperation, parent } = stack.pop()!;
     // We consider null nodes to be skippable (and satisfy the walk).
     if (parent === null) continue;
 
@@ -43,34 +32,18 @@ export function walkOperation(document: DocumentNode, result: JsonObject | undef
     if (Array.isArray(parent)) {
       // Push in reverse purely for ergonomics: they'll be pulled off in order.
       for (let i = parent.length - 1; i >= 0; i--) {
-        stack.push(new OperationWalkNode(selectionSet, parent[i]));
+        stack.push(new OperationWalkNode(parsedOperation, parent[i]));
       }
       continue;
     }
 
-    const fields: FieldNode[] = [];
+    const fields: string[] = [];
     // TODO: Directives?
-    for (const selection of selectionSet.selections) {
-      // A simple field.
-      if (selection.kind === 'Field') {
-        fields.push(selection);
-        if (selection.selectionSet) {
-          const nameNode = selection.alias || selection.name;
-          const child = get(parent, nameNode.value);
-          stack.push(new OperationWalkNode(selection.selectionSet, child));
-        }
-
-      // Fragments are applied to the current value.
-      } else if (selection.kind === 'FragmentSpread') {
-        const fragment = fragmentMap[selection.name.value];
-        if (!fragment) {
-          throw new Error(`Expected fragment ${selection.name.value} to be defined`);
-        }
-        stack.push(new OperationWalkNode(fragment.selectionSet, parent));
-
-      // TODO: Inline fragments.
-      } else {
-        throw new Error(`Unsupported GraphQL AST Node ${selection.kind}`);
+    for (const fieldName in parsedOperation) {
+      fields.push(fieldName);
+      const nextParsedQuery = parsedOperation[fieldName].children;
+      if (nextParsedQuery) {
+        stack.push(new OperationWalkNode(nextParsedQuery, get(parent, fieldName)));
       }
     }
 

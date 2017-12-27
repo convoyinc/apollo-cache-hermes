@@ -210,7 +210,7 @@ export function _visitSelection(
   }
 
   // TODO: Memoize per query, and propagate through cache snapshots.
-  walkOperation(query.info.document, result, (value, fields) => {
+  walkOperation(query.info.parsed, result, (value, fields) => {
     if (value === undefined) {
       complete = false;
     }
@@ -228,8 +228,7 @@ export function _visitSelection(
     }
 
     for (const field of fields) {
-      const nameNode = field.alias || field.name;
-      if (!(nameNode.value in value)) {
+      if (!(field in value)) {
         complete = false;
         break;
       }
