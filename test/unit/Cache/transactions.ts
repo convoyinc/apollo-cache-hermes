@@ -75,5 +75,35 @@ describe(`Cache`, () => {
       });
     });
 
+    it(`read multiple optimistic transactions`, () => {
+      cache.transaction(
+        /** changeIdOrCallback */'123',
+        (transaction) => {
+          transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hello' } });
+        }
+      );
+
+      const otherQuery = query(`{
+        fizz {
+          buzz
+        }
+      }`);
+
+      cache.transaction(
+        /** changeIdOrCallback */'456',
+        (transaction) => {
+          transaction.write(otherQuery, { fizz: { buzz: 'boom' } });
+        }
+      );
+
+      expect(cache.read(simpleQuery, /** optimistic */ true).result).to.deep.include({
+        foo: { bar: 1, baz: 'hello' },
+      });
+
+      expect(cache.read(otherQuery, /** optimistic */ true).result).to.deep.include({
+        fizz: { buzz: 'boom' },
+      });
+    });
+
   });
 });

@@ -201,7 +201,7 @@ export class CacheTransaction implements Queryable {
   private _writeOptimistic(query: RawOperation, payload: JsonObject) {
     this._deltas.push({ query, payload });
 
-    const { snapshot: optimistic, editedNodeIds, writtenQueries } = write(this._context, this._snapshot.baseline, query, payload);
+    const { snapshot: optimistic, editedNodeIds, writtenQueries } = write(this._context, this._snapshot.optimistic, query, payload);
     addToSet(this._writtenQueries, writtenQueries);
     addToSet(this._editedNodeIds, editedNodeIds);
 
