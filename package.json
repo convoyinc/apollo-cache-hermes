@@ -41,7 +41,7 @@
     "@types/lodash.get": "^4.4.3",
     "@types/lodash.set": "^4.3.3",
     "@types/lodash.isequal": "^4.3.3",
-    "@types/node": "^8.5.1",
+    "@types/node": "^9.3.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "chai-jest-diff": "nevir/chai-jest-diff#built-member-assertions",
