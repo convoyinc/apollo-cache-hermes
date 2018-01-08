@@ -122,6 +122,10 @@ export function _walkAndOverlayDynamicValues(
       let child;
       let fieldName = key;
 
+      if (node.excluded) {
+        continue;
+      }
+
       // This is an alias if we have a schemaName declared.
       fieldName = node.schemaName ? node.schemaName : key;
 
@@ -210,7 +214,7 @@ export function _visitSelection(
   }
 
   // TODO: Memoize per query, and propagate through cache snapshots.
-  walkOperation(query.info.parsed, result, (value, fields) => {
+  walkOperation(query.parsedQuery, result, (value, fields) => {
     if (value === undefined) {
       complete = false;
     }

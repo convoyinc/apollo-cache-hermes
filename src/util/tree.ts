@@ -38,8 +38,10 @@ export function walkOperation(rootOperation: ParsedQueryWithVariables, result: J
     }
 
     const fields: string[] = [];
-    // TODO: Directives?
     for (const fieldName in parsedOperation) {
+      if (parsedOperation[fieldName].excluded) {
+        continue;
+      }
       fields.push(fieldName);
       const nextParsedQuery = parsedOperation[fieldName].children;
       if (nextParsedQuery) {
