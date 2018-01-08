@@ -1,4 +1,4 @@
-import { isEqual, valueFromNode } from 'apollo-utilities';
+import { isEqual, valueFromNode, shouldInclude } from 'apollo-utilities';
 import { // eslint-disable-line import/no-extraneous-dependencies
   ArgumentNode,
   SelectionSetNode,
@@ -39,6 +39,8 @@ export class ParsedQueryNode<TArgTypes = JsonScalar> {
      * ignore whole subtrees in some situations if they were completely static.
      * */
     public hasParameterizedChildren?: true,
+    public selection?: any, // TODO(jamesreggio): TS compiler won't let me type this as SelectionNode.
+    public excluded?: true,
   ) {}
 }
 
@@ -134,7 +136,7 @@ function _buildNodeMap(
 
       const hasParameterizedChildren = areChildrenDynamic(children);
 
-      const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren);
+      const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren, selection);
       nodeMap[name] = _mergeNodes([...path, name], node, nodeMap[name]);
 
     } else if (selection.kind === 'FragmentSpread') {
@@ -262,12 +264,18 @@ export function _expandVariables(parsed?: ParsedQueryWithVariables, variables?: 
   const newMap = {};
   for (const key in parsed) {
     const node = parsed[key];
-    if (node.args || node.hasParameterizedChildren) {
+    // TODO(jamesreggio): Eliminate unnecessary cast once explicit type can be
+    // applied to `selection` property.
+    const excluded = shouldInclude((node.selection as SelectionNode), variables)
+      ? undefined : true;
+    if (node.args || node.hasParameterizedChildren || excluded) {
       newMap[key] = new ParsedQueryNode(
         _expandVariables(node.children, variables),
         node.schemaName,
         expandFieldArguments(node.args, variables),
         node.hasParameterizedChildren,
+        node.selection,
+        excluded,
       );
     // No variables to substitute for this subtree.
     } else {

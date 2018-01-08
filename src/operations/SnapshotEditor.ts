@@ -162,6 +162,8 @@ export class SnapshotEditor {
     const payloadId = this._context.entityIdForValue(payload);
     const previousId = this._context.entityIdForValue(previousValue);
 
+    // TODO(jamesreggio): Does `excluded` need to evaluated before this?
+
     // Is this an identity change?
     if (payloadId !== previousId) {
       // It is invalid to transition from a *value* with an id to one without.
@@ -215,6 +217,10 @@ export class SnapshotEditor {
       let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;
       // Don't trust our inputs.  Ensure that missing values are null.
       if (fieldValue === undefined) {
+        if (node.excluded) {
+          continue;
+        }
+
         fieldValue = null;
 
         // And if it was explicitly undefined, that likely indicates a malformed
