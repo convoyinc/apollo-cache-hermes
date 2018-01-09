@@ -119,12 +119,13 @@ export function _walkAndOverlayDynamicValues(
 
     for (const key in parsedMap) {
       const node = parsedMap[key];
-      let child;
-      let fieldName = key;
 
       if (node.excluded) {
         continue;
       }
+
+      let child;
+      let fieldName = key;
 
       // This is an alias if we have a schemaName declared.
       fieldName = node.schemaName ? node.schemaName : key;

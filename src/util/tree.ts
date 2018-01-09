@@ -39,11 +39,14 @@ export function walkOperation(rootOperation: ParsedQueryWithVariables, result: J
 
     const fields: string[] = [];
     for (const fieldName in parsedOperation) {
-      if (parsedOperation[fieldName].excluded) {
+      const node = parsedOperation[fieldName];
+
+      if (node.excluded) {
         continue;
       }
+
       fields.push(fieldName);
-      const nextParsedQuery = parsedOperation[fieldName].children;
+      const nextParsedQuery = node.children;
       if (nextParsedQuery) {
         stack.push(new OperationWalkNode(nextParsedQuery, get(parent, fieldName)));
       }

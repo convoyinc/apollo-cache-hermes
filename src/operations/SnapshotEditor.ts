@@ -212,15 +212,16 @@ export class SnapshotEditor {
     // Finally, we can walk into individual values.
     for (const payloadName in parsed) {
       const node = parsed[payloadName];
+
+      if (node.excluded) {
+        continue;
+      }
+
       // Having a schemaName on the node implies that payloadName is an alias.
       const schemaName = node.schemaName ? node.schemaName : payloadName;
       let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;
       // Don't trust our inputs.  Ensure that missing values are null.
       if (fieldValue === undefined) {
-        if (node.excluded) {
-          continue;
-        }
-
         fieldValue = null;
 
         // And if it was explicitly undefined, that likely indicates a malformed
