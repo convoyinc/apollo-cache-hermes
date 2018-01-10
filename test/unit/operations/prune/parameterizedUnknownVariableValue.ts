@@ -52,6 +52,8 @@ describe(`operations.prune`, () => {
       }`, { tableName: 'Something else' }
     );
     const pruned = prune(cacheContext, snapshot, pruneQuery);
+    expect(pruned.complete).to.be.false;
+
     const extractResult = extract(pruned.snapshot, cacheContext);
     expect(extractResult).to.deep.eq({
       [QueryRootId]: {
