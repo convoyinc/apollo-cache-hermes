@@ -5,46 +5,43 @@ import { createGraphSnapshot, createStrictCacheContext, query } from '../../../h
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.prune`, () => {
-  describe(`array of values at the root`, () => {
+  let extractResult: Serializable.GraphSnapshot;
+  beforeAll(() => {
+    const cacheContext = createStrictCacheContext();
+    const snapshot = createGraphSnapshot(
+      {
+        viewer: [
+          {
+            postal: 123,
+            name: 'Gouda',
+          },
+          {
+            postal: 456,
+            name: 'Brie',
+          },
+        ],
+      },
+      `{ viewer { postal name } }`,
+      cacheContext
+    );
 
-    let extractResult: Serializable.GraphSnapshot;
-    beforeAll(() => {
-      const cacheContext = createStrictCacheContext();
-      const snapshot = createGraphSnapshot(
-        {
+    const pruneQuery = query(`{ viewer { name }}`);
+    const pruned = prune(cacheContext, snapshot, pruneQuery);
+    extractResult = extract(pruned.snapshot, cacheContext);
+  });
+
+  it(`prunes fields from entities in an array at the root correctly`, () => {
+    expect(extractResult).to.deep.eq({
+      [QueryRootId]: {
+        type: Serializable.NodeSnapshotType.EntitySnapshot,
+        data: {
           viewer: [
-            {
-              postal: 123,
-              name: 'Gouda',
-            },
-            {
-              postal: 456,
-              name: 'Brie',
-            },
+            { name: 'Gouda' },
+            { name: 'Brie' },
           ],
         },
-        `{ viewer { postal name } }`,
-        cacheContext
-      );
-
-      const pruneQuery = query(`{ viewer { name }}`);
-      const pruned = prune(cacheContext, snapshot, pruneQuery);
-      extractResult = extract(pruned.snapshot, cacheContext);
+      },
     });
-
-    it(`is pruned accroding to prune query`, () => {
-      expect(extractResult).to.deep.eq({
-        [QueryRootId]: {
-          type: Serializable.NodeSnapshotType.EntitySnapshot,
-          data: {
-            viewer: [
-              { name: 'Gouda' },
-              { name: 'Brie' },
-            ],
-          },
-        },
-      });
-    });
-
   });
+
 });

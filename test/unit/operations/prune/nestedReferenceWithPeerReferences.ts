@@ -5,64 +5,61 @@ import { createGraphSnapshot, createStrictCacheContext, query } from '../../../h
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 describe(`operations.prune`, () => {
-  describe(`nested references with peer reference`, () => {
+  let extractResult: Serializable.GraphSnapshot;
+  beforeAll(() => {
+    const cacheContext = createStrictCacheContext();
+    const snapshot = createGraphSnapshot(
+      {
+        one: {
+          two: {
+            three: { id: 0 },
+            four: { id: 1 },
+          },
+        },
+      },
+      `{ 
+          one {
+            two {
+              three { id }
+              four { id }
+            }
+          }
+      }`,
+      cacheContext
+    );
 
-    let extractResult: Serializable.GraphSnapshot;
-    beforeAll(() => {
-      const cacheContext = createStrictCacheContext();
-      const snapshot = createGraphSnapshot(
-        {
+    const pruneQuery = query(`{ 
+      one {
+        two {
+          four { id }
+        }
+      }
+    }`);
+    const pruned = prune(cacheContext, snapshot, pruneQuery);
+    extractResult = extract(pruned.snapshot, cacheContext);
+  });
+
+  it(`prunes fields from entities in cache with nested references and peer reference correctly`, () => {
+    expect(extractResult).to.deep.eq({
+      [QueryRootId]: {
+        type: Serializable.NodeSnapshotType.EntitySnapshot,
+        outbound: [
+          { id: '1', path: ['one', 'two', 'four'] },
+        ],
+        data: {
           one: {
             two: {
-              three: { id: 0 },
-              four: { id: 1 },
+              four: undefined,
             },
           },
         },
-        `{ 
-            one {
-              two {
-                three { id }
-                four { id }
-              }
-            }
-        }`,
-        cacheContext
-      );
-
-      const pruneQuery = query(`{ 
-        one {
-          two {
-            four { id }
-          }
-        }
-      }`);
-      const pruned = prune(cacheContext, snapshot, pruneQuery);
-      extractResult = extract(pruned.snapshot, cacheContext);
+      },
+      '1': {
+        type: Serializable.NodeSnapshotType.EntitySnapshot,
+        inbound: [{ id: QueryRootId, path: ['one', 'two', 'four'] }],
+        data: { id: 1 },
+      },
     });
-
-    it(`is pruned accroding to prune query`, () => {
-      expect(extractResult).to.deep.eq({
-        [QueryRootId]: {
-          type: Serializable.NodeSnapshotType.EntitySnapshot,
-          outbound: [
-            { id: '1', path: ['one', 'two', 'four'] },
-          ],
-          data: {
-            one: {
-              two: {
-                four: undefined,
-              },
-            },
-          },
-        },
-        '1': {
-          type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: QueryRootId, path: ['one', 'two', 'four'] }],
-          data: { id: 1 },
-        },
-      });
-    });
-
   });
+
 });
