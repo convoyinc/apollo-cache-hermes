@@ -5,12 +5,13 @@ import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
-import { extract, QueryObserver, read, restore } from './operations';
+import { extract, MigrationMap, migrate, QueryObserver, prune, read, restore } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
 
+export { MigrationMap };
 export type TransactionCallback = (transaction: CacheTransaction) => void;
 
 /**
@@ -40,16 +41,21 @@ export class Cache implements Queryable {
     return this._context.transformDocument(document);
   }
 
-  restore(data: Serializable.GraphSnapshot) {
+  restore(data: Serializable.GraphSnapshot, migrationMap?: MigrationMap, verifyQuery?: RawOperation) {
     const { cacheSnapshot, editedNodeIds } = restore(data, this._context);
-    this._setSnapshot(cacheSnapshot, editedNodeIds);
+    const migrated = migrate(cacheSnapshot, migrationMap);
+    if (verifyQuery && !read(this._context, verifyQuery, migrated.baseline).complete) {
+      throw new Error(`Restored cache cannot satisfy the verification query`);
+    }
+    this._setSnapshot(migrated, editedNodeIds);
   }
 
-  extract(optimistic: boolean): Serializable.GraphSnapshot {
-    if (optimistic) {
-      return extract(this._snapshot.optimistic, this._context);
-    }
-    return extract(this._snapshot.baseline, this._context);
+  extract(optimistic: boolean, pruneQuery?: RawOperation): Serializable.GraphSnapshot {
+    const cacheSnapshot = optimistic ? this._snapshot.optimistic : this._snapshot.baseline;
+    return extract(
+      pruneQuery ? prune(this._context, cacheSnapshot, pruneQuery).snapshot : cacheSnapshot,
+      this._context
+    );
   }
 
   evict(_query: RawOperation): { success: boolean } { // eslint-disable-line class-methods-use-this

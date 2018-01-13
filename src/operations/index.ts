@@ -1,5 +1,5 @@
 export { extract } from './extract';
-export { migrate } from './migrate';
+export { migrate, MigrationMap } from './migrate';
 export { prune } from './prune';
 export { QueryObserver } from './QueryObserver';
 export { QueryResult, read } from './read';
