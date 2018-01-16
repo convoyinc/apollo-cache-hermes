@@ -48,7 +48,7 @@
     "codecov": "^3.0.0",
     "eslint": "^4.13.1",
     "eslint-plugin-eslint-comments": "^2.0.1",
-    "eslint-plugin-import": "nevir/eslint-plugin-import#randallreedjr-import-sort-order",
+    "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jest": "^21.5.0",
     "eslint-plugin-typescript": "^0.8.1",
     "graphql": "^0.11.7",
