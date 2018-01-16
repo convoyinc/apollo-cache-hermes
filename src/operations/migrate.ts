@@ -5,7 +5,9 @@ import { isObject, isReferenceField } from '../util';
 
 /**
  * Function called during migration of entities to add or update a field.
- * The new value will be whatever the function evaluates to.
+ * The new value will be whatever the function evaluates to. If the field to
+ * be migrated is a nested object, the migration function should produce a new
+ * object, instead of re-using the old one, and make the changes on top.
  */
 export type FieldMigration = (previous: JsonValue) => any;
 export type MigrationMap = {
@@ -15,8 +17,8 @@ export type MigrationMap = {
 };
 
 /**
- * Return the migrated json object. Supports add and modify but not delete
- * fields
+ * Returns the migrated entity snapshot. Supports add and modify but not delete
+ * fields.
  */
 export function migrateEntity(snapshot: EntitySnapshot, migrationMap?: MigrationMap): EntitySnapshot {
 
@@ -29,6 +31,9 @@ export function migrateEntity(snapshot: EntitySnapshot, migrationMap?: Migration
   for (const field in migrationMap[typeName]) {
     const fieldMigration = migrationMap[typeName][field];
     if (!fieldMigration) continue;
+    // References work in very specific way in Hermes. If client tries
+    // to migrate them at will, bad things happnen. Let's not let them shoot
+    // themselves
     if (isReferenceField(snapshot, [field])) {
       throw new Error(`${typeName}.${field} is a reference field. Migration is not allowed`);
     }
