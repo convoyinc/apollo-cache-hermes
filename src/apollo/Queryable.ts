@@ -77,6 +77,10 @@ export abstract class ApolloQueryable implements DataProxy {
     this._queryable.write(rawOperation, options.data);
   }
 
+  writeData(): void { // eslint-disable-line class-methods-use-this
+    throw new Error(`writeData is not implemented by Hermes yet`);
+  }
+
   transformDocument(doc: DocumentNode): DocumentNode {
     return this._queryable.transformDocument(doc);
   }
