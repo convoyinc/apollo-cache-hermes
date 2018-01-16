@@ -53,8 +53,8 @@ export function addNodeReference(
 }
 
 /**
- * Return index of { id, path } reference in references array.
- * Otherwise, return -1.
+ * Return true if { id, path } is a valid reference in the node's references
+ * array. Otherwise, return false.
  */
 export function hasNodeReference(
   snapshot: NodeSnapshot,
@@ -75,4 +75,19 @@ function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path:
   return references.findIndex((reference) => {
     return reference.id === id && isEqual(reference.path, path);
   });
+}
+
+/**
+ * Return true if of 'path' points to a valid reference field
+ */
+export function isReferenceField(
+  snapshot: NodeSnapshot,
+  path: PathPart[],
+): boolean {
+  const references = snapshot['outbound'];
+  if (!references) return false;
+  const index = references.findIndex((reference) => {
+    return isEqual(reference.path, path);
+  });
+  return (index >= 0);
 }
