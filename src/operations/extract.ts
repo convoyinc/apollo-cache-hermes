@@ -45,8 +45,15 @@ export function extract(graphSnapshot: GraphSnapshot, cacheContext: CacheContext
     // Extract data value
     const extractedData = extractSerializableData(graphSnapshot, nodeSnapshot);
     if (extractedData !== undefined) {
-      if (cacheContext.tracer.warning && !isSerializable(extractedData, /* allowUndefined */ true)) {
-        cacheContext.tracer.warning(`Data at entityID ${id} is unserializable`);
+      if (cacheContext.tracer.warning) {
+        try {
+          if (!isSerializable(extractedData, /* allowUndefined */ true)) {
+            cacheContext.tracer.warning(`Data at entityID ${id} is unserializable`);
+          }
+        } catch (error) {
+          cacheContext.tracer.warning(`Data at entityID ${id} is unserializable because of stack overflow`);
+          cacheContext.tracer.warning(error);
+        }
       }
       serializedEntity.data = extractedData;
     }
