@@ -21,6 +21,7 @@ export function removeNodeReference(
   if (!references) return true;
 
   const fromIndex = getIndexOfGivenReference(references, id, path);
+  if (fromIndex < 0) return false;
   references.splice(fromIndex, 1);
 
   if (!references.length) {
