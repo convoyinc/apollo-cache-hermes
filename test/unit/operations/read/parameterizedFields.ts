@@ -330,6 +330,38 @@ describe(`operations.read`, () => {
 
     });
 
+    describe(`directly nested reference without any simple fields on the intermediate object`, () => {
+
+      const nestedQuery = query(`
+      query nested($id: ID!) {
+        one(id: $id) {
+          # Notice, no simple fields on one
+          two(extra: true) {
+            id
+          }
+        }
+      }`, { id: 1 });
+
+      let snapshot: GraphSnapshot;
+      beforeAll(() => {
+        snapshot = write(context, empty, nestedQuery, {
+          one: {
+            two: { id: 2 },
+          },
+        }).snapshot;
+      });
+
+      it(`returns the selected values, overlaid on the underlying data`, () => {
+        const { result } = read(context, nestedQuery, snapshot);
+        expect(result).to.deep.equal({
+          one: {
+            two: { id: 2 },
+          },
+        });
+      });
+
+    });
+
     describe(`with a value of []`, () => {
 
       let snapshot: GraphSnapshot;

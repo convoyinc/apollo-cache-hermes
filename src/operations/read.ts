@@ -132,6 +132,9 @@ export function _walkAndOverlayDynamicValues(
       // This is an alias if we have a schemaName declared.
       fieldName = node.schemaName ? node.schemaName : key;
 
+      let nextContainerId = containerId;
+      let nextPath = path;
+
       if (node.args) {
         let childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
         let childSnapshot = snapshot.getNodeSnapshot(childId);
@@ -154,8 +157,12 @@ export function _walkAndOverlayDynamicValues(
         // Still no snapshot? Ok we're done here.
         if (!childSnapshot) continue;
         if (nodeIds) nodeIds.add(childId);
+
+        nextContainerId = childId;
+        nextPath = [];
         child = childSnapshot.data;
       } else {
+        nextPath = [...path, fieldName];
         child = value[fieldName];
       }
 
@@ -166,12 +173,12 @@ export function _walkAndOverlayDynamicValues(
           for (let i = child.length - 1; i >= 0; i--) {
             if (child[i] === null) continue;
             child[i] = _wrapValue(child[i], context);
-            queue.push(new OverlayWalkNode(child[i] as JsonObject, containerId, node.children, [...path, fieldName, i]));
+            queue.push(new OverlayWalkNode(child[i] as JsonObject, nextContainerId, node.children, [...nextPath, i]));
           }
 
         } else {
           child = _wrapValue(child, context);
-          queue.push(new OverlayWalkNode(child as JsonObject, containerId, node.children, [...path, fieldName]));
+          queue.push(new OverlayWalkNode(child as JsonObject, nextContainerId, node.children, nextPath));
         }
       }
 
