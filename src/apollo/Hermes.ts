@@ -4,7 +4,7 @@ import {
   ApolloCache,
 } from 'apollo-cache';
 
-import { Cache } from '../Cache';
+import { Cache, MigrationMap } from '../Cache';
 import { CacheSnapshot } from '../CacheSnapshot';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
@@ -26,14 +26,16 @@ export class Hermes extends ApolloQueryable implements ApolloCache<GraphSnapshot
   }
 
   // TODO (yuisu): data can be typed better with update of ApolloCache API
-  restore(data: any): ApolloCache<GraphSnapshot> {
-    this._queryable.restore(data);
+  restore(data: any, migrationMap?: MigrationMap, verifyOptions?: CacheInterface.ReadOptions): ApolloCache<GraphSnapshot> {
+    const verifyQuery = verifyOptions && buildRawOperationFromQuery(verifyOptions.query, verifyOptions.variables);
+    this._queryable.restore(data, migrationMap, verifyQuery);
     return this;
   }
 
   // TODO (yuisu): return can be typed better with update of ApolloCache API
-  extract(optimistic: boolean = false): any {
-    return this._queryable.extract(optimistic);
+  extract(optimistic: boolean = false, pruneOptions?: CacheInterface.ReadOptions): any {
+    const pruneQuery = pruneOptions && buildRawOperationFromQuery(pruneOptions.query, pruneOptions.variables);
+    return this._queryable.extract(optimistic, pruneQuery);
   }
 
   reset(): Promise<void> {
