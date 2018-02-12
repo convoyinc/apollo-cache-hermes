@@ -184,7 +184,6 @@ rules:
   import/order: [error, {
     groups: [[builtin, external], [internal], [parent], [sibling, index]],
     newlines-between: always,
-    sort: alphabetical,
   }]
 
   # https://github.com/nzakas/eslint-plugin-typescript#supported-rules
