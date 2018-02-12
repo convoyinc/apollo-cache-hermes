@@ -166,7 +166,8 @@ rules:
   # Static Analysis:
   # TODO: Enable once apollo-* fix their exports
   # import/no-unresolved: [error, { caseSensitive: true, commonjs: true, amd: true }]
-  import/named: error
+  # TODO: Figure out why some types aren't being treated as exports
+  # import/named: error
   import/default: error
   import/namespace: error
   import/no-absolute-path: error

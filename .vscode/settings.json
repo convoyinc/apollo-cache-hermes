@@ -20,5 +20,8 @@
     "reportUnusedDisableDirectives": true
   },
   "jsDocCompletion.enabled": false,
-  "todohighlight.keywordsPattern": "TODO(\\(\\w+\\))?:"
+  "todohighlight.keywordsPattern": "TODO(\\(\\w+\\))?:",
+  "cSpell.words": [
+    "queryable"
+  ]
 }
