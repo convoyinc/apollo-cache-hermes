@@ -6,4 +6,4 @@ set -e
 [[ -d ./node_modules ]] && exit 0
 
 # Finally, install.
-yarn install --no-lockfile
+yarn install
