@@ -62,9 +62,9 @@
   version "4.14.102"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.102.tgz#586a3e22385fc79b07cef9c5a1c8a5387986fbc8"
 
-"@types/node@^8.5.1":
-  version "8.9.3"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.9.3.tgz#47d00392c5834dd5a095346d72df7ff8995f7365"
+"@types/node@^8.9.4":
+  version "8.9.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.9.4.tgz#dfd327582a06c114eb6e0441fa3d6fab35edad48"
 
 abab@^1.0.4:
   version "1.0.4"
