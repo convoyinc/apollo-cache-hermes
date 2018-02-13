@@ -375,7 +375,7 @@ describe(`context.CacheContext`, () => {
       });
     });
 
-    describe(`Mixing additional helper on parameterized query`, () => {
+    describe(`mixing additional helper on parameterized query`, () => {
       let viewerQuery: RawOperation, entityTransformerContext: CacheContext, snapshot: GraphSnapshot;
       beforeAll(() => {
         viewerQuery = queryWithTypename(`

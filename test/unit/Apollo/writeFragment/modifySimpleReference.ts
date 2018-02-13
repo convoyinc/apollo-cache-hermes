@@ -9,39 +9,74 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes Apollo API`, () => {
-  describe(`writeFragment with simple reference`, () => {
+describe(`writeFragment with simple reference`, () => {
 
-    let hermes: Hermes, baseline: GraphSnapshot;
-    beforeAll(() => {
-      hermes = new Hermes(new CacheContext(strictConfig));
-      hermes.restore({
-        [QueryRootId]: {
-          type: Serializable.NodeSnapshotType.EntitySnapshot,
-          outbound: [{ id: '123', path: ['viewer'] }],
-          data: {
-            justValue: '42',
-          },
-        },
-        '123': {
-          type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: QueryRootId, path: ['viewer'] }],
-          data: { id: 123, name: 'Gouda', __typename: 'Viewer' },
-        },
-      });
-
-      hermes.writeFragment({
-        id: '123',
-        fragment: gql(`
-          fragment viewer on Viewer {
-            id
-            name
-            notes {
-              details
-            }
-          }
-        `),
+  let hermes: Hermes, baseline: GraphSnapshot;
+  beforeAll(() => {
+    hermes = new Hermes(new CacheContext(strictConfig));
+    hermes.restore({
+      [QueryRootId]: {
+        type: Serializable.NodeSnapshotType.EntitySnapshot,
+        outbound: [{ id: '123', path: ['viewer'] }],
         data: {
+          justValue: '42',
+        },
+      },
+      '123': {
+        type: Serializable.NodeSnapshotType.EntitySnapshot,
+        inbound: [{ id: QueryRootId, path: ['viewer'] }],
+        data: { id: 123, name: 'Gouda', __typename: 'Viewer' },
+      },
+    });
+
+    hermes.writeFragment({
+      id: '123',
+      fragment: gql(`
+        fragment viewer on Viewer {
+          id
+          name
+          notes {
+            details
+          }
+        }
+      `),
+      data: {
+        id: 123,
+        name: 'Munster',
+        __typename: 'Viewer',
+        notes: [
+          {
+            details: 'Hello',
+          },
+          {
+            details: 'World',
+          },
+        ],
+      },
+    });
+    baseline = hermes.getCurrentCacheSnapshot().baseline;
+  });
+
+  it(`correctly modify data on the reference`, () => {
+    expect(baseline.getNodeData('123')).to.deep.eq({
+      id: 123,
+      name: 'Munster',
+      __typename: 'Viewer',
+      notes: [
+        {
+          details: 'Hello',
+        },
+        {
+          details: 'World',
+        },
+      ],
+    });
+  });
+
+  it(`correctly reference from root node`, () => {
+    expect(baseline.getNodeSnapshot('123')).to.deep.eq(
+      new EntitySnapshot(
+        {
           id: 123,
           name: 'Munster',
           __typename: 'Viewer',
@@ -54,47 +89,10 @@ describe(`Hermes Apollo API`, () => {
             },
           ],
         },
-      });
-      baseline = hermes.getCurrentCacheSnapshot().baseline;
-    });
-
-    it(`correctly modify data on the reference`, () => {
-      expect(baseline.getNodeData('123')).to.deep.eq({
-        id: 123,
-        name: 'Munster',
-        __typename: 'Viewer',
-        notes: [
-          {
-            details: 'Hello',
-          },
-          {
-            details: 'World',
-          },
-        ],
-      });
-    });
-
-    it(`correctly reference from root node`, () => {
-      expect(baseline.getNodeSnapshot('123')).to.deep.eq(
-        new EntitySnapshot(
-          {
-            id: 123,
-            name: 'Munster',
-            __typename: 'Viewer',
-            notes: [
-              {
-                details: 'Hello',
-              },
-              {
-                details: 'World',
-              },
-            ],
-          },
-          [{ id: QueryRootId, path: ['viewer'] }],
-        )
-      );
-      expect(baseline.getNodeData(QueryRootId)!['viewer']).to.eq(baseline.getNodeData('123'));
-    });
-
+        [{ id: QueryRootId, path: ['viewer'] }],
+      )
+    );
+    expect(baseline.getNodeData(QueryRootId)!['viewer']).to.eq(baseline.getNodeData('123'));
   });
+
 });

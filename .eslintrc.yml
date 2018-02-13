@@ -217,5 +217,11 @@ rules:
 
   # https://github.com/jest-community/eslint-plugin-jest#rules
 
+  jest/consistent-test-it: [error, { fn: it }]
+  # TODO: https://github.com/jest-community/eslint-plugin-jest/issues/76
+  # jest/lowercase-name: error
   jest/no-focused-tests: error
   jest/no-identical-title: error
+  jest/no-test-prefixes: error
+  # TODO: https://github.com/jest-community/eslint-plugin-jest/issues/75
+  # jest/valid-describe: error

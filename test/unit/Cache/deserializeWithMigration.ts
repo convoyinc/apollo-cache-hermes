@@ -2,130 +2,128 @@ import { Cache } from '../../../src/Cache';
 import { JsonValue } from '../../../src/primitive';
 import { query, strictConfig } from '../../helpers';
 
-describe(`Cache`, () => {
-  describe(`deserialization with migration`, () => {
+describe(`deserialization with migration`, () => {
 
-    const v1Query =  query(`query v1($id: ID!) {
-      one {
-        two {
-          three(id: $id, withExtra: true) {
-            id
-            name
-            extraValue
-            __typename
-          }
+  const v1Query =  query(`query v1($id: ID!) {
+    one {
+      two {
+        three(id: $id, withExtra: true) {
+          id
+          name
+          extraValue
+          __typename
         }
       }
-    }`, { id: 0 });
+    }
+  }`, { id: 0 });
 
-    const v2Query =  query(`query v1($id: ID!) {
-      one {
-        two {
-          three(id: $id, withExtra: true) {
-            id
-            name
-            extraValue
-            isNew
-            __typename
-          }
+  const v2Query =  query(`query v1($id: ID!) {
+    one {
+      two {
+        three(id: $id, withExtra: true) {
+          id
+          name
+          extraValue
+          isNew
+          __typename
         }
       }
-    }`, { id: 0 });
+    }
+  }`, { id: 0 });
 
-    let storedV1ExtractResult: string, expectedV2Cache: Cache;
-    beforeEach(() => {
-      const cache = new Cache(strictConfig);
-      cache.write(
-        v1Query,
-        {
-          one: {
-            two: [
-              {
-                three: {
-                  id: '30',
-                  name: 'Three0',
-                  extraValue: '30-42',
-                  __typename: 'THREE',
-                },
+  let storedV1ExtractResult: string, expectedV2Cache: Cache;
+  beforeEach(() => {
+    const cache = new Cache(strictConfig);
+    cache.write(
+      v1Query,
+      {
+        one: {
+          two: [
+            {
+              three: {
+                id: '30',
+                name: 'Three0',
+                extraValue: '30-42',
+                __typename: 'THREE',
               },
-              {
-                three: {
-                  id: '31',
-                  name: 'Three1',
-                  extraValue: '31-42',
-                  __typename: 'THREE',
-                },
+            },
+            {
+              three: {
+                id: '31',
+                name: 'Three1',
+                extraValue: '31-42',
+                __typename: 'THREE',
               },
-              null,
-            ],
-          },
+            },
+            null,
+          ],
         },
-      );
-      const extractResult = cache.extract(/* optimistic */ false);
-      storedV1ExtractResult = JSON.stringify(extractResult);
+      },
+    );
+    const extractResult = cache.extract(/* optimistic */ false);
+    storedV1ExtractResult = JSON.stringify(extractResult);
 
-      // build the expected v2 cache, where 'three' gains a new 'isNew' field
-      // that defaults to 'false'
-      expectedV2Cache = new Cache(strictConfig);
-      expectedV2Cache.write(
-        v2Query,
-        {
-          one: {
-            two: [
-              {
-                three: {
-                  id: '30',
-                  name: 'Three0',
-                  extraValue: '30-42',
-                  isNew: false,
-                  __typename: 'THREE',
-                },
+    // build the expected v2 cache, where 'three' gains a new 'isNew' field
+    // that defaults to 'false'
+    expectedV2Cache = new Cache(strictConfig);
+    expectedV2Cache.write(
+      v2Query,
+      {
+        one: {
+          two: [
+            {
+              three: {
+                id: '30',
+                name: 'Three0',
+                extraValue: '30-42',
+                isNew: false,
+                __typename: 'THREE',
               },
-              {
-                three: {
-                  id: '31',
-                  name: 'Three1',
-                  extraValue: '31-42',
-                  isNew: false,
-                  __typename: 'THREE',
-                },
+            },
+            {
+              three: {
+                id: '31',
+                name: 'Three1',
+                extraValue: '31-42',
+                isNew: false,
+                __typename: 'THREE',
               },
-              null,
-            ],
-          },
+            },
+            null,
+          ],
         },
-      );
-
-    });
-
-    it(`migrates the restored cache to v2`, () => {
-      const newCache = new Cache();
-      // set up v1 -> v2 migration map that adds the 'isNew' field to 'THREE'
-      newCache.restore(JSON.parse(storedV1ExtractResult), {
-        ['THREE']: {
-          isNew: (_previous: JsonValue) => false,
-        },
-      });
-      expect(newCache.getSnapshot()).to.deep.eq(expectedV2Cache.getSnapshot());
-    });
-
-    it(`throws if verifyQuery couldn't be satified due to missing migration map`, () => {
-      const newCache = new Cache();
-      expect(() => {
-        newCache.restore(JSON.parse(storedV1ExtractResult), undefined, v2Query);
-      }).to.throw();
-    });
-
-    it(`throws if verifyQuery couldn't be satified due to inadequate migration map`, () => {
-      const newCache = new Cache();
-      expect(() => {
-        newCache.restore(JSON.parse(storedV1ExtractResult), {
-          ['THREE']: {
-            otherStuff: (_previous: JsonValue) => false,
-          },
-        }, v2Query);
-      }).to.throw();
-    });
+      },
+    );
 
   });
+
+  it(`migrates the restored cache to v2`, () => {
+    const newCache = new Cache();
+    // set up v1 -> v2 migration map that adds the 'isNew' field to 'THREE'
+    newCache.restore(JSON.parse(storedV1ExtractResult), {
+      ['THREE']: {
+        isNew: (_previous: JsonValue) => false,
+      },
+    });
+    expect(newCache.getSnapshot()).to.deep.eq(expectedV2Cache.getSnapshot());
+  });
+
+  it(`throws if verifyQuery couldn't be satified due to missing migration map`, () => {
+    const newCache = new Cache();
+    expect(() => {
+      newCache.restore(JSON.parse(storedV1ExtractResult), undefined, v2Query);
+    }).to.throw();
+  });
+
+  it(`throws if verifyQuery couldn't be satified due to inadequate migration map`, () => {
+    const newCache = new Cache();
+    expect(() => {
+      newCache.restore(JSON.parse(storedV1ExtractResult), {
+        ['THREE']: {
+          otherStuff: (_previous: JsonValue) => false,
+        },
+      }, v2Query);
+    }).to.throw();
+  });
+
 });
