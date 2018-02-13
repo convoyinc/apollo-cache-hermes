@@ -164,22 +164,30 @@ rules:
   # https://github.com/benmosher/eslint-plugin-import#rules
 
   # Static Analysis:
-  # TODO: Enable once apollo-* fix their exports
-  # import/no-unresolved: [error, { caseSensitive: true, commonjs: true, amd: true }]
+  import/no-unresolved: [error, { caseSensitive: true, commonjs: true, amd: true }]
   # TODO: Figure out why some types aren't being treated as exports
   # import/named: error
   import/default: error
   import/namespace: error
   import/no-absolute-path: error
+  import/no-dynamic-require: error
 
   # Helpful Warnings
+  # TODO: Until it has TypeScript support…
+  # import/export: error
   import/no-named-as-default: error
   import/no-deprecated: error
-  import/no-extraneous-dependencies: [error, {
-    devDependencies: [test/**/*, typings/**/*],
-  }]
+  import/no-extraneous-dependencies: [error, { devDependencies: false }]
+  import/no-mutable-exports: error
+
+  # Module Systems
+  import/no-commonjs: error
+  import/no-amd: error
+  import/no-nodejs-modules: error
 
   # Style Guide
+  # TODO: Until `import name = require('thing');` is supported
+  # import/first: error
   import/no-duplicates: error
   import/extensions: [error, never]
   import/order: [error, {

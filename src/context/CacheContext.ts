@@ -1,5 +1,5 @@
 import { addTypenameToDocument, isEqual } from 'apollo-utilities';
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
+import { DocumentNode } from 'graphql';
 import lodashGet = require('lodash.get');
 
 import { ApolloTransaction } from '../apollo/Transaction';

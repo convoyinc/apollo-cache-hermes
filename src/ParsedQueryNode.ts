@@ -1,5 +1,5 @@
 import { isEqual, valueFromNode } from 'apollo-utilities';
-import { // eslint-disable-line import/no-extraneous-dependencies
+import {
   ArgumentNode,
   SelectionSetNode,
   SelectionNode,

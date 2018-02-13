@@ -1,5 +1,5 @@
 import { Cache as CacheInterface } from 'apollo-cache';
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
+import { DocumentNode } from 'graphql';
 
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';

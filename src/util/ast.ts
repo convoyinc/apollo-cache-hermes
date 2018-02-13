@@ -1,5 +1,5 @@
 import { valueFromNode, FragmentMap } from 'apollo-utilities';
-import { // eslint-disable-line import/no-extraneous-dependencies
+import {
   DocumentNode,
   OperationDefinitionNode,
   ValueNode,

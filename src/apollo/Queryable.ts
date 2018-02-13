@@ -1,6 +1,6 @@
 import { Cache, DataProxy } from 'apollo-cache';
 import { removeDirectivesFromDocument } from 'apollo-utilities';
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
+import { DocumentNode } from 'graphql';
 
 import { UnsatisfiedCacheError } from '../errors';
 import { JsonObject } from '../primitive';

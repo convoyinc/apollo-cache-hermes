@@ -1,4 +1,4 @@
-import { // eslint-disable-line import/no-extraneous-dependencies
+import {
   DocumentNode,
   OperationDefinitionNode,
   OperationTypeNode,

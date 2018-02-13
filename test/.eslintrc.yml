@@ -4,4 +4,5 @@ env:
 
 rules:
   no-unused-expressions: off
-  import/no-extraneous-dependencies: off
+  import/no-extraneous-dependencies: [error, { devDependencies: true }]
+  import/no-nodejs-modules: off
