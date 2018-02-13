@@ -29,6 +29,7 @@ jobs:
           keys:
             - deps-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
             - deps-{{ checksum "package.json" }}-
+            - deps-
       - run: ./scripts/install-ci.sh
       - run: ./node_modules/.bin/greenkeeper-lockfile-update
       - save_cache:
@@ -57,6 +58,12 @@ jobs:
       - <<: *store_artifacts
       - <<: *store_test_results
 
+  greenkeeper:
+    <<: *job_common
+    steps:
+      - <<: *restore
+      - run: ./node_modules/.bin/greenkeeper-lockfile-upload
+
   release:
     <<: *job_common
     steps:
@@ -67,7 +74,6 @@ jobs:
       - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
       - run: git config --global user.email "donvoy@convoy.com"
       - run: git config --global user.name "Don Voy"
-      - run: ./node_modules/.bin/greenkeeper-lockfile-upload
       - run: yarn run release
       - <<: *store_artifacts
 
@@ -82,6 +88,10 @@ workflows:
       - test-unit:
           requires:
             - build
+      - greenkeeper:
+          requires:
+            - test-style
+            - test-unit
       - release:
           requires:
             - test-style
