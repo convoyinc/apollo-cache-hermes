@@ -7,44 +7,42 @@ import { strictConfig } from '../../../helpers/context';
 
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
-describe(`Hermes Apollo API`, () => {
-  describe(`readFragment with incomplete Hermes cache`, () => {
+describe(`readFragment with incomplete cache`, () => {
 
-    let hermes: Hermes;
-    beforeAll(() => {
-      hermes = new Hermes(new CacheContext(strictConfig));
-      hermes.restore({
-        [QueryRootId]: {
-          type: Serializable.NodeSnapshotType.EntitySnapshot,
-          outbound: [{ id: '123', path: ['viewer'] }],
-          data: {
-            justValue: '42',
-          },
+  let hermes: Hermes;
+  beforeAll(() => {
+    hermes = new Hermes(new CacheContext(strictConfig));
+    hermes.restore({
+      [QueryRootId]: {
+        type: Serializable.NodeSnapshotType.EntitySnapshot,
+        outbound: [{ id: '123', path: ['viewer'] }],
+        data: {
+          justValue: '42',
         },
-        '123': {
-          type: Serializable.NodeSnapshotType.EntitySnapshot,
-          inbound: [{ id: QueryRootId, path: ['viewer'] }],
-          data: { id: 123, name: 'Gouda', __typename: 'Viewer' },
-        },
-      });
+      },
+      '123': {
+        type: Serializable.NodeSnapshotType.EntitySnapshot,
+        inbound: [{ id: QueryRootId, path: ['viewer'] }],
+        data: { id: 123, name: 'Gouda', __typename: 'Viewer' },
+      },
     });
-
-    it(`correctly return an incomplete data`, () => {
-      expect(hermes.readFragment({
-        id: '123',
-        fragment: gql(`
-          fragment viewer on Viewer {
-            id
-            name
-            location
-          }
-        `),
-      })).to.be.deep.eq({
-        id: 123,
-        name: 'Gouda',
-        __typename: 'Viewer',
-      });
-    });
-
   });
+
+  it(`returns the partial result`, () => {
+    expect(hermes.readFragment({
+      id: '123',
+      fragment: gql(`
+        fragment viewer on Viewer {
+          id
+          name
+          location
+        }
+      `),
+    })).to.be.deep.eq({
+      id: 123,
+      name: 'Gouda',
+      __typename: 'Viewer',
+    });
+  });
+
 });

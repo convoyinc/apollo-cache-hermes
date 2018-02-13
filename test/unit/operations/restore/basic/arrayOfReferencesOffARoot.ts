@@ -9,8 +9,11 @@ import { createGraphSnapshot, strictConfig } from '../../../../helpers';
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 class Viewer {
-  name: string;
-  id: string;
+  constructor(
+    public name: string,
+    public id: string,
+  ) {}
+
   getName() {
     return this.name;
   }

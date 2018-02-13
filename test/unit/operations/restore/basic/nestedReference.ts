@@ -9,7 +9,9 @@ import { createSnapshot, strictConfig } from '../../../../helpers';
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 class Three {
-  id: string;
+  constructor(
+    public id: string,
+  ) {}
 
   getId() {
     return this.id;
@@ -44,7 +46,7 @@ describe(`operations.restore`, () => {
             },
           },
         },
-        `{ 
+        `{
             one {
               two {
                 three { __typename id }

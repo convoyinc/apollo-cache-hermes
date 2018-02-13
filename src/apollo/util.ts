@@ -1,5 +1,5 @@
 import { getFragmentQueryDocument } from 'apollo-utilities';
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
+import { DocumentNode } from 'graphql';
 
 import { JsonObject } from '../primitive';
 import { NodeId, RawOperation, StaticNodeId } from '../schema';

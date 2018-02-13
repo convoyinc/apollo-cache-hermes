@@ -18,7 +18,7 @@ export class QueryObserver {
   /** The query being observed. */
   private _query: RawOperation;
   /** The most recent result */
-  private _result: QueryResultWithNodeIds;
+  private _result?: QueryResultWithNodeIds;
   /** The callback to trigger when observed nodes have changed. */
   private _callback: Callback;
 

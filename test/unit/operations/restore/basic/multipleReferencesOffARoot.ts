@@ -9,9 +9,11 @@ import { createSnapshot, strictConfig } from '../../../../helpers';
 const { QueryRoot: QueryRootId } = StaticNodeId;
 
 class Foo {
-  id: string;
-  name: string;
-  isFoo: boolean;
+  constructor(
+    public id: string,
+    public name: string,
+    public isFoo: boolean,
+  ) {}
 
   getId() {
     return this.id;
@@ -27,9 +29,11 @@ class Foo {
 }
 
 class Bar {
-  id: string;
-  name: string;
-  isBar: boolean;
+  constructor(
+    public id: string,
+    public name: string,
+    public isBar: boolean,
+  ) {}
 
   getId() {
     return this.id;

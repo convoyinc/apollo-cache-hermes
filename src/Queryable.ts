@@ -1,4 +1,4 @@
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
+import { DocumentNode } from 'graphql';
 
 import { JsonObject, JsonValue } from './primitive';
 import { RawOperation } from './schema';

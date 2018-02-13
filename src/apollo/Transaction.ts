@@ -1,6 +1,6 @@
 import { ApolloCache, Cache, Transaction } from 'apollo-cache';
 import { JsonValue } from 'apollo-utilities';
-import { DocumentNode } from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
+import { DocumentNode } from 'graphql';
 import lodashIsEqual = require('lodash.isequal');
 import lodasGet = require('lodash.get');
 
