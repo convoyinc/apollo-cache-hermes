@@ -75,6 +75,7 @@
   },
   "greenkeeper": {
     "ignore": [
+      "@types/graphql",
       "@types/node"
     ]
   }
