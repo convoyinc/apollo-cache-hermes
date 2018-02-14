@@ -36,7 +36,7 @@
     "@types/chai": "^4.0.10",
     "@types/chai-as-promised": "^7.1.0",
     "@types/deep-freeze-strict": "^1.1.0",
-    "@types/graphql": "^0.11.7",
+    "@types/graphql": "^0.12.4",
     "@types/lodash": "^4.14.102",
     "@types/lodash.findindex": "^4.6.3",
     "@types/lodash.get": "^4.4.3",
