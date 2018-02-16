@@ -1,5 +1,4 @@
 import { addTypenameToDocument, isEqual } from 'apollo-utilities';
-import { DocumentNode } from 'graphql';
 import lodashGet = require('lodash.get');
 
 import { ApolloTransaction } from '../apollo/Transaction';
@@ -7,7 +6,7 @@ import { CacheSnapshot } from '../CacheSnapshot';
 import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
 import { EntityId, OperationInstance, RawOperation } from '../schema';
-import { isObject } from '../util';
+import { DocumentNode, isObject } from '../util';
 
 import { ConsoleTracer } from './ConsoleTracer';
 import { QueryInfo } from './QueryInfo';

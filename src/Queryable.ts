@@ -1,7 +1,6 @@
-import { DocumentNode } from 'graphql';
-
 import { JsonObject, JsonValue } from './primitive';
 import { RawOperation } from './schema';
+import { DocumentNode } from './util';
 
 /**
  * Represents a queryable portion of our cache (the cache itself, transactions,

@@ -1,10 +1,10 @@
 import { Cache, DataProxy } from 'apollo-cache';
 import { removeDirectivesFromDocument } from 'apollo-utilities';
-import { DocumentNode } from 'graphql';
 
 import { UnsatisfiedCacheError } from '../errors';
 import { JsonObject } from '../primitive';
 import { Queryable } from '../Queryable';
+import { DocumentNode } from '../util';
 
 import { buildRawOperationFromQuery, buildRawOperationFromFragment } from './util';
 

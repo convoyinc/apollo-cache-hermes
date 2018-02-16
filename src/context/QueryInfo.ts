@@ -1,13 +1,10 @@
-import {
-  DocumentNode,
-  OperationDefinitionNode,
-  OperationTypeNode,
-} from 'graphql';
-
 import { ParsedQueryWithVariables, parseQuery } from '../ParsedQueryNode';
 import { JsonValue } from '../primitive';
 import { RawOperation } from '../schema';
 import {
+  DocumentNode,
+  OperationDefinitionNode,
+  OperationTypeNode,
   FragmentMap,
   fragmentMapForDocument,
   getOperationOrDie,

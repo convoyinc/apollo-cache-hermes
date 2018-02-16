@@ -36,7 +36,7 @@
     "@types/chai": "^4.0.10",
     "@types/chai-as-promised": "^7.1.0",
     "@types/deep-freeze-strict": "^1.1.0",
-    "@types/graphql": "^0.11.7",
+    "@types/graphql": "^0.12.4",
     "@types/lodash": "^4.14.102",
     "@types/lodash.findindex": "^4.6.3",
     "@types/lodash.get": "^4.4.3",
@@ -52,6 +52,7 @@
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-jest": "^21.12.0",
     "eslint-plugin-typescript": "^0.8.1",
+    "graphql": "^0.13.1",
     "graphql-tag": "^2.6.0",
     "greenkeeper-lockfile": "^1.13.2",
     "jest": "^22.0.2",
@@ -65,7 +66,6 @@
     "apollo-cache": "^1.0.0",
     "apollo-utilities": "^1.0.0",
     "deep-freeze-strict": "^1.0.0",
-    "graphql": "^0.11.7",
     "lodash.findindex": "^4.0.0",
     "lodash.get": "^4.0.0",
     "lodash.isequal": "^4.5.0",
@@ -75,7 +75,6 @@
   },
   "greenkeeper": {
     "ignore": [
-      "@types/graphql",
       "@types/node"
     ]
   }

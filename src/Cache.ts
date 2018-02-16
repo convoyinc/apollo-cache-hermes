@@ -1,5 +1,4 @@
 import { Cache as CacheInterface } from 'apollo-cache';
-import { DocumentNode } from 'graphql';
 
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';
@@ -10,6 +9,7 @@ import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
+import { DocumentNode } from './util';
 
 export { MigrationMap };
 export type TransactionCallback = (transaction: CacheTransaction) => void;
