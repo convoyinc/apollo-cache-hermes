@@ -1,6 +1,5 @@
 import { ApolloCache, Cache, Transaction } from 'apollo-cache';
 import { JsonValue } from 'apollo-utilities';
-import { DocumentNode } from 'graphql';
 import lodashIsEqual = require('lodash.isequal');
 import lodasGet = require('lodash.get');
 
@@ -8,6 +7,7 @@ import { CacheTransaction } from '../CacheTransaction';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { PathPart } from '../primitive';
 import { NodeId } from '../schema';
+import { DocumentNode } from '../util';
 
 import { ApolloQueryable } from './Queryable';
 

@@ -1,8 +1,8 @@
 import { getFragmentQueryDocument } from 'apollo-utilities';
-import { DocumentNode } from 'graphql';
 
 import { JsonObject } from '../primitive';
 import { NodeId, RawOperation, StaticNodeId } from '../schema';
+import { DocumentNode } from '../util';
 
 /**
  * Builds a query.

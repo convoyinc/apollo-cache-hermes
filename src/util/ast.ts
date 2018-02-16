@@ -1,5 +1,6 @@
 import { valueFromNode, FragmentMap } from 'apollo-utilities';
-import {
+// We only depend on graphql for its types; nothing at runtime.
+import { // eslint-disable-line import/no-extraneous-dependencies
   DocumentNode,
   OperationDefinitionNode,
   ValueNode,
@@ -17,6 +18,18 @@ export {
   valueFromNode,
   FragmentMap,
 } from 'apollo-utilities';
+
+// AST types for convenience.
+export {
+  ArgumentNode,
+  DocumentNode,
+  OperationDefinitionNode,
+  OperationTypeNode,
+  SelectionNode,
+  SelectionSetNode,
+  ValueNode,
+  // FieldNode,
+} from 'graphql';
 
 /**
  * Returns the default values of all variables in the operation.

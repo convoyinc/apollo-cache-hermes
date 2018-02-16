@@ -1,15 +1,17 @@
 import { isEqual, valueFromNode } from 'apollo-utilities';
-import {
-  ArgumentNode,
-  SelectionSetNode,
-  SelectionNode,
-  ValueNode,
-} from 'graphql';
 
 import { CacheContext } from './context';
 import { ConflictingFieldsError } from './errors';
 import { DeepReadonly, JsonScalar, JsonObject, JsonValue, NestedObject, NestedValue } from './primitive';
-import { FragmentMap, isObject, fieldHasStaticDirective } from './util';
+import {
+  ArgumentNode,
+  FragmentMap,
+  SelectionNode,
+  SelectionSetNode,
+  ValueNode,
+  isObject,
+  fieldHasStaticDirective,
+} from './util';
 
 export type JsonAndVariables = JsonScalar | VariableArgument;
 export type FieldArguments<TArgTypes = JsonScalar> = NestedObject<TArgTypes>;

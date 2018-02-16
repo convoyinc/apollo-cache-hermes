@@ -1,10 +1,8 @@
-import { DocumentNode } from 'graphql';
-
 import { QueryInfo } from './context';
 import { NodeReference } from './nodes';
 import { ParsedQuery } from './ParsedQueryNode';
 import { JsonObject, JsonValue, NestedValue } from './primitive';
-import { isScalar, isObject } from './util';
+import { DocumentNode, isScalar, isObject } from './util';
 
 /**
  * Change ids track diffs to the store that may eventually be rolled back.

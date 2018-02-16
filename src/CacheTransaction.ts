@@ -1,5 +1,3 @@
-import { DocumentNode } from 'graphql';
-
 import { ApolloTransaction } from './apollo/Transaction';
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheContext } from './context';
@@ -9,7 +7,7 @@ import { read, write } from './operations';
 import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, OperationInstance, QuerySnapshot, RawOperation, StaticNodeId } from './schema';
-import { addToSet, isObject } from './util';
+import { DocumentNode, addToSet, isObject } from './util';
 
 /**
  * Collects a set of edits against a version of the cache, eventually committing
