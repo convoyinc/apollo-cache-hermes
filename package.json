@@ -60,7 +60,7 @@
     "lodash": "^4.17.5",
     "rimraf": "^2.6.2",
     "typescript": "~2.7.1",
-    "typescript-eslint-parser": "^13.0.0"
+    "typescript-eslint-parser": "^14.0.0"
   },
   "dependencies": {
     "apollo-cache": "^1.0.0",
