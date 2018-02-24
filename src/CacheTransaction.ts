@@ -79,6 +79,7 @@ export class CacheTransaction implements Queryable {
     const current = this._snapshot;
 
     const optimisticQueue = current.optimisticQueue.remove(changeId);
+    current.optimisticQueue = optimisticQueue;
     const optimistic = this._buildOptimisticSnapshot(current.baseline);
 
     this._snapshot = new CacheSnapshot(current.baseline, optimistic, optimisticQueue);
