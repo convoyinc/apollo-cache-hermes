@@ -104,4 +104,21 @@ describe(`transactions`, () => {
     });
   });
 
+  it(`rolls back optimistic transactions`, () => {
+    cache.transaction(/** changeIdOrCallback */ '123', (transaction) => {
+      transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hello' } });
+    });
+
+    expect(cache.read(simpleQuery, /** optimistic */ true).result).to.deep.eq({
+      foo: { bar: 1, baz: 'hello' },
+    });
+
+    cache.transaction((transaction) => {
+      transaction.rollback('123');
+    });
+
+    expect(cache.read(simpleQuery, /** optimistic */ true).result).to.eq(
+      undefined
+    );
+  });
 });
