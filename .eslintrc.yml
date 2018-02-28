@@ -132,7 +132,7 @@ rules:
   space-before-blocks: [error, always]
   space-before-function-paren: [error, never]
   space-in-parens: error
-  # Until https://github.com/eslint/typescript-eslint-parser/issues/224#issuecomment-311744472
+  # Until https://github.com/eslint/typescript-eslint-parser/issues/449
   # space-infix-ops: [error, { int32Hint: true }]
   space-unary-ops: [error, { words: true, nonwords: false }]
   spaced-comment: error
