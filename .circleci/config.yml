@@ -30,7 +30,7 @@ jobs:
             - deps-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
             - deps-{{ checksum "package.json" }}-
             - deps-
-      - run: ./scripts/install-ci.sh
+      - run: yarn install --frozen-lockfile
       - run: ./node_modules/.bin/greenkeeper-lockfile-update
       - save_cache:
           key: deps-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}

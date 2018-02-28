@@ -77,7 +77,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
     updateFieldCallback: (previousList: JsonValue[], fieldArgs: { [argName: string]: string }) => any
   ) {
     const currentContainerNode = this._queryable.getCurrentNodeSnapshot(containerId);
-    if (!currentContainerNode|| !currentContainerNode.outbound) {
+    if (!currentContainerNode || !currentContainerNode.outbound) {
       return;
     }
 
