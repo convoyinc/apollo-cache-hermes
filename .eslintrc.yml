@@ -223,5 +223,4 @@ rules:
   jest/no-focused-tests: error
   jest/no-identical-title: error
   jest/no-test-prefixes: error
-  # TODO: https://github.com/jest-community/eslint-plugin-jest/issues/75
-  # jest/valid-describe: error
+  jest/valid-describe: error
