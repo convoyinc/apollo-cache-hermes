@@ -30,7 +30,7 @@ jobs:
             - deps-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
             - deps-{{ checksum "package.json" }}-
             - deps-
-      - run: yarn install --frozen-lockfile
+      - run: if [[ "${CIRCLE_BRANCH}" =~ ^greenkeeper/ ]]; then yarn install; else yarn install --frozen-lockfile; fi
       - run: ./node_modules/.bin/greenkeeper-lockfile-update
       - save_cache:
           key: deps-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
