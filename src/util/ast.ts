@@ -28,7 +28,8 @@ export {
   SelectionNode,
   SelectionSetNode,
   ValueNode,
-  // FieldNode,
+  FieldNode,
+  DirectiveNode,
 } from 'graphql';
 
 /**
