@@ -9,7 +9,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies
 import { CacheContext } from './context';
 import { ConflictingFieldsError } from './errors';
 import { DeepReadonly, JsonScalar, JsonObject, JsonValue, NestedObject, NestedValue } from './primitive';
-import { FragmentMap, isObject, fieldHasStaticDirective } from './util';
+import { FragmentMap, isObject, fieldHasStaticDirective, fieldHasInclusionDirective } from './util';
 
 export type JsonAndVariables = JsonScalar | VariableArgument;
 export type FieldArguments<TArgTypes = JsonScalar> = NestedObject<TArgTypes>;
@@ -136,7 +136,8 @@ function _buildNodeMap(
 
       const hasParameterizedChildren = areChildrenDynamic(children);
 
-      const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren, selection);
+      const nodeSelection = fieldHasInclusionDirective(selection) ? selection : undefined;
+      const node = new ParsedQueryNode(children, schemaName, args, hasParameterizedChildren, nodeSelection);
       nodeMap[name] = _mergeNodes([...path, name], node, nodeMap[name]);
 
     } else if (selection.kind === 'FragmentSpread') {
@@ -266,8 +267,9 @@ export function _expandVariables(parsed?: ParsedQueryWithVariables, variables?: 
     const node = parsed[key];
     // TODO(jamesreggio): Eliminate unnecessary cast once explicit type can be
     // applied to `selection` property.
-    const excluded = shouldInclude((node.selection as SelectionNode), variables)
-      ? undefined : true;
+    const excluded = (node.selection && !shouldInclude((node.selection as SelectionNode), variables))
+      ? true : undefined;
+
     if (node.args || node.hasParameterizedChildren || excluded) {
       newMap[key] = new ParsedQueryNode(
         _expandVariables(node.children, variables),
