@@ -85,15 +85,20 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
       if (lodashIsEqual(editPath, path)) {
         const fieldArguments = getOriginalFieldArguments(outboundId);
         if (fieldArguments) {
-          const cacheResult = this.readFragment(
-            {
-              id: containerId,
-              fragment: readFragment,
-              fragmentName: readFragmentName,
-              variables: fieldArguments,
-            },
-            this._queryable.isOptimisticTransaction()
-          );
+          let cacheResult: any;
+          try {
+            cacheResult = this.readFragment(
+              {
+                id: containerId,
+                fragment: readFragment,
+                fragmentName: readFragmentName,
+                variables: fieldArguments,
+              },
+              this._queryable.isOptimisticTransaction()
+            );
+          } catch (error) {
+            continue;
+          }
           const previousData = lodasGet(cacheResult, path);
 
           if (!Array.isArray(previousData)) {
