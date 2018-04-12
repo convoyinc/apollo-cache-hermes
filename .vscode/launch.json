@@ -4,7 +4,7 @@
     {
       "type": "node",
       "request": "launch",
-      "protocol": "legacy",
+      "protocol": "inspector",
       "console": "integratedTerminal",
       "name": "test-unit",
       "runtimeExecutable": "${workspaceRoot}/scripts/test-unit.sh",

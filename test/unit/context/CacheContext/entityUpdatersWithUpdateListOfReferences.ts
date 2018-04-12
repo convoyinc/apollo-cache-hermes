@@ -50,11 +50,8 @@ describe(`context.CacheContext`, () => {
           ['users'],
           {
             writeFragment: gql(`
-              fragment dashboard on Dashboard {
+              fragment user on User {
                 id
-                users(active: $active) {
-                  id
-                }
               }
             `),
           },
