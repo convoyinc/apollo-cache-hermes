@@ -4,7 +4,7 @@ import { isEqual } from 'apollo-utilities';
 
 import { CacheSnapshot } from '../CacheSnapshot';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { EntitySnapshot, ParameterizedValueSnapshot, NodeSnapshot } from '../nodes';
+import { EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonValue, PathPart } from '../primitive';
 import { NodeId } from '../schema';
 import {
