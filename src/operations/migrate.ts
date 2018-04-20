@@ -1,5 +1,6 @@
-// import lodashGet = require('lodash.get');
-import * as _ from 'lodash';
+import lodashGet = require('lodash.get');
+import lodashFind = require('lodash.find');
+
 import { isEqual } from 'apollo-utilities';
 
 import { CacheSnapshot } from '../CacheSnapshot';
@@ -58,8 +59,8 @@ function migrateEntity(
   // Only if object and if valid MigrationMap is provided
   if (!isObject(snapshot.data)) return snapshot;
 
-  const entityMigrations = _.get(migrationMap, '_entities');
-  const parameterizedMigrations = _.get(migrationMap, '_parameterized');
+  const entityMigrations = lodashGet(migrationMap, '_entities');
+  const parameterizedMigrations = lodashGet(migrationMap, '_parameterized');
 
   let typeName = snapshot.data.__typename as string | undefined;
   if (!typeName) typeName = 'Query';
@@ -83,7 +84,7 @@ function migrateEntity(
       const fieldId = nodeIdForParameterizedValue(id, parameterized.path, parameterized.args);
       // create a parameterized value snapshot if container doesn't know of the
       // parameterized field we expect
-      if (!snapshot.outbound || !_.find(snapshot.outbound, {id: fieldId})) {
+      if (!snapshot.outbound || !lodashFind(snapshot.outbound, {id: fieldId})) {
         const newNode = new ParameterizedValueSnapshot(parameterized.defaultReturn);
         nodesToAdd[fieldId] = newNode;
 
@@ -117,7 +118,7 @@ function getContainerNode(fieldId: NodeId, currentGraph: GraphSnapshot) {
   const fieldSettings = decodeParameterizedId(fieldId);
   return {
     fieldSettings,
-    container: currentGraph.getNodeSnapshot(_.get(fieldSettings, 'containerId')) as EntitySnapshot | undefined,
+    container: currentGraph.getNodeSnapshot(lodashGet(fieldSettings, 'containerId')) as EntitySnapshot | undefined,
   };
 }
 
@@ -126,18 +127,18 @@ function getContainerNode(fieldId: NodeId, currentGraph: GraphSnapshot) {
  * collected
  */
 function shouldGarbageCollect(id: NodeId, currentGraph: GraphSnapshot, migrationMap?: MigrationMap): boolean {
-  const parameterizedMigrations = _.get(migrationMap, '_parameterized');
+  const parameterizedMigrations = lodashGet(migrationMap, '_parameterized');
   if (!parameterizedMigrations) return false;
 
   const { container, fieldSettings } = getContainerNode(id, currentGraph);
   if (!fieldSettings) return false;
   if (!container) return true;
 
-  let typeName = _.get(container, ['data', '__typename']) as string | undefined;
+  let typeName = lodashGet(container, ['data', '__typename']) as string | undefined;
   if (!typeName) typeName = 'Query';
   if (!parameterizedMigrations[typeName]) return false;
 
-  const migration = _.find(parameterizedMigrations[typeName], {path: fieldSettings.path});
+  const migration = lodashFind(parameterizedMigrations[typeName], {path: fieldSettings.path});
   if (!migration) return false;
 
   return !isEqual(migration.args, fieldSettings.args);
