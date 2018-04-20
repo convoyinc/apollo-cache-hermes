@@ -101,8 +101,10 @@ describe(`deserialization with migration`, () => {
     const newCache = new Cache();
     // set up v1 -> v2 migration map that adds the 'isNew' field to 'THREE'
     newCache.restore(JSON.parse(storedV1ExtractResult), {
-      ['THREE']: {
-        isNew: (_previous: JsonValue) => false,
+      _entities: {
+        ['THREE']: {
+          isNew: (_previous: JsonValue) => false,
+        },
       },
     });
     expect(newCache.getSnapshot()).to.deep.eq(expectedV2Cache.getSnapshot());
@@ -119,8 +121,10 @@ describe(`deserialization with migration`, () => {
     const newCache = new Cache();
     expect(() => {
       newCache.restore(JSON.parse(storedV1ExtractResult), {
-        ['THREE']: {
-          otherStuff: (_previous: JsonValue) => false,
+        _entities: {
+          ['THREE']: {
+            otherStuff: (_previous: JsonValue) => false,
+          },
         },
       }, v2Query);
     }).to.throw();

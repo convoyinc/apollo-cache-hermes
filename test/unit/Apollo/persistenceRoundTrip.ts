@@ -84,8 +84,10 @@ describe(`extract/restore roundtrip`, () => {
 
     expect(() => {
       hermes.restore(JSON.parse(persisted), {
-        ['Viewer']: {
-          ['age']: _previous => '',
+        _entities: {
+          ['Viewer']: {
+            ['age']: _previous => '',
+          },
         },
       }, {
         query: gql(baseResourcesV2),
@@ -116,8 +118,10 @@ describe(`extract/restore roundtrip`, () => {
 
     expect(() => {
       hermes.restore(JSON.parse(persisted), {
-        ['Viewer']: {
-          ['age']: _previous => '',
+        _entities: {
+          ['Viewer']: {
+            ['age']: _previous => '',
+          },
         },
       }, {
         query: gql(baseResourcesV2),

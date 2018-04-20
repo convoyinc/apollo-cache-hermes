@@ -54,16 +54,20 @@ function createNewCacheSnapshot(cacheContext: CacheContext) {
   return new CacheSnapshot(snapshot, snapshot, new OptimisticUpdateQueue());
 }
 
-describe(`operations.extract`, () => {
+describe(`operations.migrate`, () => {
   let cacheContext: CacheContext;
   beforeAll(() => {
     cacheContext = new CacheContext({ ...strictConfig, freeze: false });
   });
 
   it(`can add fields to entities referenced within parameterized value`, () => {
-    const migrated = migrate(createNewCacheSnapshot(cacheContext), { ['THREE']: {
-      size: (_previous: JsonValue) => 1024,
-    } });
+    const migrated = migrate(createNewCacheSnapshot(cacheContext), {
+      _entities: {
+        ['THREE']: {
+          size: (_previous: JsonValue) => 1024,
+        },
+      },
+    });
     const cacheAfter = extract(migrated.baseline, cacheContext);
 
     const parameterizedTopContainerId = nodeIdForParameterizedValue(
@@ -138,9 +142,13 @@ describe(`operations.extract`, () => {
   });
 
   it(`can modify fields to entities referenced within parameterized value`, () => {
-    const migrated = migrate(createNewCacheSnapshot(cacheContext), { ['THREE']: {
-      color: (previous: JsonValue) => `really ${previous}`,
-    } });
+    const migrated = migrate(createNewCacheSnapshot(cacheContext), {
+      _entities: {
+        ['THREE']: {
+          color: (previous: JsonValue) => `really ${previous}`,
+        },
+      },
+    });
     const cacheAfter = extract(migrated.baseline, cacheContext);
 
     const parameterizedTopContainerId = nodeIdForParameterizedValue(

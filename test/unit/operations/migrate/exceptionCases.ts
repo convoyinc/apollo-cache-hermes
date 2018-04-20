@@ -35,9 +35,13 @@ describe(`operations.migrate`, () => {
 
   it(`throws if trying to migrate a reference field`, () => {
     expect(() => {
-      migrate(cacheSnapshot, { ['Query']: {
-        viewer: (_previous: JsonValue) => '',
-      } });
+      migrate(cacheSnapshot, {
+        _entities: {
+          ['Query']: {
+            viewer: (_previous: JsonValue) => '',
+          },
+        },
+      });
     }).to.throw(/Migration is not allowed/i);
   });
 });
