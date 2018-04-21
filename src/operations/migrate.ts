@@ -11,7 +11,7 @@ import {
   isObject,
   isReferenceField,
   addNodeReference,
-  removeNodeReference
+  removeNodeReference,
 } from '../util';
 
 import { nodeIdForParameterizedValue, NodeSnapshotMap } from './SnapshotEditor';
@@ -37,7 +37,7 @@ export type ParameterizedMigrationEntry = {
 export type ParameterizedMigrations = {
   // typename is the typename of the container
   [typeName: string]: ParameterizedMigrationEntry[],
-}
+};
 
 export type MigrationMap = {
   _entities?: EntityMigrations,
@@ -79,7 +79,7 @@ function migrateEntity(
   }
 
   if (parameterizedMigrations && parameterizedMigrations[typeName]) {
-    for (let parameterized of parameterizedMigrations[typeName]) {
+    for (const parameterized of parameterizedMigrations[typeName]) {
       const fieldId = nodeIdForParameterizedValue(id, parameterized.path, parameterized.args);
       // create a parameterized value snapshot if container doesn't know of the
       // parameterized field we expect
@@ -111,7 +111,8 @@ function decodeParameterizedId(id: NodeId): any {
 }
 
 /**
- * Given the parameterized valud id, returns the EntitySnapshot for its container
+ * Given the parameterized valud id, returns the EntitySnapshot for its
+ * container
  */
 function getContainerNode(fieldId: NodeId, currentGraph: GraphSnapshot) {
   const fieldSettings = decodeParameterizedId(fieldId);
