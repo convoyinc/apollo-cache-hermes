@@ -1,5 +1,4 @@
 import lodashGet = require('lodash.get');
-import lodashFind = require('lodash.find');
 
 import { isEqual } from 'apollo-utilities';
 
@@ -84,7 +83,7 @@ function migrateEntity(
       const fieldId = nodeIdForParameterizedValue(id, parameterized.path, parameterized.args);
       // create a parameterized value snapshot if container doesn't know of the
       // parameterized field we expect
-      if (!snapshot.outbound || !lodashFind(snapshot.outbound, {id: fieldId})) {
+      if (!snapshot.outbound || !snapshot.outbound.find(s =>  s.id === fieldId)) {
         const newNode = new ParameterizedValueSnapshot(parameterized.defaultReturn);
         nodesToAdd[fieldId] = newNode;
 
@@ -138,7 +137,7 @@ function shouldGarbageCollect(id: NodeId, currentGraph: GraphSnapshot, migration
   if (!typeName) typeName = 'Query';
   if (!parameterizedMigrations[typeName]) return false;
 
-  const migration = lodashFind(parameterizedMigrations[typeName], {path: fieldSettings.path});
+  const migration = parameterizedMigrations[typeName].find(m => isEqual(m.path, fieldSettings.path));
   if (!migration) return false;
 
   return !isEqual(migration.args, fieldSettings.args);
