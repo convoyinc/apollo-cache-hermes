@@ -34,9 +34,13 @@ describe(`operations.migrate`, () => {
   });
 
   it(`can add fields to root`, () => {
-    const migrated = migrate(createNewCacheSnapshot(cacheContext), { ['Query']: {
-      extra: (_previous: JsonValue) => '',
-    } });
+    const migrated = migrate(createNewCacheSnapshot(cacheContext), {
+      _entities: {
+        Query: {
+          extra: (_previous: JsonValue) => '',
+        },
+      },
+    });
     const cacheAfter = extract(migrated.baseline, cacheContext);
     expect(cacheAfter).to.deep.eq({
       [QueryRootId]: {
@@ -65,10 +69,14 @@ describe(`operations.migrate`, () => {
   });
 
   it(`can modify fields to root`, () => {
-    const migrated = migrate(createNewCacheSnapshot(cacheContext), { ['Query']: {
-      foo: (_previous: JsonValue) => 456,
-      bar: (_previous: JsonValue) => 'woohoo',
-    } });
+    const migrated = migrate(createNewCacheSnapshot(cacheContext), {
+      _entities: {
+        Query: {
+          foo: (_previous: JsonValue) => 456,
+          bar: (_previous: JsonValue) => 'woohoo',
+        },
+      },
+    });
     const cacheAfter = extract(migrated.baseline, cacheContext);
     expect(cacheAfter).to.deep.eq({
       [QueryRootId]: {
@@ -96,9 +104,13 @@ describe(`operations.migrate`, () => {
   });
 
   it(`can add fields to non-root entites`, () => {
-    const migrated = migrate(createNewCacheSnapshot(cacheContext), { ['Viewer']: {
-      suffix: (_previous: JsonValue) => 'Dr',
-    } });
+    const migrated = migrate(createNewCacheSnapshot(cacheContext), {
+      _entities: {
+        Viewer: {
+          suffix: (_previous: JsonValue) => 'Dr',
+        },
+      },
+    });
     const cacheAfter = extract(migrated.baseline, cacheContext);
     expect(cacheAfter).to.deep.eq({
       [QueryRootId]: {
@@ -127,10 +139,14 @@ describe(`operations.migrate`, () => {
   });
 
   it(`can modify fields of non-root entities`, () => {
-    const migrated = migrate(createNewCacheSnapshot(cacheContext), { ['Viewer']: {
-      first: (_previous: JsonValue) => 'Adam',
-      last: (_previous: JsonValue) => 'Smith',
-    } });
+    const migrated = migrate(createNewCacheSnapshot(cacheContext), {
+      _entities: {
+        Viewer: {
+          first: (_previous: JsonValue) => 'Adam',
+          last: (_previous: JsonValue) => 'Smith',
+        },
+      },
+    });
     const cacheAfter = extract(migrated.baseline, cacheContext);
     expect(cacheAfter).to.deep.eq({
       [QueryRootId]: {

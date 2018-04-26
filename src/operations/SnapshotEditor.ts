@@ -44,7 +44,7 @@ interface ReferenceEdit {
 }
 
 // https://github.com/nzakas/eslint-plugin-typescript/issues/69
-type NodeSnapshotMap = { [Key in NodeId]?: NodeSnapshot };
+export type NodeSnapshotMap = { [Key in NodeId]?: NodeSnapshot };
 
 /**
  * Builds a set of changes to apply on top of an existing `GraphSnapshot`.
