@@ -102,7 +102,7 @@ describe(`deserialization with migration`, () => {
     // set up v1 -> v2 migration map that adds the 'isNew' field to 'THREE'
     newCache.restore(JSON.parse(storedV1ExtractResult), {
       _entities: {
-        ['THREE']: {
+        THREE: {
           isNew: (_previous: JsonValue) => false,
         },
       },
@@ -122,7 +122,7 @@ describe(`deserialization with migration`, () => {
     expect(() => {
       newCache.restore(JSON.parse(storedV1ExtractResult), {
         _entities: {
-          ['THREE']: {
+          THREE: {
             otherStuff: (_previous: JsonValue) => false,
           },
         },

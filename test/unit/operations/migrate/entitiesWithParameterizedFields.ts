@@ -108,7 +108,7 @@ describe(`operations.migrate`, () => {
   it(`can add parameterized fields to root`, () => {
     const migrationMap: MigrationMap = {
       _parameterized: {
-        ['Query']: [{
+        Query: [{
           path: ['user'],
           args: { id: 'xxx' },
           defaultReturn: null,
@@ -131,7 +131,7 @@ describe(`operations.migrate`, () => {
   it(`doesn't wipe out compatable parameterized fields at root`, () => {
     const migrationMap: MigrationMap = {
       _parameterized: {
-        ['Query']: [{
+        Query: [{
           path: ['user'],
           args: { id: 'xxx' },
           defaultReturn: null,
@@ -224,7 +224,7 @@ describe(`operations.migrate`, () => {
   it(`doesn't wipe out compatable parameterized fields on entity`, () => {
     const migrationMap: MigrationMap = {
       _parameterized: {
-        ['Viewer']: [{
+        Viewer: [{
           path: ['friends'],
           args: { circle: 'elementary' },
           defaultReturn: [],
@@ -266,7 +266,7 @@ describe(`operations.migrate`, () => {
   it(`can modify parameterized fields of entity`, () => {
     const migrationMap: MigrationMap = {
       _parameterized: {
-        ['Viewer']: [{
+        Viewer: [{
           path: ['friends'],
           args: { circle: 'elementary', stillFriends: true },
           defaultReturn: [],

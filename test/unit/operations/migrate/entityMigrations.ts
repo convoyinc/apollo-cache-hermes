@@ -36,7 +36,7 @@ describe(`operations.migrate`, () => {
   it(`can add fields to root`, () => {
     const migrated = migrate(createNewCacheSnapshot(cacheContext), {
       _entities: {
-        ['Query']: {
+        Query: {
           extra: (_previous: JsonValue) => '',
         },
       },
@@ -71,7 +71,7 @@ describe(`operations.migrate`, () => {
   it(`can modify fields to root`, () => {
     const migrated = migrate(createNewCacheSnapshot(cacheContext), {
       _entities: {
-        ['Query']: {
+        Query: {
           foo: (_previous: JsonValue) => 456,
           bar: (_previous: JsonValue) => 'woohoo',
         },
@@ -106,7 +106,7 @@ describe(`operations.migrate`, () => {
   it(`can add fields to non-root entites`, () => {
     const migrated = migrate(createNewCacheSnapshot(cacheContext), {
       _entities: {
-        ['Viewer']: {
+        Viewer: {
           suffix: (_previous: JsonValue) => 'Dr',
         },
       },
@@ -141,7 +141,7 @@ describe(`operations.migrate`, () => {
   it(`can modify fields of non-root entities`, () => {
     const migrated = migrate(createNewCacheSnapshot(cacheContext), {
       _entities: {
-        ['Viewer']: {
+        Viewer: {
           first: (_previous: JsonValue) => 'Adam',
           last: (_previous: JsonValue) => 'Smith',
         },

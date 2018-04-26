@@ -63,7 +63,7 @@ describe(`operations.migrate`, () => {
   it(`can add fields to entities referenced within parameterized value`, () => {
     const migrated = migrate(createNewCacheSnapshot(cacheContext), {
       _entities: {
-        ['THREE']: {
+        THREE: {
           size: (_previous: JsonValue) => 1024,
         },
       },
@@ -144,7 +144,7 @@ describe(`operations.migrate`, () => {
   it(`can modify fields to entities referenced within parameterized value`, () => {
     const migrated = migrate(createNewCacheSnapshot(cacheContext), {
       _entities: {
-        ['THREE']: {
+        THREE: {
           color: (previous: JsonValue) => `really ${previous}`,
         },
       },

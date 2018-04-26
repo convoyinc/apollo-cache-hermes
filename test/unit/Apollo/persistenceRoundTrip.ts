@@ -85,8 +85,8 @@ describe(`extract/restore roundtrip`, () => {
     expect(() => {
       hermes.restore(JSON.parse(persisted), {
         _entities: {
-          ['Viewer']: {
-            ['age']: _previous => '',
+          Viewer: {
+            age: _previous => '',
           },
         },
       }, {
@@ -119,8 +119,8 @@ describe(`extract/restore roundtrip`, () => {
     expect(() => {
       hermes.restore(JSON.parse(persisted), {
         _entities: {
-          ['Viewer']: {
-            ['age']: _previous => '',
+          Viewer: {
+            age: _previous => '',
           },
         },
       }, {

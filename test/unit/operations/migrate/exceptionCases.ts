@@ -37,7 +37,7 @@ describe(`operations.migrate`, () => {
     expect(() => {
       migrate(cacheSnapshot, {
         _entities: {
-          ['Query']: {
+          Query: {
             viewer: (_previous: JsonValue) => '',
           },
         },
