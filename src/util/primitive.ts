@@ -19,3 +19,10 @@ export function isNil(value: any): value is nil {
 export function isNumber(element: any): element is Number {
   return typeof element === 'number' && !Number.isNaN(element);
 }
+
+export function verboseTypeof(value: any): string {
+  if (value === null) {
+    return 'null';
+  }
+  return typeof value;
+}
