@@ -46,6 +46,8 @@ interface ReferenceEdit {
 // https://github.com/nzakas/eslint-plugin-typescript/issues/69
 export type NodeSnapshotMap = { [Key in NodeId]?: NodeSnapshot };
 
+type VisitedSubgraphsMap = { [Key in NodeId]: Set<ParsedQuery> };
+
 /**
  * Builds a set of changes to apply on top of an existing `GraphSnapshot`.
  *
@@ -99,7 +101,16 @@ export class SnapshotEditor {
     // once all new nodes have been built (and we can guarantee that we're
     // referencing the correct version).
     const referenceEdits: ReferenceEdit[] = [];
-    this._mergeSubgraph(referenceEdits, warnings, parsed.rootId, [] /* prefixPath */, [] /* path */, parsed.parsedQuery, payload);
+    this._mergeSubgraph(
+      {} /* visitedSubgraphs */,
+      referenceEdits,
+      warnings,
+      parsed.rootId,
+      [] /* prefixPath */,
+      [] /* path */,
+      parsed.parsedQuery,
+      payload,
+    );
 
     // Now that we have new versions of every edited node, we can point all the
     // edited references to the correct nodes.
@@ -123,6 +134,7 @@ export class SnapshotEditor {
    * operation.
    */
   private _mergeSubgraph(
+    visitedSubgraphs: VisitedSubgraphsMap,
     referenceEdits: ReferenceEdit[],
     warnings: string[],
     containerId: NodeId,
@@ -155,7 +167,7 @@ export class SnapshotEditor {
         throw new InvalidPayloadError(`Unsupported transition from a list to a non-list value`, prefixPath, containerId, path, payload);
       }
 
-      this._mergeArraySubgraph(referenceEdits, warnings, containerId, prefixPath, path, parsed, payload, previousValue);
+      this._mergeArraySubgraph(visitedSubgraphs, referenceEdits, warnings, containerId, prefixPath, path, parsed, payload, previousValue);
       return;
     }
 
@@ -198,6 +210,19 @@ export class SnapshotEditor {
         this._setValue(containerId, path, null, true);
       }
       return;
+    }
+
+    // Return early if we've already written payloadId with the given query.
+    if (payloadId) {
+      if (!visitedSubgraphs[payloadId]) {
+        visitedSubgraphs[payloadId] = new Set<ParsedQuery>();
+      }
+
+      if (visitedSubgraphs[payloadId].has(parsed)) {
+        return;
+      }
+
+      visitedSubgraphs[payloadId].add(parsed);
     }
 
     // If we've entered a new node; it becomes our container.
@@ -292,7 +317,16 @@ export class SnapshotEditor {
       // directly written via _setValue.  This allows us to perform minimal
       // edits to the graph.
       if (node.children) {
-        this._mergeSubgraph(referenceEdits, warnings, containerIdForField, fieldPrefixPath, fieldPath, node.children, fieldValue);
+        this._mergeSubgraph(
+          visitedSubgraphs,
+          referenceEdits,
+          warnings,
+          containerIdForField,
+          fieldPrefixPath,
+          fieldPath,
+          node.children,
+          fieldValue,
+        );
 
       // We've hit a leaf field.
       //
@@ -315,6 +349,7 @@ export class SnapshotEditor {
    * Merge an array from the payload (or previous cache data).
    */
   private _mergeArraySubgraph(
+    visitedSubgraphs: VisitedSubgraphsMap,
     referenceEdits: ReferenceEdit[],
     warnings: string[],
     containerId: NodeId,
@@ -366,7 +401,7 @@ export class SnapshotEditor {
         }
       }
 
-      this._mergeSubgraph(referenceEdits, warnings, containerId, prefixPath, [...path, i], parsed, childPayload);
+      this._mergeSubgraph(visitedSubgraphs, referenceEdits, warnings, containerId, prefixPath, [...path, i], parsed, childPayload);
     }
   }
 

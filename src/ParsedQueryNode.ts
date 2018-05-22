@@ -89,6 +89,41 @@ export class VariableArgument {
 }
 
 /**
+ * Maintains a cache of SelectionSetNode to ParsedQuery mappings.
+ *
+ * The cache is keyed on the JSON-stringified SelectionSetNode, so equivalent
+ * SelectionSets will resolve the same ParsedQuery. This helps with avoiding
+ * duplicate writes of the same entity for a given SelectionSet.
+ */
+class SelectionSetCache {
+  private _cache: { [key: string]: ParsedQueryWithVariables | undefined } = {};
+
+  public set(key: SelectionSetNode, value: ParsedQueryWithVariables): void {
+    const hash = SelectionSetCache._hash(key);
+
+    if (hash) {
+      this._cache[hash] = value;
+    }
+  }
+
+  public get(key: SelectionSetNode): ParsedQueryWithVariables | undefined {
+    const hash = SelectionSetCache._hash(key);
+    return hash ? this._cache[hash] : undefined;
+  }
+
+  private static _hash(key: SelectionSetNode): string | undefined {
+    try {
+      // JSON.stringify is assumed to be deterministic on the VMs we target.
+      // Technically, the ordering of keys is unspecified, but in practice,
+      // JavaScriptCore and V8 will serialize in the order added.
+      return JSON.stringify(key);
+    } catch (error) {
+      return undefined;
+    }
+  }
+}
+
+/**
  * Parsed a GraphQL AST selection into a tree of ParsedQueryNode instances.
  */
 export function parseQuery(
@@ -97,7 +132,8 @@ export function parseQuery(
   selectionSet: SelectionSetNode,
 ): { parsedQuery: DeepReadonly<ParsedQueryWithVariables>, variables: Set<string> } {
   const variables = new Set<string>();
-  const parsedQuery = _buildNodeMap(variables, context, fragments, selectionSet);
+  const visitedSelectionSets = new SelectionSetCache();
+  const parsedQuery = _buildNodeMap(variables, context, fragments, visitedSelectionSets, selectionSet);
   if (!parsedQuery) {
     throw new Error(`Parsed a query, but found no fields present; it may use unsupported GraphQL features`);
   }
@@ -113,17 +149,21 @@ function _buildNodeMap(
   variables: Set<string>,
   context: CacheContext,
   fragments: FragmentMap,
+  visitedSelectionSets: SelectionSetCache,
   selectionSet?: SelectionSetNode,
   path: string[] = [],
 ): ParsedQueryWithVariables | undefined {
   if (!selectionSet) return undefined;
+
+  const cachedQueryNode = visitedSelectionSets.get(selectionSet);
+  if (cachedQueryNode) return cachedQueryNode;
 
   const nodeMap = Object.create(null);
   for (const selection of selectionSet.selections) {
     if (selection.kind === 'Field') {
       // The name of the field (as defined by the query).
       const name = selection.alias ? selection.alias.value : selection.name.value;
-      const children = _buildNodeMap(variables, context, fragments, selection.selectionSet, [...path, name]);
+      const children = _buildNodeMap(variables, context, fragments, visitedSelectionSets, selection.selectionSet, [...path, name]);
 
       let args, schemaName;
       // fields marked as @static are treated as if they are a static field in
@@ -145,7 +185,7 @@ function _buildNodeMap(
         throw new Error(`Expected fragment ${selection.name.value} to be defined`);
       }
 
-      const fragmentMap = _buildNodeMap(variables, context, fragments, fragment.selectionSet, path);
+      const fragmentMap = _buildNodeMap(variables, context, fragments, visitedSelectionSets, fragment.selectionSet, path);
       if (fragmentMap) {
         for (const name in fragmentMap) {
           nodeMap[name] = _mergeNodes([...path, name], fragmentMap[name], nodeMap[name]);
@@ -159,7 +199,9 @@ function _buildNodeMap(
     _collectDirectiveVariables(variables, selection);
   }
 
-  return Object.keys(nodeMap).length ? nodeMap : undefined;
+  const queryNode = Object.keys(nodeMap).length ? nodeMap : undefined;
+  visitedSelectionSets.set(selectionSet, queryNode);
+  return queryNode;
 }
 
 /**
