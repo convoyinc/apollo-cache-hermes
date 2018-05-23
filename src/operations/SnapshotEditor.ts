@@ -174,6 +174,8 @@ export class SnapshotEditor {
     const payloadId = this._context.entityIdForValue(payload);
     const previousId = this._context.entityIdForValue(previousValue);
 
+    // TODO(jamesreggio): Does `excluded` need to evaluated before this?
+
     // Is this an identity change?
     if (payloadId !== previousId) {
       // It is invalid to transition from a *value* with an id to one without.
@@ -235,6 +237,11 @@ export class SnapshotEditor {
     // Finally, we can walk into individual values.
     for (const payloadName in parsed) {
       const node = parsed[payloadName];
+
+      if (node.excluded) {
+        continue;
+      }
+
       // Having a schemaName on the node implies that payloadName is an alias.
       const schemaName = node.schemaName ? node.schemaName : payloadName;
       let fieldValue = deepGet(payload, [payloadName]) as JsonValue | undefined;

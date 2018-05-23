@@ -119,6 +119,11 @@ export function _walkAndOverlayDynamicValues(
 
     for (const key in parsedMap) {
       const node = parsedMap[key];
+
+      if (node.excluded) {
+        continue;
+      }
+
       let child;
       let fieldName = key;
 
@@ -210,7 +215,7 @@ export function _visitSelection(
   }
 
   // TODO: Memoize per query, and propagate through cache snapshots.
-  walkOperation(query.info.parsed, result, (value, fields) => {
+  walkOperation(query.parsedQuery, result, (value, fields) => {
     if (value === undefined) {
       complete = false;
     }

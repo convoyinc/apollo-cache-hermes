@@ -105,3 +105,10 @@ export function fieldHasStaticDirective({ directives }: FieldNode) {
   if (!directives) return false;
   return directives.some(directive => directive.name.value === 'static');
 }
+
+export function fieldHasInclusionDirective({ directives }: FieldNode) {
+  if (!directives) return false;
+  return directives.some(directive => (
+    directive.name.value === 'include' || directive.name.value === 'exclude'
+  ));
+}
