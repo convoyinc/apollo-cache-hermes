@@ -194,7 +194,7 @@ function _buildNodeMap(
       }
 
     } else if (selection.kind === 'InlineFragment') {
-      const fragmentMap = _buildNodeMap(variables, context, fragments, selection.selectionSet, path);
+      const fragmentMap = _buildNodeMap(variables, context, fragments, visitedSelectionSets, selection.selectionSet, path);
       if (fragmentMap) {
         for (const name in fragmentMap) {
           nodeMap[name] = _mergeNodes([...path, name], fragmentMap[name], nodeMap[name]);
