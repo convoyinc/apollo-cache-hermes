@@ -1,5 +1,4 @@
 import { addTypenameToDocument, isEqual } from 'apollo-utilities';
-import lodashGet = require('lodash.get');
 
 import { ApolloTransaction } from '../apollo/Transaction';
 import { CacheSnapshot } from '../CacheSnapshot';
@@ -21,6 +20,16 @@ declare module 'graphql/language/ast' {
     /** Indicating that query has already ran transformDocument */
     hasBeenTransformed?: boolean;
   }
+}
+
+// Make sure that we are explicitly referencing process.env.NODE_ENV so that
+// people relying on Webpack's DefinePlugin (or --env production) get the
+// expected outcome.
+let productionMode = false;
+try {
+  productionMode = process.env.NODE_ENV === 'production';
+} catch (error) {
+  // Welp; we tried.
 }
 
 export namespace CacheContext {
@@ -182,9 +191,7 @@ export class CacheContext {
   constructor(config: CacheContext.Configuration = {}) {
     this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
     this.entityTransformer = config.entityTransformer;
-    this.freezeSnapshots = 'freeze' in config
-      ? !!config.freeze
-      : lodashGet(global, 'process.env.NODE_ENV') !== 'production';
+    this.freezeSnapshots = 'freeze' in config ? !!config.freeze : !productionMode;
     this.verbose = !!config.verbose;
     this.resolverRedirects = config.resolverRedirects || {};
     this.onChange = config.onChange;

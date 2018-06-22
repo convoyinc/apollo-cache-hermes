@@ -1,7 +1,7 @@
 import { ApolloCache, Cache, Transaction } from 'apollo-cache';
 import { JsonValue } from 'apollo-utilities';
 import lodashIsEqual = require('lodash.isequal');
-import lodasGet = require('lodash.get');
+import lodashGet = require('lodash.get');
 
 import { CacheTransaction } from '../CacheTransaction';
 import { GraphSnapshot } from '../GraphSnapshot';
@@ -99,7 +99,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
           } catch (error) {
             continue;
           }
-          const previousData = lodasGet(cacheResult, path);
+          const previousData = lodashGet(cacheResult, path);
 
           if (!Array.isArray(previousData)) {
             throw new Error(`updateListOfReferences() expects previousData to be an array.`);
