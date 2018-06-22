@@ -37,7 +37,7 @@ export abstract class ApolloQueryable implements DataProxy {
     return result;
   }
 
-  readQuery<QueryType>(options: DataProxy.Query, optimistic?: true): QueryType {
+  readQuery<QueryType, TVariables = any>(options: DataProxy.Query<TVariables>, optimistic?: true): QueryType {
     return this.read({
       query: options.query,
       variables: options.variables,
@@ -45,12 +45,12 @@ export abstract class ApolloQueryable implements DataProxy {
     });
   }
 
-  readFragment<FragmentType>(options: DataProxy.Fragment, optimistic?: true): FragmentType | null {
+  readFragment<FragmentType, TVariables = any>(options: DataProxy.Fragment<TVariables>, optimistic?: true): FragmentType | null {
     // TODO: Support nested fragments.
     const rawOperation = buildRawOperationFromFragment(
       options.fragment,
       options.id,
-      options.variables as JsonObject,
+      options.variables as any,
       options.fragmentName,
     );
     return this._queryable.read(rawOperation, optimistic).result as any;
@@ -61,20 +61,20 @@ export abstract class ApolloQueryable implements DataProxy {
     this._queryable.write(rawOperation, options.result);
   }
 
-  writeQuery(options: Cache.WriteQueryOptions): void {
-    const rawOperation = buildRawOperationFromQuery(options.query, options.variables as JsonObject);
-    this._queryable.write(rawOperation, options.data);
+  writeQuery<TData = any, TVariables = any>(options: Cache.WriteQueryOptions<TData, TVariables>): void {
+    const rawOperation = buildRawOperationFromQuery(options.query, options.variables as any);
+    this._queryable.write(rawOperation, options.data as any);
   }
 
-  writeFragment(options: Cache.WriteFragmentOptions): void {
+  writeFragment<TData = any, TVariables = any>(options: Cache.WriteFragmentOptions<TData, TVariables>): void {
     // TODO: Support nested fragments.
     const rawOperation = buildRawOperationFromFragment(
       options.fragment,
       options.id,
-      options.variables as JsonObject,
+      options.variables as any,
       options.fragmentName,
     );
-    this._queryable.write(rawOperation, options.data);
+    this._queryable.write(rawOperation, options.data as any);
   }
 
   writeData(): void { // eslint-disable-line class-methods-use-this
