@@ -7,7 +7,7 @@ import { CacheTransaction } from '../CacheTransaction';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { PathPart } from '../primitive';
 import { NodeId } from '../schema';
-import { DocumentNode } from '../util';
+import { DocumentNode, verboseTypeof } from '../util';
 
 import { ApolloQueryable } from './Queryable';
 
@@ -102,7 +102,8 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
           const previousData = lodasGet(cacheResult, path);
 
           if (!Array.isArray(previousData)) {
-            throw new Error(`updateListOfReferences() expects previousData to be an array.`);
+            const details = `${verboseTypeof(previousData)} at ContainerId ${containerId} with readFragment ${readFragmentName}`;
+            throw new Error(`updateListOfReferences() expects previousData to be an array instead got ${details}`);
           }
 
           const updateData = updateFieldCallback(previousData, fieldArguments);
