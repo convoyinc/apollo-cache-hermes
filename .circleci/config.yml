@@ -1,7 +1,7 @@
 version: 2
 
 base_image: &base_image
-  image: circleci/node:8.9.4
+  image: circleci/node:8.11.3
 
 job_common: &job_common
   docker:
