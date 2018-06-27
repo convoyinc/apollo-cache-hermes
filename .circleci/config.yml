@@ -27,11 +27,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-            - deps-{{ checksum "package.json" }}-
+            - deps-{{ checksum "yarn.lock" }}
             - deps-
-      - run: if [[ "${CIRCLE_BRANCH}" =~ ^greenkeeper/ ]]; then yarn install; else yarn install --frozen-lockfile; fi
-      - run: ./node_modules/.bin/greenkeeper-lockfile-update
+      - run: yarn install --frozen-lockfile
       - save_cache:
           key: deps-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
           paths:
@@ -58,12 +56,6 @@ jobs:
       - <<: *store_artifacts
       - <<: *store_test_results
 
-  greenkeeper:
-    <<: *job_common
-    steps:
-      - <<: *restore
-      - run: ./node_modules/.bin/greenkeeper-lockfile-upload
-
   release:
     <<: *job_common
     steps:
@@ -88,10 +80,6 @@ workflows:
       - test-unit:
           requires:
             - build
-      - greenkeeper:
-          requires:
-            - test-style
-            - test-unit
       - release:
           requires:
             - test-style
