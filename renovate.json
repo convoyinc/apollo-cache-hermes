@@ -2,7 +2,7 @@
   "extends": [
     "config:base"
   ],
-  "statusCheckVerify": true,
+  "rangeStrategy": "replace",
   "ignoreDeps": [
     "@types/node"
   ]
