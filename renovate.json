@@ -1,0 +1,12 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "rangeStrategy": "replace",
+  "node": {
+    "supportPolicy": "lts_latest"
+  },
+  "ignoreDeps": [
+    "@types/node"
+  ]
+}
