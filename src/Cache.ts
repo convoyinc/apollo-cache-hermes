@@ -6,10 +6,11 @@ import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { extract, MigrationMap, migrate, QueryObserver, prune, read, restore } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
-import { JsonObject, JsonValue } from './primitive';
+import { JsonObject } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
 import { DocumentNode } from './util';
+import { QueryResultWithNodeIds } from './operations/read';
 
 export { MigrationMap };
 export type TransactionCallback = (transaction: CacheTransaction) => void;
@@ -68,7 +69,7 @@ export class Cache implements Queryable {
    * TODO: Can we drop non-optimistic reads?
    * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(query: RawOperation, optimistic?: boolean): { result?: JsonValue, complete: boolean } {
+  read(query: RawOperation, optimistic?: boolean): QueryResultWithNodeIds {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     return read(this._context, query, optimistic ? this._snapshot.optimistic : this._snapshot.baseline);
