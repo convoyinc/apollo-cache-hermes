@@ -13,5 +13,5 @@
   "rootDir": "../..",
   "setupTestFrameworkScriptFile": "./test/env/unit.js",
   "testMatch": ["<rootDir>/test/unit/**/*.js"],
-  "testResultsProcessor": "./node_modules/jest-junit"
+  "reporters": ["default", "jest-junit"]
 }
