@@ -88,7 +88,7 @@ describe(`Cache#watch`, () => {
     cache.watch({ ...simpleGraph, variables: { id: 1 } }, newResult => updates.push(newResult));
 
     expect(updates.length).to.eq(1);
-    const [update] = updates!;
+    const [update] = updates;
     expect(update.result).to.deep.eq(baseState);
     expect(update.complete).to.eq(true);
   });
@@ -100,7 +100,7 @@ describe(`Cache#watch`, () => {
 
     expect(updates.length).to.eq(2);
 
-    const [, update] = updates!;
+    const [, update] = updates;
     expect((update.result as any).foo.bar.id).to.eq(3);
     expect(update.complete).to.eq(true);
   });
@@ -119,7 +119,7 @@ describe(`Cache#watch`, () => {
     cache.write(indirectEdit, { thing: { id: 2, name: 'bar2' } });
 
     expect(updates.length).to.eq(2);
-    const [, update] = updates!;
+    const [, update] = updates;
     expect((update.result as any).foo.bar.name).to.eq('bar2');
     expect(update.complete).to.eq(true);
   });
@@ -130,7 +130,7 @@ describe(`Cache#watch`, () => {
     cache.write({ ...simpleGraph, variables: { id: 1 } }, { foo: { id: 100, bar: { id: 2, name: 'bar' } } });
 
     expect(updates.length).to.eq(2);
-    const [, update] = updates!;
+    const [, update] = updates;
     expect((update.result as any).foo.id).to.eq(100);
     expect(update.complete).to.eq(true);
   });
@@ -160,7 +160,7 @@ describe(`Cache#watch`, () => {
     cache.write({ ...partialOverlap, variables: { id: 1 } }, { foo: { id: 100, baz: { id: 3, name: 'baz' } } });
 
     expect(updates.length).to.eq(2);
-    const [, update] = updates!;
+    const [, update] = updates;
     expect((update.result as any).foo.id).to.eq(100);
     expect((update.result as any).foo.bar).to.eq(undefined);
     expect(update.complete).to.eq(false);

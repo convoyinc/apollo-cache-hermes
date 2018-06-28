@@ -70,7 +70,7 @@ describe(`Cache#watch`, () => {
     cache.watch(simpleGraph, newResult => updates.push(newResult));
 
     expect(updates.length).to.eq(1);
-    const [update] = updates!;
+    const [update] = updates;
     expect(update.result).to.deep.eq(baseState);
     expect(update.complete).to.eq(true);
   });
@@ -82,7 +82,7 @@ describe(`Cache#watch`, () => {
 
     expect(updates.length).to.eq(2);
 
-    const [, update] = updates!;
+    const [, update] = updates;
     expect((update.result as any).foo.bar.id).to.eq(3);
     expect(update.complete).to.eq(true);
   });
@@ -101,7 +101,7 @@ describe(`Cache#watch`, () => {
     cache.write(indirectEdit, { thing: { id: 2, name: 'bar2' } });
 
     expect(updates.length).to.eq(2);
-    const [, update] = updates!;
+    const [, update] = updates;
     expect((update.result as any).foo.bar.name).to.eq('bar2');
     expect(update.complete).to.eq(true);
   });
