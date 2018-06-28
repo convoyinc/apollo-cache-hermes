@@ -112,21 +112,35 @@ describe(`Cache#watch`, () => {
     cache.write(simpleGraph, { foo: { id: 100, bar: { id: 2, name: 'bar' } } });
 
     expect(updates.length).to.eq(2);
-    const [, update] = updates!;
+    const [, update] = updates;
     expect((update.result as any).foo.id).to.eq(100);
     expect(update.complete).to.eq(true);
   });
 
-  it(`handles cases where we transition from complete to incomplete`, () => {
+  it(`handles transitions from complete to incomplete`, () => {
     const updates: QueryResult[] = [];
     cache.watch(simpleGraph, newResult => updates.push(newResult));
     cache.write(partialOverlap, { foo: { id: 100, baz: { id: 3, name: 'baz' } } });
 
     expect(updates.length).to.eq(2);
-    const [, update] = updates!;
+    const [, update] = updates;
     expect((update.result as any).foo.id).to.eq(100);
     expect((update.result as any).foo.bar).to.eq(undefined);
     expect(update.complete).to.eq(false);
+  });
+
+  it(`handles transitions from incomplete to complete`, () => {
+    const updates: QueryResult[] = [];
+    const cache2 = new Cache(strictConfig);
+    cache2.write(partialOverlap, { foo: { id: 1, baz: { id: 3, name: 'baz' } } });
+    cache2.watch(simpleGraph, newResult => updates.push(newResult));
+    cache2.write(simpleGraph, { foo: { id: 1, bar: { id: 2, name: 'bar' } } });
+
+    expect(updates.length).to.eq(2);
+    const [initial, update] = updates;
+
+    expect(initial.complete).to.eq(false);
+    expect(update.complete).to.eq(true);
   });
 
 });
