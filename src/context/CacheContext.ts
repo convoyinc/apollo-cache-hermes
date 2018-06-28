@@ -1,5 +1,4 @@
 import { addTypenameToDocument, isEqual } from 'apollo-utilities';
-import lodashGet = require('lodash.get');
 
 import { ApolloTransaction } from '../apollo/Transaction';
 import { CacheSnapshot } from '../CacheSnapshot';
@@ -180,11 +179,13 @@ export class CacheContext {
   private readonly _operationMap = new Map<string, OperationInstance[]>();
 
   constructor(config: CacheContext.Configuration = {}) {
+    // Infer dev mode from NODE_ENV, by convention.
+    const nodeEnv = typeof process !== 'undefined' ? process.env.NODE_ENV : 'development';
+
     this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
     this.entityTransformer = config.entityTransformer;
-    this.freezeSnapshots = 'freeze' in config
-      ? !!config.freeze
-      : lodashGet(global, 'process.env.NODE_ENV') !== 'production';
+    this.freezeSnapshots = 'freeze' in config ? !!config.freeze : nodeEnv !== 'production';
+
     this.verbose = !!config.verbose;
     this.resolverRedirects = config.resolverRedirects || {};
     this.onChange = config.onChange;
