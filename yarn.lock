@@ -2111,10 +2111,11 @@ jest-jasmine2@^23.2.0:
     jest-util "^23.2.0"
     pretty-format "^23.2.0"
 
-jest-junit@^3.4.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/jest-junit/-/jest-junit-3.6.0.tgz#f4c4358e5286364a4324dc14abddd526aadfbd38"
+jest-junit@^5.0.0:
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/jest-junit/-/jest-junit-5.1.0.tgz#e8e497d810a829bf02783125aab74b5df6caa8fe"
   dependencies:
+    jest-validate "^23.0.1"
     mkdirp "^0.5.1"
     strip-ansi "^4.0.0"
     xml "^1.0.1"
@@ -2245,7 +2246,7 @@ jest-util@^23.2.0:
     slash "^1.0.0"
     source-map "^0.6.0"
 
-jest-validate@^23.2.0:
+jest-validate@^23.0.1, jest-validate@^23.2.0:
   version "23.2.0"
   resolved "https://registry.yarnpkg.com/jest-validate/-/jest-validate-23.2.0.tgz#67c8b909e11af1701765238894c67ac3291b195e"
   dependencies:
