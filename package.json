@@ -54,7 +54,7 @@
     "eslint-plugin-typescript": "^0.9.0",
     "graphql": "^0.13.1",
     "graphql-tag": "^2.6.0",
-    "jest": "^22.0.2",
+    "jest": "^23.0.0",
     "jest-junit": "^3.4.0",
     "lodash": "^4.17.5",
     "rimraf": "^2.6.2",
