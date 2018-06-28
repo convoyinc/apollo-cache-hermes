@@ -44,11 +44,10 @@ export class QueryObserver {
    * observing.
    */
   private _hasUpdate(_changedNodeIds: Set<NodeId>): boolean {
-    if (!this._result) return true;
     // TODO: Can we get to the point where this is not necessary?
-    if (!this._result.complete) return true;
+    if (!this._result!.complete) return true;
     for (const nodeId of _changedNodeIds) {
-      if (this._result.nodeIds.has(nodeId)) return true;
+      if (this._result!.nodeIds.has(nodeId)) return true;
     }
     return false;
   }
