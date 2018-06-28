@@ -9,7 +9,6 @@
     "<rootDir>/node_modules/",
     "<rootDir>/test/"
   ],
-  "mapCoverage": true,
   "rootDir": "../..",
   "setupTestFrameworkScriptFile": "./test/env/unit.js",
   "testMatch": ["<rootDir>/test/unit/**/*.js"],
