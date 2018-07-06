@@ -186,7 +186,27 @@ export class Cache implements Queryable {
    * Call onChange callback if one exist to notify cache users of any change.
    */
   private _setSnapshot(snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>): void {
+    const lastSnapshot = this._snapshot;
     this._snapshot = snapshot;
+
+    if (lastSnapshot) {
+      for (const key of ['baseline', 'optimistic']) {
+        for (const [operation, result] of lastSnapshot[key].readCache) {
+          if (result.complete && result.nodeIds) {
+            let changed = false;
+            for (const nodeId of editedNodeIds) {
+              if (result.nodeIds.has(nodeId)) {
+                changed = true;
+                break;
+              }
+            }
+            if (!changed) {
+              this._snapshot[key].readCache.set(operation, result);
+            }
+          }
+        }
+      }
+    }
 
     let tracerContext;
     if (this._context.tracer.broadcastStart) {
