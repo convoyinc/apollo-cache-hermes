@@ -82,6 +82,11 @@ export class CacheTransaction implements Queryable {
     current.optimisticQueue = optimisticQueue;
     const optimistic = this._buildOptimisticSnapshot(current.baseline);
 
+    // Invalidate all IDs from the soon-to-be previous optimistic snapshot,
+    // since we don't know which IDs were changed by the one we're rolling back.
+    const allIds = new Set(current.optimistic.allNodeIds());
+    addToSet(this._editedNodeIds, allIds);
+
     this._snapshot = new CacheSnapshot(current.baseline, optimistic, optimisticQueue);
   }
 
