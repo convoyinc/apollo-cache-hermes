@@ -20,9 +20,15 @@ describe(`writeFragment and then readFragment`, () => {
       complete
       date
     }
+    fragment viewerPlusShipment on Viewer {
+      ...viewer
+      shipment {
+        ...shipment
+      }
+    }
   `);
 
-  beforeAll(() => {
+  beforeEach(() => {
     hermes = new Hermes(new CacheContext(strictConfig));
     hermes.restore({
       [QueryRootId]: {
@@ -71,17 +77,10 @@ describe(`writeFragment and then readFragment`, () => {
       id: '123',
       fragmentName: 'viewer',
       fragment: readWriteFragment,
-    })).to.deep.eq({
+    })).to.include({
       id: 123,
       name: 'Munster',
       __typename: 'Viewer',
-      shipment: {
-        id: 'shipment0',
-        complete: false,
-        city: 'Seattle',
-        distance: 100,
-        __typename: 'Shipment',
-      },
     });
   });
 
@@ -99,11 +98,11 @@ describe(`writeFragment and then readFragment`, () => {
 
     expect(hermes.readFragment({
       id: '123',
-      fragmentName: 'viewer',
+      fragmentName: 'viewerPlusShipment',
       fragment: readWriteFragment,
     })).to.deep.eq({
       id: 123,
-      name: 'Munster',
+      name: 'Gouda',
       __typename: 'Viewer',
       shipment: {
         id: 'shipment0',

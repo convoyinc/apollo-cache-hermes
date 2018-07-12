@@ -9,7 +9,7 @@ import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { JsonObject } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
-import { DocumentNode } from './util';
+import { DocumentNode, setsHaveSomeIntersection } from './util';
 import { QueryResultWithNodeIds } from './operations/read';
 
 export { MigrationMap };
@@ -186,7 +186,17 @@ export class Cache implements Queryable {
    * Call onChange callback if one exist to notify cache users of any change.
    */
   private _setSnapshot(snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>): void {
+    const lastSnapshot = this._snapshot;
     this._snapshot = snapshot;
+
+    if (lastSnapshot) {
+      _copyUnaffectedCachedReads(lastSnapshot.baseline, snapshot.baseline, editedNodeIds);
+      // Don't bother copying the optimistic read cache unless it's actually a
+      // different snapshot.
+      if (snapshot.optimistic !== snapshot.baseline) {
+        _copyUnaffectedCachedReads(lastSnapshot.optimistic, snapshot.optimistic, editedNodeIds);
+      }
+    }
 
     let tracerContext;
     if (this._context.tracer.broadcastStart) {
@@ -206,4 +216,22 @@ export class Cache implements Queryable {
     }
   }
 
+}
+
+/**
+ * Preserves cached reads for any queries that do not overlap with the edited
+ * entities in the new snapshot.
+ *
+ * TODO: Can we special case ROOT_QUERY somehow; any fields hanging off of it
+ * tend to aggressively bust the cache, when we don't really mean to.
+ */
+function _copyUnaffectedCachedReads(lastSnapshot: GraphSnapshot, nextSnapshot: GraphSnapshot, editedNodeIds: Set<NodeId>) {
+  for (const [operation, result] of lastSnapshot.readCache) {
+    // We don't care about incomplete results.
+    if (!result.complete || !('nodeIds' in result)) continue;
+    // If any nodes in the cached read were edited, do not copy.
+    if (setsHaveSomeIntersection(editedNodeIds, result.nodeIds)) continue;
+
+    nextSnapshot.readCache.set(operation, result);
+  }
 }
