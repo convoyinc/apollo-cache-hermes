@@ -218,6 +218,13 @@ export class Cache implements Queryable {
 
 }
 
+/**
+ * Preserves cached reads for any queries that do not overlap with the edited
+ * entities in the new snapshot.
+ *
+ * TODO: Can we special case ROOT_QUERY somehow; any fields hanging off of it
+ * tend to aggressively bust the cache, when we don't really mean to.
+ */
 function _copyUnaffectedCachedReads(lastSnapshot: GraphSnapshot, nextSnapshot: GraphSnapshot, editedNodeIds: Set<NodeId>) {
   for (const [operation, result] of lastSnapshot.readCache) {
     // We don't care about incomplete results.

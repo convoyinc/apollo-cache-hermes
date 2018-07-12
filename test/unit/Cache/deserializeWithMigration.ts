@@ -4,7 +4,7 @@ import { query, strictConfig } from '../../helpers';
 
 describe(`deserialization with migration`, () => {
 
-  const v1Query =  query(`query v1($id: ID!) {
+  const v1Query = query(`query v1($id: ID!) {
     one {
       two {
         three(id: $id, withExtra: true) {
