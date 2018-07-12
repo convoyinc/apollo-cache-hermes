@@ -76,3 +76,13 @@ export function lazyImmutableDeepSet<TEntity>(
 
   return target as TEntity;
 }
+
+export function setsHaveSomeIntersection<TValue>(left: Set<TValue>, right: Set<TValue>) {
+  // Walk the smaller set.
+  const [toIterate, toCheck] = left.size > right.size ? [right, left] : [left, right];
+
+  for (const value of toIterate) {
+    if (toCheck.has(value)) return true;
+  }
+  return false;
+}
