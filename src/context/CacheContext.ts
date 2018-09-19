@@ -203,7 +203,7 @@ export class CacheContext {
   transformDocument(document: DocumentNode): DocumentNode {
     if (this._addTypename && !document.hasBeenTransformed) {
       const transformedDocument = addTypenameToDocument(document);
-      transformedDocument.hasBeenTransform = true;
+      transformedDocument.hasBeenTransformed = true;
       return transformedDocument;
     }
     return document;

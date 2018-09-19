@@ -1,0 +1,88 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var Cache_1 = require("../../../src/Cache");
+var schema_1 = require("../../../src/schema");
+var helpers_1 = require("../../helpers");
+var QueryRootId = schema_1.StaticNodeId.QueryRoot;
+describe("transactions", function () {
+    var simpleQuery = helpers_1.query("{\n    foo {\n      bar\n      baz\n    }\n  }");
+    var cache, debug, info, warn;
+    beforeEach(function () {
+        debug = jest.fn();
+        info = jest.fn();
+        warn = jest.fn();
+        cache = new Cache_1.Cache({
+            logger: { debug: debug, info: info, warn: warn, group: jest.fn(), groupEnd: jest.fn() },
+        });
+    });
+    it("commits on success", function () {
+        cache.transaction(function (transaction) {
+            transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hi' } });
+        });
+        expect(cache.getEntity(QueryRootId)).to.deep.eq({
+            foo: { bar: 1, baz: 'hi' },
+        });
+        expect(cache.getSnapshot().baseline).to.deep.eq(cache.getSnapshot().optimistic);
+    });
+    it("doesn't modify the cache until completion", function () {
+        cache.transaction(function (transaction) {
+            transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hi' } });
+            expect(cache.getEntity(QueryRootId)).to.eq(undefined);
+        });
+    });
+    it("rolls back on error", function () {
+        cache.transaction(function (transaction) {
+            transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hi' } });
+            throw new Error("bewm");
+        });
+        expect(cache.getEntity(QueryRootId)).to.eq(undefined);
+    });
+    it("logs on error", function () {
+        var exception = new Error("bewm");
+        cache.transaction(function (transaction) {
+            transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hi' } });
+            throw exception;
+        });
+        expect(warn.mock.calls.length).to.eq(1);
+        expect(warn.mock.calls[0]).to.include(exception.toString());
+    });
+    it("read optimistic transaction", function () {
+        cache.transaction(
+        /** changeIdOrCallback */ '123', function (transaction) {
+            transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hello' } });
+        });
+        expect(cache.read(simpleQuery, /** optimistic */ true).result).to.deep.eq({
+            foo: { bar: 1, baz: 'hello' },
+        });
+    });
+    it("read multiple optimistic transactions", function () {
+        cache.transaction(
+        /** changeIdOrCallback */ '123', function (transaction) {
+            transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hello' } });
+        });
+        var otherQuery = helpers_1.query("{\n      fizz {\n        buzz\n      }\n    }");
+        cache.transaction(
+        /** changeIdOrCallback */ '456', function (transaction) {
+            transaction.write(otherQuery, { fizz: { buzz: 'boom' } });
+        });
+        expect(cache.read(simpleQuery, /** optimistic */ true).result).to.deep.include({
+            foo: { bar: 1, baz: 'hello' },
+        });
+        expect(cache.read(otherQuery, /** optimistic */ true).result).to.deep.include({
+            fizz: { buzz: 'boom' },
+        });
+    });
+    it("rolls back optimistic transactions", function () {
+        cache.transaction(/** changeIdOrCallback */ '123', function (transaction) {
+            transaction.write(simpleQuery, { foo: { bar: 1, baz: 'hello' } });
+        });
+        expect(cache.read(simpleQuery, /** optimistic */ true).result).to.deep.eq({
+            foo: { bar: 1, baz: 'hello' },
+        });
+        cache.transaction(function (transaction) {
+            transaction.rollback('123');
+        });
+        expect(cache.read(simpleQuery, /** optimistic */ true).result).to.eq(undefined);
+    });
+});
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoidHJhbnNhY3Rpb25zLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsidHJhbnNhY3Rpb25zLnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUEsNENBQTJDO0FBQzNDLDhDQUFtRDtBQUNuRCx5Q0FBc0M7QUFFOUIsSUFBQSw2Q0FBc0IsQ0FBa0I7QUFFaEQsUUFBUSxDQUFDLGNBQWMsRUFBRTtJQUV2QixJQUFNLFdBQVcsR0FBRyxlQUFLLENBQUMsZ0RBS3hCLENBQUMsQ0FBQztJQUVKLElBQUksS0FBWSxFQUFFLEtBQXFCLEVBQUUsSUFBb0IsRUFBRSxJQUFvQixDQUFDO0lBQ3BGLFVBQVUsQ0FBQztRQUNULEtBQUssR0FBRyxJQUFJLENBQUMsRUFBRSxFQUFFLENBQUM7UUFDbEIsSUFBSSxHQUFHLElBQUksQ0FBQyxFQUFFLEVBQUUsQ0FBQztRQUNqQixJQUFJLEdBQUcsSUFBSSxDQUFDLEVBQUUsRUFBRSxDQUFDO1FBQ2pCLEtBQUssR0FBRyxJQUFJLGFBQUssQ0FBQztZQUNoQixNQUFNLEVBQUUsRUFBRSxLQUFLLE9BQUEsRUFBRSxJQUFJLE1BQUEsRUFBRSxJQUFJLE1BQUEsRUFBRSxLQUFLLEVBQUUsSUFBSSxDQUFDLEVBQUUsRUFBRSxFQUFFLFFBQVEsRUFBRSxJQUFJLENBQUMsRUFBRSxFQUFFLEVBQUU7U0FDckUsQ0FBQyxDQUFDO0lBQ0wsQ0FBQyxDQUFDLENBQUM7SUFFSCxFQUFFLENBQUMsb0JBQW9CLEVBQUU7UUFDdkIsS0FBSyxDQUFDLFdBQVcsQ0FBQyxVQUFDLFdBQVc7WUFDNUIsV0FBVyxDQUFDLEtBQUssQ0FBQyxXQUFXLEVBQUUsRUFBRSxHQUFHLEVBQUUsRUFBRSxHQUFHLEVBQUUsQ0FBQyxFQUFFLEdBQUcsRUFBRSxJQUFJLEVBQUUsRUFBRSxDQUFDLENBQUM7UUFDakUsQ0FBQyxDQUFDLENBQUM7UUFFSCxNQUFNLENBQUMsS0FBSyxDQUFDLFNBQVMsQ0FBQyxXQUFXLENBQUMsQ0FBQyxDQUFDLEVBQUUsQ0FBQyxJ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

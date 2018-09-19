@@ -4,11 +4,5 @@
 # Node
 /node_modules/
 
-# Build Artifacts
-/output/
-*.d.ts
-*.js
-!/scripts/*.js
-
 # TypeScript
 !/typings/**/*.d.ts
