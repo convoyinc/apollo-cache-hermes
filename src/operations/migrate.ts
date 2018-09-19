@@ -7,7 +7,6 @@ import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId } from '../schema';
 import {
   isObject,
-  isReferenceField,
   addNodeReference,
 } from '../util';
 
@@ -64,12 +63,6 @@ function migrateEntity(
     for (const field in entityMigrations[typeName]) {
       const fieldMigration = entityMigrations[typeName][field];
       if (!fieldMigration) continue;
-      // References work in very specific way in Hermes. If client tries
-      // to migrate them at will, bad things happnen. Let's not let them shoot
-      // themselves
-      if (isReferenceField(snapshot, [field])) {
-        throw new Error(`${typeName}.${field} is a reference field. Migration is not allowed`);
-      }
       snapshot.data[field] = fieldMigration(snapshot.data[field]);
     }
   }
