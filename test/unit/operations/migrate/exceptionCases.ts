@@ -2,7 +2,6 @@ import { CacheSnapshot } from '../../../../src/CacheSnapshot';
 import { CacheContext } from '../../../../src/context/CacheContext';
 import { extract, migrate } from '../../../../src/operations';
 import { OptimisticUpdateQueue } from '../../../../src/OptimisticUpdateQueue';
-import { JsonValue } from '../../../../src/primitive';
 import { createGraphSnapshot, strictConfig } from '../../../helpers';
 
 describe(`operations.migrate`, () => {
