@@ -107,7 +107,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
           }
           const previousData = lodashGet(cacheResult, path);
 
-          if (lodashIsObject(previousData)) {
+          if (!lodashIsObject(previousData)) {
             const details = `${verboseTypeof(previousData)} at ContainerId ${containerId} with readFragment ${readFragmentName}`;
             throw new Error(`updateListOfReferences() expects previousData to be an array or object instead got ${details}`);
           }
