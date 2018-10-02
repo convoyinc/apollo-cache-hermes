@@ -110,7 +110,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
           // we won't allow the field to be updated
           if (!Array.isArray(previousData) && typeof previousData !== 'object') {
             const details = `${verboseTypeof(previousData)} at ContainerId ${containerId} with readFragment ${readFragmentName}`;
-            throw new Error(`updateListOfReferences() expects previousData to be an array or object instead got ${details}`);
+            throw new Error(`updateParameterizedReferences() expects previousData to be an array or object instead got ${details}`);
           }
 
           const updateData = updateFieldCallback(previousData, fieldArguments);
