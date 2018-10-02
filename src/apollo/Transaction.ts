@@ -1,7 +1,7 @@
 import { ApolloCache, Cache, Transaction } from 'apollo-cache';
 import { JsonValue } from 'apollo-utilities';
 import lodashIsEqual = require('lodash.isequal');
-import lodasGet = require('lodash.get');
+import lodashGet = require('lodash.get');
 
 import { CacheTransaction } from '../CacheTransaction';
 import { GraphSnapshot } from '../GraphSnapshot';
@@ -60,6 +60,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
     throw new Error(`extract() is not allowed within a transaction`);
   }
 
+  updateListOfReferences = this.updateParameterizedReferences;
   /**
    * A helper function to be used when doing EntityUpdate.
    * The method enable users to interate different parameterized at an editPath
@@ -68,13 +69,17 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
    * The 'updateFieldCallback' is a callback to compute new value given previous
    * list of references and an object literal of parameterized arguments at the
    * given path.
+   *
+   * @param containerId {string} an id of a container node to look for editPath.
+   * @param pathToParameterizedField {(string|number)[]} an array of paths to
+   *    parameterized field in container.
    */
-  updateListOfReferences(
+  updateParameterizedReferences(
     containerId: NodeId,
-    editPath: PathPart[],
+    pathToParameterizedField: PathPart[],
     { writeFragment, writeFragmentName }: { writeFragment: DocumentNode, writeFragmentName?: string },
     { readFragment, readFragmentName }: { readFragment: DocumentNode, readFragmentName?: string },
-    updateFieldCallback: (previousList: JsonValue[], fieldArgs: { [argName: string]: string }) => any
+    updateFieldCallback: (previousList: JsonValue[], fieldArgs?: { [argName: string]: string }) => any
   ) {
     const currentContainerNode = this._queryable.getCurrentNodeSnapshot(containerId);
     if (!currentContainerNode || !currentContainerNode.outbound) {
@@ -82,7 +87,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
     }
 
     for (const { id: outboundId, path } of currentContainerNode.outbound) {
-      if (lodashIsEqual(editPath, path)) {
+      if (lodashIsEqual(pathToParameterizedField, path)) {
         const fieldArguments = getOriginalFieldArguments(outboundId);
         if (fieldArguments) {
           let cacheResult: any;
@@ -99,10 +104,13 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
           } catch (error) {
             continue;
           }
-          const previousData = lodasGet(cacheResult, path);
+          const previousData = lodashGet(cacheResult, path);
 
-          if (!Array.isArray(previousData)) {
-            throw new Error(`updateListOfReferences() expects previousData to be an array.`);
+          // if previousData is not object or null or array,
+          // we won't allow the field to be updated
+          if (!Array.isArray(previousData) && typeof previousData !== 'object') {
+            const details = `${verboseTypeof(previousData)} at ContainerId ${containerId} with readFragment ${readFragmentName}`;
+            throw new Error(`updateParameterizedReferences() expects previousData to be an array or object instead got ${details}`);
           }
 
           const updateData = updateFieldCallback(previousData, fieldArguments);
