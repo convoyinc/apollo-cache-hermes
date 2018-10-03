@@ -2,7 +2,6 @@ import { CacheSnapshot } from '../../../../src/CacheSnapshot';
 import { CacheContext } from '../../../../src/context/CacheContext';
 import { extract, migrate } from '../../../../src/operations';
 import { OptimisticUpdateQueue } from '../../../../src/OptimisticUpdateQueue';
-import { JsonValue } from '../../../../src/primitive';
 import { createGraphSnapshot, strictConfig } from '../../../helpers';
 
 describe(`operations.migrate`, () => {
@@ -33,15 +32,4 @@ describe(`operations.migrate`, () => {
     expect(cacheAfter).to.be.deep.eq(extract(cacheSnapshot.baseline, cacheContext));
   });
 
-  it(`throws if trying to migrate a reference field`, () => {
-    expect(() => {
-      migrate(cacheSnapshot, {
-        _entities: {
-          Query: {
-            viewer: (_previous: JsonValue) => '',
-          },
-        },
-      });
-    }).to.throw(/Migration is not allowed/i);
-  });
 });
