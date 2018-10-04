@@ -23,7 +23,7 @@ describe(`operations.restore`, () => {
             },
           },
         }, cacheContext);
-      }).to.throw(/Invalid Serializable.NodeSnapshotType/i);
+      }).toThrow(/Invalid Serializable.NodeSnapshotType/i);
     });
 
   });

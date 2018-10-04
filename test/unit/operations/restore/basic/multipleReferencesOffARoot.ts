@@ -126,23 +126,23 @@ describe(`operations.restore`, () => {
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
-      expect(restoreGraphSnapshot).to.deep.eq(originaGraphSnapshot);
+      expect(restoreGraphSnapshot).toEqual(originaGraphSnapshot);
     });
 
     it(`correctly restores different types of NodeSnapshot`, () => {
-      expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot('123')).to.be.an.instanceOf(EntitySnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot('456')).to.be.an.instanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot('123')).toBeInstanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot('456')).toBeInstanceOf(EntitySnapshot);
     });
 
     it(`correctly restore NodeSnapshot, entity transformation on specific entity`, () => {
-      expect(restoreGraphSnapshot.getNodeData('123')).to.be.an.instanceOf(Bar);
-      expect(restoreGraphSnapshot.getNodeData('456')).to.be.an.instanceOf(Foo);
+      expect(restoreGraphSnapshot.getNodeData('123')).toBeInstanceOf(Bar);
+      expect(restoreGraphSnapshot.getNodeData('456')).toBeInstanceOf(Foo);
     });
 
     it(`correctly restore NodeSnapshot, no entity transformation on QueryRootId`, () => {
-      expect(restoreGraphSnapshot.getNodeData(QueryRootId)).to.not.be.an.instanceOf(Bar);
-      expect(restoreGraphSnapshot.getNodeData(QueryRootId)).to.not.be.an.instanceOf(Foo);
+      expect(restoreGraphSnapshot.getNodeData(QueryRootId)).not.toBeInstanceOf(Bar);
+      expect(restoreGraphSnapshot.getNodeData(QueryRootId)).not.toBeInstanceOf(Foo);
     });
 
   });

@@ -73,13 +73,13 @@ describe(`operations.restore`, () => {
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
-      expect(restoreGraphSnapshot).to.deep.eq(originalGraphSnapshot);
+      expect(restoreGraphSnapshot).toEqual(originalGraphSnapshot);
     });
 
     it(`correctly restores different types of NodeSnapshot`, () => {
-      expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot('1')).to.be.an.instanceOf(EntitySnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot('2')).to.be.an.instanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot('1')).toBeInstanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot('2')).toBeInstanceOf(EntitySnapshot);
     });
 
     it(`restores RootQuery GraphSnapshot from JSON serialization object`, () => {
@@ -88,9 +88,9 @@ describe(`operations.restore`, () => {
 
       const fooData = restoreGraphSnapshot.getNodeData('1');
 
-      expect(rootGraphSnapshot.inbound).to.eq(undefined);
-      expect(rootGraphSnapshot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
-      expect(rootData.foo).to.eq(fooData);
+      expect(rootGraphSnapshot.inbound).toBe(undefined);
+      expect(rootGraphSnapshot.outbound).toEqual([{ id: '1', path: ['foo'] }]);
+      expect(rootData.foo).toBe(fooData);
     });
 
     it(`restores id='1' GraphSnapshot from JSON serialization object`, () => {
@@ -98,14 +98,14 @@ describe(`operations.restore`, () => {
       const fooData = restoreGraphSnapshot.getNodeData('1');
       const barData = restoreGraphSnapshot.getNodeData('2');
 
-      expect(fooGraphSnapshot.inbound).to.have.deep.members([
+      expect(fooGraphSnapshot.inbound).toEqual([
         { id: QueryRootId, path: ['foo'] },
         { id: '2', path: ['fizz'] },
       ]);
-      expect(fooGraphSnapshot.outbound).to.have.deep.members([{ id: '2', path: ['bar'] }]);
-      expect(fooData.id).to.eq(1);
-      expect(fooData.name).to.eq('Foo');
-      expect(fooData.bar).to.eq(barData);
+      expect(fooGraphSnapshot.outbound).toEqual([{ id: '2', path: ['bar'] }]);
+      expect(fooData.id).toBe(1);
+      expect(fooData.name).toBe('Foo');
+      expect(fooData.bar).toBe(barData);
     });
 
     it(`restores id='2' GraphSnapshot from JSON serialization object`, () => {
@@ -113,18 +113,18 @@ describe(`operations.restore`, () => {
       const fooData = restoreGraphSnapshot.getNodeData('1');
       const barData = restoreGraphSnapshot.getNodeData('2');
 
-      expect(barGraphSnapshot.inbound).to.have.deep.members([
+      expect(barGraphSnapshot.inbound).toEqual([
         { id: '1', path: ['bar'] },
         { id: '2', path: ['buzz'] },
       ]);
-      expect(barGraphSnapshot.outbound).to.have.deep.members([
+      expect(barGraphSnapshot.outbound).toEqual([
         { id: '1', path: ['fizz'] },
         { id: '2', path: ['buzz'] },
       ]);
-      expect(barData.id).to.eq(2);
-      expect(barData.name).to.eq('Bar');
-      expect(barData.fizz).to.eq(fooData);
-      expect(barData.buzz).to.eq(barData);
+      expect(barData.id).toBe(2);
+      expect(barData.name).toBe('Bar');
+      expect(barData.fizz).toBe(fooData);
+      expect(barData.buzz).toBe(barData);
     });
 
   });
