@@ -6,6 +6,7 @@ declare global {
   namespace NodeJS {
     export interface Global {
       expect: typeof chai.expect;
+      jestExpect: typeof global.expect;
     }
   }
 }
