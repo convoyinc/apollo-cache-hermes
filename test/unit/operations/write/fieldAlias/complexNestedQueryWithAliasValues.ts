@@ -53,7 +53,7 @@ describe(`operations.write`, () => {
     });
 
     it(`only writes fields from the schema`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         user: {
           id: 0,
           name: 'Foo',

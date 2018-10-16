@@ -36,7 +36,7 @@ describe(`operations.write`, () => {
     });
 
     it(`only writes fields from the schema`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         user: {
           id: 0,
           name: 'Foo',
@@ -45,7 +45,7 @@ describe(`operations.write`, () => {
     });
 
     it(`checks shape of GraphNodeSnapshot`, () => {
-      expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq(
+      jestExpect(snapshot.getNodeSnapshot(QueryRootId)).toEqual(
         new EntitySnapshot(
           {
             user: {

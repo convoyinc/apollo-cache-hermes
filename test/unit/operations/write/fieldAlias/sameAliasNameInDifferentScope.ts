@@ -51,7 +51,7 @@ describe(`operations.write`, () => {
     });
 
     it(`only writes fields from the schema`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         Shipment: {
           shipmentId: 0,
           shipmentName: 'ToSeattle',
@@ -68,7 +68,7 @@ describe(`operations.write`, () => {
     });
 
     it(`checks shape of GraphNodeSnapshot`, () => {
-      expect(snapshot.getNodeSnapshot(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeSnapshot(QueryRootId)).toEqual({
         inbound: undefined,
         outbound: [{ id: '0', path: ['Shipment'] }, { id: '2', path: ['Dispatcher'] }, { id: '1', path: ['Carrier'] }],
         data: {
