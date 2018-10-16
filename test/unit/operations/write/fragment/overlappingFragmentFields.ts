@@ -54,13 +54,13 @@ describe(`overlapping fragments`, () => {
   it.skip(`writing an entity with overlapping fragment fields should not lose data`, () => {
     const bar = snapshot.getNodeData('Bar:1');
 
-    expect(bar.id).to.eq('Bar:1');
-    expect(bar.fizz).to.eq('buzz');
+    jestExpect(bar.id).toBe('Bar:1');
+    jestExpect(bar.fizz).toBe('buzz');
 
     // If this assertion fails, the representation of `Bar:1` in the
     // `myFooOrBar` field is causing its `payload` field to be nullified
     // because `payload` is in the potential selection set, but only for the
     // `Foo` type.
-    expect(bar.payload).to.eq('huge');
+    jestExpect(bar.payload).toBe('huge');
   });
 });
