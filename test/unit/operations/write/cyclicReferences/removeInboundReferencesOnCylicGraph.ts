@@ -65,18 +65,18 @@ describe(`operations.write`, () => {
       const foo = snapshot.getNodeData('1');
       const bar = snapshot.getNodeData('2');
 
-      expect(foo.id).to.eq(1);
-      expect(foo.name).to.eq('Foo');
-      expect(foo.bar).to.eq(bar);
+      jestExpect(foo.id).toBe(1);
+      jestExpect(foo.name).toBe('Foo');
+      jestExpect(foo.bar).toBe(bar);
 
-      expect(bar.id).to.eq(2);
-      expect(bar.name).to.eq('Bar');
-      expect(bar.fizz).to.eq(null);
-      expect(bar.buzz).to.eq(null);
+      jestExpect(bar.id).toBe(2);
+      jestExpect(bar.name).toBe('Bar');
+      jestExpect(bar.fizz).toBe(null);
+      jestExpect(bar.buzz).toBe(null);
     });
 
     it(`only marks the edited node`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members(['2']);
+      jestExpect(Array.from(editedNodeIds)).toEqual(['2']);
     });
   });
 });
