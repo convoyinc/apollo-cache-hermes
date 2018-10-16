@@ -42,29 +42,29 @@ describe(`operations.write`, () => {
     });
 
     it(`writes a node for the field`, () => {
-      expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ name: 'Foo', extra: false });
+      jestExpect(snapshot.getNodeData(parameterizedId)).toEqual({ name: 'Foo', extra: false });
     });
 
     it(`creates an outgoing reference from the field's container`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.deep.eq([{ id: parameterizedId, path: ['foo'] }]);
+      jestExpect(queryRoot.outbound).toEqual([{ id: parameterizedId, path: ['foo'] }]);
     });
 
     it(`creates an inbound reference to the field's container`, () => {
       const values = snapshot.getNodeSnapshot(parameterizedId)!;
-      expect(values.inbound).to.deep.eq([{ id: QueryRootId, path: ['foo'] }]);
+      jestExpect(values.inbound).toEqual([{ id: QueryRootId, path: ['foo'] }]);
     });
 
     it(`does not expose the parameterized field directly from its container`, () => {
-      expect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).to.eq(undefined);
+      jestExpect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).toBe(undefined);
     });
 
     it(`marks only the new field as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual([parameterizedId]);
     });
 
     it(`emits a ParameterizedValueSnapshot`, () => {
-      expect(snapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+      jestExpect(snapshot.getNodeSnapshot(parameterizedId)).toBeInstanceOf(ParameterizedValueSnapshot);
     });
 
   });

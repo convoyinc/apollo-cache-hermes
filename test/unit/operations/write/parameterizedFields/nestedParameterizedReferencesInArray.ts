@@ -42,26 +42,26 @@ describe(`operations.write`, () => {
     });
 
     it(`writes a value snapshot for the containing field`, () => {
-      expect(snapshot.getNodeSnapshot(containerId)).to.exist;
+      jestExpect(snapshot.getNodeSnapshot(containerId)).toBeDefined;
     });
 
     it(`writes value snapshots for each array entry`, () => {
-      expect(snapshot.getNodeSnapshot('1')).to.exist;
-      expect(snapshot.getNodeSnapshot('2')).to.exist;
+      jestExpect(snapshot.getNodeSnapshot('1')).toBeDefined;
+      jestExpect(snapshot.getNodeSnapshot('2')).toBeDefined;
     });
 
     it(`references the parent snapshot from the children`, () => {
       const entry1 = snapshot.getNodeSnapshot('1')!;
       const entry2 = snapshot.getNodeSnapshot('2')!;
 
-      expect(entry1.inbound).to.have.deep.members([{ id: containerId, path: [0, 'three'] }]);
-      expect(entry2.inbound).to.have.deep.members([{ id: containerId, path: [1, 'three'] }]);
+      jestExpect(entry1.inbound).toEqual([{ id: containerId, path: [0, 'three'] }]);
+      jestExpect(entry2.inbound).toEqual([{ id: containerId, path: [1, 'three'] }]);
     });
 
     it(`references the children from the parent`, () => {
       const container = snapshot.getNodeSnapshot(containerId)!;
 
-      expect(container.outbound).to.have.deep.members([
+      jestExpect(container.outbound).toEqual([
         { id: '1', path: [0, 'three'] },
         { id: '2', path: [1, 'three'] },
       ]);
@@ -76,11 +76,11 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      expect(updated.getNodeSnapshot(containerId)!.outbound).to.have.deep.members([
+      jestExpect(updated.getNodeSnapshot(containerId)!.outbound).toEqual([
         { id: '2', path: [0, 'three'] },
       ]);
 
-      expect(updated.getNodeSnapshot('2')!.inbound).to.have.deep.members([
+      jestExpect(updated.getNodeSnapshot('2')!.inbound).toEqual([
         { id: containerId, path: [0, 'three'] },
       ]);
     });

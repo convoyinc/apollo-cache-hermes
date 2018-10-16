@@ -48,15 +48,15 @@ describe(`operations.write`, () => {
     });
 
     it(`updates the node for the field`, () => {
-      expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({ name: 'Foo Bar', extra: false });
+      jestExpect(snapshot.getNodeData(parameterizedId)).toEqual({ name: 'Foo Bar', extra: false });
     });
 
     it(`marks only the field as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([parameterizedId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual([parameterizedId]);
     });
 
     it(`emits a ParameterizedValueSnapshot`, () => {
-      expect(snapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceOf(ParameterizedValueSnapshot);
+      jestExpect(snapshot.getNodeSnapshot(parameterizedId)).toBeInstanceOf(ParameterizedValueSnapshot);
     });
 
   });
