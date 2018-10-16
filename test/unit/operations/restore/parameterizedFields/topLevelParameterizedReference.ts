@@ -59,21 +59,21 @@ describe(`operations.restore`, () => {
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
-      expect(restoreGraphSnapshot).to.deep.eq(originalGraphSnapshot);
+      jestExpect(restoreGraphSnapshot).toEqual(originalGraphSnapshot);
     });
 
     it(`correctly restores different types of NodeSnapshot`, () => {
-      expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot(parameterizedId)).to.be.an.instanceof(ParameterizedValueSnapshot);
+      jestExpect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      jestExpect(restoreGraphSnapshot.getNodeSnapshot(parameterizedId)).toBeInstanceOf(ParameterizedValueSnapshot);
     });
 
     it(`restores parameterized RootQuery NodeSnapshot from JSON serialization object`, () => {
       const parameterizedNode = restoreGraphSnapshot.getNodeSnapshot(parameterizedId)!;
       const entityData = restoreGraphSnapshot.getNodeData('1');
 
-      expect(parameterizedNode.inbound).to.have.deep.members([{ id: QueryRootId, path: ['foo'] }]);
-      expect(parameterizedNode.outbound).to.have.deep.members([{ id: '1', path: [] }]);
-      expect(parameterizedNode.data).to.eq(entityData);
+      jestExpect(parameterizedNode.inbound).toEqual([{ id: QueryRootId, path: ['foo'] }]);
+      jestExpect(parameterizedNode.outbound).toEqual([{ id: '1', path: [] }]);
+      jestExpect(parameterizedNode.data).toBe(entityData);
     });
 
   });

@@ -30,6 +30,7 @@ declare var fit: jest.It;
 declare var xit: jest.It;
 declare var test: jest.It;
 declare var xtest: jest.It;
+declare const jestExpect: jest.Expect;
 
 interface NodeRequire {
   /**

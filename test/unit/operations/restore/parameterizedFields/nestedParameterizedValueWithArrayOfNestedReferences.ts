@@ -115,16 +115,16 @@ describe(`operations.restore`, () => {
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
-      expect(restoreGraphSnapshot).to.deep.eq(originalGraphSnapshot);
+      jestExpect(restoreGraphSnapshot).toEqual(originalGraphSnapshot);
     });
 
     it(`correctly restores different types of NodeSnapshot`, () => {
-      expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot(parameterizedTopContainerId)).to.be.an.instanceof(ParameterizedValueSnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot(nestedParameterizedValueId0)).to.be.an.instanceof(ParameterizedValueSnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot('31')).to.be.an.instanceof(EntitySnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot(nestedParameterizedValueId1)).to.be.an.instanceof(ParameterizedValueSnapshot);
-      expect(restoreGraphSnapshot.getNodeSnapshot('32')).to.be.an.instanceof(EntitySnapshot);
+      jestExpect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      jestExpect(restoreGraphSnapshot.getNodeSnapshot(parameterizedTopContainerId)).toBeInstanceOf(ParameterizedValueSnapshot);
+      jestExpect(restoreGraphSnapshot.getNodeSnapshot(nestedParameterizedValueId0)).toBeInstanceOf(ParameterizedValueSnapshot);
+      jestExpect(restoreGraphSnapshot.getNodeSnapshot('31')).toBeInstanceOf(EntitySnapshot);
+      jestExpect(restoreGraphSnapshot.getNodeSnapshot(nestedParameterizedValueId1)).toBeInstanceOf(ParameterizedValueSnapshot);
+      jestExpect(restoreGraphSnapshot.getNodeSnapshot('32')).toBeInstanceOf(EntitySnapshot);
     });
 
   });

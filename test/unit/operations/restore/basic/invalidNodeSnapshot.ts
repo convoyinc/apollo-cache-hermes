@@ -8,7 +8,7 @@ describe(`operations.restore`, () => {
   describe(`invalid NodeSnapshot type`, () => {
 
     it(`throws error when restore invalid NodeSnapshot type`, () => {
-      expect(() => {
+      jestExpect(() => {
         const cacheContext = createStrictCacheContext();
         restore({
           [QueryRootId]: {
@@ -23,7 +23,7 @@ describe(`operations.restore`, () => {
             },
           },
         }, cacheContext);
-      }).to.throw(/Invalid Serializable.NodeSnapshotType/i);
+      }).toThrow(/Invalid Serializable.NodeSnapshotType/i);
     });
 
   });
