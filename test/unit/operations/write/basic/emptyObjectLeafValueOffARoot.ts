@@ -25,14 +25,14 @@ describe(`operations.write`, () => {
     });
 
     it(`stores the values`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         foo: {},
         bar: [],
       });
     });
 
     it(`marks the container as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
     });
 
   });

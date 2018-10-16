@@ -36,7 +36,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, with the values`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         rows: [
           [
             { value: 1 },

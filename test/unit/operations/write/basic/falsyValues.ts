@@ -22,7 +22,7 @@ describe(`operations.write`, () => {
     });
 
     it(`persists all falsy values`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({ null: null, false: false, zero: 0, string: '' });
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({ null: null, false: false, zero: 0, string: '' });
     });
 
   });

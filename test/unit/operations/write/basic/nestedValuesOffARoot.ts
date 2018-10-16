@@ -39,7 +39,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, with the values`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         bar: {
           value: 42,
           prop1: 'hello',
@@ -52,15 +52,15 @@ describe(`operations.write`, () => {
     });
 
     it(`marks the root as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
     });
 
     it(`only contains the root node`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+      jestExpect(snapshot.allNodeIds()).toEqual([QueryRootId]);
     });
 
     it(`emits the root as an EntitySnapshot`, () => {
-      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      jestExpect(snapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
     });
   });
 

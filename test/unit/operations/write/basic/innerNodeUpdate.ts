@@ -43,11 +43,11 @@ describe(`operations.write`, () => {
     });
 
     it(`edits the inner node`, () => {
-      expect(snapshot.getNodeData('1')).to.deep.eq({ id: 1, name: 'moo', extra: true });
+      jestExpect(snapshot.getNodeData('1')).toEqual({ id: 1, name: 'moo', extra: true });
     });
 
     it(`marks only the inner node as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members(['1']);
+      jestExpect(Array.from(editedNodeIds)).toEqual(['1']);
     });
 
   });

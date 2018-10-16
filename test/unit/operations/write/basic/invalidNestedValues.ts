@@ -8,7 +8,7 @@ describe(`operations.write`, () => {
   describe(`invalid nested values, scalar in place of object value`, () => {
 
     it(`creates the query root, with the values`, () => {
-      expect(() => {
+      jestExpect(() => {
         createSnapshot(
           {
             foo: {
@@ -25,7 +25,7 @@ describe(`operations.write`, () => {
             }
           }`
         );
-      }).to.throw(/foo\.bar/);
+      }).toThrow(/foo\.bar/);
     });
 
   });

@@ -28,7 +28,7 @@ describe(`operations.write`, () => {
     });
 
     it(`stores the values`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         foo: { id: 1 },
         bar: {
           baz: { id: 1 },
@@ -37,11 +37,11 @@ describe(`operations.write`, () => {
     });
 
     it(`does not normalize the values of the object leaf-value`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+      jestExpect(snapshot.allNodeIds()).toEqual([QueryRootId]);
     });
 
     it(`marks the container as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
     });
 
   });
