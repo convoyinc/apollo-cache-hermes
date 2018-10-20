@@ -27,7 +27,7 @@ describe(`parseQuery for queries with fragments`, () => {
         name
       }
     `;
-    expect(parseOperation(operation)).to.deep.eq({
+    jestExpect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode({
           id: new ParsedQueryNode(),
@@ -56,7 +56,7 @@ describe(`parseQuery for queries with fragments`, () => {
         name
       }
     `;
-    expect(parseOperation(operation)).to.deep.eq({
+    jestExpect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode({
           id: new ParsedQueryNode(),
@@ -79,7 +79,7 @@ describe(`parseQuery for queries with fragments`, () => {
         }
       }
     `;
-    expect(parseOperation(operation)).to.deep.eq({
+    jestExpect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode({
           bar: new ParsedQueryNode({
@@ -103,7 +103,7 @@ describe(`parseQuery for queries with fragments`, () => {
         }
       }
     `;
-    expect(parseOperation(operation)).to.deep.eq({
+    jestExpect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode({
           bar: new ParsedQueryNode<JsonScalar | VariableArgument>({
@@ -121,9 +121,9 @@ describe(`parseQuery for queries with fragments`, () => {
         foo { ...aFoo }
       }
     `;
-    expect(() => {
+    jestExpect(() => {
       parseOperation(operation);
-    }).to.throw(/aFoo/i);
+    }).toThrow(/aFoo/i);
   });
 
   it(`complains if parameters do not match`, () => {
@@ -143,9 +143,9 @@ describe(`parseQuery for queries with fragments`, () => {
         bar(limit: 2)
       }
     `;
-    expect(() => {
+    jestExpect(() => {
       parseOperation(operation);
-    }).to.throw(/foo\.bar/i);
+    }).toThrow(/foo\.bar/i);
   });
 
   it(`complains if aliases do not match`, () => {
@@ -165,9 +165,9 @@ describe(`parseQuery for queries with fragments`, () => {
         bar: buzz
       }
     `;
-    expect(() => {
+    jestExpect(() => {
       parseOperation(operation);
-    }).to.throw(/foo\.bar/i);
+    }).toThrow(/foo\.bar/i);
   });
 
 });
