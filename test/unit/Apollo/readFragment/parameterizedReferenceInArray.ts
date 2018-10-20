@@ -72,7 +72,7 @@ describe(`writeFragment with parameterized references within arrays`, () => {
   });
 
   it(`returns parameterized data`, () => {
-    expect(hermes.readFragment({
+    jestExpect(hermes.readFragment({
       id: '123',
       fragment: gql(`
       fragment viewer on Viewer {
@@ -95,7 +95,7 @@ describe(`writeFragment with parameterized references within arrays`, () => {
         city: 'Seattle',
         area: 'PNW',
       },
-    })).to.deep.eq({
+    })).toEqual({
       id: 123,
       name: 'Gouda',
       __typename: 'Viewer',

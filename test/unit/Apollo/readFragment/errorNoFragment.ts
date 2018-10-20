@@ -29,7 +29,7 @@ describe(`readFragment when no fragment is provided`, () => {
   });
 
   it(`throws an error`, () => {
-    expect(() => {
+    jestExpect(() => {
       hermes.readFragment({
         id: '123',
         fragment: gql(`
@@ -39,7 +39,7 @@ describe(`readFragment when no fragment is provided`, () => {
           }
         `),
       });
-    }).to.throw(/No operations are allowed when using a fragment as a query/i);
+    }).toThrow(/No operations are allowed when using a fragment as a query/i);
   });
 
 });

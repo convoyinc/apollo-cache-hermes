@@ -58,7 +58,7 @@ describe(`readFragment with alias references`, () => {
   });
 
   it(`correctly read a fragment with parameterized reference`, () => {
-    expect(hermes.readFragment({
+    jestExpect(hermes.readFragment({
       id: '123',
       fragment: gql(`
         fragment viewer on Viewer {
@@ -77,7 +77,7 @@ describe(`readFragment with alias references`, () => {
       variables: {
         city: 'Seattle',
       },
-    })).to.be.deep.eq({
+    })).toEqual({
       id: 123,
       fullName: 'Gouda',
       name: 'Gouda',

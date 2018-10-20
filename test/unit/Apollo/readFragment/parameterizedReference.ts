@@ -58,7 +58,7 @@ describe(`readFragment with parameterized references`, () => {
   });
 
   it(`returns parameterized data`, () => {
-    expect(hermes.readFragment({
+    jestExpect(hermes.readFragment({
       id: '123',
       fragment: gql(`
         fragment viewer on Viewer {
@@ -77,7 +77,7 @@ describe(`readFragment with parameterized references`, () => {
       variables: {
         city: 'Seattle',
       },
-    })).to.be.deep.eq({
+    })).toEqual({
       id: 123,
       name: 'Gouda',
       __typename: 'Viewer',

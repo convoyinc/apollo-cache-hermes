@@ -124,7 +124,7 @@ describe(`writeFragment with paramterized references in an array`, () => {
       { operation: 'PNW' }
     );
 
-    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot('shipment0')).to.deep.eq(
+    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot('shipment0')).toEqual(
       new EntitySnapshot(
         {
           id: 'shipment0',
@@ -139,7 +139,7 @@ describe(`writeFragment with paramterized references in an array`, () => {
       )
     );
 
-    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot(parameterizedShipperId)).to.deep.eq(
+    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot(parameterizedShipperId)).toEqual(
       new ParameterizedValueSnapshot(
         {
           id: 'shipper0',
@@ -163,7 +163,7 @@ describe(`writeFragment with paramterized references in an array`, () => {
       },
     });
 
-    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('shipper0')).to.deep.eq({
+    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('shipper0')).toEqual({
       id: 'shipper0',
       __typename: 'Shipper',
       name: 'Munster',
@@ -172,7 +172,7 @@ describe(`writeFragment with paramterized references in an array`, () => {
   });
 
   it(`correctly read cache after multiple writeFragments`, () => {
-    expect(hermes.readQuery({
+    jestExpect(hermes.readQuery({
       query: gql(`
       query readViewer($city: String!, $area: String!) {
         viewer {
@@ -196,7 +196,7 @@ describe(`writeFragment with paramterized references in an array`, () => {
         city: 'Seattle',
         area: 'PNW',
       },
-    })).to.deep.eq({
+    })).toEqual({
       viewer: {
         id: 123,
         name: 'Gouda',

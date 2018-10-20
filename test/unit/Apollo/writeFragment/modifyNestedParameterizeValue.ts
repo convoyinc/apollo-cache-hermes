@@ -81,7 +81,7 @@ describe(`writeFragment with nested paramterized value`, () => {
       { number: 2 }
     );
 
-    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot('123')).to.deep.eq(
+    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot('123')).toEqual(
       new EntitySnapshot(
         {
           id: 123,
@@ -93,7 +93,7 @@ describe(`writeFragment with nested paramterized value`, () => {
       )
     );
 
-    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot(parameterizedTruckId)).to.deep.eq(
+    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot(parameterizedTruckId)).toEqual(
       new ParameterizedValueSnapshot(
         [
           {
@@ -143,7 +143,7 @@ describe(`writeFragment with nested paramterized value`, () => {
       { number: 2 }
     );
 
-    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot('123')).to.deep.eq(
+    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot('123')).toEqual(
       new EntitySnapshot(
         {
           id: 123,
@@ -155,7 +155,7 @@ describe(`writeFragment with nested paramterized value`, () => {
       )
     );
 
-    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot(parameterizedTruckId)).to.deep.eq(
+    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeSnapshot(parameterizedTruckId)).toEqual(
       new ParameterizedValueSnapshot(
         [
           {

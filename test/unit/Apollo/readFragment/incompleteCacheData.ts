@@ -29,7 +29,7 @@ describe(`readFragment with incomplete cache`, () => {
   });
 
   it(`returns the partial result`, () => {
-    expect(hermes.readFragment({
+    jestExpect(hermes.readFragment({
       id: '123',
       fragment: gql(`
         fragment viewer on Viewer {
@@ -38,7 +38,7 @@ describe(`readFragment with incomplete cache`, () => {
           location
         }
       `),
-    })).to.be.deep.eq({
+    })).toEqual({
       id: 123,
       name: 'Gouda',
       __typename: 'Viewer',

@@ -38,7 +38,7 @@ describe(`writeFragment`, () => {
   });
 
   it(`throws an error when trying to convert from list to non-list`, () => {
-    expect(() => {
+    jestExpect(() => {
       hermes.writeFragment({
         id: '123',
         fragment: gql(`
@@ -62,7 +62,7 @@ describe(`writeFragment`, () => {
           ],
         },
       });
-    }).to.throw(/Unsupported transition from a non-list to list value/i);
+    }).toThrow(/Unsupported transition from a non-list to list value/i);
   });
 
 });
