@@ -58,7 +58,7 @@ describe(`writeFragment with simple reference`, () => {
   });
 
   it(`correctly modify data on the reference`, () => {
-    jestExpect(baseline.getNodeData('123')).toEqual({
+    expect(baseline.getNodeData('123')).toEqual({
       id: 123,
       name: 'Munster',
       __typename: 'Viewer',
@@ -74,7 +74,7 @@ describe(`writeFragment with simple reference`, () => {
   });
 
   it(`correctly reference from root node`, () => {
-    jestExpect(baseline.getNodeSnapshot('123')).toEqual(
+    expect(baseline.getNodeSnapshot('123')).toEqual(
       new EntitySnapshot(
         {
           id: 123,
@@ -92,7 +92,7 @@ describe(`writeFragment with simple reference`, () => {
         [{ id: QueryRootId, path: ['viewer'] }],
       )
     );
-    jestExpect(baseline.getNodeData(QueryRootId)!['viewer']).toBe(baseline.getNodeData('123'));
+    expect(baseline.getNodeData(QueryRootId)!['viewer']).toBe(baseline.getNodeData('123'));
   });
 
 });

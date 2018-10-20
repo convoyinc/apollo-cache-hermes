@@ -57,7 +57,7 @@ describe(`writeFragment`, () => {
   });
 
   it(`adds references`, () => {
-    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('shipment0')).toEqual({
+    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('shipment0')).toEqual({
       id: 'shipment0',
       city: 'Seattle',
       __typename: 'Shipment',
@@ -66,7 +66,7 @@ describe(`writeFragment`, () => {
 
   it(`inlines referenced data into referencing entities`, () => {
     const baseline = hermes.getCurrentCacheSnapshot().baseline;
-    jestExpect(baseline.getNodeSnapshot('123')).toEqual(
+    expect(baseline.getNodeSnapshot('123')).toEqual(
       new EntitySnapshot(
         {
           id: 123,
@@ -83,7 +83,7 @@ describe(`writeFragment`, () => {
       )
     );
 
-    jestExpect(baseline.getNodeData('123')!['shipment']).toBe(baseline.getNodeData('shipment0'));
+    expect(baseline.getNodeData('123')!['shipment']).toBe(baseline.getNodeData('shipment0'));
   });
 
 });

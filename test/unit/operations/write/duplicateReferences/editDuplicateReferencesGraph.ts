@@ -54,7 +54,7 @@ describe(`operations.write`, () => {
     });
 
     it(`writes the complete graph`, () => {
-      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
+      expect(snapshot.getNodeData(QueryRootId)).toEqual({
         foo: [
           { id: 'a', bar: { id: 2 } },
           { id: 'a', bar: { id: 2 } },
@@ -69,18 +69,18 @@ describe(`operations.write`, () => {
     });
 
     it(`doesn't insert duplicate outbound references`, () => {
-      jestExpect(snapshot.getNodeSnapshot('a')!.outbound).toEqual([
+      expect(snapshot.getNodeSnapshot('a')!.outbound).toEqual([
         { id: '2', path: ['bar'] },
       ]);
-      jestExpect(snapshot.getNodeSnapshot('b')!.outbound).toBe(undefined);
+      expect(snapshot.getNodeSnapshot('b')!.outbound).toBe(undefined);
     });
 
     it(`removes unreferenced nodes`, () => {
-      jestExpect(snapshot.getNodeSnapshot('1')).toBe(undefined);
+      expect(snapshot.getNodeSnapshot('1')).toBe(undefined);
     });
 
     it(`doesn't insert duplicate inbound references for targets`, () => {
-      jestExpect(snapshot.getNodeSnapshot('2')!.inbound).toEqual([
+      expect(snapshot.getNodeSnapshot('2')!.inbound).toEqual([
         { id: 'a', path: ['bar'] },
       ]);
     });

@@ -55,7 +55,7 @@ describe(`operations.write`, () => {
 
     it(`only writes fields from the schema`, () => {
       const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['shipments'], { first: 2 });
-      jestExpect(snapshot.getNodeData(parameterizedId)).toEqual({
+      expect(snapshot.getNodeData(parameterizedId)).toEqual({
         fields: [
           {
             id: 0,

@@ -42,26 +42,26 @@ describe(`operations.write`, () => {
     });
 
     it(`writes a value snapshot for the containing field`, () => {
-      jestExpect(snapshot.getNodeSnapshot(containerId)).toBeDefined;
+      expect(snapshot.getNodeSnapshot(containerId)).toBeDefined;
     });
 
     it(`writes value snapshots for each array entry`, () => {
-      jestExpect(snapshot.getNodeSnapshot('1')).toBeDefined;
-      jestExpect(snapshot.getNodeSnapshot('2')).toBeDefined;
+      expect(snapshot.getNodeSnapshot('1')).toBeDefined;
+      expect(snapshot.getNodeSnapshot('2')).toBeDefined;
     });
 
     it(`references the parent snapshot from the children`, () => {
       const entry1 = snapshot.getNodeSnapshot('1')!;
       const entry2 = snapshot.getNodeSnapshot('2')!;
 
-      jestExpect(entry1.inbound).toEqual([{ id: containerId, path: [0, 'three'] }]);
-      jestExpect(entry2.inbound).toEqual([{ id: containerId, path: [1, 'three'] }]);
+      expect(entry1.inbound).toEqual([{ id: containerId, path: [0, 'three'] }]);
+      expect(entry2.inbound).toEqual([{ id: containerId, path: [1, 'three'] }]);
     });
 
     it(`references the children from the parent`, () => {
       const container = snapshot.getNodeSnapshot(containerId)!;
 
-      jestExpect(container.outbound).toEqual([
+      expect(container.outbound).toEqual([
         { id: '1', path: [0, 'three'] },
         { id: '2', path: [1, 'three'] },
       ]);
@@ -76,11 +76,11 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(containerId)!.outbound).toEqual([
+      expect(updated.getNodeSnapshot(containerId)!.outbound).toEqual([
         { id: '2', path: [0, 'three'] },
       ]);
 
-      jestExpect(updated.getNodeSnapshot('2')!.inbound).toEqual([
+      expect(updated.getNodeSnapshot('2')!.inbound).toEqual([
         { id: containerId, path: [0, 'three'] },
       ]);
     });

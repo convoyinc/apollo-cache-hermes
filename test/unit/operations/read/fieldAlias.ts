@@ -26,7 +26,7 @@ describe(`operations.read`, () => {
         }).snapshot;
 
         const { result } = read(context, aliasQuery, snapshot);
-        jestExpect(result).toEqual({
+        expect(result).toEqual({
           user: {
             id: 0,
             userId: 0,
@@ -60,7 +60,7 @@ describe(`operations.read`, () => {
         }).snapshot;
 
         const { result } = read(context, aliasQuery, snapshot);
-        jestExpect(result).toEqual({
+        expect(result).toEqual({
           superUser: {
             id: 100,
             userId: 100,
@@ -92,7 +92,7 @@ describe(`operations.read`, () => {
         }).snapshot;
 
         const { result } = read(context, aliasQuery, snapshot);
-        jestExpect(result).toEqual({
+        expect(result).toEqual({
           superUser: {
             id: 0,
             ID: 0,
@@ -135,7 +135,7 @@ describe(`operations.read`, () => {
         }).snapshot;
 
         const { result } = read(context, aliasQuery, snapshot);
-        jestExpect(result).toEqual({
+        expect(result).toEqual({
           fullUser: {
             firstName: 'Bob',
             FirstName: 'Bob',
@@ -194,7 +194,7 @@ describe(`operations.read`, () => {
         }).snapshot;
 
         const { result } = read(context, nestedAliasQuery, snapshot);
-        jestExpect(result).toEqual({
+        expect(result).toEqual({
           shipments: {
             shipmentsInfo: [
               {

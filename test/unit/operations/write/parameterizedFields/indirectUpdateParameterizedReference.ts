@@ -55,17 +55,17 @@ describe(`operations.write`, () => {
     });
 
     it(`updates the node for the field`, () => {
-      jestExpect(snapshot.getNodeData(parameterizedId)).toEqual({ id: 1, name: 'Foo Bar', extra: false });
+      expect(snapshot.getNodeData(parameterizedId)).toEqual({ id: 1, name: 'Foo Bar', extra: false });
     });
 
     it(`ensures normalized references`, () => {
       const entity = snapshot.getNodeData('1');
-      jestExpect(snapshot.getNodeData(QueryRootId).viewer).toBe(entity);
-      jestExpect(snapshot.getNodeData(parameterizedId)).toBe(entity);
+      expect(snapshot.getNodeData(QueryRootId).viewer).toBe(entity);
+      expect(snapshot.getNodeData(parameterizedId)).toBe(entity);
     });
 
     it(`marks only the entity as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '1'].sort());
+      expect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '1'].sort());
     });
 
   });

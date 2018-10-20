@@ -40,7 +40,7 @@ describe(`writeFragment`, () => {
   });
 
   it(`throws an error when trying to convert from list to non-list`, () => {
-    jestExpect(() => {
+    expect(() => {
       hermes.writeFragment({
         id: '123',
         fragment: gql(`

@@ -20,7 +20,7 @@ describe(`operations.extract`, () => {
     });
 
     it(`extracts JSON serializable object`, () => {
-      jestExpect(extractResult).toEqual({
+      expect(extractResult).toEqual({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           data: { null: null, false: false, zero: 0, string: '' },

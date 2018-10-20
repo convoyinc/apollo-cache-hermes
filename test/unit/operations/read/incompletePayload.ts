@@ -91,11 +91,11 @@ describe(`operations.read`, () => {
     });
 
     it(`verify that read result is complete`, () => {
-      jestExpect(readResult.complete).toBe(true);
+      expect(readResult.complete).toBe(true);
     });
 
     it(`verify that read result is correct`, () => {
-      jestExpect(readResult.result).toEqual({
+      expect(readResult.result).toEqual({
         shipments: [
           {
             id: '0',

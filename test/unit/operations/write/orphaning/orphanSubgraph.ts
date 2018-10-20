@@ -42,7 +42,7 @@ describe(`operations.write`, () => {
     });
 
     it(`replaces the reference with null`, () => {
-      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
+      expect(snapshot.getNodeData(QueryRootId)).toEqual({
         foo: { id: 1, name: 'Foo' },
         bar: null,
       });
@@ -50,15 +50,15 @@ describe(`operations.write`, () => {
 
     it(`updates outbound references`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      jestExpect(queryRoot.outbound).toEqual([{ id: '1', path: ['foo'] }]);
+      expect(queryRoot.outbound).toEqual([{ id: '1', path: ['foo'] }]);
     });
 
     it(`marks the container and orphaned node as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '2'].sort());
+      expect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '2'].sort());
     });
 
     it(`contains the correct nodes`, () => {
-      jestExpect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1'].sort());
+      expect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1'].sort());
     });
 
   });
@@ -121,7 +121,7 @@ describe(`operations.write`, () => {
     });
 
     it(`replaces the reference with null`, () => {
-      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
+      expect(snapshot.getNodeData(QueryRootId)).toEqual({
         foo: {
           id: 1,
           name: 'Foo',
@@ -132,20 +132,20 @@ describe(`operations.write`, () => {
     });
 
     it(`preserves nodes that only lost some of their inbound references`, () => {
-      jestExpect(snapshot.getNodeData('1')).toEqual({ id: 1, name: 'Foo', two: null });
+      expect(snapshot.getNodeData('1')).toEqual({ id: 1, name: 'Foo', two: null });
     });
 
     it(`updates outbound references`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      jestExpect(queryRoot.outbound).toEqual([{ id: '1', path: ['foo'] }]);
+      expect(queryRoot.outbound).toEqual([{ id: '1', path: ['foo'] }]);
     });
 
     it(`marks the container and all orphaned nodes as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '1', '2', '111', '222', '333'].sort());
+      expect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '1', '2', '111', '222', '333'].sort());
     });
 
     it(`contains the correct nodes`, () => {
-      jestExpect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1'].sort());
+      expect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1'].sort());
     });
 
   });

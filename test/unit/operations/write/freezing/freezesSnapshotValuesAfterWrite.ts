@@ -31,12 +31,12 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      jestExpect(() => {
+      expect(() => {
         const root = snapshot.getNodeData(QueryRootId);
         root.foo.bar[0].baz = 111;
       }).toThrow(/property.*baz/);
 
-      jestExpect(() => {
+      expect(() => {
         const root = snapshot.getNodeData(QueryRootId);
         root.foo.fizz = 'nope';
       }).toThrow(/property.*fizz/);

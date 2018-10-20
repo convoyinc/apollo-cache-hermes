@@ -29,7 +29,7 @@ describe(`readFragment when no fragment is provided`, () => {
   });
 
   it(`throws an error`, () => {
-    jestExpect(() => {
+    expect(() => {
       hermes.readFragment({
         id: '123',
         fragment: gql(`

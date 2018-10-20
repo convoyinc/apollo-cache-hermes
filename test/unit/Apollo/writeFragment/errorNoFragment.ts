@@ -12,7 +12,7 @@ describe(`writeFragment with no fragment`, () => {
   });
 
   it(`throws an error`, () => {
-    jestExpect(() => {
+    expect(() => {
       hermes.writeFragment({
         id: '123',
         fragment: gql(`

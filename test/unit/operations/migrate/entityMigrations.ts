@@ -42,7 +42,7 @@ describe(`operations.migrate`, () => {
       },
     });
     const cacheAfter = extract(migrated.baseline, cacheContext);
-    jestExpect(cacheAfter).toEqual({
+    expect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         data: {
@@ -78,7 +78,7 @@ describe(`operations.migrate`, () => {
       },
     });
     const cacheAfter = extract(migrated.baseline, cacheContext);
-    jestExpect(cacheAfter).toEqual({
+    expect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         data: {
@@ -112,7 +112,7 @@ describe(`operations.migrate`, () => {
       },
     });
     const cacheAfter = extract(migrated.baseline, cacheContext);
-    jestExpect(cacheAfter).toEqual({
+    expect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         data: {
@@ -148,7 +148,7 @@ describe(`operations.migrate`, () => {
       },
     });
     const cacheAfter = extract(migrated.baseline, cacheContext);
-    jestExpect(cacheAfter).toEqual({
+    expect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         data: {

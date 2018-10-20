@@ -23,19 +23,19 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, with the values`, () => {
-      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({ foo: 123, bar: 'asdf' });
+      expect(snapshot.getNodeData(QueryRootId)).toEqual({ foo: 123, bar: 'asdf' });
     });
 
     it(`marks the root as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
+      expect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
     });
 
     it(`only contains the root node`, () => {
-      jestExpect(snapshot.allNodeIds()).toEqual([QueryRootId]);
+      expect(snapshot.allNodeIds()).toEqual([QueryRootId]);
     });
 
     it(`emits the root as an EntitySnapshot`, () => {
-      jestExpect(snapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
     });
   });
 

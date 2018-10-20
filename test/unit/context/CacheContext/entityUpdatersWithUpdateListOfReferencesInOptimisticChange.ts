@@ -139,9 +139,9 @@ describe(`context.CacheContext`, () => {
         }
       );
 
-      jestExpect(userUpdater.mock.calls.length).toBe(1);
+      expect(userUpdater.mock.calls.length).toBe(1);
       const [, user, previous] = userUpdater.mock.calls[0];
-      jestExpect(user).toEqual({
+      expect(user).toEqual({
         __typename: 'User',
         id: 3,
         name: 'Cheddar',
@@ -151,7 +151,7 @@ describe(`context.CacheContext`, () => {
           name: 'Main Dashboard',
         },
       });
-      jestExpect(previous).toEqual(undefined);
+      expect(previous).toEqual(undefined);
     });
 
     it(`triggers updaters when an entity is orphaned`, () => {
@@ -182,10 +182,10 @@ describe(`context.CacheContext`, () => {
         }
       );
 
-      jestExpect(userUpdater.mock.calls.length).toBe(1);
+      expect(userUpdater.mock.calls.length).toBe(1);
       const [, user, previous] = userUpdater.mock.calls[0];
-      jestExpect(user).toBe(undefined);
-      jestExpect(previous).toEqual(
+      expect(user).toBe(undefined);
+      expect(previous).toEqual(
         {
           __typename: 'User',
           id: 1,
@@ -220,7 +220,7 @@ describe(`context.CacheContext`, () => {
         }
       );
 
-      jestExpect(cache.read(dashboardQuery).result).toEqual({
+      expect(cache.read(dashboardQuery).result).toEqual({
         dashboard: {
           name: 'Main Dashboard',
           id: 'dash0',
@@ -249,7 +249,7 @@ describe(`context.CacheContext`, () => {
         },
       });
 
-      jestExpect(cache.read(dashboardQuery, /* optimistic */ true).result).toEqual({
+      expect(cache.read(dashboardQuery, /* optimistic */ true).result).toEqual({
         dashboard: {
           name: 'Main Dashboard',
           id: 'dash0',

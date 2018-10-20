@@ -54,11 +54,11 @@ describe(`operations.restore`, () => {
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
-      jestExpect(restoreGraphSnapshot).toEqual(originalSnapshot);
+      expect(restoreGraphSnapshot).toEqual(originalSnapshot);
     });
 
     it(`correctly restores different types of NodeSnapshot`, () => {
-      jestExpect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
     });
 
   });

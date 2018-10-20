@@ -50,22 +50,22 @@ describe(`operations.write`, () => {
       const foo = snapshot.getNodeData('1');
       const bar = snapshot.getNodeData('2');
 
-      jestExpect(foo.id).toBe(1);
-      jestExpect(foo.name).toBe('Foo');
-      jestExpect(foo.bar).toBe(bar);
+      expect(foo.id).toBe(1);
+      expect(foo.name).toBe('Foo');
+      expect(foo.bar).toBe(bar);
 
-      jestExpect(bar.id).toBe(2);
-      jestExpect(bar.name).toBe('Bar');
-      jestExpect(bar.fizz).toBe(foo);
-      jestExpect(bar.buzz).toBe(bar);
+      expect(bar.id).toBe(2);
+      expect(bar.name).toBe('Bar');
+      expect(bar.fizz).toBe(foo);
+      expect(bar.buzz).toBe(bar);
     });
 
     it(`properly references the cyclic nodes via QueryRoot`, () => {
-      jestExpect(snapshot.getNodeData(QueryRootId).foo).toBe(snapshot.getNodeData('1'));
+      expect(snapshot.getNodeData(QueryRootId).foo).toBe(snapshot.getNodeData('1'));
     });
 
     it(`marks all the nodes as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '1', '2'].sort());
+      expect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '1', '2'].sort());
     });
   });
 });

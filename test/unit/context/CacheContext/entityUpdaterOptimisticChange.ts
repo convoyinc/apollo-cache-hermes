@@ -73,10 +73,10 @@ describe(`context.CacheContext`, () => {
         ),
       );
 
-      jestExpect(userUpdater.mock.calls.length).toBe(1);
+      expect(userUpdater.mock.calls.length).toBe(1);
       const [, user, previous] = userUpdater.mock.calls[0];
-      jestExpect(user).toEqual({ __typename: 'User', id: 3, name: 'Cheddar', active: true });
-      jestExpect(previous).toEqual(undefined);
+      expect(user).toEqual({ __typename: 'User', id: 3, name: 'Cheddar', active: true });
+      expect(previous).toEqual(undefined);
     });
 
     it(`triggers updaters when an entity is orphaned`, () => {
@@ -92,10 +92,10 @@ describe(`context.CacheContext`, () => {
         ),
       );
 
-      jestExpect(userUpdater.mock.calls.length).toBe(1);
+      expect(userUpdater.mock.calls.length).toBe(1);
       const [, user, previous] = userUpdater.mock.calls[0];
-      jestExpect(user).toBe(undefined);
-      jestExpect(previous).toEqual({ __typename: 'User', id: 1, name: 'Gouda', active: true });
+      expect(user).toBe(undefined);
+      expect(previous).toEqual({ __typename: 'User', id: 1, name: 'Gouda', active: true });
     });
 
     it(`respects writes by updaters`, () => {
@@ -109,14 +109,14 @@ describe(`context.CacheContext`, () => {
         ),
       );
 
-      jestExpect(cache.read(activeUsersQuery).result).toEqual({
+      expect(cache.read(activeUsersQuery).result).toEqual({
         activeUsers: [
           { __typename: 'User', id: 1, name: 'Gouda', active: true },
           { __typename: 'User', id: 2, name: 'Munster', active: true },
         ],
       });
 
-      jestExpect(cache.read(activeUsersQuery, /* optimistic */ true).result).toEqual({
+      expect(cache.read(activeUsersQuery, /* optimistic */ true).result).toEqual({
         activeUsers: [
           { __typename: 'User', id: 1, name: 'Gouda', active: true },
         ],
@@ -132,10 +132,10 @@ describe(`context.CacheContext`, () => {
         ),
       );
 
-      jestExpect(rootUpdater.mock.calls.length).toBe(1);
+      expect(rootUpdater.mock.calls.length).toBe(1);
       const [, root, previous] = rootUpdater.mock.calls[0];
-      jestExpect(root.foo).toBe(123);
-      jestExpect(previous.foo).toBe(undefined);
+      expect(root.foo).toBe(123);
+      expect(previous.foo).toBe(undefined);
     });
 
   });

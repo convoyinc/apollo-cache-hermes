@@ -72,7 +72,7 @@ describe(`writeFragment with parameterized references within arrays`, () => {
   });
 
   it(`returns parameterized data`, () => {
-    jestExpect(hermes.readFragment({
+    expect(hermes.readFragment({
       id: '123',
       fragment: gql(`
       fragment viewer on Viewer {

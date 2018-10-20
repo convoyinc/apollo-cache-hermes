@@ -43,39 +43,39 @@ describe(`operations.write`, () => {
     });
 
     it(`writes a node for the new entity`, () => {
-      jestExpect(snapshot.getNodeData('1')).toEqual({ id: 1, name: 'Foo', extra: false });
+      expect(snapshot.getNodeData('1')).toEqual({ id: 1, name: 'Foo', extra: false });
     });
 
     it(`writes a node for the field that points to the entity's value`, () => {
-      jestExpect(snapshot.getNodeData(parameterizedId)).toBe(snapshot.getNodeData('1'));
+      expect(snapshot.getNodeData(parameterizedId)).toBe(snapshot.getNodeData('1'));
     });
 
     it(`creates an outgoing reference from the field's container`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      jestExpect(queryRoot.outbound).toEqual([{ id: parameterizedId, path: ['foo'] }]);
+      expect(queryRoot.outbound).toEqual([{ id: parameterizedId, path: ['foo'] }]);
     });
 
     it(`creates an inbound reference to the field's container`, () => {
       const values = snapshot.getNodeSnapshot(parameterizedId)!;
-      jestExpect(values.inbound).toEqual([{ id: QueryRootId, path: ['foo'] }]);
+      expect(values.inbound).toEqual([{ id: QueryRootId, path: ['foo'] }]);
     });
 
     it(`creates an outgoing reference from the parameterized field to the referenced entity`, () => {
       const values = snapshot.getNodeSnapshot(parameterizedId)!;
-      jestExpect(values.outbound).toEqual([{ id: '1', path: [] }]);
+      expect(values.outbound).toEqual([{ id: '1', path: [] }]);
     });
 
     it(`creates an incoming reference from the parameterized field to the referenced entity`, () => {
       const entity = snapshot.getNodeSnapshot('1')!;
-      jestExpect(entity.inbound).toEqual([{ id: parameterizedId, path: [] }]);
+      expect(entity.inbound).toEqual([{ id: parameterizedId, path: [] }]);
     });
 
     it(`does not expose the parameterized field directly from its container`, () => {
-      jestExpect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).toBe(undefined);
+      expect(_.get(snapshot.getNodeData(QueryRootId), 'foo')).toBe(undefined);
     });
 
     it(`marks the new field and entity as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([parameterizedId, '1'].sort());
+      expect(Array.from(editedNodeIds).sort()).toEqual([parameterizedId, '1'].sort());
     });
 
   });

@@ -63,35 +63,35 @@ describe(`operations.write`, () => {
     });
 
     it(`writes a value snapshot for the containing field`, () => {
-      jestExpect(snapshot.getNodeSnapshot(parameterizedRootId)).toBeDefined;
+      expect(snapshot.getNodeSnapshot(parameterizedRootId)).toBeDefined;
     });
 
     it(`writes entity snapshots for each array entry`, () => {
-      jestExpect(snapshot.getNodeSnapshot(entityId1)).toBeDefined;
-      jestExpect(snapshot.getNodeSnapshot(entityId2)).toBeDefined;
+      expect(snapshot.getNodeSnapshot(entityId1)).toBeDefined;
+      expect(snapshot.getNodeSnapshot(entityId2)).toBeDefined;
     });
 
     it(`writes entity snapshots for each parameterized field of array entry`, () => {
-      jestExpect(snapshot.getNodeSnapshot(parameterizedIdInEntity1)).toBeDefined;
-      jestExpect(snapshot.getNodeSnapshot(parameterizedIdInEntity2)).toBeDefined;
+      expect(snapshot.getNodeSnapshot(parameterizedIdInEntity1)).toBeDefined;
+      expect(snapshot.getNodeSnapshot(parameterizedIdInEntity2)).toBeDefined;
     });
 
     it(`references the parent entity snapshot from the parameterized field`, () => {
       const entry1 = snapshot.getNodeSnapshot(parameterizedIdInEntity1)!;
-      jestExpect(entry1.inbound).toEqual([{ id: entityId1, path: ['four'] }]);
+      expect(entry1.inbound).toEqual([{ id: entityId1, path: ['four'] }]);
 
       const entry2 = snapshot.getNodeSnapshot(parameterizedIdInEntity2)!;
-      jestExpect(entry2.inbound).toEqual([{ id: entityId2, path: ['four'] }]);
+      expect(entry2.inbound).toEqual([{ id: entityId2, path: ['four'] }]);
     });
 
     it(`references the parameterized field children from the parent entity`, () => {
       const entity1 = snapshot.getNodeSnapshot(entityId1)!;
-      jestExpect(entity1.outbound).toEqual([
+      expect(entity1.outbound).toEqual([
         { id: parameterizedIdInEntity1, path: ['four'] },
       ]);
 
       const entity2 = snapshot.getNodeSnapshot(entityId2)!;
-      jestExpect(entity2.outbound).toEqual([
+      expect(entity2.outbound).toEqual([
         { id: parameterizedIdInEntity2, path: ['four'] },
       ]);
     });
@@ -99,7 +99,7 @@ describe(`operations.write`, () => {
     it(`references the children from the parameterized root`, () => {
       const container = snapshot.getNodeSnapshot(parameterizedRootId)!;
 
-      jestExpect(container.outbound).toEqual([
+      expect(container.outbound).toEqual([
         { id: entityId1, path: [0, 'three'] },
         { id: entityId2, path: [1, 'three'] },
       ]);
@@ -109,7 +109,7 @@ describe(`operations.write`, () => {
       // This is a bit arcane, but it ensures that _overlayParameterizedValues
       // behaves properly when iterating arrays that contain _only_
       // parameterized fields.
-      jestExpect(snapshot.getNodeData(parameterizedRootId)).toEqual([
+      expect(snapshot.getNodeData(parameterizedRootId)).toEqual([
         {
           three: { id: 31 },
         },
@@ -126,7 +126,7 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      jestExpect(updated.getNodeData(parameterizedRootId)).toEqual(null);
+      expect(updated.getNodeData(parameterizedRootId)).toEqual(null);
     });
 
   });

@@ -73,11 +73,11 @@ describe(`writeFragment and then readFragment`, () => {
       },
     });
 
-    jestExpect(hermes.readFragment({
+    expect(hermes.readFragment({
       id: '123',
       fragmentName: 'viewer',
       fragment: readWriteFragment,
-    })).toEqual(jestExpect.objectContaining({
+    })).toEqual(expect.objectContaining({
       id: 123,
       name: 'Munster',
       __typename: 'Viewer',
@@ -96,7 +96,7 @@ describe(`writeFragment and then readFragment`, () => {
       },
     });
 
-    jestExpect(hermes.readFragment({
+    expect(hermes.readFragment({
       id: '123',
       fragmentName: 'viewerPlusShipment',
       fragment: readWriteFragment,

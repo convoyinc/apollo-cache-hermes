@@ -24,7 +24,7 @@ describe(`ParsedQueryNode.expandVariables`, () => {
       }
     `);
 
-    jestExpect(expandVariables(map, undefined)).toEqual({
+    expect(expandVariables(map, undefined)).toEqual({
       foo: new ParsedQueryNode<JsonScalar>({
         bar: new ParsedQueryNode(undefined, undefined, { tag: 'hello' }),
       }, undefined, { limit: 5 }, true),
@@ -39,7 +39,7 @@ describe(`ParsedQueryNode.expandVariables`, () => {
       }
     `);
 
-    jestExpect(expandVariables(map, { foo: 123, bar: 'ohai' })).toEqual({
+    expect(expandVariables(map, { foo: 123, bar: 'ohai' })).toEqual({
       thing: new ParsedQueryNode(undefined, undefined, { a: 123, b: 'ohai' }),
     });
   });
@@ -57,7 +57,7 @@ describe(`ParsedQueryNode.expandVariables`, () => {
       }
     `);
 
-    jestExpect(expandVariables(map, { foo: 123, bar: 'ohai' })).toEqual({
+    expect(expandVariables(map, { foo: 123, bar: 'ohai' })).toEqual({
       one: new ParsedQueryNode<JsonScalar>({
         two: new ParsedQueryNode<JsonScalar>({
           three: new ParsedQueryNode({
@@ -75,7 +75,7 @@ describe(`ParsedQueryNode.expandVariables`, () => {
       }
     `);
 
-    jestExpect(expandVariables(map, { foo: 123, bar: 'ohai' })).toEqual({
+    expect(expandVariables(map, { foo: 123, bar: 'ohai' })).toEqual({
       thing: new ParsedQueryNode(undefined, undefined, { one: { two: 'ohai', three: [1, 2, 123] } }),
     });
   });
@@ -87,7 +87,7 @@ describe(`ParsedQueryNode.expandVariables`, () => {
       }
     `);
 
-    jestExpect(() => {
+    expect(() => {
       expandVariables(map, undefined);
     }).toThrow(/\$(foo|bar)/);
   });
@@ -99,7 +99,7 @@ describe(`ParsedQueryNode.expandVariables`, () => {
       }
     `);
 
-    jestExpect(() => {
+    expect(() => {
       expandVariables(map, { foo: 123 });
     }).toThrow(/\$bar/);
   });

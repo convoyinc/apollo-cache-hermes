@@ -49,7 +49,7 @@ describe(`operations.write`, () => {
       });
 
       it(`writes static fields to the containing entity`, () => {
-        jestExpect(snapshot.getNodeData('1')).toEqual({
+        expect(snapshot.getNodeData('1')).toEqual({
           id: 1,
           value: 'hello',
           history: [
@@ -66,7 +66,7 @@ describe(`operations.write`, () => {
       });
 
       it(`does not create parameterized field nodes`, () => {
-        jestExpect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1'].sort());
+        expect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1'].sort());
       });
 
     });

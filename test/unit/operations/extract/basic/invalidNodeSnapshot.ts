@@ -19,7 +19,7 @@ describe(`operations.extract`, () => {
     });
 
     it(`throws error when extracting invalid NodeSnapshot type`, () => {
-      jestExpect(() => {
+      expect(() => {
         const cacheContext = createStrictCacheContext();
         extract(snapshot, cacheContext);
       }).toThrow(/Serializable.NodeSnapshotType/i);
