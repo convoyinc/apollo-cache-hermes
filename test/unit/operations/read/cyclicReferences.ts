@@ -48,24 +48,24 @@ describe(`operations.read`, () => {
         const foo = (result as any).foo;
         const bar = foo.bar;
 
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
+        jestExpect(foo.id).toBe(1);
+        jestExpect(foo.name).toBe('Foo');
+        jestExpect(foo.bar).toBe(bar);
 
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq('Bar');
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
+        jestExpect(bar.id).toBe(2);
+        jestExpect(bar.name).toBe('Bar');
+        jestExpect(bar.fizz).toBe(foo);
+        jestExpect(bar.buzz).toBe(bar);
       });
 
       it(`is marked complete`, () => {
         const { complete } = read(context, cyclicQuery, snapshot);
-        expect(complete).to.eq(true);
+        jestExpect(complete).toBe(true);
       });
 
       it(`includes all related node ids, if requested`, () => {
         const { nodeIds } = read(context, cyclicQuery, snapshot, true);
-        expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2']);
+        jestExpect(Array.from(nodeIds)).toEqual([QueryRootId, '1', '2']);
       });
 
     });
@@ -106,24 +106,24 @@ describe(`operations.read`, () => {
         const foo = (result as any).foo;
         const bar = foo.bar;
 
-        expect(foo.id).to.eq(1);
-        expect(foo.name).to.eq('Foo');
-        expect(foo.bar).to.eq(bar);
+        jestExpect(foo.id).toBe(1);
+        jestExpect(foo.name).toBe('Foo');
+        jestExpect(foo.bar).toBe(bar);
 
-        expect(bar.id).to.eq(2);
-        expect(bar.name).to.eq(null);
-        expect(bar.fizz).to.eq(foo);
-        expect(bar.buzz).to.eq(bar);
+        jestExpect(bar.id).toBe(2);
+        jestExpect(bar.name).toBe(null);
+        jestExpect(bar.fizz).toBe(foo);
+        jestExpect(bar.buzz).toBe(bar);
       });
 
       it(`is marked complete`, () => {
         const { complete } = read(context, cyclicQuery, snapshot);
-        expect(complete).to.eq(true);
+        jestExpect(complete).toBe(true);
       });
 
       it(`includes all related node ids, if requested`, () => {
         const { nodeIds } = read(context, cyclicQuery, snapshot, true);
-        expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2']);
+        jestExpect(Array.from(nodeIds)).toEqual([QueryRootId, '1', '2']);
       });
 
     });

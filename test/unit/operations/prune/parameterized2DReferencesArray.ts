@@ -57,7 +57,7 @@ describe(`operations.prune`, () => {
       { table: 'This is table name' },
     );
 
-    expect(extractResult).to.deep.eq({
+    jestExpect(extractResult).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         outbound: [{ id: parameterizedId, path: ['rows', 'elements'] }],

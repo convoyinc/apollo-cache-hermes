@@ -56,7 +56,7 @@ describe(`operations.prune`, () => {
     }`);
     const pruned = prune(cacheContext, snapshot, pruneQuery);
     extractResult = extract(pruned.snapshot, cacheContext);
-    expect(extractResult).to.deep.eq({
+    jestExpect(extractResult).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         outbound: [{ id: '1', path: ['foo'] }],
@@ -113,7 +113,7 @@ describe(`operations.prune`, () => {
     }`);
     const pruned = prune(cacheContext, snapshot, pruneQuery);
     extractResult = extract(pruned.snapshot, cacheContext);
-    expect(extractResult).to.deep.eq({
+    jestExpect(extractResult).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         outbound: [{ id: '1', path: ['foo'] }],

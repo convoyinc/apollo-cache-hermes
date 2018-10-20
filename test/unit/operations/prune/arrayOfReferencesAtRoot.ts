@@ -34,7 +34,7 @@ describe(`operations.prune`, () => {
   // `entities referenced by an array of references at the root`
 
   it(`prunes fields from entities referenced by an array at the root correctly`, () => {
-    expect(extractResult).to.deep.eq({
+    jestExpect(extractResult).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         outbound: [

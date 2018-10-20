@@ -88,7 +88,7 @@ describe(`operations.migrate`, () => {
       { extra: true },
     );
 
-    expect(cacheAfter).to.deep.eq({
+    jestExpect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         outbound: [{ id: parameterizedTopContainerId, path: ['one', 'two'] }],
@@ -169,7 +169,7 @@ describe(`operations.migrate`, () => {
       { extra: true },
     );
 
-    expect(cacheAfter).to.deep.eq({
+    jestExpect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         outbound: [{ id: parameterizedTopContainerId, path: ['one', 'two'] }],

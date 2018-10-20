@@ -21,15 +21,15 @@ describe(`operations.read`, () => {
   describe(`with an empty cache`, () => {
 
     it(`returns undefined when fetching anything.`, () => {
-      expect(read(context, viewerQuery, empty).result).to.eq(undefined);
+      jestExpect(read(context, viewerQuery, empty).result).toBe(undefined);
     });
 
     it(`is marked incomplete`, () => {
-      expect(read(context, viewerQuery, empty).complete).to.eq(false);
+      jestExpect(read(context, viewerQuery, empty).complete).toBe(false);
     });
 
     it(`includes no node ids if requested`, () => {
-      expect(Array.from(read(context, viewerQuery, empty, true).nodeIds)).to.have.members([]);
+      jestExpect(Array.from(read(context, viewerQuery, empty, true).nodeIds)).toEqual([]);
     });
 
   });
@@ -48,7 +48,7 @@ describe(`operations.read`, () => {
 
     it(`returns the selected values.`, () => {
       const { result } = read(context, viewerQuery, snapshot);
-      expect(result).to.deep.eq({
+      jestExpect(result).toEqual({
         viewer: {
           id: 123,
           name: 'Foo Bar',
@@ -58,12 +58,12 @@ describe(`operations.read`, () => {
 
     it(`is marked complete`, () => {
       const { complete } = read(context, viewerQuery, snapshot);
-      expect(complete).to.eq(true);
+      jestExpect(complete).toBe(true);
     });
 
     it(`includes all related node ids, if requested`, () => {
       const { nodeIds } = read(context, viewerQuery, snapshot, true);
-      expect(Array.from(nodeIds)).to.have.members([QueryRootId, '123']);
+      jestExpect(Array.from(nodeIds)).toEqual([QueryRootId, '123']);
     });
 
   });
@@ -81,7 +81,7 @@ describe(`operations.read`, () => {
 
     it(`returns the selected values.`, () => {
       const { result } = read(silentContext, viewerQuery, snapshot);
-      expect(result).to.deep.eq({
+      jestExpect(result).toEqual({
         viewer: {
           id: 123,
           name: null,
@@ -91,12 +91,12 @@ describe(`operations.read`, () => {
 
     it(`is marked incomplete`, () => {
       const { complete } = read(silentContext, viewerQuery, snapshot);
-      expect(complete).to.eq(true);
+      jestExpect(complete).toBe(true);
     });
 
     it(`includes all related node ids, if requested`, () => {
       const { nodeIds } = read(silentContext, viewerQuery, snapshot, true);
-      expect(Array.from(nodeIds)).to.have.members([QueryRootId, '123']);
+      jestExpect(Array.from(nodeIds)).toEqual([QueryRootId, '123']);
     });
 
   });
@@ -123,7 +123,7 @@ describe(`operations.read`, () => {
 
     it(`returns the selected values.`, () => {
       const { result } = read(context, nestedQuery, snapshot);
-      expect(result).to.deep.eq({
+      jestExpect(result).toEqual({
         one: {
           two: null,
           five: 'hi',
@@ -133,12 +133,12 @@ describe(`operations.read`, () => {
 
     it(`is marked complete`, () => {
       const { complete } = read(context, nestedQuery, snapshot);
-      expect(complete).to.eq(true);
+      jestExpect(complete).toBe(true);
     });
 
     it(`includes all related node ids, if requested`, () => {
       const { nodeIds } = read(context, nestedQuery, snapshot, true);
-      expect(Array.from(nodeIds)).to.have.members([QueryRootId]);
+      jestExpect(Array.from(nodeIds)).toEqual([QueryRootId]);
     });
 
   });
@@ -158,7 +158,7 @@ describe(`operations.read`, () => {
 
     it(`returns the selected values.`, () => {
       const { result } = read(context, viewerQuery, snapshot);
-      expect(result).to.deep.eq({
+      jestExpect(result).toEqual({
         viewer: [
           { id: 1, name: 'Foo' },
           { id: 2, name: 'Bar' },
@@ -169,12 +169,12 @@ describe(`operations.read`, () => {
 
     it(`is marked complete`, () => {
       const { complete } = read(context, viewerQuery, snapshot);
-      expect(complete).to.eq(true);
+      jestExpect(complete).toBe(true);
     });
 
     it(`includes all related node ids, if requested`, () => {
       const { nodeIds } = read(context, viewerQuery, snapshot, true);
-      expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2', '3']);
+      jestExpect(Array.from(nodeIds)).toEqual([QueryRootId, '1', '2', '3']);
     });
 
   });

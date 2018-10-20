@@ -37,7 +37,7 @@ describe(`operations.read`, () => {
     });
 
     it(`verify that read result is complete`, () => {
-      expect(readResult.complete).to.eq(true);
+      jestExpect(readResult.complete).toBe(true);
     });
 
     it(`verify that read result is correct`, () => {
@@ -56,7 +56,7 @@ describe(`operations.read`, () => {
       };
       foo['bar'] = bar;
 
-      expect(readResult.result).to.deep.eq({ foo });
+      jestExpect(readResult.result).toEqual({ foo });
     });
   });
 
