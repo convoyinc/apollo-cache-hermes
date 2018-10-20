@@ -1,8 +1,4 @@
 /* eslint-disable */
-// MODIFIED BY CONVOY:
-//
-//   * Global `expect` was removed to make room for our global chai `expect`.
-//
 
 // Type definitions for Jest 21.1
 // Project: http://facebook.github.io/jest/
@@ -30,7 +26,7 @@ declare var fit: jest.It;
 declare var xit: jest.It;
 declare var test: jest.It;
 declare var xtest: jest.It;
-declare const jestExpect: jest.Expect;
+declare const expect: jest.Expect;
 
 interface NodeRequire {
   /**
