@@ -20,7 +20,7 @@ describe(`operations.extract`, () => {
     });
 
     it(`throws error when extracting invalid values`, () => {
-      jestExpect(() => {
+      expect(() => {
         extract(snapshot, cacheContext);
       }).toThrow(/unserializable/i);
     });

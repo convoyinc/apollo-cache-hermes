@@ -124,8 +124,8 @@ describe(`operations.migrate`, () => {
       }
     `, { id: 'xxx' }), migrated.baseline);
 
-    jestExpect(complete).toBeTruthy();
-    jestExpect(_.get(result, 'user')).toBeNull();
+    expect(complete).toBeTruthy();
+    expect(_.get(result, 'user')).toBeNull();
   });
 
   it(`doesn't wipe out compatable parameterized fields at root`, () => {
@@ -155,8 +155,8 @@ describe(`operations.migrate`, () => {
       }
     `, { id: 'xxx' }), migrated.baseline);
 
-    jestExpect(complete).toBeTruthy();
-    jestExpect(_.get(result, 'user')).toEqual({
+    expect(complete).toBeTruthy();
+    expect(_.get(result, 'user')).toEqual({
       id: 'xxx',
       first: 'YoYo',
       last: 'Ma',
@@ -187,8 +187,8 @@ describe(`operations.migrate`, () => {
       }
     `, { id: 'xxx' }), migrated.baseline);
 
-    jestExpect(complete).toBeTruthy();
-    jestExpect(_.get(result, 'user')).toBe(null);
+    expect(complete).toBeTruthy();
+    expect(_.get(result, 'user')).toBe(null);
   });
 
   it(`can add parameterized fields to entity`, () => {
@@ -217,8 +217,8 @@ describe(`operations.migrate`, () => {
       }
     `, { circle: 'elementary' }), migrated.baseline);
 
-    jestExpect(complete).toBeTruthy();
-    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
+    expect(complete).toBeTruthy();
+    expect(_.get(result, ['viewer', 'friends'])).toEqual([]);
   });
 
   it(`doesn't wipe out compatable parameterized fields on entity`, () => {
@@ -251,8 +251,8 @@ describe(`operations.migrate`, () => {
       }
     `, { circle: 'elementary' }), migrated.baseline);
 
-    jestExpect(complete).toBeTruthy();
-    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([{
+    expect(complete).toBeTruthy();
+    expect(_.get(result, ['viewer', 'friends'])).toEqual([{
       id: 'friend-1',
       first: 'Bob',
       last: 'Breaker',
@@ -289,8 +289,8 @@ describe(`operations.migrate`, () => {
       }
     `, { circle: 'elementary', stillFriends: true }), migrated.baseline);
 
-    jestExpect(complete).toBeTruthy();
-    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
+    expect(complete).toBeTruthy();
+    expect(_.get(result, ['viewer', 'friends'])).toEqual([]);
   });
 
 });

@@ -83,7 +83,7 @@ describe(`serialization with pruning`, () => {
     newCache.restore(JSON.parse(storedExtractResult));
 
     // the restored cache should look as if muddyQuery never happens
-    jestExpect(newCache.getSnapshot()).toEqual(originalCacheSnapshot);
+    expect(newCache.getSnapshot()).toEqual(originalCacheSnapshot);
   });
 
   it(`can extract the cache with slightly trimmed 'three' object`, () => {
@@ -133,7 +133,7 @@ describe(`serialization with pruning`, () => {
 
     // the restored cache should look as if it is built up from scrach with
     // altPruneQuery
-    jestExpect(newCache.getSnapshot()).toEqual(expectedCache.getSnapshot());
+    expect(newCache.getSnapshot()).toEqual(expectedCache.getSnapshot());
   });
 
 });

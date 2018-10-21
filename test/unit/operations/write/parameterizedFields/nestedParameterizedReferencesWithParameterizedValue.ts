@@ -50,22 +50,22 @@ describe(`operations.write`, () => {
     });
 
     it(`writes a value snapshot for the containing field`, () => {
-      jestExpect(snapshot.getNodeSnapshot(parameterizedRootId)).toBeDefined;
+      expect(snapshot.getNodeSnapshot(parameterizedRootId)).toBeDefined;
     });
 
     it(`writes value snapshots for each array entry`, () => {
-      jestExpect(snapshot.getNodeSnapshot(parameterizedFieldId)).toBeDefined;
+      expect(snapshot.getNodeSnapshot(parameterizedFieldId)).toBeDefined;
     });
 
     it(`references the parent entity snapshot from the children`, () => {
       const entry1 = snapshot.getNodeSnapshot(parameterizedFieldId)!;
 
-      jestExpect(entry1.inbound).toEqual([{ id: entityId, path: ['four'] }]);
+      expect(entry1.inbound).toEqual([{ id: entityId, path: ['four'] }]);
     });
 
     it(`references the children from the parent entity`, () => {
       const entity = snapshot.getNodeSnapshot(entityId)!;
-      jestExpect(entity.outbound).toEqual([
+      expect(entity.outbound).toEqual([
         { id: parameterizedFieldId, path: ['four'] },
       ]);
     });
@@ -73,7 +73,7 @@ describe(`operations.write`, () => {
     it(`references the children from the parameterized root`, () => {
       const container = snapshot.getNodeSnapshot(parameterizedRootId)!;
 
-      jestExpect(container.outbound).toEqual([
+      expect(container.outbound).toEqual([
         { id: entityId, path: ['three'] },
       ]);
     });
@@ -82,7 +82,7 @@ describe(`operations.write`, () => {
       // This is a bit arcane, but it ensures that _overlayParameterizedValues
       // behaves properly when iterating arrays that contain _only_
       // parameterized fields.
-      jestExpect(snapshot.getNodeData(parameterizedRootId)).toEqual({ three: { id: 31 } });
+      expect(snapshot.getNodeData(parameterizedRootId)).toEqual({ three: { id: 31 } });
     });
 
     it(`allows removal of values containing a field`, () => {
@@ -92,7 +92,7 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      jestExpect(updated.getNodeData(parameterizedRootId)).toEqual(null);
+      expect(updated.getNodeData(parameterizedRootId)).toEqual(null);
     });
 
   });

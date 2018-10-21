@@ -84,22 +84,22 @@ describe(`operations.restore`, () => {
     });
 
     it(`restores GraphSnapshot from JSON serializable object`, () => {
-      jestExpect(restoreGraphSnapshot).toEqual(originalGraphSnapshot);
+      expect(restoreGraphSnapshot).toEqual(originalGraphSnapshot);
     });
 
     it(`correctly restores different types of NodeSnapshot`, () => {
-      jestExpect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
-      jestExpect(restoreGraphSnapshot.getNodeSnapshot('123')).toBeInstanceOf(EntitySnapshot);
-      jestExpect(restoreGraphSnapshot.getNodeSnapshot('456')).toBeInstanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot('123')).toBeInstanceOf(EntitySnapshot);
+      expect(restoreGraphSnapshot.getNodeSnapshot('456')).toBeInstanceOf(EntitySnapshot);
     });
 
     it(`correctly restores NodeSnapshot, entity transformation on specific entity`, () => {
-      jestExpect(restoreGraphSnapshot.getNodeData('123')).toBeInstanceOf(Viewer);
-      jestExpect(restoreGraphSnapshot.getNodeData('456')).toBeInstanceOf(Viewer);
+      expect(restoreGraphSnapshot.getNodeData('123')).toBeInstanceOf(Viewer);
+      expect(restoreGraphSnapshot.getNodeData('456')).toBeInstanceOf(Viewer);
     });
 
     it(`correctly restores NodeSnapshot, no entity transformation on QueryRootId`, () => {
-      jestExpect(restoreGraphSnapshot.getNodeData(QueryRootId)).not.toBeInstanceOf(Viewer);
+      expect(restoreGraphSnapshot.getNodeData(QueryRootId)).not.toBeInstanceOf(Viewer);
     });
 
   });

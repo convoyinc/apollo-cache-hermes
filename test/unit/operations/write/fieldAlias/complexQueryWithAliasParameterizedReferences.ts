@@ -73,7 +73,7 @@ describe(`operations.write`, () => {
 
     it(`only writes fields from the schema`, () => {
       const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
-      jestExpect(snapshot.getNodeData(parameterizedId)).toEqual({
+      expect(snapshot.getNodeData(parameterizedId)).toEqual({
         id: 4,
         name: 'Foo',
         contactInfo: {

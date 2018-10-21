@@ -42,14 +42,14 @@ describe(`operations.write`, () => {
     });
 
     it(`only writes fields from the schema on simple query with variables`, () => {
-      jestExpect(snapshot.getNodeData(parameterizedId)).toEqual({
+      expect(snapshot.getNodeData(parameterizedId)).toEqual({
         id: 4,
         name: 'Baz',
       });
     });
 
     it(`checks shape of GraphSnapShot at root query`, () => {
-      jestExpect(snapshot.getNodeSnapshot(QueryRootId)).toEqual(
+      expect(snapshot.getNodeSnapshot(QueryRootId)).toEqual(
         new EntitySnapshot(
           /* data */ undefined,
           /* inbound */ undefined,
@@ -59,7 +59,7 @@ describe(`operations.write`, () => {
     });
 
     it(`checks shape of GraphSnapShot at parameterized root query`, () => {
-      jestExpect(snapshot.getNodeSnapshot(parameterizedId)).toEqual(
+      expect(snapshot.getNodeSnapshot(parameterizedId)).toEqual(
         new ParameterizedValueSnapshot(
           {
             id: 4,
@@ -72,7 +72,7 @@ describe(`operations.write`, () => {
     });
 
     it(`checks shape of GraphSnapShot at the reference`, () => {
-      jestExpect(snapshot.getNodeSnapshot('4')).toEqual(
+      expect(snapshot.getNodeSnapshot('4')).toEqual(
         new EntitySnapshot(
           {
             id: 4,

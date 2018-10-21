@@ -66,7 +66,7 @@ describe(`writeFragment with multiple fragments`, () => {
       },
     });
 
-    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('123')).toEqual({
+    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('123')).toEqual({
       id: 123,
       nameViewer: 'Munster',
       __typename: 'Viewer',
@@ -90,7 +90,7 @@ describe(`writeFragment with multiple fragments`, () => {
       },
     });
 
-    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('shipment0')).toEqual({
+    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('shipment0')).toEqual({
       id: 'shipment0',
       name: 'Shipping some Cheese',
       begin: 'Seattle',
@@ -100,7 +100,7 @@ describe(`writeFragment with multiple fragments`, () => {
   });
 
   it(`correctly modify 'viewer' reference`, () => {
-    jestExpect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('123')).toEqual({
+    expect(hermes.getCurrentCacheSnapshot().baseline.getNodeData('123')).toEqual({
       id: 123,
       nameViewer: 'Munster',
       __typename: 'Viewer',

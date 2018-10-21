@@ -26,7 +26,7 @@ describe(`operations.write`, () => {
         foo: { a: 1, b: 2, c: 3 },
       });
 
-      jestExpect(snapshot.getNodeData(QueryRootId)).toBe(baseSnapshot.getNodeData(QueryRootId));
+      expect(snapshot.getNodeData(QueryRootId)).toBe(baseSnapshot.getNodeData(QueryRootId));
     });
 
     it(`only edits values that do change`, () => {
@@ -43,10 +43,10 @@ describe(`operations.write`, () => {
 
       const baseValue = baseSnapshot.getNodeData(QueryRootId).foo;
       const newValue = snapshot.getNodeData(QueryRootId).foo;
-      jestExpect(newValue.a).toBe(baseValue.a);
-      jestExpect(newValue.c).toBe(baseValue.c);
-      jestExpect(newValue.b).toEqual({ nested: { value: 4 } });
-      jestExpect(baseValue.b).toEqual({ nested: { value: 2 } });
+      expect(newValue.a).toBe(baseValue.a);
+      expect(newValue.c).toBe(baseValue.c);
+      expect(newValue.b).toEqual({ nested: { value: 4 } });
+      expect(baseValue.b).toEqual({ nested: { value: 2 } });
     });
 
   });

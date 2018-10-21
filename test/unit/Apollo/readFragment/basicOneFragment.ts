@@ -29,7 +29,7 @@ describe(`readFragment with one fragment`, () => {
   });
 
   it(`correctly read a fragment`, () => {
-    jestExpect(hermes.readFragment({
+    expect(hermes.readFragment({
       id: '123',
       fragment: gql(`
         fragment viewer on Viewer {

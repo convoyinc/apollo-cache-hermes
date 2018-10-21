@@ -33,7 +33,7 @@ describe(`writeFragment directly to root query`, () => {
   });
 
   it(`correctly modify root query`, () => {
-    jestExpect(baseline.getNodeSnapshot(QueryRootId)).toEqual(
+    expect(baseline.getNodeSnapshot(QueryRootId)).toEqual(
       new EntitySnapshot(
         {
           id: 123,
@@ -44,11 +44,11 @@ describe(`writeFragment directly to root query`, () => {
         [{ id: '123', path: [] }],
       )
     );
-    jestExpect(baseline.getNodeData(QueryRootId)).toBe(baseline.getNodeData('123'));
+    expect(baseline.getNodeData(QueryRootId)).toBe(baseline.getNodeData('123'));
   });
 
   it(`correctly add new reference`, () => {
-    jestExpect(baseline.getNodeSnapshot('123')).toEqual(
+    expect(baseline.getNodeSnapshot('123')).toEqual(
       new EntitySnapshot(
         {
           id: 123,

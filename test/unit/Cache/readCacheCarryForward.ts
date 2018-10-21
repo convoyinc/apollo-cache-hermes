@@ -20,9 +20,9 @@ describe(`readCache carry-forward`, () => {
   it(`the cache memoizes read results`, () => {
     cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
 
-    jestExpect(cache.getSnapshot().baseline.readCache.size).toBe(0);
+    expect(cache.getSnapshot().baseline.readCache.size).toBe(0);
     cache.read({ ...thingQuery, variables: { id: 'a' } });
-    jestExpect(cache.getSnapshot().baseline.readCache.size).toBe(1);
+    expect(cache.getSnapshot().baseline.readCache.size).toBe(1);
   });
 
   it(`carries cache results forward if no entities in the cached query were changed`, () => {
@@ -30,7 +30,7 @@ describe(`readCache carry-forward`, () => {
     cache.read({ ...thingQuery, variables: { id: 'a' } });
 
     cache.write({ ...thingQuery, variables: { id: 'b' } }, { thing: { id: 'b', ref: { id: 1 } } });
-    jestExpect(cache.getSnapshot().baseline.readCache.size).toBe(1);
+    expect(cache.getSnapshot().baseline.readCache.size).toBe(1);
   });
 
   it(`drops cache results if entities in the cached query were changed`, () => {
@@ -38,7 +38,7 @@ describe(`readCache carry-forward`, () => {
     cache.read({ ...thingQuery, variables: { id: 'a' } });
 
     cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 2 } } });
-    jestExpect(cache.getSnapshot().baseline.readCache.size).toBe(0);
+    expect(cache.getSnapshot().baseline.readCache.size).toBe(0);
   });
 
   it(`drops cache results if containing entities in the cached query were changed`, () => {
@@ -46,7 +46,7 @@ describe(`readCache carry-forward`, () => {
     cache.read({ ...thingQuery, variables: { id: 'a' } });
 
     cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'b', ref: { id: 1 } } });
-    jestExpect(cache.getSnapshot().baseline.readCache.size).toBe(0);
+    expect(cache.getSnapshot().baseline.readCache.size).toBe(0);
   });
 
 });

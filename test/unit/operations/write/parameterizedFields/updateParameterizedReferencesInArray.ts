@@ -50,19 +50,19 @@ describe(`operations.write`, () => {
     });
 
     it(`writes nodes for each entity`, () => {
-      jestExpect(baseline.getNodeData('1')).toEqual({ id: 1, name: 'Foo', extra: false });
-      jestExpect(baseline.getNodeData('2')).toEqual({ id: 2, name: 'Bar', extra: true });
-      jestExpect(baseline.getNodeData('3')).toEqual({ id: 3, name: 'Baz', extra: false });
+      expect(baseline.getNodeData('1')).toEqual({ id: 1, name: 'Foo', extra: false });
+      expect(baseline.getNodeData('2')).toEqual({ id: 2, name: 'Bar', extra: true });
+      expect(baseline.getNodeData('3')).toEqual({ id: 3, name: 'Baz', extra: false });
     });
 
     it(`updates nodes for each entity`, () => {
-      jestExpect(snapshot.getNodeData('1')).toEqual({ id: 1, name: 'Foo', extra: true });
-      jestExpect(snapshot.getNodeData('2')).toEqual({ id: 2, name: 'Bar', extra: false });
-      jestExpect(snapshot.getNodeData('3')).toEqual({ id: 3, name: 'Baz', extra: true });
+      expect(snapshot.getNodeData('1')).toEqual({ id: 1, name: 'Foo', extra: true });
+      expect(snapshot.getNodeData('2')).toEqual({ id: 2, name: 'Bar', extra: false });
+      expect(snapshot.getNodeData('3')).toEqual({ id: 3, name: 'Baz', extra: true });
     });
 
     it(`writes an array for the parameterized node`, () => {
-      jestExpect(snapshot.getNodeData(parameterizedId)).toEqual([
+      expect(snapshot.getNodeData(parameterizedId)).toEqual([
         { id: 1, name: 'Foo', extra: true },
         { id: 2, name: 'Bar', extra: false },
         { id: 3, name: 'Baz', extra: true },

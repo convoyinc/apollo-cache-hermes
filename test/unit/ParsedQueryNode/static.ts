@@ -14,7 +14,7 @@ describe(`parseQuery with static queries`, () => {
   }
 
   it(`parses single-field queries`, () => {
-    jestExpect(parseOperation(`{ foo }`)).toEqual({
+    expect(parseOperation(`{ foo }`)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode(),
       },
@@ -29,7 +29,7 @@ describe(`parseQuery with static queries`, () => {
         baz { buzz }
       }
     }`;
-    jestExpect(parseOperation(operation)).toEqual({
+    expect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode({
           bar: new ParsedQueryNode({
@@ -45,7 +45,7 @@ describe(`parseQuery with static queries`, () => {
   });
 
   it(`includes a schemaName when a field is aliased`, () => {
-    jestExpect(parseOperation(`{ foo: bar }`)).toEqual({
+    expect(parseOperation(`{ foo: bar }`)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode(undefined, 'bar'),
       },
@@ -59,7 +59,7 @@ describe(`parseQuery with static queries`, () => {
       bar: fizz
       fizz
     }`;
-    jestExpect(parseOperation(operation)).toEqual({
+    expect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode(undefined, 'fizz'),
         bar: new ParsedQueryNode(undefined, 'fizz'),

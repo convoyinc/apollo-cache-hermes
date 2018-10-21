@@ -37,7 +37,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, with the values`, () => {
-      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
+      expect(snapshot.getNodeData(QueryRootId)).toEqual({
         rows: [
           [
             { id: 'a', value: 1 },
@@ -52,14 +52,14 @@ describe(`operations.write`, () => {
     });
 
     it(`creates entity node in each row`, () => {
-      jestExpect(snapshot.getNodeData('a')).toEqual({ id: 'a', value: 1 });
-      jestExpect(snapshot.getNodeData('b')).toEqual({ id: 'b', value: 2 });
-      jestExpect(snapshot.getNodeData('c')).toEqual({ id: 'c', value: 3 });
-      jestExpect(snapshot.getNodeData('d')).toEqual({ id: 'd', value: 4 });
+      expect(snapshot.getNodeData('a')).toEqual({ id: 'a', value: 1 });
+      expect(snapshot.getNodeData('b')).toEqual({ id: 'b', value: 2 });
+      expect(snapshot.getNodeData('c')).toEqual({ id: 'c', value: 3 });
+      expect(snapshot.getNodeData('d')).toEqual({ id: 'd', value: 4 });
     });
 
     it(`records the outbound references from the query root`, () => {
-      jestExpect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      expect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
         { id: 'a', path: ['rows', 0, 0] },
         { id: 'b', path: ['rows', 0, 1] },
         { id: 'c', path: ['rows', 1, 0] },
@@ -69,10 +69,10 @@ describe(`operations.write`, () => {
 
     it(`directly reference each row from the query root`, () => {
       const rows = snapshot.getNodeData(QueryRootId).rows;
-      jestExpect(rows[0][0]).toBe(snapshot.getNodeData('a'));
-      jestExpect(rows[0][1]).toBe(snapshot.getNodeData('b'));
-      jestExpect(rows[1][0]).toBe(snapshot.getNodeData('c'));
-      jestExpect(rows[1][1]).toBe(snapshot.getNodeData('d'));
+      expect(rows[0][0]).toBe(snapshot.getNodeData('a'));
+      expect(rows[0][1]).toBe(snapshot.getNodeData('b'));
+      expect(rows[1][0]).toBe(snapshot.getNodeData('c'));
+      expect(rows[1][1]).toBe(snapshot.getNodeData('d'));
     });
 
   });

@@ -41,7 +41,7 @@ describe(`context.CacheContext`, () => {
         );
         throw new Error(`Fake error`);
       });
-      jestExpect(mockOnChange.mock.calls.length).toBe(0);
+      expect(mockOnChange.mock.calls.length).toBe(0);
     });
 
   });

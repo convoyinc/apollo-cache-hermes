@@ -52,10 +52,10 @@ describe(`operations.prune`, () => {
       }`, { tableName: 'Something else' }
     );
     const pruned = prune(cacheContext, snapshot, pruneQuery);
-    jestExpect(pruned.complete).toBeFalsy();
+    expect(pruned.complete).toBeFalsy();
 
     const extractResult = extract(pruned.snapshot, cacheContext);
-    jestExpect(extractResult).toEqual({
+    expect(extractResult).toEqual({
       [QueryRootId]: {
         data: { rows: null },
         type: Serializable.NodeSnapshotType.EntitySnapshot,

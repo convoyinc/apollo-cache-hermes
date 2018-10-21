@@ -68,7 +68,7 @@ describe(`extract/restore roundtrip`, () => {
       addTypename: true,
     });
 
-    jestExpect(() => {
+    expect(() => {
       hermes.restore(JSON.parse(persisted), undefined, {
         query: gql(baseResourcesV2),
         optimistic: false,
@@ -82,7 +82,7 @@ describe(`extract/restore roundtrip`, () => {
       addTypename: true,
     });
 
-    jestExpect(() => {
+    expect(() => {
       hermes.restore(JSON.parse(persisted), {
         _entities: {
           Viewer: {
@@ -95,7 +95,7 @@ describe(`extract/restore roundtrip`, () => {
       });
     }).not.toThrow();
 
-    jestExpect(() => {
+    expect(() => {
       hermes.readQuery({
         query: gql(`
           query getViewer {
@@ -116,7 +116,7 @@ describe(`extract/restore roundtrip`, () => {
       addTypename: true,
     });
 
-    jestExpect(() => {
+    expect(() => {
       hermes.restore(JSON.parse(persisted), {
         _entities: {
           Viewer: {
@@ -129,7 +129,7 @@ describe(`extract/restore roundtrip`, () => {
       });
     }).not.toThrow();
 
-    jestExpect(hermes.readQuery({
+    expect(hermes.readQuery({
       query: gql(baseResourcesV2),
     })).toEqual({
       viewer: {

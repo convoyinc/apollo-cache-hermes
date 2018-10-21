@@ -50,7 +50,7 @@ describe(`operations.prune`, () => {
   });
 
   it(`prunes value from duplicated references correctly`, () => {
-    jestExpect(extractResult).toEqual({
+    expect(extractResult).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         outbound: [

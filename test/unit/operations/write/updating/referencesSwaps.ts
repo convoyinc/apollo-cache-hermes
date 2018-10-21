@@ -47,39 +47,39 @@ describe(`operations.write`, () => {
     });
 
     it(`previous versions still have original value`, () => {
-      jestExpect(baseline.getNodeData(QueryRootId)).toEqual({
+      expect(baseline.getNodeData(QueryRootId)).toEqual({
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar' },
       });
     });
 
     it(`preserves unedited nodes from the parent`, () => {
-      jestExpect(baseline.getNodeData('1')).toBe(snapshot.getNodeData('1'));
-      jestExpect(baseline.getNodeData('2')).toBe(snapshot.getNodeData('2'));
+      expect(baseline.getNodeData('1')).toBe(snapshot.getNodeData('1'));
+      expect(baseline.getNodeData('2')).toBe(snapshot.getNodeData('2'));
     });
 
     it(`updates outbound references`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      jestExpect(queryRoot.outbound).toEqual([
+      expect(queryRoot.outbound).toEqual([
         { id: '2', path: ['foo'] },
         { id: '1', path: ['bar'] },
       ]);
-      jestExpect(queryRoot.inbound).toBe(undefined);
+      expect(queryRoot.inbound).toBe(undefined);
     });
 
     it(`updates inbound references`, () => {
       const foo = snapshot.getNodeSnapshot('1')!;
       const bar = snapshot.getNodeSnapshot('2')!;
-      jestExpect(foo.inbound).toEqual([{ id: QueryRootId, path: ['bar'] }]);
-      jestExpect(bar.inbound).toEqual([{ id: QueryRootId, path: ['foo'] }]);
+      expect(foo.inbound).toEqual([{ id: QueryRootId, path: ['bar'] }]);
+      expect(bar.inbound).toEqual([{ id: QueryRootId, path: ['foo'] }]);
     });
 
     it(`marks the container as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
+      expect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
     });
 
     it(`contains the correct nodes`, () => {
-      jestExpect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1', '2'].sort());
+      expect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1', '2'].sort());
     });
   });
 });

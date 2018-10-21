@@ -34,7 +34,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, referencing the entity`, () => {
-      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
+      expect(snapshot.getNodeData(QueryRootId)).toEqual({
         viewer: [
           {
             postal: 123,
@@ -49,12 +49,12 @@ describe(`operations.write`, () => {
     });
 
     it(`emits the root as an EntitySnapshot`, () => {
-      jestExpect(snapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
     });
 
     it(`directly references a first entity of viewer from the query root`, () => {
       const queryRoot = snapshot.getNodeData(QueryRootId);
-      jestExpect(queryRoot.viewer[0]).toEqual({
+      expect(queryRoot.viewer[0]).toEqual({
         postal: 123,
         name: 'Gouda',
       });
@@ -62,16 +62,16 @@ describe(`operations.write`, () => {
 
     it(`records the outbound and inbound reference from the query root`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      jestExpect(queryRoot.outbound).toBe(undefined);
-      jestExpect(queryRoot.inbound).toBe(undefined);
+      expect(queryRoot.outbound).toBe(undefined);
+      expect(queryRoot.inbound).toBe(undefined);
     });
 
     it(`marks a query root as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
+      expect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
     });
 
     it(`only contains a one node`, () => {
-      jestExpect(snapshot.allNodeIds()).toEqual([QueryRootId]);
+      expect(snapshot.allNodeIds()).toEqual([QueryRootId]);
     });
   });
 

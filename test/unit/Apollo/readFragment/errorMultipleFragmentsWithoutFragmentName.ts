@@ -29,7 +29,7 @@ describe(`readFragment with ambiguous fragments`, () => {
   });
 
   it(`throws an error`, () => {
-    jestExpect(() => {
+    expect(() => {
       hermes.readFragment({
         id: '123',
         fragment: gql(`

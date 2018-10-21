@@ -46,11 +46,11 @@ describe(`operations.write`, () => {
     });
 
     it(`doesn't contain the orphaned parameterized value`, () => {
-      jestExpect(snapshot.allNodeIds()).not.toContain(entityBarId1);
+      expect(snapshot.allNodeIds()).not.toContain(entityBarId1);
     });
 
     it(`doesn't contain transitively orphaned nodes`, () => {
-      jestExpect(snapshot.allNodeIds()).not.toContain('2');
+      expect(snapshot.allNodeIds()).not.toContain('2');
     });
 
   });

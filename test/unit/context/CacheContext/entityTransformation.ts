@@ -48,11 +48,11 @@ describe(`context.CacheContext`, () => {
 
       it(`check helper methods does not exist`, () => {
         const viewerParameterizedId = nodeIdForParameterizedValue(QueryRootId, ['viewer'], { id: '4' });
-        jestExpect(
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData(viewerParameterizedId))
           )
-        ).not.toEqual(jestExpect.arrayContaining(['id', 'name', 'isActive']));
+        ).not.toEqual(expect.arrayContaining(['id', 'name', 'isActive']));
       });
     });
 
@@ -101,21 +101,21 @@ describe(`context.CacheContext`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
         const name = (result as any).viewer.getName();
         const id = (result as any).viewer.getId();
-        jestExpect(name).toBe('Bob');
-        jestExpect(id).toBe('0');
+        expect(name).toBe('Bob');
+        expect(id).toBe('0');
       });
 
       it(`check helper methods exists`, () => {
-        jestExpect(
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData(QueryRootId))
           )
-        ).not.toEqual(jestExpect.arrayContaining(['getName', 'getId']));
-        jestExpect(
+        ).not.toEqual(expect.arrayContaining(['getName', 'getId']));
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData(QueryRootId).viewer)
           )
-        ).toEqual(jestExpect.arrayContaining(['getName', 'getId']));
+        ).toEqual(expect.arrayContaining(['getName', 'getId']));
       });
     });
 
@@ -218,32 +218,32 @@ describe(`context.CacheContext`, () => {
 
       it(`get information through helper methods`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
-        jestExpect((result as any).user.getName()).toBe('Bob');
-        jestExpect((result as any).user.getId()).toBe('0');
-        jestExpect((result as any).user.getJustPhoneNumber()).toBe(1234);
-        jestExpect((result as any).user.getCity()).toBe('AA');
+        expect((result as any).user.getName()).toBe('Bob');
+        expect((result as any).user.getId()).toBe('0');
+        expect((result as any).user.getJustPhoneNumber()).toBe(1234);
+        expect((result as any).user.getCity()).toBe('AA');
       });
 
       it(`check helper methods exists`, () => {
-        jestExpect(
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData(QueryRootId).user)
           )
-        ).toEqual(jestExpect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
+        ).toEqual(expect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
       });
 
       it(`check helper method not attached to other entity`, () => {
-        jestExpect(
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData(QueryRootId))
           )
-        ).not.toEqual(jestExpect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
+        ).not.toEqual(expect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
 
-        jestExpect(
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData('1'))
           )
-        ).not.toEqual(jestExpect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
+        ).not.toEqual(expect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
       });
     });
 
@@ -346,32 +346,32 @@ describe(`context.CacheContext`, () => {
 
       it(`get information through helper methods`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
-        jestExpect((result as any).user.getName()).toBe('Bob');
-        jestExpect((result as any).user.getId()).toBe('0');
-        jestExpect((result as any).user.getJustPhoneNumber()).toBe(1234);
-        jestExpect((result as any).user.getCity()).toBe('AA');
+        expect((result as any).user.getName()).toBe('Bob');
+        expect((result as any).user.getId()).toBe('0');
+        expect((result as any).user.getJustPhoneNumber()).toBe(1234);
+        expect((result as any).user.getCity()).toBe('AA');
       });
 
       it(`check helper methods exists`, () => {
-        jestExpect(
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData(QueryRootId).user)
           )
-        ).toEqual(jestExpect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
+        ).toEqual(expect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
       });
 
       it(`check helper method not attached to other entity`, () => {
-        jestExpect(
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData(QueryRootId))
           )
-        ).not.toEqual(jestExpect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
+        ).not.toEqual(expect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
 
-        jestExpect(
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData('1'))
           )
-        ).not.toEqual(jestExpect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
+        ).not.toEqual(expect.arrayContaining(['getName', 'getId', 'getJustPhoneNumber', 'getCity']));
       });
     });
 
@@ -402,8 +402,8 @@ describe(`context.CacheContext`, () => {
       });
 
       it(`check that entity is frozen`, () => {
-        jestExpect(Object.isFrozen(snapshot.getNodeData(QueryRootId))).toBeTruthy();
-        jestExpect(Object.isFrozen(snapshot.getNodeData('0'))).toBeTruthy();
+        expect(Object.isFrozen(snapshot.getNodeData(QueryRootId))).toBeTruthy();
+        expect(Object.isFrozen(snapshot.getNodeData('0'))).toBeTruthy();
       });
     });
 
@@ -453,17 +453,17 @@ describe(`context.CacheContext`, () => {
         const { result } = read(entityTransformerContext, viewerQuery, snapshot);
         const name = (result as any).viewer.getName();
         const id = (result as any).viewer.getId();
-        jestExpect(name).toBe('Bob');
-        jestExpect(id).toBe('4');
+        expect(name).toBe('Bob');
+        expect(id).toBe('4');
       });
 
       it(`check helper methods exists`, () => {
         const viewerParameterizedId = nodeIdForParameterizedValue(QueryRootId, ['viewer'], { id: '4' });
-        jestExpect(
+        expect(
           Object.keys(
             Object.getPrototypeOf(snapshot.getNodeData(viewerParameterizedId))
           )
-        ).toEqual(jestExpect.arrayContaining(['getName', 'getId']));
+        ).toEqual(expect.arrayContaining(['getName', 'getId']));
       });
     });
   });

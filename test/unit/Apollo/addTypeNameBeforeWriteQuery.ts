@@ -32,7 +32,7 @@ describe(`transform document before writeQuery`, () => {
   });
 
   it(`correctly writeQuery with __typename`, () => {
-    jestExpect(hermes.readQuery({
+    expect(hermes.readQuery({
       query: gql(`
         query getViewer {
           viewer {

@@ -47,7 +47,7 @@ describe(`operations.write`, () => {
     });
 
     it(`sets up outbound references`, () => {
-      jestExpect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      expect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '3', path: ['things', 2] },
@@ -66,7 +66,7 @@ describe(`operations.write`, () => {
           { id: 3, name: 'Three' },
         ],
       }).snapshot;
-      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual(jestExpect.arrayContaining([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual(expect.arrayContaining([
         { id: '5', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '1', path: ['things', 2] },
@@ -83,7 +83,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
       ]);
@@ -105,7 +105,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '3', path: ['things', 2] },
@@ -130,12 +130,12 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
         { id: '3', path: ['things', 2] },
         { id: '4', path: ['things', 3] },
       ]);
 
-      jestExpect(updated.getNodeData(QueryRootId)).toEqual({
+      expect(updated.getNodeData(QueryRootId)).toEqual({
         things: [
           null,
           null,
@@ -157,12 +157,12 @@ describe(`operations.write`, () => {
         ] as JsonArray,
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      expect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
         { id: '3', path: ['things', 2] },
         { id: '4', path: ['things', 3] },
       ]);
 
-      jestExpect(updated.getNodeData(QueryRootId)).toEqual({
+      expect(updated.getNodeData(QueryRootId)).toEqual({
         things: [
           null,
           null,
@@ -182,7 +182,7 @@ describe(`operations.write`, () => {
         ] as JsonArray,
       }).snapshot;
 
-      jestExpect(updated.getNodeData(QueryRootId)).toEqual({
+      expect(updated.getNodeData(QueryRootId)).toEqual({
         things: [
           { id: 1, name: 'One' },
           { id: 2, name: 'Two' },
@@ -206,7 +206,7 @@ describe(`operations.write`, () => {
         bar: 0,
       }).snapshot;
 
-      jestExpect(updated.getNodeData(QueryRootId)).toEqual({
+      expect(updated.getNodeData(QueryRootId)).toEqual({
         foo: [
           false,
           0,
@@ -217,7 +217,7 @@ describe(`operations.write`, () => {
     });
 
     it(`throws if we attempt to write non-objects with a selection set`, () => {
-      jestExpect(() => {
+      expect(() => {
         write(context, empty, entityQuery, { foo: [1, 2, 3, 4, 5] });
       }).toThrow(/foo\.\d/);
     });

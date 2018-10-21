@@ -39,7 +39,7 @@ describe(`readFragment with multiple fragments`, () => {
   });
 
   it(`returns a value following the named fragment ('viewer')`, () => {
-    jestExpect(hermes.readFragment({
+    expect(hermes.readFragment({
       id: '123',
       fragmentName: 'viewer',
       fragment: gql(`
@@ -68,7 +68,7 @@ describe(`readFragment with multiple fragments`, () => {
   });
 
   it(`returns a value following the named fragment ('shipment')`, () => {
-    jestExpect(hermes.readFragment({
+    expect(hermes.readFragment({
       id: 'shipment0',
       fragmentName: 'shipment',
       fragment: gql(`

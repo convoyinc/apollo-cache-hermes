@@ -27,7 +27,7 @@ describe(`parseQuery for queries with fragments`, () => {
         name
       }
     `;
-    jestExpect(parseOperation(operation)).toEqual({
+    expect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode({
           id: new ParsedQueryNode(),
@@ -56,7 +56,7 @@ describe(`parseQuery for queries with fragments`, () => {
         name
       }
     `;
-    jestExpect(parseOperation(operation)).toEqual({
+    expect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode({
           id: new ParsedQueryNode(),
@@ -79,7 +79,7 @@ describe(`parseQuery for queries with fragments`, () => {
         }
       }
     `;
-    jestExpect(parseOperation(operation)).toEqual({
+    expect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode({
           bar: new ParsedQueryNode({
@@ -103,7 +103,7 @@ describe(`parseQuery for queries with fragments`, () => {
         }
       }
     `;
-    jestExpect(parseOperation(operation)).toEqual({
+    expect(parseOperation(operation)).toEqual({
       parsedQuery: {
         foo: new ParsedQueryNode({
           bar: new ParsedQueryNode<JsonScalar | VariableArgument>({
@@ -121,7 +121,7 @@ describe(`parseQuery for queries with fragments`, () => {
         foo { ...aFoo }
       }
     `;
-    jestExpect(() => {
+    expect(() => {
       parseOperation(operation);
     }).toThrow(/aFoo/i);
   });
@@ -143,7 +143,7 @@ describe(`parseQuery for queries with fragments`, () => {
         bar(limit: 2)
       }
     `;
-    jestExpect(() => {
+    expect(() => {
       parseOperation(operation);
     }).toThrow(/foo\.bar/i);
   });
@@ -165,7 +165,7 @@ describe(`parseQuery for queries with fragments`, () => {
         bar: buzz
       }
     `;
-    jestExpect(() => {
+    expect(() => {
       parseOperation(operation);
     }).toThrow(/foo\.bar/i);
   });

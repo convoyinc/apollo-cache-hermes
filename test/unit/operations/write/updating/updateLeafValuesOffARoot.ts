@@ -29,19 +29,19 @@ describe(`operations.write`, () => {
     });
 
     it(`updates the value, and its container`, () => {
-      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({ foo: 321, bar: { baz: 'asdf' } });
+      expect(snapshot.getNodeData(QueryRootId)).toEqual({ foo: 321, bar: { baz: 'asdf' } });
     });
 
     it(`marks the root as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
+      expect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
     });
 
     it(`only contains the root node`, () => {
-      jestExpect(snapshot.allNodeIds()).toEqual([QueryRootId]);
+      expect(snapshot.allNodeIds()).toEqual([QueryRootId]);
     });
 
     it(`emits the edited node as an EntitySnapshot`, () => {
-      jestExpect(snapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      expect(snapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
     });
 
   });

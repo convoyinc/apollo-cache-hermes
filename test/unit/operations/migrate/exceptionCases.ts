@@ -29,7 +29,7 @@ describe(`operations.migrate`, () => {
   it(`does nothing if no migration map is provided`, () => {
     const migrated = migrate(cacheSnapshot);
     const cacheAfter = extract(migrated.baseline, cacheContext);
-    jestExpect(cacheAfter).toEqual(extract(cacheSnapshot.baseline, cacheContext));
+    expect(cacheAfter).toEqual(extract(cacheSnapshot.baseline, cacheContext));
   });
 
 });
