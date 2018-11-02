@@ -3,13 +3,33 @@ import * as makeError from 'make-error';
 import { PathPart } from './primitive';
 import { NodeId } from './schema';
 
+export interface ErrorDetails {
+  message: string;
+  infoUrl?: string;
+}
+export type MessageOrDetails = string | ErrorDetails;
+
+function hasInfoUrl(messageOrDetails: MessageOrDetails): messageOrDetails is ErrorDetails & { infoUrl: string } {
+  return typeof messageOrDetails === 'object' && 'infoUrl' in messageOrDetails;
+}
+
 /**
  * Base error class for all errors emitted by the cache.
  *
  * Note that we rely on make-error so that we can safely extend the built in
  * Error in a cross-platform manner.
  */
-export class CacheError extends makeError.BaseError {}
+export class CacheError extends makeError.BaseError {
+  constructor(messageOrDetails: MessageOrDetails) {
+    super(
+      hasInfoUrl(messageOrDetails)
+        ? `[${messageOrDetails.infoUrl}] ${messageOrDetails.message}`
+        : typeof messageOrDetails === 'object'
+          ? messageOrDetails.message
+          : messageOrDetails
+    );
+  }
+}
 
 /**
  * An error with a query - generally occurs when parsing an error.
