@@ -36,6 +36,11 @@ export class HermesCacheError extends makeError.BaseError {
 }
 
 /**
+ * The current runtime environment isn't suited to run Hermes.
+ */
+export class InvalidEnvironmentError extends HermesCacheError {}
+
+/**
  * An error with a query - generally occurs when parsing an error.
  */
 export class QueryError extends HermesCacheError {
