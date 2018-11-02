@@ -9,9 +9,17 @@ export interface ErrorDetails {
 }
 export type MessageOrDetails = string | ErrorDetails;
 
-function toDetails(messageOrDetails: MessageOrDetails) {
+function _toDetails(messageOrDetails: MessageOrDetails) {
   if (typeof messageOrDetails === 'object') return messageOrDetails;
   return { message: messageOrDetails };
+}
+
+function _expandMessage(messageOrDetails: MessageOrDetails, template: string) {
+  const { message, ...details } = _toDetails(messageOrDetails);
+  return {
+    ...details,
+    message: template.replace('{{message}}', message),
+  };
 }
 
 /**
@@ -22,7 +30,7 @@ function toDetails(messageOrDetails: MessageOrDetails) {
  */
 export class CacheError extends makeError.BaseError {
   constructor(messageOrDetails: MessageOrDetails) {
-    const { message, infoUrl } = toDetails(messageOrDetails);
+    const { message, infoUrl } = _toDetails(messageOrDetails);
     super(infoUrl ? `[${infoUrl}] ${message}` : message);
   }
 }
@@ -32,11 +40,11 @@ export class CacheError extends makeError.BaseError {
  */
 export class QueryError extends CacheError {
   constructor(
-    message: string,
+    messageOrDetails: MessageOrDetails,
     // The path within the query where the error occurred.
     public readonly path: string[],
   ) {
-    super(`${message} at ${prettyPath(path)}`);
+    super(_expandMessage(messageOrDetails, `{{message}} at ${prettyPath(path)}`));
   }
 }
 
@@ -52,13 +60,13 @@ export class UnsatisfiedCacheError extends CacheError {}
  */
 export class ConflictingFieldsError extends QueryError {
   constructor(
-    message: string,
+    messageOrDetails: MessageOrDetails,
     // The path within the query where the error occurred.
     public readonly path: string[],
     // The fields that are conflicting
     public readonly fields: any[],
   ) {
-    super(`Conflicting field definitions: ${message}`, path);
+    super(_expandMessage(messageOrDetails, `Conflicting field definitions: {{message}}`), path);
   }
 }
 
@@ -68,7 +76,7 @@ export class ConflictingFieldsError extends QueryError {
  */
 export class OperationError extends CacheError {
   constructor(
-    message: string,
+    messageOrDetails: MessageOrDetails,
     // The path from the payload root to the node containing the error.
     public readonly prefixPath: PathPart[],
     // The node id being processed when the error occurred.
@@ -78,7 +86,7 @@ export class OperationError extends CacheError {
     // A value associated with the error.
     public readonly value?: any,
   ) {
-    super(`${message} at ${prettyPath([...prefixPath, ...path])} (node ${nodeId})`);
+    super(_expandMessage(messageOrDetails, `{{message}} at ${prettyPath([...prefixPath, ...path])} (node ${nodeId})`));
   }
 }
 
@@ -92,7 +100,7 @@ export class InvalidPayloadError extends OperationError {}
  */
 export class CacheConsistencyError extends OperationError {
   constructor(
-    message: string,
+    messageOrDetails: MessageOrDetails,
     // The path from the payload root to the node containing the error.
     public readonly prefixPath: PathPart[],
     // The node id being processed when the error occurred.
@@ -102,7 +110,7 @@ export class CacheConsistencyError extends OperationError {
     // A value that is the subject of the error
     public readonly value?: any,
   ) {
-    super(`Hermes BUG: ${message}`, prefixPath, nodeId, path);
+    super(_expandMessage(messageOrDetails, `Hermes BUG: {{message}}`), prefixPath, nodeId, path);
   }
 }
 
