@@ -1,19 +1,19 @@
-import { CacheError } from '../../../src';
+import { HermesCacheError } from '../../../src';
 
 describe(`errors.CacheError`, () => {
 
-  class ChildError extends CacheError {}
+  class ChildError extends HermesCacheError {}
 
   it(`it can be constructed directly`, () => {
     expect(() => {
-      throw new CacheError(`bewm`);
-    }).throws(CacheError);
+      throw new HermesCacheError(`bewm`);
+    }).throws(HermesCacheError);
   });
 
   it(`supports subclasses`, () => {
     const error = new ChildError(`kaboom`);
     expect(error).instanceOf(ChildError);
-    expect(error).instanceOf(CacheError);
+    expect(error).instanceOf(HermesCacheError);
   });
 
   it(`injects infoUrls if requested`, () => {
