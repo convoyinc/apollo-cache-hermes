@@ -1,4 +1,4 @@
-import { InvalidEnvironmentError } from '.';
+import { InvalidEnvironmentError } from './errors';
 
 /**
  * Hermes relies on some ES6 functionality: iterators (via Symbol.iterator),
