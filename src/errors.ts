@@ -9,8 +9,9 @@ export interface ErrorDetails {
 }
 export type MessageOrDetails = string | ErrorDetails;
 
-function hasInfoUrl(messageOrDetails: MessageOrDetails): messageOrDetails is ErrorDetails & { infoUrl: string } {
-  return typeof messageOrDetails === 'object' && 'infoUrl' in messageOrDetails;
+function toDetails(messageOrDetails: MessageOrDetails) {
+  if (typeof messageOrDetails === 'object') return messageOrDetails;
+  return { message: messageOrDetails };
 }
 
 /**
@@ -21,13 +22,8 @@ function hasInfoUrl(messageOrDetails: MessageOrDetails): messageOrDetails is Err
  */
 export class CacheError extends makeError.BaseError {
   constructor(messageOrDetails: MessageOrDetails) {
-    super(
-      hasInfoUrl(messageOrDetails)
-        ? `[${messageOrDetails.infoUrl}] ${messageOrDetails.message}`
-        : typeof messageOrDetails === 'object'
-          ? messageOrDetails.message
-          : messageOrDetails
-    );
+    const { message, infoUrl } = toDetails(messageOrDetails);
+    super(infoUrl ? `[${infoUrl}] ${message}` : message);
   }
 }
 
