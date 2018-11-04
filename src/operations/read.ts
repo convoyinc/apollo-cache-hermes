@@ -54,7 +54,12 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
     }
 
     queryResult.entityIds = includeNodeIds ? new Set<NodeId>() : undefined;
-    queryResult.complete = _visitSelection(operation, context, queryResult.result, queryResult.entityIds);
+
+    // When strict mode is disabled, we carry completeness forward for observed
+    // queries.  Once complete, always complete.
+    if (typeof queryResult.complete !== 'boolean') {
+      queryResult.complete = _visitSelection(operation, context, queryResult.result, queryResult.entityIds);
+    }
   }
 
   // We can potentially ask for results without node ids first, and then follow
