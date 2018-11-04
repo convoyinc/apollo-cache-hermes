@@ -84,7 +84,7 @@ describe(`writeFragment with parameterized references`, () => {
   });
 
   it(`correctly modify data`, () => {
-    expect(baseline.getNodeData('shipment0')).to.deep.eq({
+    jestExpect(baseline.getNodeData('shipment0')).toEqual({
       complete: true,
       truckType: 'flatbed',
       id: 'shipment0',
@@ -93,7 +93,7 @@ describe(`writeFragment with parameterized references`, () => {
   });
 
   it(`correctly references a parameterized reference`, () => {
-    expect(baseline.getNodeSnapshot(parameterizedId)).to.deep.eq({
+    jestExpect(baseline.getNodeSnapshot(parameterizedId)).toEqual({
       outbound: [{ id: 'shipment0', path: [] }],
       inbound: [{ id: '123', path: ['shipment'] }],
       data: {
@@ -103,7 +103,7 @@ describe(`writeFragment with parameterized references`, () => {
         destination: 'Seattle',
       },
     });
-    expect(baseline.getNodeData(parameterizedId)).to.eq(baseline.getNodeData('shipment0'));
+    jestExpect(baseline.getNodeData(parameterizedId)).toBe(baseline.getNodeData('shipment0'));
   });
 
 });

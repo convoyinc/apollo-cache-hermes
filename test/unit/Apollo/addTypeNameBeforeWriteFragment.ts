@@ -69,7 +69,7 @@ describe(`transform document before writeFragmetn`, () => {
   });
 
   it(`correctly writeFragment with __typename`, () => {
-    expect(hermes.readQuery({
+    jestExpect(hermes.readQuery({
       query: gql(`
       query getViewer {
         viewer(count: 2) {
@@ -78,7 +78,7 @@ describe(`transform document before writeFragmetn`, () => {
         }
       }
       `),
-    })).to.deep.eq({
+    })).toEqual({
       viewer: [
         {
           id: 0,

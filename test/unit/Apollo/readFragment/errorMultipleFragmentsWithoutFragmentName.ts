@@ -29,7 +29,7 @@ describe(`readFragment with ambiguous fragments`, () => {
   });
 
   it(`throws an error`, () => {
-    expect(() => {
+    jestExpect(() => {
       hermes.readFragment({
         id: '123',
         fragment: gql(`
@@ -46,7 +46,7 @@ describe(`readFragment with ambiguous fragments`, () => {
           }
         `),
       });
-    }).to.throw(/Found 2 fragments. `fragmentName` must be provided/i);
+    }).toThrow(/Found 2 fragments. `fragmentName` must be provided/i);
   });
 
 });

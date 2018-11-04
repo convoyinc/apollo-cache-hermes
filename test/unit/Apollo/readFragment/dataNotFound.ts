@@ -12,7 +12,7 @@ describe(`readFragment with no matching data`, () => {
   });
 
   it(`correctly returns undefined`, () => {
-    expect(hermes.readFragment({
+    jestExpect(hermes.readFragment({
       id: '123',
       fragment: gql(`
         fragment viewer on Viewer {
@@ -20,7 +20,7 @@ describe(`readFragment with no matching data`, () => {
           name
         }
       `),
-    })).to.be.eq(undefined);
+    })).toBe(undefined);
   });
 
 });

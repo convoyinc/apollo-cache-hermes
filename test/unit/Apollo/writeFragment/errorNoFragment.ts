@@ -12,7 +12,7 @@ describe(`writeFragment with no fragment`, () => {
   });
 
   it(`throws an error`, () => {
-    expect(() => {
+    jestExpect(() => {
       hermes.writeFragment({
         id: '123',
         fragment: gql(`
@@ -27,7 +27,7 @@ describe(`writeFragment with no fragment`, () => {
           __typename: 'Viewer',
         },
       });
-    }).to.throw(/No operations are allowed when using a fragment as a query/i);
+    }).toThrow(/No operations are allowed when using a fragment as a query/i);
   });
 
 });

@@ -68,12 +68,12 @@ describe(`extract/restore roundtrip`, () => {
       addTypename: true,
     });
 
-    expect(() => {
+    jestExpect(() => {
       hermes.restore(JSON.parse(persisted), undefined, {
         query: gql(baseResourcesV2),
         optimistic: false,
       });
-    }).to.throw();
+    }).toThrow();
   });
 
   it(`extracted data is pruned according to the prune query`, () => {
@@ -82,7 +82,7 @@ describe(`extract/restore roundtrip`, () => {
       addTypename: true,
     });
 
-    expect(() => {
+    jestExpect(() => {
       hermes.restore(JSON.parse(persisted), {
         _entities: {
           Viewer: {
@@ -93,9 +93,9 @@ describe(`extract/restore roundtrip`, () => {
         query: gql(baseResourcesV2),
         optimistic: false,
       });
-    }).to.not.throw();
+    }).not.toThrow();
 
-    expect(() => {
+    jestExpect(() => {
       hermes.readQuery({
         query: gql(`
           query getViewer {
@@ -106,7 +106,7 @@ describe(`extract/restore roundtrip`, () => {
           }
         `),
       });
-    }).to.throw(/read not satisfied by the cache/i);
+    }).toThrow(/read not satisfied by the cache/i);
 
   });
 
@@ -116,7 +116,7 @@ describe(`extract/restore roundtrip`, () => {
       addTypename: true,
     });
 
-    expect(() => {
+    jestExpect(() => {
       hermes.restore(JSON.parse(persisted), {
         _entities: {
           Viewer: {
@@ -127,11 +127,11 @@ describe(`extract/restore roundtrip`, () => {
         query: gql(baseResourcesV2),
         optimistic: false,
       });
-    }).to.not.throw();
+    }).not.toThrow();
 
-    expect(hermes.readQuery({
+    jestExpect(hermes.readQuery({
       query: gql(baseResourcesV2),
-    })).to.deep.eq({
+    })).toEqual({
       viewer: {
         id: 0,
         age: '',

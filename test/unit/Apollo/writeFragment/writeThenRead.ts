@@ -73,15 +73,15 @@ describe(`writeFragment and then readFragment`, () => {
       },
     });
 
-    expect(hermes.readFragment({
+    jestExpect(hermes.readFragment({
       id: '123',
       fragmentName: 'viewer',
       fragment: readWriteFragment,
-    })).to.include({
+    })).toEqual(jestExpect.objectContaining({
       id: 123,
       name: 'Munster',
       __typename: 'Viewer',
-    });
+    }));
   });
 
   it(`update nested reference but read with another fragment`, () => {
@@ -96,11 +96,11 @@ describe(`writeFragment and then readFragment`, () => {
       },
     });
 
-    expect(hermes.readFragment({
+    jestExpect(hermes.readFragment({
       id: '123',
       fragmentName: 'viewerPlusShipment',
       fragment: readWriteFragment,
-    })).to.deep.eq({
+    })).toEqual({
       id: 123,
       name: 'Gouda',
       __typename: 'Viewer',

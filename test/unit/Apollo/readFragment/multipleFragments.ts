@@ -39,7 +39,7 @@ describe(`readFragment with multiple fragments`, () => {
   });
 
   it(`returns a value following the named fragment ('viewer')`, () => {
-    expect(hermes.readFragment({
+    jestExpect(hermes.readFragment({
       id: '123',
       fragmentName: 'viewer',
       fragment: gql(`
@@ -55,7 +55,7 @@ describe(`readFragment with multiple fragments`, () => {
           __typename
         }
       `),
-    })).to.be.deep.eq({
+    })).toEqual({
       id: 123,
       name: 'Gouda',
       __typename: 'Viewer',
@@ -68,7 +68,7 @@ describe(`readFragment with multiple fragments`, () => {
   });
 
   it(`returns a value following the named fragment ('shipment')`, () => {
-    expect(hermes.readFragment({
+    jestExpect(hermes.readFragment({
       id: 'shipment0',
       fragmentName: 'shipment',
       fragment: gql(`
@@ -83,7 +83,7 @@ describe(`readFragment with multiple fragments`, () => {
           __typename
         }
       `),
-    })).to.be.deep.eq({
+    })).toEqual({
       id: 'shipment0',
       destination: 'Seattle',
       __typename: 'Shipment',

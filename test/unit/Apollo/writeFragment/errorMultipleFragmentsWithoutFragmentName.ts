@@ -12,7 +12,7 @@ describe(`writeFragment when using multiple fragments without fragmentName`, () 
   });
 
   it(`throws an error`, () => {
-    expect(() => {
+    jestExpect(() => {
       hermes.writeFragment({
         id: '123',
         fragment: gql(`
@@ -34,7 +34,7 @@ describe(`writeFragment when using multiple fragments without fragmentName`, () 
           __typename: 'Viewer',
         },
       });
-    }).to.throw(/Found 2 fragments. `fragmentName` must be provided/i);
+    }).toThrow(/Found 2 fragments. `fragmentName` must be provided/i);
   });
 
 });
