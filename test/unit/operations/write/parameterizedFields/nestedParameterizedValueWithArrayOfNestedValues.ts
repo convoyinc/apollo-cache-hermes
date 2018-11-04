@@ -52,14 +52,14 @@ describe(`operations.write`, () => {
 
     it(`no references from the parent`, () => {
       const container = snapshot.getNodeSnapshot(containerId)!;
-      expect(container.outbound).to.eq(undefined);
+      jestExpect(container.outbound).toBe(undefined);
     });
 
     it(`writes an array with the correct length`, () => {
       // This is a bit arcane, but it ensures that _overlayParameterizedValues
       // behaves properly when iterating arrays that contain _only_
       // parameterized fields.
-      expect(snapshot.getNodeData(containerId)).to.deep.eq([
+      jestExpect(snapshot.getNodeData(containerId)).toEqual([
         {
           three: {
             threeValue: 'first',
@@ -87,7 +87,7 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      expect(updated.getNodeData(containerId)).to.deep.eq([
+      jestExpect(updated.getNodeData(containerId)).toEqual([
         null,
         {
           three: {

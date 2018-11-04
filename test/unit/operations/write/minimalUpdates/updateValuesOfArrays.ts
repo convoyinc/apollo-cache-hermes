@@ -22,7 +22,7 @@ describe(`operations.write`, () => {
       const { snapshot: baseSnapshot } = write(context, empty, basicQuery, { foo: [1, 2, 3] });
       const { snapshot } = write(context, baseSnapshot, basicQuery, { foo: [1, 2, 3] });
 
-      expect(snapshot.getNodeData(QueryRootId)).to.eq(baseSnapshot.getNodeData(QueryRootId));
+      jestExpect(snapshot.getNodeData(QueryRootId)).toBe(baseSnapshot.getNodeData(QueryRootId));
     });
 
     it(`preserves complex arrays if none of their values change`, () => {
@@ -36,7 +36,7 @@ describe(`operations.write`, () => {
         foo: [value1, value2, value3],
       });
 
-      expect(snapshot.getNodeData(QueryRootId)).to.eq(baseSnapshot.getNodeData(QueryRootId));
+      jestExpect(snapshot.getNodeData(QueryRootId)).toBe(baseSnapshot.getNodeData(QueryRootId));
     });
 
     it(`only edits values that do change`, () => {
@@ -53,10 +53,10 @@ describe(`operations.write`, () => {
 
       const baseValue = baseSnapshot.getNodeData(QueryRootId).foo;
       const newValue = snapshot.getNodeData(QueryRootId).foo;
-      expect(newValue[0]).to.eq(baseValue[0]);
-      expect(newValue[2]).to.eq(baseValue[2]);
-      expect(newValue[1]).to.deep.eq({ nested: { value: 4 } });
-      expect(baseValue[1]).to.deep.eq({ nested: { value: 2 } });
+      jestExpect(newValue[0]).toBe(baseValue[0]);
+      jestExpect(newValue[2]).toBe(baseValue[2]);
+      jestExpect(newValue[1]).toEqual({ nested: { value: 4 } });
+      jestExpect(baseValue[1]).toEqual({ nested: { value: 2 } });
     });
 
   });

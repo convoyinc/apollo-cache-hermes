@@ -73,7 +73,7 @@ describe(`operations.write`, () => {
 
     it(`only writes fields from the schema`, () => {
       const parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
-      expect(snapshot.getNodeData(parameterizedId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(parameterizedId)).toEqual({
         id: 4,
         name: 'Foo',
         contactInfo: {

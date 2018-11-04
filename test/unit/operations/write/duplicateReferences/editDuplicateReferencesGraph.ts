@@ -54,7 +54,7 @@ describe(`operations.write`, () => {
     });
 
     it(`writes the complete graph`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         foo: [
           { id: 'a', bar: { id: 2 } },
           { id: 'a', bar: { id: 2 } },
@@ -69,20 +69,20 @@ describe(`operations.write`, () => {
     });
 
     it(`doesn't insert duplicate outbound references`, () => {
-      expect(snapshot.getNodeSnapshot('a')!.outbound).to.have.deep.members([
+      jestExpect(snapshot.getNodeSnapshot('a')!.outbound).toEqual(jestExpect.arrayContaining([
         { id: '2', path: ['bar'] },
-      ]);
-      expect(snapshot.getNodeSnapshot('b')!.outbound).to.eq(undefined);
+      ]));
+      jestExpect(snapshot.getNodeSnapshot('b')!.outbound).toBe(undefined);
     });
 
     it(`removes unreferenced nodes`, () => {
-      expect(snapshot.getNodeSnapshot('1')).to.eq(undefined);
+      jestExpect(snapshot.getNodeSnapshot('1')).toBe(undefined);
     });
 
     it(`doesn't insert duplicate inbound references for targets`, () => {
-      expect(snapshot.getNodeSnapshot('2')!.inbound).to.have.deep.members([
+      jestExpect(snapshot.getNodeSnapshot('2')!.inbound).toEqual(jestExpect.arrayContaining([
         { id: 'a', path: ['bar'] },
-      ]);
+      ]));
     });
   });
 });

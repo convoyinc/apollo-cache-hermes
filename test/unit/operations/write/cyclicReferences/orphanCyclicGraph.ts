@@ -52,16 +52,16 @@ describe(`operations.write`, () => {
     });
 
     it(`removes the reference to the subgraph`, () => {
-      expect(snapshot.getNodeData(QueryRootId).foo).to.eq(null);
+      jestExpect(snapshot.getNodeData(QueryRootId).foo).toEqual(null);
     });
 
     // TODO: Detect this case, and actually make it work.  Mark & sweep? :(
     it.skip(`garbage collects the orphaned subgraph`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
     it.skip(`marks all nodes as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '1', '2']);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '1', '2']));
     });
   });
 });

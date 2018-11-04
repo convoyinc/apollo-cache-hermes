@@ -29,7 +29,7 @@ describe(`operations.write`, () => {
     });
 
     it(`creates the query root, referencing the entity`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         viewer: {
           id: 123,
           name: 'Gouda',
@@ -38,44 +38,44 @@ describe(`operations.write`, () => {
     });
 
     it(`indexes the entity`, () => {
-      expect(snapshot.getNodeData('123')).to.deep.eq({
+      jestExpect(snapshot.getNodeData('123')).toEqual({
         id: 123,
         name: 'Gouda',
       });
     });
 
     it(`emits the root as an EntitySnapshot`, () => {
-      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
+      jestExpect(snapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
     });
 
     it(`emits the entity as an EntitySnapshot`, () => {
-      expect(snapshot.getNodeSnapshot('123')).to.be.an.instanceOf(EntitySnapshot);
+      jestExpect(snapshot.getNodeSnapshot('123')).toBeInstanceOf(EntitySnapshot);
     });
 
     it(`directly references viewer from the query root`, () => {
       const queryRoot = snapshot.getNodeData(QueryRootId);
       const viewer = snapshot.getNodeData('123');
-      expect(queryRoot.viewer).to.eq(viewer);
+      jestExpect(queryRoot.viewer).toBe(viewer);
     });
 
     it(`records the outbound reference from the query root`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.deep.eq([{ id: '123', path: ['viewer'] }]);
-      expect(queryRoot.inbound).to.eq(undefined);
+      jestExpect(queryRoot.outbound).toEqual([{ id: '123', path: ['viewer'] }]);
+      jestExpect(queryRoot.inbound).toBe(undefined);
     });
 
     it(`records the inbound reference from referenced entity`, () => {
       const queryRoot = snapshot.getNodeSnapshot('123')!;
-      expect(queryRoot.inbound).to.deep.eq([{ id: QueryRootId, path: ['viewer'] }]);
-      expect(queryRoot.outbound).to.eq(undefined);
+      jestExpect(queryRoot.inbound).toEqual([{ id: QueryRootId, path: ['viewer'] }]);
+      jestExpect(queryRoot.outbound).toBe(undefined);
     });
 
     it(`marks the entity and root as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '123']);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '123']));
     });
 
     it(`only contains the two nodes`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '123']);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId, '123']));
     });
 
   });

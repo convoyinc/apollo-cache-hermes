@@ -47,39 +47,39 @@ describe(`operations.write`, () => {
     });
 
     it(`previous versions still have original value`, () => {
-      expect(baseline.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(baseline.getNodeData(QueryRootId)).toEqual({
         foo: { id: 1, name: 'Foo' },
         bar: { id: 2, name: 'Bar' },
       });
     });
 
     it(`preserves unedited nodes from the parent`, () => {
-      expect(baseline.getNodeData('1')).to.eq(snapshot.getNodeData('1'));
-      expect(baseline.getNodeData('2')).to.eq(snapshot.getNodeData('2'));
+      jestExpect(baseline.getNodeData('1')).toBe(snapshot.getNodeData('1'));
+      jestExpect(baseline.getNodeData('2')).toBe(snapshot.getNodeData('2'));
     });
 
     it(`updates outbound references`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.have.deep.members([
+      jestExpect(queryRoot.outbound).toEqual(jestExpect.arrayContaining([
         { id: '2', path: ['foo'] },
         { id: '1', path: ['bar'] },
-      ]);
-      expect(queryRoot.inbound).to.eq(undefined);
+      ]));
+      jestExpect(queryRoot.inbound).toBe(undefined);
     });
 
     it(`updates inbound references`, () => {
       const foo = snapshot.getNodeSnapshot('1')!;
       const bar = snapshot.getNodeSnapshot('2')!;
-      expect(foo.inbound).to.have.deep.members([{ id: QueryRootId, path: ['bar'] }]);
-      expect(bar.inbound).to.have.deep.members([{ id: QueryRootId, path: ['foo'] }]);
+      jestExpect(foo.inbound).toEqual(jestExpect.arrayContaining([{ id: QueryRootId, path: ['bar'] }]));
+      jestExpect(bar.inbound).toEqual(jestExpect.arrayContaining([{ id: QueryRootId, path: ['foo'] }]));
     });
 
     it(`marks the container as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
     it(`contains the correct nodes`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId, '1', '2']));
     });
   });
 });

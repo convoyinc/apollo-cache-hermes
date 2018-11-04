@@ -63,53 +63,53 @@ describe(`operations.write`, () => {
     });
 
     it(`writes a value snapshot for the containing field`, () => {
-      expect(snapshot.getNodeSnapshot(parameterizedRootId)).to.exist;
+      jestExpect(snapshot.getNodeSnapshot(parameterizedRootId)).toBeDefined;
     });
 
     it(`writes entity snapshots for each array entry`, () => {
-      expect(snapshot.getNodeSnapshot(entityId1)).to.exist;
-      expect(snapshot.getNodeSnapshot(entityId2)).to.exist;
+      jestExpect(snapshot.getNodeSnapshot(entityId1)).toBeDefined;
+      jestExpect(snapshot.getNodeSnapshot(entityId2)).toBeDefined;
     });
 
     it(`writes entity snapshots for each parameterized field of array entry`, () => {
-      expect(snapshot.getNodeSnapshot(parameterizedIdInEntity1)).to.exist;
-      expect(snapshot.getNodeSnapshot(parameterizedIdInEntity2)).to.exist;
+      jestExpect(snapshot.getNodeSnapshot(parameterizedIdInEntity1)).toBeDefined;
+      jestExpect(snapshot.getNodeSnapshot(parameterizedIdInEntity2)).toBeDefined;
     });
 
     it(`references the parent entity snapshot from the parameterized field`, () => {
       const entry1 = snapshot.getNodeSnapshot(parameterizedIdInEntity1)!;
-      expect(entry1.inbound).to.have.deep.members([{ id: entityId1, path: ['four'] }]);
+      jestExpect(entry1.inbound).toEqual(jestExpect.arrayContaining([{ id: entityId1, path: ['four'] }]));
 
       const entry2 = snapshot.getNodeSnapshot(parameterizedIdInEntity2)!;
-      expect(entry2.inbound).to.have.deep.members([{ id: entityId2, path: ['four'] }]);
+      jestExpect(entry2.inbound).toEqual(jestExpect.arrayContaining([{ id: entityId2, path: ['four'] }]));
     });
 
     it(`references the parameterized field children from the parent entity`, () => {
       const entity1 = snapshot.getNodeSnapshot(entityId1)!;
-      expect(entity1.outbound).to.have.deep.members([
+      jestExpect(entity1.outbound).toEqual(jestExpect.arrayContaining([
         { id: parameterizedIdInEntity1, path: ['four'] },
-      ]);
+      ]));
 
       const entity2 = snapshot.getNodeSnapshot(entityId2)!;
-      expect(entity2.outbound).to.have.deep.members([
+      jestExpect(entity2.outbound).toEqual(jestExpect.arrayContaining([
         { id: parameterizedIdInEntity2, path: ['four'] },
-      ]);
+      ]));
     });
 
     it(`references the children from the parameterized root`, () => {
       const container = snapshot.getNodeSnapshot(parameterizedRootId)!;
 
-      expect(container.outbound).to.have.deep.members([
+      jestExpect(container.outbound).toEqual(jestExpect.arrayContaining([
         { id: entityId1, path: [0, 'three'] },
         { id: entityId2, path: [1, 'three'] },
-      ]);
+      ]));
     });
 
     it(`writes an array with the correct length`, () => {
       // This is a bit arcane, but it ensures that _overlayParameterizedValues
       // behaves properly when iterating arrays that contain _only_
       // parameterized fields.
-      expect(snapshot.getNodeData(parameterizedRootId)).to.deep.eq([
+      jestExpect(snapshot.getNodeData(parameterizedRootId)).toEqual([
         {
           three: { id: 31 },
         },
@@ -126,7 +126,7 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      expect(updated.getNodeData(parameterizedRootId)).to.deep.eq(null);
+      jestExpect(updated.getNodeData(parameterizedRootId)).toEqual(null);
     });
 
   });

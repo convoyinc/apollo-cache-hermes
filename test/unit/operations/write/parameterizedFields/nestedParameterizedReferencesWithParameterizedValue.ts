@@ -50,39 +50,39 @@ describe(`operations.write`, () => {
     });
 
     it(`writes a value snapshot for the containing field`, () => {
-      expect(snapshot.getNodeSnapshot(parameterizedRootId)).to.exist;
+      jestExpect(snapshot.getNodeSnapshot(parameterizedRootId)).toBeDefined;
     });
 
     it(`writes value snapshots for each array entry`, () => {
-      expect(snapshot.getNodeSnapshot(parameterizedFieldId)).to.exist;
+      jestExpect(snapshot.getNodeSnapshot(parameterizedFieldId)).toBeDefined;
     });
 
     it(`references the parent entity snapshot from the children`, () => {
       const entry1 = snapshot.getNodeSnapshot(parameterizedFieldId)!;
 
-      expect(entry1.inbound).to.have.deep.members([{ id: entityId, path: ['four'] }]);
+      jestExpect(entry1.inbound).toEqual(jestExpect.arrayContaining([{ id: entityId, path: ['four'] }]));
     });
 
     it(`references the children from the parent entity`, () => {
       const entity = snapshot.getNodeSnapshot(entityId)!;
-      expect(entity.outbound).to.have.deep.members([
+      jestExpect(entity.outbound).toEqual(jestExpect.arrayContaining([
         { id: parameterizedFieldId, path: ['four'] },
-      ]);
+      ]));
     });
 
     it(`references the children from the parameterized root`, () => {
       const container = snapshot.getNodeSnapshot(parameterizedRootId)!;
 
-      expect(container.outbound).to.have.deep.members([
+      jestExpect(container.outbound).toEqual(jestExpect.arrayContaining([
         { id: entityId, path: ['three'] },
-      ]);
+      ]));
     });
 
     it(`writes an array with the correct length`, () => {
       // This is a bit arcane, but it ensures that _overlayParameterizedValues
       // behaves properly when iterating arrays that contain _only_
       // parameterized fields.
-      expect(snapshot.getNodeData(parameterizedRootId)).to.deep.eq({ three: { id: 31 } });
+      jestExpect(snapshot.getNodeData(parameterizedRootId)).toEqual({ three: { id: 31 } });
     });
 
     it(`allows removal of values containing a field`, () => {
@@ -92,7 +92,7 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      expect(updated.getNodeData(parameterizedRootId)).to.deep.eq(null);
+      jestExpect(updated.getNodeData(parameterizedRootId)).toEqual(null);
     });
 
   });

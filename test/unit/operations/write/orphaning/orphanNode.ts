@@ -42,7 +42,7 @@ describe(`operations.write`, () => {
     });
 
     it(`replaces the reference with null`, () => {
-      expect(snapshot.getNodeData(QueryRootId)).to.deep.eq({
+      jestExpect(snapshot.getNodeData(QueryRootId)).toEqual({
         foo: { id: 1, name: 'Foo' },
         bar: null,
       });
@@ -50,15 +50,15 @@ describe(`operations.write`, () => {
 
     it(`updates outbound references`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      expect(queryRoot.outbound).to.have.deep.members([{ id: '1', path: ['foo'] }]);
+      jestExpect(queryRoot.outbound).toEqual(jestExpect.arrayContaining([{ id: '1', path: ['foo'] }]));
     });
 
     it(`marks the container and orphaned node as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId, '2']);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '2']));
     });
 
     it(`contains the correct nodes`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1']);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId, '1']));
     });
 
   });

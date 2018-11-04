@@ -37,27 +37,27 @@ describe(`operations.write`, () => {
     });
 
     it(`merges new properties with existing objects`, () => {
-      expect(snapshot.getNodeData(QueryRootId).bar).to.deep.eq({ baz: 'fdsa', fizz: 'buzz' });
+      jestExpect(snapshot.getNodeData(QueryRootId).bar).toEqual({ baz: 'fdsa', fizz: 'buzz' });
     });
 
     it(`honors array lengths`, () => {
-      expect(snapshot.getNodeData(QueryRootId).foo.length).to.eq(2);
+      jestExpect(snapshot.getNodeData(QueryRootId).foo.length).toBe(2);
     });
 
     it(`overwrites previous values in array elements`, () => {
-      expect(snapshot.getNodeData(QueryRootId).foo[0]).to.deep.eq({ value: -1 });
+      jestExpect(snapshot.getNodeData(QueryRootId).foo[0]).toEqual({ value: -1 });
     });
 
     it(`no merging of new values in array elements as we copy leaf value`, () => {
-      expect(snapshot.getNodeData(QueryRootId).foo[1]).to.deep.eq({ extra: true });
+      jestExpect(snapshot.getNodeData(QueryRootId).foo[1]).toEqual({ extra: true });
     });
 
     it(`marks the root as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members([QueryRootId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
     it(`only contains the root node`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId]);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
   });

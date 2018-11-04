@@ -31,15 +31,15 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      expect(() => {
+      jestExpect(() => {
         const root = snapshot.getNodeData(QueryRootId);
         root.foo.bar[0].baz = 111;
-      }).to.throw(/property.*baz/);
+      }).toThrow(/property.*baz/);
 
-      expect(() => {
+      jestExpect(() => {
         const root = snapshot.getNodeData(QueryRootId);
         root.foo.fizz = 'nope';
-      }).to.throw(/property.*fizz/);
+      }).toThrow(/property.*fizz/);
     });
 
   });

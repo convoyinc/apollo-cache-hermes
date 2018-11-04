@@ -57,31 +57,31 @@ describe(`operations.write`, () => {
     });
 
     it(`updates existing values in referenced nodes`, () => {
-      expect(snapshot.getNodeData('1')).to.deep.eq({ id: 1, name: 'Foo Boo' });
+      jestExpect(snapshot.getNodeData('1')).toEqual({ id: 1, name: 'Foo Boo' });
     });
 
     it(`inserts new values in referenced nodes`, () => {
-      expect(snapshot.getNodeData('2')).to.deep.eq({ id: 2, name: 'Bar', extra: true });
+      jestExpect(snapshot.getNodeData('2')).toEqual({ id: 2, name: 'Bar', extra: true });
     });
 
     it(`updates references to the newly edited nodes`, () => {
       const root = snapshot.getNodeData(QueryRootId);
-      expect(root.foo).to.eq(snapshot.getNodeData('1'));
-      expect(root.bar).to.eq(snapshot.getNodeData('2'));
+      jestExpect(root.foo).toBe(snapshot.getNodeData('1'));
+      jestExpect(root.bar).toBe(snapshot.getNodeData('2'));
     });
 
     it(`doesn't mark regenerated nodes as edited`, () => {
-      expect(Array.from(editedNodeIds)).to.have.members(['1', '2']);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining(['1', '2']));
     });
 
     it(`contains the correct nodes`, () => {
-      expect(snapshot.allNodeIds()).to.have.members([QueryRootId, '1', '2']);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId, '1', '2']));
     });
 
     it(`emits the edited nodes as an EntitySnapshot`, () => {
-      expect(snapshot.getNodeSnapshot(QueryRootId)).to.be.an.instanceOf(EntitySnapshot);
-      expect(snapshot.getNodeSnapshot('1')).to.be.an.instanceOf(EntitySnapshot);
-      expect(snapshot.getNodeSnapshot('2')).to.be.an.instanceOf(EntitySnapshot);
+      jestExpect(snapshot.getNodeSnapshot(QueryRootId)).toBeInstanceOf(EntitySnapshot);
+      jestExpect(snapshot.getNodeSnapshot('1')).toBeInstanceOf(EntitySnapshot);
+      jestExpect(snapshot.getNodeSnapshot('2')).toBeInstanceOf(EntitySnapshot);
     });
 
   });

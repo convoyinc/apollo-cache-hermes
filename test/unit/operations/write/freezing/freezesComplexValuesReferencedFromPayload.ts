@@ -22,13 +22,13 @@ describe(`operations.write`, () => {
       };
       write(context, empty, simpleQuery, payload);
 
-      expect(() => {
+      jestExpect(() => {
         payload.foo.bar[0].baz = 111;
-      }).to.throw(/property.*baz/);
+      }).toThrow(/property.*baz/);
 
-      expect(() => {
+      jestExpect(() => {
         (payload.foo as any).fizz = 'nope';
-      }).to.throw(/property.*fizz/);
+      }).toThrow(/property.*fizz/);
     });
 
   });
