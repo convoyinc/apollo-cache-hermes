@@ -65,7 +65,7 @@ describe(`operations.write`, () => {
     });
 
     it(`marks all the nodes as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '1', '2'].sort());
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '1', '2']));
     });
   });
 });

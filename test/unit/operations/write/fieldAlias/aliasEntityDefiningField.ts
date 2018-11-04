@@ -55,7 +55,7 @@ describe(`operations.write`, () => {
     });
 
     it(`checks only one entity node on RootQuery`, () => {
-      jestExpect(snapshot.allNodeIds()).toEqual([QueryRootId]);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
   });

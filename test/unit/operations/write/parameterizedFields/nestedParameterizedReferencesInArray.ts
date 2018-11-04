@@ -54,17 +54,17 @@ describe(`operations.write`, () => {
       const entry1 = snapshot.getNodeSnapshot('1')!;
       const entry2 = snapshot.getNodeSnapshot('2')!;
 
-      jestExpect(entry1.inbound).toEqual([{ id: containerId, path: [0, 'three'] }]);
-      jestExpect(entry2.inbound).toEqual([{ id: containerId, path: [1, 'three'] }]);
+      jestExpect(entry1.inbound).toEqual(jestExpect.arrayContaining([{ id: containerId, path: [0, 'three'] }]));
+      jestExpect(entry2.inbound).toEqual(jestExpect.arrayContaining([{ id: containerId, path: [1, 'three'] }]));
     });
 
     it(`references the children from the parent`, () => {
       const container = snapshot.getNodeSnapshot(containerId)!;
 
-      jestExpect(container.outbound).toEqual([
+      jestExpect(container.outbound).toEqual(jestExpect.arrayContaining([
         { id: '1', path: [0, 'three'] },
         { id: '2', path: [1, 'three'] },
-      ]);
+      ]));
     });
 
     it(`allows shifting from the front`, () => {
@@ -76,13 +76,13 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(containerId)!.outbound).toEqual([
+      jestExpect(updated.getNodeSnapshot(containerId)!.outbound).toEqual(jestExpect.arrayContaining([
         { id: '2', path: [0, 'three'] },
-      ]);
+      ]));
 
-      jestExpect(updated.getNodeSnapshot('2')!.inbound).toEqual([
+      jestExpect(updated.getNodeSnapshot('2')!.inbound).toEqual(jestExpect.arrayContaining([
         { id: containerId, path: [0, 'three'] },
-      ]);
+      ]));
     });
 
   });

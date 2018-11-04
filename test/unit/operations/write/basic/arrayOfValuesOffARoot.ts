@@ -67,11 +67,11 @@ describe(`operations.write`, () => {
     });
 
     it(`marks a query root as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
     it(`only contains a one node`, () => {
-      jestExpect(snapshot.allNodeIds()).toEqual([QueryRootId]);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
   });
 

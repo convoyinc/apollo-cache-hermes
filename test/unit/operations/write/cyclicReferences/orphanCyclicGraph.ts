@@ -57,11 +57,11 @@ describe(`operations.write`, () => {
 
     // TODO: Detect this case, and actually make it work.  Mark & sweep? :(
     it.skip(`garbage collects the orphaned subgraph`, () => {
-      jestExpect(snapshot.allNodeIds()).toEqual([QueryRootId]);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
     it.skip(`marks all nodes as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '1', '2'].sort());
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '1', '2']));
     });
   });
 });

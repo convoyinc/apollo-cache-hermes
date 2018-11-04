@@ -71,11 +71,11 @@ describe(`operations.write`, () => {
     });
 
     it(`doesn't mark regenerated nodes as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual(['1', '2'].sort());
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining(['1', '2']));
     });
 
     it(`contains the correct nodes`, () => {
-      jestExpect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1', '2'].sort());
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId, '1', '2']));
     });
 
     it(`emits the edited nodes as an EntitySnapshot`, () => {
