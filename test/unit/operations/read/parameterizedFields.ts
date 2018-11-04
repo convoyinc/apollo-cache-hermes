@@ -34,7 +34,7 @@ describe(`operations.read`, () => {
 
       it(`returns the selected values, overlaid on the underlying data`, () => {
         const { result } = read(context, parameterizedQuery, snapshot);
-        expect(result).to.deep.equal({
+        jestExpect(result).toEqual({
           user: { id: 1, name: 'Foo', extra: true },
           stuff: 123,
         });
@@ -42,13 +42,13 @@ describe(`operations.read`, () => {
 
       it(`returns the nodeIds visited during reading`, () => {
         const { entityIds, dynamicNodeIds } = read(context, parameterizedQuery, snapshot, true);
-        expect(Array.from(entityIds)).to.have.members([
+        jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([
           QueryRootId,
           '1',
-        ]);
-        expect(Array.from(dynamicNodeIds!)).to.have.members([
+        ]));
+        jestExpect(Array.from(dynamicNodeIds!)).toEqual(jestExpect.arrayContaining([
           nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 1, withExtra: true }),
-        ]);
+        ]));
       });
 
     });
@@ -94,7 +94,7 @@ describe(`operations.read`, () => {
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
           const { result } = read(context, nestedQuery, snapshot);
-          expect(result).to.deep.equal({
+          jestExpect(result).toEqual({
             one: {
               two: [
                 {
@@ -116,16 +116,16 @@ describe(`operations.read`, () => {
 
         it(`returns the nodeIds visited during reading`, () => {
           const { entityIds, dynamicNodeIds } = read(context, nestedQuery, snapshot, true);
-          expect(Array.from(entityIds)).to.have.members([
+          jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([
             QueryRootId,
             '1',
             '2',
-          ]);
-          expect(Array.from(dynamicNodeIds!)).to.have.members([
+          ]));
+          jestExpect(Array.from(dynamicNodeIds!)).toEqual(jestExpect.arrayContaining([
             nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 }),
             nodeIdForParameterizedValue('1', ['three', 'four'], { extra: true }),
             nodeIdForParameterizedValue('2', ['three', 'four'], { extra: true }),
-          ]);
+          ]));
         });
 
       });
@@ -134,12 +134,12 @@ describe(`operations.read`, () => {
 
         it(`doesn't recurse to nested fields if there are no values for their parent`, () => {
           const { result } = read(context, nestedQuery, empty);
-          expect(result).to.deep.equal(undefined);
+          jestExpect(result).toEqual(undefined);
         });
 
         it(`is marked incomplete`, () => {
           const { complete } = read(context, nestedQuery, empty);
-          expect(complete).to.eq(false);
+          jestExpect(complete).toBe(false);
         });
 
       });
@@ -164,7 +164,7 @@ describe(`operations.read`, () => {
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
           const { result } = read(context, nestedQuery, snapshot);
-          expect(result).to.deep.equal({
+          jestExpect(result).toEqual({
             one: {
               two: [
                 {
@@ -189,12 +189,12 @@ describe(`operations.read`, () => {
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
           const { result } = read(context, nestedQuery, snapshot);
-          expect(result).to.deep.equal({ one: null });
+          jestExpect(result).toEqual({ one: null });
         });
 
         it(`is marked complete`, () => {
           const { complete } = read(context, nestedQuery, snapshot);
-          expect(complete).to.eq(true);
+          jestExpect(complete).toBe(true);
         });
 
       });
@@ -212,7 +212,7 @@ describe(`operations.read`, () => {
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
           const { result } = read(context, nestedQuery, snapshot);
-          expect(result).to.deep.equal({
+          jestExpect(result).toEqual({
             one: {
               two: null,
             },
@@ -221,7 +221,7 @@ describe(`operations.read`, () => {
 
         it(`is marked complete`, () => {
           const { complete } = read(context, nestedQuery, snapshot);
-          expect(complete).to.eq(true);
+          jestExpect(complete).toBe(true);
         });
 
       });
@@ -242,7 +242,7 @@ describe(`operations.read`, () => {
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
           const { result } = read(context, nestedQuery, snapshot);
-          expect(result).to.deep.equal({
+          jestExpect(result).toEqual({
             one: {
               two: {
                 id: 1,
@@ -254,7 +254,7 @@ describe(`operations.read`, () => {
 
         it(`is marked complete`, () => {
           const { complete } = read(context, nestedQuery, snapshot);
-          expect(complete).to.eq(true);
+          jestExpect(complete).toBe(true);
         });
 
       });
@@ -278,7 +278,7 @@ describe(`operations.read`, () => {
 
         it(`returns the selected values, overlaid on the underlying data`, () => {
           const { result } = read(context, nestedQuery, snapshot);
-          expect(result).to.deep.equal({
+          jestExpect(result).toEqual({
             one: [
               null,
               {
@@ -293,7 +293,7 @@ describe(`operations.read`, () => {
 
         it(`is marked complete`, () => {
           const { complete } = read(context, nestedQuery, snapshot);
-          expect(complete).to.eq(true);
+          jestExpect(complete).toBe(true);
         });
 
       });
@@ -324,7 +324,7 @@ describe(`operations.read`, () => {
 
       it(`returns the selected values, overlaid on the underlying data`, () => {
         const { result } = read(context, nestedQuery, snapshot);
-        expect(result).to.deep.equal({
+        jestExpect(result).toEqual({
           one: {
             id: 1,
             two: { id: 2 },
@@ -357,7 +357,7 @@ describe(`operations.read`, () => {
 
       it(`returns the selected values, overlaid on the underlying data`, () => {
         const { result } = read(context, nestedQuery, snapshot);
-        expect(result).to.deep.equal({
+        jestExpect(result).toEqual({
           one: {
             two: { id: 2 },
           },
@@ -378,7 +378,7 @@ describe(`operations.read`, () => {
 
       it(`returns the selected values, overlaid on the underlying data`, () => {
         const { result } = read(context, parameterizedQuery, snapshot);
-        expect(result).to.deep.equal({
+        jestExpect(result).toEqual({
           user: [],
           stuff: 123,
         });
@@ -435,7 +435,7 @@ describe(`operations.read`, () => {
 
     it(`can be read`, () => {
       const { result } = read(context, staticQuery, snapshot);
-      expect(result).to.deep.equal({
+      jestExpect(result).toEqual({
         todos: [
           {
             id: 1,
@@ -459,7 +459,7 @@ describe(`operations.read`, () => {
       const result1 = read(context, staticQuery, snapshot).result;
       const result2 = read(context, otherStaticQuery, snapshot).result;
 
-      expect(result1).to.eq(result2);
+      jestExpect(result1).toBe(result2);
     });
 
   });

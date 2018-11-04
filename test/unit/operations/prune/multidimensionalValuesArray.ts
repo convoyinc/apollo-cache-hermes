@@ -36,7 +36,7 @@ describe(`operations.prune`, () => {
   });
 
   it(`is able to prune fields from entities in a 2d array correctly`, () => {
-    expect(extractResult).to.deep.eq({
+    jestExpect(extractResult).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         data: {

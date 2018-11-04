@@ -28,7 +28,7 @@ function createNewCacheSnapshot(cacheContext: CacheContext) {
 
 describe(`operations.migrate`, () => {
   let cacheContext: CacheContext;
-  // let cacheSnapshot: CacheSnapshot;
+
   beforeAll(() => {
     cacheContext = new CacheContext({ ...strictConfig, freeze: false });
   });
@@ -42,7 +42,7 @@ describe(`operations.migrate`, () => {
       },
     });
     const cacheAfter = extract(migrated.baseline, cacheContext);
-    expect(cacheAfter).to.deep.eq({
+    jestExpect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         data: {
@@ -78,7 +78,7 @@ describe(`operations.migrate`, () => {
       },
     });
     const cacheAfter = extract(migrated.baseline, cacheContext);
-    expect(cacheAfter).to.deep.eq({
+    jestExpect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         data: {
@@ -112,7 +112,7 @@ describe(`operations.migrate`, () => {
       },
     });
     const cacheAfter = extract(migrated.baseline, cacheContext);
-    expect(cacheAfter).to.deep.eq({
+    jestExpect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         data: {
@@ -148,7 +148,7 @@ describe(`operations.migrate`, () => {
       },
     });
     const cacheAfter = extract(migrated.baseline, cacheContext);
-    expect(cacheAfter).to.deep.eq({
+    jestExpect(cacheAfter).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         data: {

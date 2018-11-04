@@ -64,7 +64,7 @@ describe(`operations.extract`, () => {
         { id: 1, withExtra: true }
       );
 
-      expect(extractResult).to.deep.eq({
+      jestExpect(extractResult).toEqual({
         [QueryRootId]: {
           type: Serializable.NodeSnapshotType.EntitySnapshot,
           outbound: [

@@ -39,7 +39,7 @@ describe(`operations.prune`, () => {
   });
 
   it(`prunes fields from the entities referenced by nested object in an array correctly`, () => {
-    expect(extractResult).to.deep.eq({
+    jestExpect(extractResult).toEqual({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
         outbound: [
