@@ -10,7 +10,7 @@ import { JsonObject } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
 import { DocumentNode, setsHaveSomeIntersection } from './util';
-import { QueryResultWithNodeIds } from './operations/read';
+import { QueryResult } from './operations/read';
 
 export { MigrationMap };
 export type TransactionCallback = (transaction: CacheTransaction) => void;
@@ -45,7 +45,7 @@ export class Cache implements Queryable {
   restore(data: Serializable.GraphSnapshot, migrationMap?: MigrationMap, verifyQuery?: RawOperation) {
     const { cacheSnapshot, editedNodeIds } = restore(data, this._context);
     const migrated = migrate(cacheSnapshot, migrationMap);
-    if (verifyQuery && !read(this._context, verifyQuery, migrated.baseline).complete) {
+    if (verifyQuery && !read(this._context, verifyQuery, migrated.baseline, false).complete) {
       throw new Error(`Restored cache cannot satisfy the verification query`);
     }
     this._setSnapshot(migrated, editedNodeIds);
@@ -69,7 +69,7 @@ export class Cache implements Queryable {
    * TODO: Can we drop non-optimistic reads?
    * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(query: RawOperation, optimistic?: boolean): QueryResultWithNodeIds {
+  read(query: RawOperation, optimistic?: boolean): QueryResult {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
     return read(this._context, query, optimistic ? this._snapshot.optimistic : this._snapshot.baseline);
