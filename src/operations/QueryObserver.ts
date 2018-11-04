@@ -2,7 +2,7 @@ import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, RawOperation } from '../schema';
 
-import { QueryResult, QueryResultWithNodeIds, read } from './read';
+import { QueryResult, read } from './read';
 
 export type Callback = (result: QueryResult) => void;
 
@@ -18,7 +18,7 @@ export class QueryObserver {
   /** The query being observed. */
   private _query: RawOperation;
   /** The most recent result */
-  private _result?: QueryResultWithNodeIds;
+  private _result?: QueryResult;
   /** The callback to trigger when observed nodes have changed. */
   private _callback: Callback;
 
@@ -61,7 +61,11 @@ export class QueryObserver {
    * Re-query and trigger the callback.
    */
   private _update(snapshot: GraphSnapshot): void {
-    this._result = read(this._context, this._query, snapshot, true);
+    // Note that if strict mode is disabled, we _do not_ ask for node ids.
+    //
+    // This effectively circumvents the logic in _hasUpdate (entityIds will be
+    // undefined).
+    this._result = read(this._context, this._query, snapshot, this._context.strict);
     this._callback(this._result);
   }
 
