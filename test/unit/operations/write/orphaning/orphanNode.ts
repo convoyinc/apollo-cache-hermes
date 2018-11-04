@@ -50,15 +50,15 @@ describe(`operations.write`, () => {
 
     it(`updates outbound references`, () => {
       const queryRoot = snapshot.getNodeSnapshot(QueryRootId)!;
-      jestExpect(queryRoot.outbound).toEqual([{ id: '1', path: ['foo'] }]);
+      jestExpect(queryRoot.outbound).toEqual(jestExpect.arrayContaining([{ id: '1', path: ['foo'] }]));
     });
 
     it(`marks the container and orphaned node as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId, '2']);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '2']));
     });
 
     it(`contains the correct nodes`, () => {
-      jestExpect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '1'].sort());
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId, '1']));
     });
 
   });

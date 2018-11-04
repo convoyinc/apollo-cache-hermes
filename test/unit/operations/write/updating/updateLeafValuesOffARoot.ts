@@ -33,11 +33,11 @@ describe(`operations.write`, () => {
     });
 
     it(`marks the root as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
     it(`only contains the root node`, () => {
-      jestExpect(snapshot.allNodeIds()).toEqual([QueryRootId]);
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
     it(`emits the edited node as an EntitySnapshot`, () => {

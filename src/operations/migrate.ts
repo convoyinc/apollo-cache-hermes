@@ -1,5 +1,3 @@
-import lodashGet = require('lodash.get');
-
 import { CacheSnapshot } from '../CacheSnapshot';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
@@ -8,6 +6,7 @@ import { NodeId } from '../schema';
 import {
   isObject,
   addNodeReference,
+  deepGet,
 } from '../util';
 
 import { nodeIdForParameterizedValue, NodeSnapshotMap } from './SnapshotEditor';
@@ -54,8 +53,8 @@ function migrateEntity(
   // Only if object and if valid MigrationMap is provided
   if (!isObject(snapshot.data)) return snapshot;
 
-  const entityMigrations = lodashGet(migrationMap, '_entities');
-  const parameterizedMigrations = lodashGet(migrationMap, '_parameterized');
+  const entityMigrations = deepGet(migrationMap, ['_entities']);
+  const parameterizedMigrations = deepGet(migrationMap, ['_parameterized']);
 
   const typeName = snapshot.data.__typename as string || 'Query';
 

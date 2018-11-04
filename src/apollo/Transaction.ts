@@ -1,13 +1,12 @@
 import { ApolloCache, Cache, Transaction } from 'apollo-cache';
 import { JsonValue } from 'apollo-utilities';
 import lodashIsEqual = require('lodash.isequal');
-import lodashGet = require('lodash.get');
 
 import { CacheTransaction } from '../CacheTransaction';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { PathPart } from '../primitive';
 import { NodeId } from '../schema';
-import { DocumentNode, verboseTypeof } from '../util';
+import { DocumentNode, verboseTypeof, deepGet } from '../util';
 
 import { ApolloQueryable } from './Queryable';
 
@@ -63,7 +62,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
   updateListOfReferences = this.updateParameterizedReferences;
   /**
    * A helper function to be used when doing EntityUpdate.
-   * The method enable users to interate different parameterized at an editPath
+   * The method enable users to iterate different parameterized at an editPath
    * of a given container Id.
    *
    * The 'updateFieldCallback' is a callback to compute new value given previous
@@ -104,7 +103,7 @@ export class ApolloTransaction extends ApolloQueryable implements ApolloCache<Gr
           } catch (error) {
             continue;
           }
-          const previousData = lodashGet(cacheResult, path);
+          const previousData = deepGet(cacheResult, path);
 
           // if previousData is not object or null or array,
           // we won't allow the field to be updated

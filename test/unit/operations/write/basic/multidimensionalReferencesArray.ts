@@ -59,12 +59,12 @@ describe(`operations.write`, () => {
     });
 
     it(`records the outbound references from the query root`, () => {
-      jestExpect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      jestExpect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).toEqual(jestExpect.arrayContaining([
         { id: 'a', path: ['rows', 0, 0] },
         { id: 'b', path: ['rows', 0, 1] },
         { id: 'c', path: ['rows', 1, 0] },
         { id: 'd', path: ['rows', 1, 1] },
-      ]);
+      ]));
     });
 
     it(`directly reference each row from the query root`, () => {

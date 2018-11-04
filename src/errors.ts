@@ -3,24 +3,53 @@ import * as makeError from 'make-error';
 import { PathPart } from './primitive';
 import { NodeId } from './schema';
 
+export interface ErrorDetails {
+  message: string;
+  infoUrl?: string;
+}
+export type MessageOrDetails = string | ErrorDetails;
+
+function _toDetails(messageOrDetails: MessageOrDetails) {
+  if (typeof messageOrDetails === 'object') return messageOrDetails;
+  return { message: messageOrDetails };
+}
+
+function _expandMessage(messageOrDetails: MessageOrDetails, template: string) {
+  const { message, ...details } = _toDetails(messageOrDetails);
+  return {
+    ...details,
+    message: template.replace('{{message}}', message),
+  };
+}
+
 /**
  * Base error class for all errors emitted by the cache.
  *
  * Note that we rely on make-error so that we can safely extend the built in
  * Error in a cross-platform manner.
  */
-export class CacheError extends makeError.BaseError {}
+export class HermesCacheError extends makeError.BaseError {
+  constructor(messageOrDetails: MessageOrDetails) {
+    const { message, infoUrl } = _toDetails(messageOrDetails);
+    super(infoUrl ? `[${infoUrl}] ${message}` : message);
+  }
+}
+
+/**
+ * The current runtime environment isn't suited to run Hermes.
+ */
+export class InvalidEnvironmentError extends HermesCacheError {}
 
 /**
  * An error with a query - generally occurs when parsing an error.
  */
-export class QueryError extends CacheError {
+export class QueryError extends HermesCacheError {
   constructor(
-    message: string,
+    messageOrDetails: MessageOrDetails,
     // The path within the query where the error occurred.
     public readonly path: string[],
   ) {
-    super(`${message} at ${prettyPath(path)}`);
+    super(_expandMessage(messageOrDetails, `{{message}} at ${prettyPath(path)}`));
   }
 }
 
@@ -28,7 +57,7 @@ export class QueryError extends CacheError {
  * An error with a read query - generally occurs when data in cache is partial
  * or missing.
  */
-export class UnsatisfiedCacheError extends CacheError {}
+export class UnsatisfiedCacheError extends HermesCacheError {}
 
 /**
  * An error thrown when multiple fields within a query disagree about what they
@@ -36,13 +65,13 @@ export class UnsatisfiedCacheError extends CacheError {}
  */
 export class ConflictingFieldsError extends QueryError {
   constructor(
-    message: string,
+    messageOrDetails: MessageOrDetails,
     // The path within the query where the error occurred.
     public readonly path: string[],
     // The fields that are conflicting
     public readonly fields: any[],
   ) {
-    super(`Conflicting field definitions: ${message}`, path);
+    super(_expandMessage(messageOrDetails, `Conflicting field definitions: {{message}}`), path);
   }
 }
 
@@ -50,9 +79,9 @@ export class ConflictingFieldsError extends QueryError {
  * An error occurring during a cache operation, associated with a location in
  * the cache.
  */
-export class OperationError extends CacheError {
+export class OperationError extends HermesCacheError {
   constructor(
-    message: string,
+    messageOrDetails: MessageOrDetails,
     // The path from the payload root to the node containing the error.
     public readonly prefixPath: PathPart[],
     // The node id being processed when the error occurred.
@@ -62,7 +91,7 @@ export class OperationError extends CacheError {
     // A value associated with the error.
     public readonly value?: any,
   ) {
-    super(`${message} at ${prettyPath([...prefixPath, ...path])} (node ${nodeId})`);
+    super(_expandMessage(messageOrDetails, `{{message}} at ${prettyPath([...prefixPath, ...path])} (node ${nodeId})`));
   }
 }
 
@@ -76,7 +105,7 @@ export class InvalidPayloadError extends OperationError {}
  */
 export class CacheConsistencyError extends OperationError {
   constructor(
-    message: string,
+    messageOrDetails: MessageOrDetails,
     // The path from the payload root to the node containing the error.
     public readonly prefixPath: PathPart[],
     // The node id being processed when the error occurred.
@@ -86,7 +115,7 @@ export class CacheConsistencyError extends OperationError {
     // A value that is the subject of the error
     public readonly value?: any,
   ) {
-    super(`Hermes BUG: ${message}`, prefixPath, nodeId, path);
+    super(_expandMessage(messageOrDetails, `Hermes BUG: {{message}}`), prefixPath, nodeId, path);
   }
 }
 

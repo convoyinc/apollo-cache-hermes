@@ -65,7 +65,7 @@ describe(`operations.write`, () => {
     });
 
     it(`marks only the entity as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '1'].sort());
+      jestExpect(Array.from(editedNodeIds).sort()).toEqual(jestExpect.arrayContaining([QueryRootId, '1']));
     });
 
   });

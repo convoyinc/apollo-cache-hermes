@@ -41,12 +41,14 @@ describe(`operations.read`, () => {
       });
 
       it(`returns the nodeIds visited during reading`, () => {
-        const { nodeIds } = read(context, parameterizedQuery, snapshot, true);
-        jestExpect(Array.from(nodeIds).sort()).toEqual([
+        const { entityIds, dynamicNodeIds } = read(context, parameterizedQuery, snapshot, true);
+        jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([
           QueryRootId,
-          nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 1, withExtra: true }),
           '1',
-        ].sort());
+        ]));
+        jestExpect(Array.from(dynamicNodeIds!)).toEqual(jestExpect.arrayContaining([
+          nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 1, withExtra: true }),
+        ]));
       });
 
     });
@@ -113,15 +115,17 @@ describe(`operations.read`, () => {
         });
 
         it(`returns the nodeIds visited during reading`, () => {
-          const { nodeIds } = read(context, nestedQuery, snapshot, true);
-          jestExpect(Array.from(nodeIds).sort()).toEqual([
+          const { entityIds, dynamicNodeIds } = read(context, nestedQuery, snapshot, true);
+          jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([
             QueryRootId,
-            nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 }),
             '1',
-            nodeIdForParameterizedValue('1', ['three', 'four'], { extra: true }),
             '2',
+          ]));
+          jestExpect(Array.from(dynamicNodeIds!)).toEqual(jestExpect.arrayContaining([
+            nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 }),
+            nodeIdForParameterizedValue('1', ['three', 'four'], { extra: true }),
             nodeIdForParameterizedValue('2', ['three', 'four'], { extra: true }),
-          ].sort());
+          ]));
         });
 
       });

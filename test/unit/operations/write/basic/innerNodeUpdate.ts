@@ -47,7 +47,7 @@ describe(`operations.write`, () => {
     });
 
     it(`marks only the inner node as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual(['1']);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining(['1']));
     });
 
   });

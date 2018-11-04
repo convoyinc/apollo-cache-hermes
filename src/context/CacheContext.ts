@@ -123,6 +123,11 @@ export namespace CacheContext {
     tracer?: Tracer;
 
     /**
+     * Whether strict mode is enabled (defaults to true).
+     */
+    strict?: boolean;
+
+    /**
      * Whether debugging information should be logged out.
      *
      * Enabling this will cause the cache to emit log events for most operations
@@ -168,6 +173,9 @@ export class CacheContext {
   /** Configured on-change callback */
   readonly onChange: CacheContext.OnChangeCallback | undefined;
 
+  /** Whether the cache should operate in strict mode. */
+  readonly strict: boolean;
+
   /** The tracer we should use. */
   readonly tracer: Tracer;
 
@@ -186,6 +194,7 @@ export class CacheContext {
     this.entityTransformer = config.entityTransformer;
     this.freezeSnapshots = 'freeze' in config ? !!config.freeze : nodeEnv !== 'production';
 
+    this.strict = typeof config.strict === 'boolean' ? config.strict : true;
     this.verbose = !!config.verbose;
     this.resolverRedirects = config.resolverRedirects || {};
     this.onChange = config.onChange;
