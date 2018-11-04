@@ -29,7 +29,7 @@ describe(`operations.read`, () => {
     });
 
     it(`includes no node ids if requested`, () => {
-      expect(Array.from(read(context, viewerQuery, empty, true).nodeIds)).to.have.members([]);
+      expect(Array.from(read(context, viewerQuery, empty, true).entityIds)).to.have.members([]);
     });
 
   });
@@ -62,8 +62,8 @@ describe(`operations.read`, () => {
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(context, viewerQuery, snapshot, true);
-      expect(Array.from(nodeIds)).to.have.members([QueryRootId, '123']);
+      const { entityIds } = read(context, viewerQuery, snapshot, true);
+      expect(Array.from(entityIds)).to.have.members([QueryRootId, '123']);
     });
 
   });
@@ -95,8 +95,8 @@ describe(`operations.read`, () => {
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(silentContext, viewerQuery, snapshot, true);
-      expect(Array.from(nodeIds)).to.have.members([QueryRootId, '123']);
+      const { entityIds } = read(silentContext, viewerQuery, snapshot, true);
+      expect(Array.from(entityIds)).to.have.members([QueryRootId, '123']);
     });
 
   });
@@ -137,8 +137,8 @@ describe(`operations.read`, () => {
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(context, nestedQuery, snapshot, true);
-      expect(Array.from(nodeIds)).to.have.members([QueryRootId]);
+      const { entityIds } = read(context, nestedQuery, snapshot, true);
+      expect(Array.from(entityIds)).to.have.members([QueryRootId]);
     });
 
   });
@@ -173,8 +173,8 @@ describe(`operations.read`, () => {
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(context, viewerQuery, snapshot, true);
-      expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2', '3']);
+      const { entityIds } = read(context, viewerQuery, snapshot, true);
+      expect(Array.from(entityIds)).to.have.members([QueryRootId, '1', '2', '3']);
     });
 
   });

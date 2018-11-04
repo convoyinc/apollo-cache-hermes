@@ -41,8 +41,8 @@ describe(`operations.read`, () => {
       });
 
       it(`returns the nodeIds visited during reading`, () => {
-        const { nodeIds } = read(context, parameterizedQuery, snapshot, true);
-        expect(Array.from(nodeIds)).to.have.members([
+        const { entityIds } = read(context, parameterizedQuery, snapshot, true);
+        expect(Array.from(entityIds)).to.have.members([
           QueryRootId,
           nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 1, withExtra: true }),
           '1',
@@ -113,8 +113,8 @@ describe(`operations.read`, () => {
         });
 
         it(`returns the nodeIds visited during reading`, () => {
-          const { nodeIds } = read(context, nestedQuery, snapshot, true);
-          expect(Array.from(nodeIds)).to.have.members([
+          const { entityIds } = read(context, nestedQuery, snapshot, true);
+          expect(Array.from(entityIds)).to.have.members([
             QueryRootId,
             nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 }),
             '1',
