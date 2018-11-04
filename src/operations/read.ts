@@ -14,6 +14,8 @@ export interface QueryResult {
   result?: JsonObject;
   /** Whether the query's selection set was satisfied. */
   complete: boolean;
+  /** The ids of entity nodes selected by the query. */
+  entityIds?: Set<NodeId>;
   /** The ids of nodes overlaid on top of static cache results. */
   dynamicNodeIds?: Set<NodeId>;
 }

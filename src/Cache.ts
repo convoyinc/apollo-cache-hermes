@@ -227,12 +227,16 @@ export class Cache implements Queryable {
  */
 function _copyUnaffectedCachedReads(lastSnapshot: GraphSnapshot, nextSnapshot: GraphSnapshot, editedNodeIds: Set<NodeId>) {
   for (const [operation, result] of lastSnapshot.readCache) {
+    const { complete, entityIds, dynamicNodeIds } = result;
     // We don't care about incomplete results.
-    if (!result.complete) continue;
+    if (!complete) continue;
+    // Nor queries where we don't know which nodes were affected.
+    if (!entityIds) continue;
+
     // If any nodes in the cached read were edited, do not copy.
-    if ('entityIds' in result && setsHaveSomeIntersection(editedNodeIds, result.entityIds)) continue;
+    if (entityIds && setsHaveSomeIntersection(editedNodeIds, entityIds)) continue;
     // If any dynamic nodes were edited, also do not copy.
-    if (result.dynamicNodeIds && setsHaveSomeIntersection(editedNodeIds, result.dynamicNodeIds)) continue;
+    if (dynamicNodeIds && setsHaveSomeIntersection(editedNodeIds, dynamicNodeIds)) continue;
 
     nextSnapshot.readCache.set(operation, result);
   }
