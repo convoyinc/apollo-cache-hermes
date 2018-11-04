@@ -101,11 +101,11 @@ describe(`operations.write`, () => {
     });
 
     it(`marks the entity and root as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([QueryRootId, '123'].sort());
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '123']));
     });
 
     it(`only contains the two nodes`, () => {
-      jestExpect(snapshot.allNodeIds().sort()).toEqual([QueryRootId, '123'].sort());
+      jestExpect(snapshot.allNodeIds()).toEqual(jestExpect.arrayContaining([QueryRootId, '123']));
     });
   });
 

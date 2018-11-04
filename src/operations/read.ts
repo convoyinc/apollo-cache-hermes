@@ -1,11 +1,9 @@
-import lodashGet = require('lodash.get');
-
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { ParsedQuery } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId, OperationInstance, RawOperation, StaticNodeId } from '../schema';
-import { isNil, isObject, walkOperation } from '../util';
+import { isNil, isObject, walkOperation, deepGet } from '../util';
 
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 
@@ -14,51 +12,63 @@ export interface QueryResult {
   result?: JsonObject;
   /** Whether the query's selection set was satisfied. */
   complete: boolean;
+  /** The ids of entity nodes selected by the query. */
+  entityIds?: Set<NodeId>;
+  /** The ids of nodes overlaid on top of static cache results. */
+  dynamicNodeIds?: Set<NodeId>;
 }
 
 export interface QueryResultWithNodeIds extends QueryResult {
-  /** The ids of nodes selected by the query (if requested). */
-  nodeIds: Set<NodeId>;
+  /** The ids of entity nodes selected by the query. */
+  entityIds: Set<NodeId>;
 }
 
 /**
  * Get you some data.
  */
-export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: true): QueryResultWithNodeIds;
-export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds = true) {
+export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
+export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: boolean): QueryResult;
+export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: boolean) {
   let tracerContext;
   if (context.tracer.readStart) {
     tracerContext = context.tracer.readStart(raw);
   }
 
   const operation = context.parseOperation(raw);
-  let queryResult = snapshot.readCache.get(operation) as Partial<QueryResultWithNodeIds>;
-  let cacheHit = true;
-  if (!queryResult) {
-    cacheHit = false;
-    const staticResult = snapshot.getNodeData(operation.rootId);
 
-    let result = staticResult;
-    const nodeIds = includeNodeIds ? new Set<NodeId>() : undefined;
+  // Retrieve the previous result (may be partially complete), or start anew.
+  const queryResult = snapshot.readCache.get(operation) || {} as Partial<QueryResultWithNodeIds>;
+  snapshot.readCache.set(operation, queryResult as QueryResult);
+
+  let cacheHit = true;
+  if (!queryResult.result) {
+    cacheHit = false;
+    queryResult.result = snapshot.getNodeData(operation.rootId);
+
     if (!operation.isStatic) {
-      result = _walkAndOverlayDynamicValues(operation, context, snapshot, staticResult, nodeIds);
+      const dynamicNodeIds = new Set<NodeId>();
+      queryResult.result = _walkAndOverlayDynamicValues(operation, context, snapshot, queryResult.result, dynamicNodeIds!);
+      queryResult.dynamicNodeIds = dynamicNodeIds;
     }
 
-    const complete = _visitSelection(operation, context, result, nodeIds);
+    queryResult.entityIds = includeNodeIds ? new Set<NodeId>() : undefined;
 
-    queryResult = { result, complete, nodeIds };
-    snapshot.readCache.set(operation, queryResult as QueryResult);
+    // When strict mode is disabled, we carry completeness forward for observed
+    // queries.  Once complete, always complete.
+    if (typeof queryResult.complete !== 'boolean') {
+      queryResult.complete = _visitSelection(operation, context, queryResult.result, queryResult.entityIds);
+    }
   }
 
   // We can potentially ask for results without node ids first, and then follow
   // up with an ask for them.  In that case, we need to fill in the cache a bit
   // more.
-  if (includeNodeIds && !queryResult.nodeIds) {
+  if (includeNodeIds && !queryResult.entityIds) {
     cacheHit = false;
-    const nodeIds = new Set<NodeId>();
-    const complete = _visitSelection(operation, context, queryResult.result, nodeIds);
+    const entityIds = new Set<NodeId>();
+    const complete = _visitSelection(operation, context, queryResult.result, entityIds);
     queryResult.complete = complete;
-    queryResult.nodeIds = nodeIds;
+    queryResult.entityIds = entityIds;
   }
 
   if (context.tracer.readEnd) {
@@ -91,7 +101,7 @@ export function _walkAndOverlayDynamicValues(
   context: CacheContext,
   snapshot: GraphSnapshot,
   result: JsonObject | undefined,
-  nodeIds?: Set<NodeId>,
+  dynamicNodeIds: Set<NodeId>,
 ): JsonObject | undefined {
   // Corner case: We stop walking once we reach a parameterized field with no
   // snapshot, but we should also preemptively stop walking if there are no
@@ -140,7 +150,7 @@ export function _walkAndOverlayDynamicValues(
           }
 
           // Should we fall back to a redirect?
-          const redirect: CacheContext.ResolverRedirect | undefined = lodashGet(context.resolverRedirects, [typeName, fieldName]) as any;
+          const redirect: CacheContext.ResolverRedirect | undefined = deepGet(context.resolverRedirects, [typeName, fieldName]) as any;
           if (redirect) {
             childId = redirect(node.args);
             if (!isNil(childId)) {
@@ -152,7 +162,7 @@ export function _walkAndOverlayDynamicValues(
         // Still no snapshot? Ok we're done here.
         if (!childSnapshot) continue;
 
-        if (nodeIds) nodeIds.add(childId);
+        dynamicNodeIds.add(childId);
         nextContainerId = childId;
         nextPath = [];
         child = childSnapshot.data;

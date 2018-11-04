@@ -60,7 +60,7 @@ describe(`operations.write`, () => {
     });
 
     it(`marks only the new field as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual([parameterizedId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([parameterizedId]));
     });
 
     it(`emits a ParameterizedValueSnapshot`, () => {

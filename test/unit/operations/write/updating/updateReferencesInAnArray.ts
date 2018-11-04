@@ -47,13 +47,13 @@ describe(`operations.write`, () => {
     });
 
     it(`sets up outbound references`, () => {
-      jestExpect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      jestExpect(snapshot.getNodeSnapshot(QueryRootId)!.outbound).toEqual(jestExpect.arrayContaining([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '3', path: ['things', 2] },
         { id: '4', path: ['things', 3] },
         { id: '5', path: ['things', 4] },
-      ]);
+      ]));
     });
 
     it(`lets you reorder references`, () => {
@@ -83,10 +83,10 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual(jestExpect.arrayContaining([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
-      ]);
+      ]));
     });
 
     it(`supports multiple references to the same node`, () => {
@@ -105,7 +105,7 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual(jestExpect.arrayContaining([
         { id: '1', path: ['things', 0] },
         { id: '2', path: ['things', 1] },
         { id: '3', path: ['things', 2] },
@@ -116,7 +116,7 @@ describe(`operations.write`, () => {
         { id: '3', path: ['things', 7] },
         { id: '4', path: ['things', 8] },
         { id: '5', path: ['things', 9] },
-      ]);
+      ]));
     });
 
     it(`supports holes`, () => {
@@ -130,10 +130,10 @@ describe(`operations.write`, () => {
         ],
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual(jestExpect.arrayContaining([
         { id: '3', path: ['things', 2] },
         { id: '4', path: ['things', 3] },
-      ]);
+      ]));
 
       jestExpect(updated.getNodeData(QueryRootId)).toEqual({
         things: [
@@ -157,10 +157,10 @@ describe(`operations.write`, () => {
         ] as JsonArray,
       }).snapshot;
 
-      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual([
+      jestExpect(updated.getNodeSnapshot(QueryRootId)!.outbound).toEqual(jestExpect.arrayContaining([
         { id: '3', path: ['things', 2] },
         { id: '4', path: ['things', 3] },
-      ]);
+      ]));
 
       jestExpect(updated.getNodeData(QueryRootId)).toEqual({
         things: [

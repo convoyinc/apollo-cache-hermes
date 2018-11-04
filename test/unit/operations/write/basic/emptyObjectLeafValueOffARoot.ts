@@ -32,7 +32,7 @@ describe(`operations.write`, () => {
     });
 
     it(`marks the container as edited`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual([QueryRootId]);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
   });

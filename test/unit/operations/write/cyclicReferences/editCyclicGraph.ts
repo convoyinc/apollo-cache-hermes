@@ -75,7 +75,7 @@ describe(`operations.write`, () => {
     });
 
     it(`only marks the edited node`, () => {
-      jestExpect(Array.from(editedNodeIds)).toEqual(['2']);
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining(['2']));
     });
   });
 });

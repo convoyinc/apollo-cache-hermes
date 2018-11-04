@@ -75,7 +75,7 @@ describe(`operations.write`, () => {
     });
 
     it(`marks the new field and entity as edited`, () => {
-      jestExpect(Array.from(editedNodeIds).sort()).toEqual([parameterizedId, '1'].sort());
+      jestExpect(Array.from(editedNodeIds)).toEqual(jestExpect.arrayContaining([parameterizedId, '1']));
     });
 
   });

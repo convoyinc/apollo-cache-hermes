@@ -1,12 +1,16 @@
-import lodashGet = require('lodash.get');
-
 import { PathPart } from '../primitive';
 
 /**
  * Gets a nested value, with support for blank paths.
  */
 export function deepGet(target: any, path: PathPart[]): any {
-  return path.length ? lodashGet(target, path) : target;
+  let index = 0;
+  const { length } = path;
+  while (target != null && index < length) {
+    target = target[path[index++]];
+  }
+
+  return target;
 }
 
 export function pathBeginsWith(target: PathPart[], prefix: PathPart[]) {

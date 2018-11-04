@@ -2,7 +2,7 @@ import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { NodeId, RawOperation } from '../schema';
 
-import { QueryResult, QueryResultWithNodeIds, read } from './read';
+import { QueryResult, read } from './read';
 
 export type Callback = (result: QueryResult) => void;
 
@@ -18,7 +18,7 @@ export class QueryObserver {
   /** The query being observed. */
   private _query: RawOperation;
   /** The most recent result */
-  private _result?: QueryResultWithNodeIds;
+  private _result?: QueryResult;
   /** The callback to trigger when observed nodes have changed. */
   private _callback: Callback;
 
@@ -44,11 +44,16 @@ export class QueryObserver {
    * observing.
    */
   private _hasUpdate(_changedNodeIds: Set<NodeId>): boolean {
-    // TODO: Can we get to the point where this is not necessary?
-    if (!this._result!.complete) return true;
+    const { complete, entityIds, dynamicNodeIds } = this._result!;
+    if (!complete) return true;
+    // We can't know if we have no ids to test against. Favor updating.
+    if (!entityIds) return true;
+
     for (const nodeId of _changedNodeIds) {
-      if (this._result!.nodeIds.has(nodeId)) return true;
+      if (entityIds.has(nodeId)) return true;
+      if (dynamicNodeIds && dynamicNodeIds.has(nodeId)) return true;
     }
+
     return false;
   }
 
@@ -56,7 +61,11 @@ export class QueryObserver {
    * Re-query and trigger the callback.
    */
   private _update(snapshot: GraphSnapshot): void {
-    this._result = read(this._context, this._query, snapshot, true);
+    // Note that if strict mode is disabled, we _do not_ ask for node ids.
+    //
+    // This effectively circumvents the logic in _hasUpdate (entityIds will be
+    // undefined).
+    this._result = read(this._context, this._query, snapshot, this._context.strict);
     this._callback(this._result);
   }
 

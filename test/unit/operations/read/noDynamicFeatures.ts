@@ -29,7 +29,7 @@ describe(`operations.read`, () => {
     });
 
     it(`includes no node ids if requested`, () => {
-      jestExpect(Array.from(read(context, viewerQuery, empty, true).nodeIds)).toEqual([]);
+      jestExpect(Array.from(read(context, viewerQuery, empty, true).entityIds)).toEqual(jestExpect.arrayContaining([]));
     });
 
   });
@@ -62,8 +62,8 @@ describe(`operations.read`, () => {
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(context, viewerQuery, snapshot, true);
-      jestExpect(Array.from(nodeIds)).toEqual([QueryRootId, '123']);
+      const { entityIds } = read(context, viewerQuery, snapshot, true);
+      jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '123']));
     });
 
   });
@@ -95,8 +95,8 @@ describe(`operations.read`, () => {
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(silentContext, viewerQuery, snapshot, true);
-      jestExpect(Array.from(nodeIds)).toEqual([QueryRootId, '123']);
+      const { entityIds } = read(silentContext, viewerQuery, snapshot, true);
+      jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '123']));
     });
 
   });
@@ -137,8 +137,8 @@ describe(`operations.read`, () => {
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(context, nestedQuery, snapshot, true);
-      jestExpect(Array.from(nodeIds)).toEqual([QueryRootId]);
+      const { entityIds } = read(context, nestedQuery, snapshot, true);
+      jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([QueryRootId]));
     });
 
   });
@@ -173,8 +173,8 @@ describe(`operations.read`, () => {
     });
 
     it(`includes all related node ids, if requested`, () => {
-      const { nodeIds } = read(context, viewerQuery, snapshot, true);
-      jestExpect(Array.from(nodeIds)).toEqual([QueryRootId, '1', '2', '3']);
+      const { entityIds } = read(context, viewerQuery, snapshot, true);
+      jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '1', '2', '3']));
     });
 
   });
