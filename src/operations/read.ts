@@ -1,11 +1,9 @@
-import lodashGet = require('lodash.get');
-
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { ParsedQuery } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId, OperationInstance, RawOperation, StaticNodeId } from '../schema';
-import { isNil, isObject, walkOperation } from '../util';
+import { isNil, isObject, walkOperation, deepGet } from '../util';
 
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
 
@@ -146,7 +144,7 @@ export function _walkAndOverlayDynamicValues(
           }
 
           // Should we fall back to a redirect?
-          const redirect: CacheContext.ResolverRedirect | undefined = lodashGet(context.resolverRedirects, [typeName, fieldName]) as any;
+          const redirect: CacheContext.ResolverRedirect | undefined = deepGet(context.resolverRedirects, [typeName, fieldName]) as any;
           if (redirect) {
             childId = redirect(node.args);
             if (!isNil(childId)) {
