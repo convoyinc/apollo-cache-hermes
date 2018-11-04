@@ -41,11 +41,13 @@ describe(`operations.read`, () => {
       });
 
       it(`returns the nodeIds visited during reading`, () => {
-        const { nodeIds } = read(context, parameterizedQuery, snapshot, true);
-        expect(Array.from(nodeIds)).to.have.members([
+        const { entityIds, dynamicNodeIds } = read(context, parameterizedQuery, snapshot, true);
+        expect(Array.from(entityIds)).to.have.members([
           QueryRootId,
-          nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 1, withExtra: true }),
           '1',
+        ]);
+        expect(Array.from(dynamicNodeIds!)).to.have.members([
+          nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 1, withExtra: true }),
         ]);
       });
 
@@ -113,13 +115,15 @@ describe(`operations.read`, () => {
         });
 
         it(`returns the nodeIds visited during reading`, () => {
-          const { nodeIds } = read(context, nestedQuery, snapshot, true);
-          expect(Array.from(nodeIds)).to.have.members([
+          const { entityIds, dynamicNodeIds } = read(context, nestedQuery, snapshot, true);
+          expect(Array.from(entityIds)).to.have.members([
             QueryRootId,
-            nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 }),
             '1',
-            nodeIdForParameterizedValue('1', ['three', 'four'], { extra: true }),
             '2',
+          ]);
+          expect(Array.from(dynamicNodeIds!)).to.have.members([
+            nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 }),
+            nodeIdForParameterizedValue('1', ['three', 'four'], { extra: true }),
             nodeIdForParameterizedValue('2', ['three', 'four'], { extra: true }),
           ]);
         });

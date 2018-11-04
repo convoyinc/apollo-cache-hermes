@@ -64,8 +64,8 @@ describe(`operations.read`, () => {
       });
 
       it(`includes all related node ids, if requested`, () => {
-        const { nodeIds } = read(context, cyclicQuery, snapshot, true);
-        expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2']);
+        const { entityIds } = read(context, cyclicQuery, snapshot, true);
+        expect(Array.from(entityIds)).to.have.members([QueryRootId, '1', '2']);
       });
 
     });
@@ -122,8 +122,8 @@ describe(`operations.read`, () => {
       });
 
       it(`includes all related node ids, if requested`, () => {
-        const { nodeIds } = read(context, cyclicQuery, snapshot, true);
-        expect(Array.from(nodeIds)).to.have.members([QueryRootId, '1', '2']);
+        const { entityIds } = read(context, cyclicQuery, snapshot, true);
+        expect(Array.from(entityIds)).to.have.members([QueryRootId, '1', '2']);
       });
 
     });
