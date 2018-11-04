@@ -9,7 +9,8 @@
       "name": "test-unit",
       "runtimeExecutable": "${workspaceRoot}/scripts/test-unit.sh",
       "runtimeArgs": [
-        "--runInBand"
+        "--runInBand",
+        "${relativeFile}",
       ]
     }
   ]

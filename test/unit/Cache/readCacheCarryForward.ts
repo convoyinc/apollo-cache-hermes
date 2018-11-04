@@ -20,41 +20,84 @@ describe(`readCache carry-forward`, () => {
     unsubscribe();
   }
 
-  let cache: Cache;
-  beforeEach(() => {
-    cache = new Cache(strictConfig);
+  describe(`with strict mode enabled`, () => {
+
+    let cache: Cache;
+    beforeEach(() => {
+      cache = new Cache(strictConfig);
+    });
+
+    it(`memoizes read results`, () => {
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
+
+      expect(cache.getSnapshot().baseline.readCache.size).to.eq(0);
+      fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+      expect(cache.getSnapshot().baseline.readCache.size).to.eq(1);
+    });
+
+    it(`carries cache results forward if no entities in the cached query were changed`, () => {
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
+      fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+
+      cache.write({ ...thingQuery, variables: { id: 'b' } }, { thing: { id: 'b', ref: { id: 1 } } });
+      expect(cache.getSnapshot().baseline.readCache.size).to.eq(1);
+    });
+
+    it(`drops cache results if entities in the cached query were changed`, () => {
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
+      fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 2 } } });
+      expect(cache.getSnapshot().baseline.readCache.size).to.eq(0);
+    });
+
+    it(`drops cache results if containing entities in the cached query were changed`, () => {
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
+      fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'b', ref: { id: 1 } } });
+      expect(cache.getSnapshot().baseline.readCache.size).to.eq(0);
+    });
+
   });
 
-  it(`the cache memoizes read results`, () => {
-    cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
+  describe(`with strict mode disabled`, () => {
 
-    expect(cache.getSnapshot().baseline.readCache.size).to.eq(0);
-    fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
-    expect(cache.getSnapshot().baseline.readCache.size).to.eq(1);
-  });
+    let cache: Cache;
+    beforeEach(() => {
+      cache = new Cache({ ...strictConfig, strict: false });
+    });
 
-  it(`carries cache results forward if no entities in the cached query were changed`, () => {
-    cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
-    fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+    it(`memoizes read results`, () => {
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
 
-    cache.write({ ...thingQuery, variables: { id: 'b' } }, { thing: { id: 'b', ref: { id: 1 } } });
-    expect(cache.getSnapshot().baseline.readCache.size).to.eq(1);
-  });
+      expect(cache.getSnapshot().baseline.readCache.size).to.eq(0);
+      fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+      expect(cache.getSnapshot().baseline.readCache.size).to.eq(1);
+    });
 
-  it(`drops cache results if entities in the cached query were changed`, () => {
-    cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
-    fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+    it(`carries completeness forward, even if entities have changed`, () => {
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
+      fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 2 } } });
 
-    cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 2 } } });
-    expect(cache.getSnapshot().baseline.readCache.size).to.eq(0);
-  });
+      const values = Array.from(cache.getSnapshot().baseline.readCache.values());
+      expect(values).to.deep.eq([{ complete: true }]);
+    });
 
-  it(`drops cache results if containing entities in the cached query were changed`, () => {
-    cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
-    fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+    it(`doesn't carry results forward`, () => {
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 1 } } });
+      fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
+      cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'b', ref: { id: 2 } } });
 
-    cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'b', ref: { id: 1 } } });
-    expect(cache.getSnapshot().baseline.readCache.size).to.eq(0);
+      const { result } = cache.read({ ...thingQuery, variables: { id: 'a' } });
+      expect(result).to.deep.eq({
+        thing: {
+          id: 'b',
+          ref: { id: 2 },
+        },
+      });
+    });
   });
 
 });
