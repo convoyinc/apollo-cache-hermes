@@ -81,7 +81,7 @@ describe(`readCache carry-forward`, () => {
       fullRead(cache, { ...thingQuery, variables: { id: 'a' } });
       cache.write({ ...thingQuery, variables: { id: 'a' } }, { thing: { id: 'a', ref: { id: 2 } } });
 
-      const values = Array.from(cache.getSnapshot().baseline.readCache.values())
+      const values = Array.from(cache.getSnapshot().baseline.readCache.values());
       expect(values).to.deep.eq([{ complete: true }]);
     });
 
