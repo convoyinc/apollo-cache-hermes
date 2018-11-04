@@ -46,7 +46,6 @@ describe(`operations.read`, () => {
           QueryRootId,
           '1',
         ]));
-        console.log();
         jestExpect(Array.from(dynamicNodeIds!)).toEqual(jestExpect.arrayContaining([
           nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 1, withExtra: true }),
         ]));
@@ -122,11 +121,11 @@ describe(`operations.read`, () => {
             '1',
             '2',
           ]));
-          expect(Array.from(dynamicNodeIds!)).to.have.members([
+          jestExpect(Array.from(dynamicNodeIds!)).toEqual(jestExpect.arrayContaining([
             nodeIdForParameterizedValue(QueryRootId, ['one', 'two'], { id: 1 }),
             nodeIdForParameterizedValue('1', ['three', 'four'], { extra: true }),
             nodeIdForParameterizedValue('2', ['three', 'four'], { extra: true }),
-          ].sort());
+          ]));
         });
 
       });
