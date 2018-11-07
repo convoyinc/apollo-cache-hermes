@@ -16,6 +16,16 @@ This is in contrast to the built in cache for Apollo (and Relay), which maintain
 
 <sup>1</sup> If your query contains parameterized fields, there is some work that the cache has to perform during read, in order to layer those fields on top of the static values within the cache.
 
+## What _Doesn't_ It Do?
+
+Hermes is still early days! Some things it doesn't (yet!) support:
+
+**Union types**: Hermes currently ignores union types and type constraints on fragments. It can just work, but you will likely [run into trouble](https://github.com/convoyinc/apollo-cache-hermes/issues/372) if you are expecting the cache to be able to differentiate stored state based on the node type.
+
+**`writeData`**: Hermes [doesn't yet implement `writeData`](https://github.com/convoyinc/apollo-cache-hermes/issues/333).
+
+None of these are things that Hermes _can't_ support; we just haven't had time to build those out yet. If you're interested in contributing, please feel free to hit us up; we'd love to work together to get them figured out!
+
 ## Using The Cache
 
 Not too different from Apollo's in memory cache, but configuration is slightly different.  
