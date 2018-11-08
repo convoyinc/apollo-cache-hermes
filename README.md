@@ -4,7 +4,7 @@
 [![Build Status](https://img.shields.io/circleci/project/github/convoyinc/apollo-cache-hermes/master.svg)](https://circleci.com/gh/convoyinc/workflows/apollo-cache-hermes)
 [![Code Coverage](https://img.shields.io/codecov/c/github/convoyinc/apollo-cache-hermes.svg)](https://codecov.io/gh/convoyinc/apollo-cache-hermes)
 
-An **experimental** cache implementation for Apollo Client, tuned for the performance of heavy GraphQL payloads.  
+An alternative cache implementation for Apollo Client, tuned for the performance of heavy GraphQL payloads.  
 
 _This is very much a work in progress!_ It currently meets most of our needs internally, but is not yet a drop-in replacement for Apollo's default in memory cache.  See [the roadmap](https://github.com/convoyinc/apollo-cache-hermes/projects/2) to get a sense of the work that's left.
 
