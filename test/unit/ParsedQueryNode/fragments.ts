@@ -67,6 +67,31 @@ describe(`parseQuery for queries with fragments`, () => {
     });
   });
 
+  it(`parses queries with inline fragments`, () => {
+    const operation = `
+      query getThings {
+        foo {
+          ... on Foo {
+            id
+          }
+          ... on Bar {
+            id
+            name
+          }
+        }
+      }
+    `;
+    expect(parseOperation(operation)).to.deep.eq({
+      parsedQuery: {
+        foo: new ParsedQueryNode({
+          id: new ParsedQueryNode(),
+          name: new ParsedQueryNode(),
+        }),
+      },
+      variables: new Set(),
+    });
+  });
+
   it(`parses fragments with parameterized fields`, () => {
     const operation = `
       query getThings {
