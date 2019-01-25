@@ -18,6 +18,7 @@ import {
   removeNodeReference,
 } from '../util';
 
+const ensureIdConstistencyMsg = `Ensure id is included (or not included) consistently across multiple requests.`;
 /**
  * A newly modified snapshot.
  */
@@ -166,12 +167,12 @@ export class SnapshotEditor {
     if (payloadId !== previousId) {
       // It is invalid to transition from a *value* with an id to one without.
       if (!isNil(payload) && !payloadId) {
-        const message = `Unsupported transition from an entity to a non-entity value`;
+        const message = `Unsupported transition from an entity to a non-entity value. ${ensureIdConstistencyMsg}`;
         throw new InvalidPayloadError(message, prefixPath, containerId, path, payload);
       }
       // The reverse is also invalid.
       if (!isNil(previousValue) && !previousId) {
-        const message = `Unsupported transition from a non-entity value to an entity`;
+        const message = `Unsupported transition from a non-entity value to an entity. ${ensureIdConstistencyMsg}`;
         throw new InvalidPayloadError(message, prefixPath, containerId, path, payload);
       }
       // Double check that our id generator is behaving properly.
