@@ -205,6 +205,14 @@ export class CacheContext {
   }
 
   /**
+   * Returns a boolean indicating whether this CacheContext has been
+   * configured to add __typename when transforming documents.
+   */
+  getAddTypename() {
+    return this._addTypename;
+  }
+
+  /**
    * Performs any transformations of operation documents.
    *
    * Cache consumers should call this on any operation document prior to calling
