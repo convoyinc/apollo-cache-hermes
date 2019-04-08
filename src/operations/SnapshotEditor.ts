@@ -224,11 +224,8 @@ export class SnapshotEditor {
           warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
         }
 
-        if (this._context.getAddTypename() && payloadName === '__typename') {
-          const existingTypenameValue = deepGet(this._getNodeData(containerId), path);
-          if (existingTypenameValue) {
-            warnings.push(`Encountered undefined payload value for __typename which will override __typename value on existing fragment.`);
-          }
+        if (this._context.addTypename && payloadName === '__typename') {
+          warnings.push(`Encountered undefined payload value for __typename which will override __typename value on existing fragment.`);
         }
       }
 

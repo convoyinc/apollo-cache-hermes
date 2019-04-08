@@ -180,7 +180,8 @@ export class CacheContext {
   readonly tracer: Tracer;
 
   /** Whether __typename should be injected into nodes in queries. */
-  private readonly _addTypename: boolean;
+  readonly addTypename: boolean;
+
   /** All currently known & processed GraphQL documents. */
   private readonly _queryInfoMap = new Map<string, QueryInfo>();
   /** All currently known & parsed queries, for identity mapping. */
@@ -201,15 +202,7 @@ export class CacheContext {
     this.entityUpdaters = config.entityUpdaters || {};
     this.tracer = config.tracer || new ConsoleTracer(!!config.verbose, config.logger);
 
-    this._addTypename = config.addTypename || false;
-  }
-
-  /**
-   * Returns a boolean indicating whether this CacheContext has been
-   * configured to add __typename when transforming documents.
-   */
-  getAddTypename() {
-    return this._addTypename;
+    this.addTypename = config.addTypename || false;
   }
 
   /**
@@ -219,7 +212,7 @@ export class CacheContext {
    * any other method in the cache.
    */
   transformDocument(document: DocumentNode): DocumentNode {
-    if (this._addTypename && !document.hasBeenTransformed) {
+    if (this.addTypename && !document.hasBeenTransformed) {
       const transformedDocument = addTypenameToDocument(document);
       transformedDocument.hasBeenTransformed = true;
       return transformedDocument;
