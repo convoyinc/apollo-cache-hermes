@@ -223,6 +223,11 @@ export class SnapshotEditor {
         if (payload && payloadName in payload) {
           warnings.push(`Encountered undefined at ${[...prefixPath, ...path].join('.')}. Treating as null`);
         }
+
+        if (this._context.addTypename && payloadName === '__typename') {
+          const message = `Encountered undefined payload value for __typename which will override __typename value on existing fragment`;
+          throw new InvalidPayloadError(message, prefixPath, containerId, path, payload);
+        }
       }
 
       let containerIdForField = containerId;

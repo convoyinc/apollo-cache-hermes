@@ -30,6 +30,8 @@ describe(`context.CacheContext`, () => {
         }
       }`);
 
+      expect(context.addTypename).to.eq(false);
+
       const rootSelection = parsed.info.operation.selectionSet;
       expect(fieldNames(rootSelection)).to.have.members(['foo']);
 
@@ -47,6 +49,8 @@ describe(`context.CacheContext`, () => {
           bar { a b }
         }
       }`);
+
+      expect(context.addTypename).to.eq(true);
 
       const rootSelection = parsed.info.operation.selectionSet;
       expect(fieldNames(rootSelection)).to.have.members(['foo']);
