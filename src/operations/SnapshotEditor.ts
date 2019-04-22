@@ -225,7 +225,8 @@ export class SnapshotEditor {
         }
 
         if (this._context.addTypename && payloadName === '__typename') {
-          warnings.push(`Encountered undefined payload value for __typename which will override __typename value on existing fragment.`);
+          const message = `Encountered undefined payload value for __typename which will override __typename value on existing fragment`;
+          throw new InvalidPayloadError(message, prefixPath, containerId, path, payload);
         }
       }
 
