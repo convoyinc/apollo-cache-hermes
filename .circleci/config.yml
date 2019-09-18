@@ -89,3 +89,8 @@ workflows:
               only:
                 - master
                 - /v\d+\.\d+/
+
+notify:
+  webhooks:
+    - url: https://webhooks.convoy.com/hook/circleci/edd5647d0574923ab03cf138830453dbe7dde6aa/slack-author-on-failure?branches=master,
+    - url: https://webhooks.convoy.com/hook/circleci/edd5647d0574923ab03cf138830453dbe7dde6aa/slack-author-on-deploy?deploy_job_name=release
