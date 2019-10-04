@@ -30,7 +30,8 @@
     "test-compile": "./scripts/test-compile.sh",
     "test-style": "./scripts/test-style.sh",
     "test-unit": "./scripts/test-unit.sh",
-    "test-unit-coverage": "./scripts/test-unit-coverage.sh"
+    "test-unit-coverage": "./scripts/test-unit-coverage.sh",
+    "test:audit": "node ./node_modules/.bin/audit-ci --config .audit-ci.json --pass-enoaudit"
   },
   "devDependencies": {
     "@types/chai": "^4.0.10",
@@ -42,6 +43,7 @@
     "@types/lodash.isequal": "^4.3.3",
     "@types/lodash.set": "^4.3.3",
     "@types/node": "^8.9.4",
+    "audit-ci": "^2.4.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "chai-jest-diff": "nevir/chai-jest-diff#built-member-assertions",
