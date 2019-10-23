@@ -31,7 +31,7 @@
     "test-style": "./scripts/test-style.sh",
     "test-unit": "./scripts/test-unit.sh",
     "test-unit-coverage": "./scripts/test-unit-coverage.sh",
-    "test:audit": "node ./node_modules/.bin/audit-ci --config .audit-ci.json --pass-enoaudit"
+    "test-audit": "node ./node_modules/.bin/audit-ci --config .audit-ci.json --pass-enoaudit"
   },
   "devDependencies": {
     "@types/chai": "^4.0.10",

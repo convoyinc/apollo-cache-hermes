@@ -7,4 +7,4 @@ source ./scripts/include/node.sh
 run compile
 run test-style "${OPTIONS_ARGS[@]}"
 run test-unit "${OPTIONS_ARGS[@]}"
-yarn run test:audit
+yarn run test-audit
