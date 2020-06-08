@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { ParsedQuery } from '../ParsedQueryNode';
@@ -6,6 +7,7 @@ import { NodeId, OperationInstance, RawOperation, StaticNodeId } from '../schema
 import { isNil, isObject, walkOperation, deepGet } from '../util';
 
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
+import _ = require('lodash');
 
 export interface QueryResult {
   /** The value of the root requested by a query. */
@@ -36,7 +38,7 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
 
   const operation = context.parseOperation(raw);
 
-  // Retrieve the previous result (may be partially complete), or start anew.
+  // Retrieve the previous result (may be partially complete), or start a new.
   const queryResult = snapshot.readCache.get(operation) || {} as Partial<QueryResultWithNodeIds>;
   snapshot.readCache.set(operation, queryResult as QueryResult);
 
@@ -244,6 +246,10 @@ export function _visitSelection(
 
     for (const field of fields) {
       if (!(field in value)) {
+        const index = _.indexOf(['shipments', 'shipment', 'dispatchable', 'carrier', 'usersList', 'user'], field);
+        if (index < 0) {
+          console.log(`*** syu _visitSelection field mismatch field: ${field} index is ${index} not in ${JSON.stringify(value)}`);
+        }
         complete = false;
         break;
       }
