@@ -5,6 +5,7 @@ import { CacheContext } from '../../../../src/context/CacheContext';
 import { migrate, read, MigrationMap } from '../../../../src/operations';
 import { OptimisticUpdateQueue } from '../../../../src/OptimisticUpdateQueue';
 import { createGraphSnapshot, strictConfig, query } from '../../../helpers';
+import { JsonValue } from '../../../../src/primitive';
 
 function createNewCacheSnapshot(cacheContext: CacheContext) {
   const snapshot = createGraphSnapshot(
@@ -293,4 +294,50 @@ describe(`operations.migrate`, () => {
     jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
   });
 
+  it(`can copy from path`, () => {
+    const migrationMap: MigrationMap = {
+      _entities: {
+        Friend: {
+          id: (previous: JsonValue) => previous,
+          first: (previous: JsonValue) => previous,
+          last: (previous: JsonValue) => previous,
+        },
+      },
+      _parameterized: {
+        Viewer: [{
+          path: ['friends'],
+          args: { circle: 'elementary', stillFriends: true },
+          defaultReturn: null,
+          copyFrom: { path: ['friends'], args: { circle: 'elementary' } },
+        }],
+      },
+    };
+    const snapshot = createNewCacheSnapshot3(cacheContext);
+    const migrated = migrate(snapshot, migrationMap);
+    const { result, complete } = read(cacheContext, query(`
+      query dummy($circle: String, $stillFriends: Boolean) {
+        foo
+        bar
+        viewer {
+          id
+          friends(circle: $circle, stillFriends: $stillFriends) {
+            id
+            first
+            last
+          }
+        }
+      }
+    `, { circle: 'elementary', stillFriends: true }), migrated.baseline);
+
+    jestExpect(complete).toBeTruthy();
+    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([{
+      id: 'friend-1',
+      first: 'Bob',
+      last: 'Breaker',
+    }, {
+      id: 'friend-2',
+      first: 'Susan',
+      last: 'Fixer',
+    }]);
+  });
 });
