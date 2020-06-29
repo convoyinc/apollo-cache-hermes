@@ -28,6 +28,10 @@ export type ParameterizedMigrationEntry = {
   path: PathPart[],
   args: JsonObject | undefined,
   defaultReturn: any,
+  copyFrom?: {
+    path: PathPart[],
+    args: JsonObject | undefined,
+  },
 };
 export type ParameterizedMigrations = {
   // typename is the typename of the container
@@ -48,13 +52,14 @@ function migrateEntity(
   snapshot: EntitySnapshot,
   nodesToAdd: NodeSnapshotMap,
   migrationMap?: MigrationMap,
+  allNodes?: NodeSnapshotMap
 ): EntitySnapshot {
 
   // Only if object and if valid MigrationMap is provided
   if (!isObject(snapshot.data)) return snapshot;
 
-  const entityMigrations = deepGet(migrationMap, ['_entities']);
-  const parameterizedMigrations = deepGet(migrationMap, ['_parameterized']);
+  const entityMigrations = deepGet(migrationMap, ['_entities']) as EntityMigrations;
+  const parameterizedMigrations = deepGet(migrationMap, ['_parameterized']) as ParameterizedMigrations;
 
   const typeName = snapshot.data.__typename as string || 'Query';
 
@@ -72,7 +77,19 @@ function migrateEntity(
       // create a parameterized value snapshot if container doesn't know of the
       // parameterized field we expect
       if (!snapshot.outbound || !snapshot.outbound.find(s =>  s.id === fieldId)) {
-        const newNode = new ParameterizedValueSnapshot(parameterized.defaultReturn);
+        let newData = parameterized.defaultReturn;
+        if (allNodes && parameterized.copyFrom) {
+          const { path, args } = parameterized.copyFrom;
+          const copyFromFieldId = nodeIdForParameterizedValue(id, path, args);
+          const copyFromNode = allNodes[copyFromFieldId];
+          if (copyFromNode) {
+            newData = copyFromNode.data;
+          } else {
+            // If copyFrom doesn't exist added so we can retrieve it on read
+            nodesToAdd[copyFromFieldId] = new ParameterizedValueSnapshot(newData);
+          }
+        }
+        const newNode = new ParameterizedValueSnapshot(newData);
         nodesToAdd[fieldId] = newNode;
 
         // update the reference for the new node in the container
@@ -97,7 +114,7 @@ export function migrate(cacheSnapshot: CacheSnapshot, migrationMap?: MigrationMa
     for (const nodeId in nodes) {
       const nodeSnapshot = nodes[nodeId];
       if (nodeSnapshot instanceof EntitySnapshot) {
-        migrateEntity(nodeId, nodeSnapshot, nodesToAdd, migrationMap);
+        migrateEntity(nodeId, nodeSnapshot, nodesToAdd, migrationMap, nodes);
       }
     }
 

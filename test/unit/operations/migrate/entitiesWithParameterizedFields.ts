@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 
 import { CacheSnapshot } from '../../../../src/CacheSnapshot';
 import { CacheContext } from '../../../../src/context/CacheContext';
-import { migrate, read, MigrationMap } from '../../../../src/operations';
+import { migrate, read, MigrationMap, QueryResult } from '../../../../src/operations';
 import { OptimisticUpdateQueue } from '../../../../src/OptimisticUpdateQueue';
 import { createGraphSnapshot, strictConfig, query } from '../../../helpers';
 
@@ -293,4 +293,103 @@ describe(`operations.migrate`, () => {
     jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
   });
 
+  it(`can copy from path`, () => {
+    const copyFrom = { path: ['friends'], args: { circle: 'elementary' } };
+    const { result, complete } = copyFromPath(cacheContext, copyFrom);
+
+    jestExpect(complete).toBeTruthy();
+    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([{
+      id: 'friend-1',
+      first: 'Bob',
+      last: 'Breaker',
+    }, {
+      id: 'friend-2',
+      first: 'Susan',
+      last: 'Fixer',
+    }]);
+  });
+
+  it(`defaults to defaultReturn if can't copy from path`, () => {
+    const copyFrom = { path: ['friends'], args: { circle: 'foo' } };
+    const { result, complete } = copyFromPath(cacheContext, copyFrom);
+
+    jestExpect(complete).toBeTruthy();
+    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
+  });
+
+  it(`defaults to defaultReturn if copyFrom is undefined`, () => {
+    const copyFrom = undefined;
+    const { result, complete } = copyFromPath(cacheContext, copyFrom);
+
+    jestExpect(complete).toBeTruthy();
+    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
+  });
+
+  it(`defaults to defaultReturn if copyFrom.args is undefined`, () => {
+    const copyFrom = { path: ['friends'] };
+    const { result, complete } = copyFromPath(cacheContext, copyFrom);
+
+    jestExpect(complete).toBeTruthy();
+    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
+  });
+
+  it(`can complete when parameterized entity is undefined`, () => {
+    const migrationMap: MigrationMap = {
+      _parameterized: {
+        Viewer: [{
+          path: ['friends'],
+          args: { circle: 'elementary' },
+          defaultReturn: null,
+          copyFrom: { path: ['friends'], args: { circle: 'elementary', stillFriends: true } },
+        }],
+      },
+    };
+
+    const snapshot = createNewCacheSnapshot2(cacheContext);
+    const migrated = migrate(snapshot, migrationMap);
+    const { complete, result } = read(
+      cacheContext,
+      query(parameterizedQuery, { circle: 'elementary', stillFriends: true }),
+      migrated.baseline
+    );
+
+    jestExpect(complete).toBeTruthy();
+    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual(null);
+  });
 });
+
+const parameterizedQuery = `
+query dummy($circle: String, $stillFriends: Boolean) {
+  foo
+  bar
+  viewer {
+    id
+    friends(circle: $circle, stillFriends: $stillFriends) {
+      id
+      first
+      last
+    }
+  }
+}
+`;
+
+function copyFromPath(cacheContext: CacheContext, copyFrom?: any): QueryResult {
+  const migrationMap: MigrationMap = {
+    _parameterized: {
+      Viewer: [{
+        path: ['friends'],
+        args: { circle: 'elementary', stillFriends: true },
+        defaultReturn: [],
+        copyFrom,
+      }],
+    },
+  };
+
+  const snapshot = createNewCacheSnapshot3(cacheContext);
+  const migrated = migrate(snapshot, migrationMap);
+  return read(
+    cacheContext,
+    query(parameterizedQuery, { circle: 'elementary', stillFriends: true }),
+    migrated.baseline,
+  );
+}
