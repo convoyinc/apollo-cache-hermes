@@ -332,7 +332,46 @@ describe(`operations.migrate`, () => {
     jestExpect(complete).toBeTruthy();
     jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
   });
+
+  it(`can complete when parameterized entity is undefined`, () => {
+    const migrationMap: MigrationMap = {
+      _parameterized: {
+        Viewer: [{
+          path: ['friends'],
+          args: { circle: 'elementary' },
+          defaultReturn: null,
+          copyFrom: { path: ['friends'], args: { circle: 'elementary', stillFriends: true } },
+        }],
+      },
+    };
+
+    const snapshot = createNewCacheSnapshot2(cacheContext);
+    const migrated = migrate(snapshot, migrationMap);
+    const { complete, result } = read(
+      cacheContext,
+      query(parameterizedQuery, { circle: 'elementary', stillFriends: true }),
+      migrated.baseline
+    );
+
+    jestExpect(complete).toBeTruthy();
+    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual(null);
+  });
 });
+
+const parameterizedQuery = `
+query dummy($circle: String, $stillFriends: Boolean) {
+  foo
+  bar
+  viewer {
+    id
+    friends(circle: $circle, stillFriends: $stillFriends) {
+      id
+      first
+      last
+    }
+  }
+}
+`;
 
 function copyFromPath(cacheContext: CacheContext, copyFrom?: any): QueryResult {
   const migrationMap: MigrationMap = {
@@ -348,18 +387,9 @@ function copyFromPath(cacheContext: CacheContext, copyFrom?: any): QueryResult {
 
   const snapshot = createNewCacheSnapshot3(cacheContext);
   const migrated = migrate(snapshot, migrationMap);
-  return read(cacheContext, query(`
-    query dummy($circle: String, $stillFriends: Boolean) {
-      foo
-      bar
-      viewer {
-        id
-        friends(circle: $circle, stillFriends: $stillFriends) {
-          id
-          first
-          last
-        }
-      }
-    }
-  `, { circle: 'elementary', stillFriends: true }), migrated.baseline);
+  return read(
+    cacheContext,
+    query(parameterizedQuery, { circle: 'elementary', stillFriends: true }),
+    migrated.baseline,
+  );
 }

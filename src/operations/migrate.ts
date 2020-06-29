@@ -84,6 +84,9 @@ function migrateEntity(
           const copyFromNode = allNodes[copyFromFieldId];
           if (copyFromNode) {
             newData = copyFromNode.data;
+          } else {
+            // If copyFrom doesn't exist added so we can retrieve it on read
+            nodesToAdd[copyFromFieldId] = new ParameterizedValueSnapshot(newData);
           }
         }
         const newNode = new ParameterizedValueSnapshot(newData);
