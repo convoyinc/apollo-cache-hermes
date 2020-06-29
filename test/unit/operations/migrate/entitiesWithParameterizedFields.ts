@@ -324,6 +324,14 @@ describe(`operations.migrate`, () => {
     jestExpect(complete).toBeTruthy();
     jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
   });
+
+  it(`defaults to defaultReturn if copyFrom.args is undefined`, () => {
+    const copyFrom = { path: ['friends'] };
+    const { result, complete } = copyFromPath(cacheContext, copyFrom);
+
+    jestExpect(complete).toBeTruthy();
+    jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([]);
+  });
 });
 
 function copyFromPath(cacheContext: CacheContext, copyFrom?: any): QueryResult {
