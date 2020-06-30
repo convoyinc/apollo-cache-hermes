@@ -4,10 +4,12 @@ import { CacheContext } from './context';
 import { ConflictingFieldsError } from './errors';
 import { DeepReadonly, JsonScalar, JsonObject, JsonValue, NestedObject, NestedValue } from './primitive';
 import {
+  FieldNode,
   ArgumentNode,
   FragmentMap,
   SelectionNode,
   SelectionSetNode,
+  DirectiveNode,
   ValueNode,
   isObject,
   fieldHasStaticDirective,
@@ -130,7 +132,7 @@ function _buildNodeMap(
       // the schema.  E.g. parameters are ignored, and an alias is considered
       // to be truth.
       if (!fieldHasStaticDirective(selection)) {
-        args = _buildFieldArgs(variables, selection.arguments);
+        args = _buildFieldArgs(variables, selection);
         schemaName = selection.alias ? selection.name.value : undefined;
       }
 
@@ -187,8 +189,15 @@ export function areChildrenDynamic(children?: ParsedQueryWithVariables) {
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildFieldArgs(variables: Set<string>, argumentsNode?: ArgumentNode[]) {
+function _buildFieldArgs(variables: Set<string>, selection: FieldNode) {
+  const argumentsNode = selection.arguments;
   if (!argumentsNode) return undefined;
+  if (selection.directives) {
+    const foundConnectionDirective = selection.directives.find(x => x.name.value === 'connection');
+    if (foundConnectionDirective) {
+      return _buildFieldArgsForConnectionDirective(variables, selection, foundConnectionDirective);
+    }
+  }
 
   const args = {};
   for (const arg of argumentsNode) {
@@ -197,6 +206,43 @@ function _buildFieldArgs(variables: Set<string>, argumentsNode?: ArgumentNode[])
   }
 
   return Object.keys(args).length ? args : undefined;
+}
+
+/**
+ * Applies the connection directive as described on (https://www.apollographql.com/docs/react/recipes/pagination.html#connection-directive)
+ */
+function _buildFieldArgsForConnectionDirective(variables: Set<string>, selection: FieldNode, connectionDirective: DirectiveNode) {
+  const argumentsNode = selection.arguments;
+  if (!argumentsNode) {
+    return undefined;
+  }
+  if (!connectionDirective.arguments || connectionDirective.arguments.length === 0) {
+    throw new Error('the connection directive requires arguments');
+  }
+  return connectionDirective.arguments.reduce((acc: Object, directive: ArgumentNode) => {
+    const name = directive.name.value;
+    const value = _valueFromNode(variables, directive.value);
+    if (name === 'key') {
+      if (typeof value !== 'string') {
+        throw new Error('the connection directive only supports keys which are strings');
+      }
+      return {
+        ...acc,
+        key: value,
+      };
+    }
+    if (name === 'filter') {
+      if (!(value instanceof Array)) {
+        throw new Error('the connection directive only supports a list of keys');
+      }
+      const filterArgs = argumentsNode.filter(arg => value.some(v =>  v === arg.name.value));
+      return filterArgs.reduce((args, filterArg) => ({
+        ...args,
+        [filterArg.name.value]: _valueFromNode(variables, filterArg.value),
+      }), acc);
+    }
+    throw new Error('Connection directive expects arguments of either key or filter');
+  }, {});
 }
 
 /**
