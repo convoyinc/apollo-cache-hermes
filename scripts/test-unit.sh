@@ -23,6 +23,7 @@ for i in "${!FILES[@]}"; do
 done
 
 OPTIONS=(
+  --coverage
   --config ./test/unit/jest.json
 )
 DEBUGGING=false

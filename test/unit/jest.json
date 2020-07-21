@@ -4,7 +4,7 @@
     "src/**/*.js"
   ],
   "coverageDirectory": "output/test-unit",
-  "coverageReporters": ["lcovonly", "text"],
+  "coverageReporters": ["lcov", "text"],
   "coveragePathIgnorePatterns": [
     "<rootDir>/node_modules/",
     "<rootDir>/test/"
