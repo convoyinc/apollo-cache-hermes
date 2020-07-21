@@ -56,3 +56,9 @@ export JEST_JUNIT_ANCESTOR_SEPARATOR=" ▸ "
 export JEST_JUNIT_OUTPUT=./output/test-unit/report.xml
 
 node "${NODE_OPTIONS[@]}" ./node_modules/.bin/jest "${OPTIONS[@]}" "${FILES[@]}"
+
+if [[ -z "${CI}" ]]; then
+  echo To see coverage info, use 'open ./coverage/index.html'
+else
+  convoy-coveralls --file=output/test-unit/lcov.info --token="${CODECOV_UPLOAD_TOKEN:?}" --flags=unit
+fi
