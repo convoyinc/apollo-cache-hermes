@@ -5,7 +5,7 @@ import { InvalidPayloadError, OperationError } from '../errors';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { cloneNodeSnapshot, EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { FieldArguments, ParsedQuery } from '../ParsedQueryNode';
-import { JsonArray, JsonObject, JsonValue, nil, PathPart } from '../primitive';
+import { JsonArray, JsonObject, JsonValue, Nil, PathPart } from '../primitive';
 import { NodeId, OperationInstance, RawOperation } from '../schema';
 import {
   addNodeReference,
@@ -327,8 +327,8 @@ export class SnapshotEditor {
     prefixPath: PathPart[],
     path: PathPart[],
     parsed: ParsedQuery,
-    payload: JsonArray | nil,
-    previousValue: JsonArray | nil,
+    payload: JsonArray | Nil,
+    previousValue: JsonArray | Nil,
   ) {
     if (isNil(payload)) {
       // Note that we mark this as an edit, as this method is only ever called

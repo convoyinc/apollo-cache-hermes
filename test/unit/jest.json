@@ -10,7 +10,7 @@
     "<rootDir>/test/"
   ],
   "rootDir": "../..",
-  "setupTestFrameworkScriptFile": "./test/env/unit.js",
+  "setupFilesAfterEnv": ["./test/env/unit.js"],
   "testMatch": ["<rootDir>/test/unit/**/*.js"],
   "reporters": ["default", "jest-junit"]
 }

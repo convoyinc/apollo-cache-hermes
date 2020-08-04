@@ -1,5 +1,5 @@
 // We only depend on graphql for its types; nothing at runtime.
-import { // eslint-disable-line import/no-extraneous-dependencies
+import {
   ArgumentNode,
   DocumentNode,
   FieldNode,
@@ -8,7 +8,7 @@ import { // eslint-disable-line import/no-extraneous-dependencies
   SelectionNode,
   SelectionSetNode,
   ValueNode,
-} from 'graphql';
+} from 'graphql'; // eslint-disable-line import/no-extraneous-dependencies
 import { getOperationDefinition, FragmentMap } from '@apollo/client/utilities';
 import invariant from 'ts-invariant';
 
