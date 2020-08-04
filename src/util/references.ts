@@ -1,4 +1,4 @@
-import { isEqual } from 'apollo-utilities';
+import isEqual from '@wry/equality';
 
 import { NodeReference, NodeSnapshot } from '../nodes';
 import { PathPart } from '../primitive';

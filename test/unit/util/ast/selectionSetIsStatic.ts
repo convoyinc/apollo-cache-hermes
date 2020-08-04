@@ -5,7 +5,11 @@ import { selectionSetIsStatic } from '../../../../src';
 describe(`ast.selectionSetIsStatic`, () => {
 
   function selection(source: string) {
-    return gql(source).definitions[0].selectionSet;
+    const definition = gql(source).definitions[0];
+    if ('selectionSet' in definition) {
+      return definition.selectionSet;
+    }
+    throw new Error(`No selectionSet found in '${source}'`);
   }
 
   it(`considers truly static fragments as static`, () => {
@@ -122,7 +126,5 @@ describe(`ast.selectionSetIsStatic`, () => {
         }
       }`), fragmentGetter)).to.eq(false);
     });
-
   });
-
 });

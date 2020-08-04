@@ -1,10 +1,9 @@
-import { ApolloCache, Cache, Transaction } from 'apollo-cache';
-import { JsonValue } from 'apollo-utilities';
+import { Cache, Transaction } from '@apollo/client';
 import lodashIsEqual = require('lodash.isequal');
 
 import { CacheTransaction } from '../CacheTransaction';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { PathPart } from '../primitive';
+import { PathPart, JsonValue } from '../primitive';
 import { NodeId } from '../schema';
 import { DocumentNode, verboseTypeof, deepGet } from '../util';
 
@@ -22,7 +21,7 @@ function getOriginalFieldArguments(id: NodeId): { [argName: string]: string } | 
 /**
  * Apollo-specific transaction interface.
  */
-export class ApolloTransaction extends ApolloQueryable implements ApolloCache<GraphSnapshot> {
+export class ApolloTransaction extends ApolloQueryable<GraphSnapshot> {
 
   constructor(
     /** The underlying transaction. */

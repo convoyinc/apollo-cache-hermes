@@ -1,4 +1,4 @@
-import { addTypenameToDocument } from 'apollo-utilities';
+import { addTypenameToDocument } from '@apollo/client/utilities';
 import * as _ from 'lodash';
 
 import { CacheContext } from '../../../../src/context';

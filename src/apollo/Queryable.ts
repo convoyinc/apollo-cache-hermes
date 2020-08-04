@@ -1,5 +1,5 @@
-import { Cache, DataProxy } from 'apollo-cache';
-import { removeDirectivesFromDocument } from 'apollo-utilities';
+import { ApolloCache, Cache, DataProxy, Reference, makeReference } from '@apollo/client';
+import { removeDirectivesFromDocument } from '@apollo/client/utilities';
 
 import { UnsatisfiedCacheError } from '../errors';
 import { JsonObject } from '../primitive';
@@ -11,7 +11,7 @@ import { buildRawOperationFromQuery, buildRawOperationFromFragment } from './uti
 /**
  * Apollo-specific interface to the cache.
  */
-export abstract class ApolloQueryable implements DataProxy {
+export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerialized> {
   /** The underlying Hermes cache. */
   protected abstract _queryable: Queryable;
 
@@ -49,43 +49,45 @@ export abstract class ApolloQueryable implements DataProxy {
     // TODO: Support nested fragments.
     const rawOperation = buildRawOperationFromFragment(
       options.fragment,
-      options.id,
+      options.id!,
       options.variables as any,
       options.fragmentName,
     );
     return this._queryable.read(rawOperation, optimistic).result as any;
   }
 
-  write(options: Cache.WriteOptions): void {
+  write(options: Cache.WriteOptions): Reference | undefined {
     const rawOperation = buildRawOperationFromQuery(options.query, options.variables as JsonObject, options.dataId);
     this._queryable.write(rawOperation, options.result);
+
+    return makeReference(rawOperation.rootId);
   }
 
-  writeQuery<TData = any, TVariables = any>(options: Cache.WriteQueryOptions<TData, TVariables>): void {
+  writeQuery<TData = any, TVariables = any>(options: Cache.WriteQueryOptions<TData, TVariables>): Reference | undefined {
     const rawOperation = buildRawOperationFromQuery(options.query, options.variables as any);
     this._queryable.write(rawOperation, options.data as any);
+
+    return makeReference(rawOperation.rootId);
   }
 
-  writeFragment<TData = any, TVariables = any>(options: Cache.WriteFragmentOptions<TData, TVariables>): void {
+  writeFragment<TData = any, TVariables = any>(options: Cache.WriteFragmentOptions<TData, TVariables>): Reference | undefined {
     // TODO: Support nested fragments.
     const rawOperation = buildRawOperationFromFragment(
       options.fragment,
-      options.id,
+      options.id!,
       options.variables as any,
       options.fragmentName,
     );
     this._queryable.write(rawOperation, options.data as any);
-  }
 
-  writeData(): void { // eslint-disable-line class-methods-use-this
-    throw new Error(`writeData is not implemented by Hermes yet`);
+    return makeReference(rawOperation.rootId);
   }
 
   transformDocument(doc: DocumentNode): DocumentNode {
     return this._queryable.transformDocument(doc);
   }
 
-  public transformForLink(document: DocumentNode): DocumentNode { // eslint-disable-line class-methods-use-this
+  transformForLink(document: DocumentNode): DocumentNode { // eslint-disable-line class-methods-use-this
     // @static directives are for the cache only.
     return removeDirectivesFromDocument(
       [{ name: 'static' }],
@@ -93,8 +95,7 @@ export abstract class ApolloQueryable implements DataProxy {
     )!;
   }
 
-  evict(options: Cache.EvictOptions): Cache.EvictionResult {
-    const rawOperation = buildRawOperationFromQuery(options.query, options.variables);
-    return this._queryable.evict(rawOperation);
+  evict(_options: Cache.EvictOptions): boolean { // eslint-disable-line class-methods-use-this
+    throw new Error(`evict() is not implemented in Hermes`);
   }
 }

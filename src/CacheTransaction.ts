@@ -91,14 +91,6 @@ export class CacheTransaction implements Queryable {
   }
 
   /**
-   * Removes values from the current transaction
-   */
-  // eslint-disable-next-line class-methods-use-this
-  evict(_query: RawOperation): { success: boolean } {
-    throw new Error('evict() is not implemented on CacheTransaction');
-  }
-
-  /**
    * Complete the transaction, returning the new snapshot and the ids of any
    * nodes that were edited.
    */

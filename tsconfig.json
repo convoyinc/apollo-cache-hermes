@@ -12,6 +12,7 @@
     ],
     "module": "commonjs",
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "newLine": "LF",
     "noImplicitAny": true,
     "noImplicitReturns": true,

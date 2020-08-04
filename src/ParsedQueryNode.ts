@@ -1,4 +1,4 @@
-import { isEqual, valueFromNode } from 'apollo-utilities';
+import isEqual from '@wry/equality';
 
 import { CacheContext } from './context';
 import { ConflictingFieldsError } from './errors';
@@ -11,6 +11,7 @@ import {
   ValueNode,
   isObject,
   fieldHasStaticDirective,
+  valueFromNode,
 } from './util';
 
 export type JsonAndVariables = JsonScalar | VariableArgument;
@@ -187,7 +188,7 @@ export function areChildrenDynamic(children?: ParsedQueryWithVariables) {
 /**
  * Build the map of arguments to their natural JS values (or variables).
  */
-function _buildFieldArgs(variables: Set<string>, argumentsNode?: ArgumentNode[]) {
+function _buildFieldArgs(variables: Set<string>, argumentsNode?: readonly ArgumentNode[]) {
   if (!argumentsNode) return undefined;
 
   const args = {};
