@@ -1,7 +1,7 @@
 version: 2
 
 base_image: &base_image
-  image: convoyinc/circleci-node:10.13.0
+  image: circleci/node:12.13.0
 
 job_common: &job_common
   docker:

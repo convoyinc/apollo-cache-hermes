@@ -2,17 +2,17 @@ extends:
   - eslint:recommended
   - plugin:eslint-comments/recommended
 
-parser: typescript-eslint-parser
+parser: '@typescript-eslint/parser'
 parserOptions:
   ecmaVersion: 2017
   sourceType: module
   jsx: true
 
 plugins:
+  - '@typescript-eslint'
   - eslint-comments
   - import
   - jest
-  - typescript
 
 settings:
   import/resolver:
@@ -40,6 +40,7 @@ rules:
   no-prototype-builtins: error
   no-undef: off # enforced by TypeScript
   no-unused-vars: off # enforced by TypeScript
+  no-redeclare: off # enforced by TypeScript
 
   # Best Practices
 
@@ -92,7 +93,13 @@ rules:
   block-spacing: error
   brace-style: [error, 1tbs]
   camelcase: error
-  comma-dangle: [error, always-multiline]
+  comma-dangle: [error, {
+    arrays: always-multiline,
+    objects: always-multiline,
+    imports: always-multiline,
+    exports: always-multiline,
+    functions: only-multiline,
+  }]
   comma-spacing: error
   comma-style: error
   computed-property-spacing: error
@@ -200,19 +207,24 @@ rules:
 
   # https://github.com/nzakas/eslint-plugin-typescript#supported-rules
 
-  typescript/adjacent-overload-signatures: error
-  typescript/class-name-casing: error
-  typescript/interface-name-prefix: [error, never]
-  typescript/member-delimiter-style: [error, {
+  '@typescript-eslint/adjacent-overload-signatures': error
+  '@typescript-eslint/member-delimiter-style': [error, {
     overrides: {
-      typeLiteral: { delimiter: comma, requireLast: true, ignoreSingleLine: true }
+      typeLiteral: {
+        multiline: { delimiter: comma, requireLast: true },
+        singleline: { delimiter: comma, requireLast: false }
+      }
     }
   }]
-  typescript/member-naming: [error, { private: ^_ }]
-  typescript/no-angle-bracket-type-assertion: error
-  typescript/no-triple-slash-reference: error
-  typescript/no-unused-vars: error
-  typescript/type-annotation-spacing: error
+  '@typescript-eslint/naming-convention': [
+    error,
+    { selector: typeLike, format: [PascalCase] },
+    { selector: memberLike, modifiers: [private], format: [camelCase], leadingUnderscore: require },
+    { selector: interface, format: [PascalCase], custom: { regex: '^I[A-Z]', match: false } }
+  ]
+  '@typescript-eslint/consistent-type-assertions': error
+  '@typescript-eslint/triple-slash-reference': [error, { path: never, types: never, lib: never }]
+  '@typescript-eslint/type-annotation-spacing': error
 
   # https://github.com/mysticatea/eslint-plugin-eslint-comments#rules
 

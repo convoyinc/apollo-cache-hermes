@@ -7,12 +7,12 @@
 /**
  * A primitive value.
  */
-export type scalar = undefined | null | boolean | number | string | Symbol;
+export type Scalar = undefined | null | boolean | number | string | Symbol;
 
 /**
  * A missing object.
  */
-export type nil = undefined | null;
+export type Nil = undefined | null;
 
 /**
  * A component of a path through objects/arrays.
@@ -47,7 +47,7 @@ export type DeepReadonly<TType> = {
  */
 export type NestedValue<TValue> = TValue | NestedArray<TValue> | NestedObject<TValue>;
 export interface NestedArray<TValue> extends Array<NestedValue<TValue>> {}
-export interface NestedObject<TValue> { [key: string]: NestedValue<TValue>; }
+export interface NestedObject<TValue> { [key: string]: NestedValue<TValue> }
 
 // JSON
 

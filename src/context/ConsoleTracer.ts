@@ -130,12 +130,12 @@ export namespace ConsoleTracer {
     warn:  _makeDefaultEmitter('warn'),
     // Grouping:
     group: _makeDefaultEmitter('group'),
-    groupEnd: console.groupEnd ? console.groupEnd.bind(console) : () => {}, // eslint-disable-line no-console
+    groupEnd: console.groupEnd ? console.groupEnd.bind(console) : () => {},
   };
 }
 
 function _makeDefaultEmitter(level: 'debug' | 'info' | 'warn' | 'group') {
-  const method = console[level] || console.log; // eslint-disable-line no-console
+  const method = console[level] || console.log;
   return function defaultLogger(message: string, ...args: any[]) {
     method.call(console, `[Cache] ${message}`, ...args);
   };
