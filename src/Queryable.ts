@@ -28,10 +28,4 @@ export interface Queryable {
    * Writes values for a selection to the cache.
    */
   write(query: RawOperation, payload: JsonObject): void;
-
-  /**
-   * Removes values for a selection to the cache
-   */
-  evict(query: RawOperation): { success: boolean };
-
 }

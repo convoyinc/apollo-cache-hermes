@@ -1,4 +1,4 @@
-import { getFragmentQueryDocument } from 'apollo-utilities';
+import { getFragmentQueryDocument } from '@apollo/client/utilities';
 
 import { JsonObject } from '../primitive';
 import { NodeId, RawOperation, StaticNodeId } from '../schema';

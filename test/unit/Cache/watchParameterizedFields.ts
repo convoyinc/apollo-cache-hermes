@@ -1,6 +1,7 @@
+import { Cache as CacheInterface } from '@apollo/client';
+
 import { query, strictConfig } from '../../helpers';
 import { Cache } from '../../../src';
-import { QueryResult } from '../../../src/operations/read';
 
 describe(`Cache#watch`, () => {
 
@@ -84,7 +85,7 @@ describe(`Cache#watch`, () => {
   });
 
   it(`triggers a callback immediately upon registration`, () => {
-    const updates: QueryResult[] = [];
+    const updates: CacheInterface.DiffResult<any>[] = [];
     cache.watch({ ...simpleGraph, variables: { id: 1 } }, newResult => updates.push(newResult));
 
     expect(updates.length).to.eq(1);
@@ -94,7 +95,7 @@ describe(`Cache#watch`, () => {
   });
 
   it(`triggers a callback after writing the same query with new values`, () => {
-    const updates: QueryResult[] = [];
+    const updates: CacheInterface.DiffResult<any>[] = [];
     cache.watch({ ...simpleGraph, variables: { id: 1 } }, newResult => updates.push(newResult));
     cache.write({ ...simpleGraph, variables: { id: 1 } }, { foo: { id: 1, bar: { id: 3, name: 'bar' } } });
 
@@ -106,7 +107,7 @@ describe(`Cache#watch`, () => {
   });
 
   it(`doesn't trigger a callback if unrelated entities change`, () => {
-    const updates: QueryResult[] = [];
+    const updates: CacheInterface.DiffResult<any>[] = [];
     cache.watch({ ...simpleGraph, variables: { id: 1 } }, newResult => updates.push(newResult));
     cache.write({ ...partialOverlap, variables: { id: 1 } }, { foo: { id: 1, baz: { id: 3, name: 'baz2' } } });
 
@@ -114,7 +115,7 @@ describe(`Cache#watch`, () => {
   });
 
   it(`triggers an update on indirect edits to an entity`, () => {
-    const updates: QueryResult[] = [];
+    const updates: CacheInterface.DiffResult<any>[] = [];
     cache.watch({ ...simpleGraph, variables: { id: 1 } }, newResult => updates.push(newResult));
     cache.write(indirectEdit, { thing: { id: 2, name: 'bar2' } });
 
@@ -125,7 +126,7 @@ describe(`Cache#watch`, () => {
   });
 
   it(`triggers an update on reference updates from the query root`, () => {
-    const updates: QueryResult[] = [];
+    const updates: CacheInterface.DiffResult<any>[] = [];
     cache.watch({ ...simpleGraph, variables: { id: 1 } }, newResult => updates.push(newResult));
     cache.write({ ...simpleGraph, variables: { id: 1 } }, { foo: { id: 100, bar: { id: 2, name: 'bar' } } });
 
@@ -136,7 +137,7 @@ describe(`Cache#watch`, () => {
   });
 
   it(`ignores updates to nodes with different parameters`, () => {
-    const updates: QueryResult[] = [];
+    const updates: CacheInterface.DiffResult<any>[] = [];
     cache.watch({ ...simpleGraph, variables: { id: 1 } }, newResult => updates.push(newResult));
     cache.write({ ...simpleGraph, variables: { id: 100 } }, { foo: { id: 100, bar: { id: 2, name: 'bar' } } });
 
@@ -144,7 +145,7 @@ describe(`Cache#watch`, () => {
   });
 
   it(`ignores updates to parameterized subfields with different parameters`, () => {
-    const updates: QueryResult[] = [];
+    const updates: CacheInterface.DiffResult<any>[] = [];
     cache.watch({ ...simpleGraph, variables: { id: 1 } }, newResult => updates.push(newResult));
     cache.write(
       { ...simpleGraphDifferentParameter, variables: { id: 1 } },
@@ -155,7 +156,7 @@ describe(`Cache#watch`, () => {
   });
 
   it(`handles cases where we transition from complete to incomplete`, () => {
-    const updates: QueryResult[] = [];
+    const updates: CacheInterface.DiffResult<any>[] = [];
     cache.watch({ ...simpleGraph, variables: { id: 1 } }, newResult => updates.push(newResult));
     cache.write({ ...partialOverlap, variables: { id: 1 } }, { foo: { id: 100, baz: { id: 3, name: 'baz' } } });
 

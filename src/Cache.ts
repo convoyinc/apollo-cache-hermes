@@ -1,4 +1,4 @@
-import { Cache as CacheInterface } from 'apollo-cache';
+import { Cache as CacheInterface } from '@apollo/client';
 
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';
@@ -57,10 +57,6 @@ export class Cache implements Queryable {
       pruneQuery ? prune(this._context, cacheSnapshot, pruneQuery).snapshot : cacheSnapshot,
       this._context
     );
-  }
-
-  evict(_query: RawOperation): { success: boolean } { // eslint-disable-line class-methods-use-this
-    throw new Error(`evict() is not implemented on Cache`);
   }
 
   /**

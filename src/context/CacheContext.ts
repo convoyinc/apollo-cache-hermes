@@ -1,4 +1,5 @@
-import { addTypenameToDocument, isEqual } from 'apollo-utilities';
+import { addTypenameToDocument } from '@apollo/client/utilities';
+import isEqual from '@wry/equality';
 
 import { ApolloTransaction } from '../apollo/Transaction';
 import { CacheSnapshot } from '../CacheSnapshot';

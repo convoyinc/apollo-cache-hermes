@@ -1,4 +1,4 @@
-import { isEqual } from 'apollo-utilities';
+import isEqual from '@wry/equality';
 
 import { CacheContext } from '../context';
 import { InvalidPayloadError, OperationError } from '../errors';

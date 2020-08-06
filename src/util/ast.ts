@@ -1,23 +1,21 @@
-import { valueFromNode, FragmentMap } from 'apollo-utilities';
 // We only depend on graphql for its types; nothing at runtime.
 import { // eslint-disable-line import/no-extraneous-dependencies
+  ArgumentNode,
   DocumentNode,
-  OperationDefinitionNode,
-  ValueNode,
-  SelectionSetNode,
   FieldNode,
+  OperationDefinitionNode,
+  OperationTypeNode,
+  SelectionNode,
+  SelectionSetNode,
+  ValueNode,
 } from 'graphql';
+import { getOperationDefinition, FragmentMap } from '@apollo/client/utilities';
+import invariant from 'ts-invariant';
 
 import { JsonValue } from '../primitive';
 
 import { isObject } from './primitive';
-
-export {
-  getOperationDefinitionOrDie as getOperationOrDie,
-  variablesInOperation,
-  valueFromNode,
-  FragmentMap,
-} from 'apollo-utilities';
+import { valueFromNode } from './store';
 
 // AST types for convenience.
 export {
@@ -28,8 +26,30 @@ export {
   SelectionNode,
   SelectionSetNode,
   ValueNode,
-  // FieldNode,
-} from 'graphql';
+  FragmentMap,
+};
+
+export function getOperationOrDie(
+  document: DocumentNode,
+): OperationDefinitionNode {
+  const def = getOperationDefinition(document);
+  invariant(def, `GraphQL document is missing an operation`);
+  return def as OperationDefinitionNode;
+}
+
+/**
+ * Returns the names of all variables declared by the operation.
+ */
+export function variablesInOperation(operation: OperationDefinitionNode): Set<string> {
+  const names = new Set<string>();
+  if (operation.variableDefinitions) {
+    for (const definition of operation.variableDefinitions) {
+      names.add(definition.variable.name.value);
+    }
+  }
+
+  return names;
+}
 
 /**
  * Returns the default values of all variables in the operation.

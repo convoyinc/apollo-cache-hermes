@@ -2,11 +2,11 @@ import {
   Transaction,
   Cache as CacheInterface,
   ApolloCache,
-} from 'apollo-cache';
+} from '@apollo/client';
 
+import { CacheContext } from '../context';
 import { Cache, MigrationMap } from '../Cache';
 import { CacheSnapshot } from '../CacheSnapshot';
-import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
 
 import { ApolloQueryable } from './Queryable';
@@ -16,7 +16,7 @@ import { buildRawOperationFromQuery } from './util';
 /**
  * Apollo-specific interface to the cache.
  */
-export class Hermes extends ApolloQueryable implements ApolloCache<GraphSnapshot> {
+export class Hermes extends ApolloQueryable<GraphSnapshot> {
   /** The underlying Hermes cache. */
   protected _queryable: Cache;
 
