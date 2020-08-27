@@ -300,6 +300,52 @@ describe(`operations.read`, () => {
 
     });
 
+    describe(`with multi-dimensional array fields`, () => {
+
+      const nestedQuery = query(`query multiDimensional($id: ID!) {
+        listOfLists {
+          foo {
+            stuff(id: $id) {
+              bar
+            }
+          }
+        }
+      }`, { id: 1 });
+
+      let snapshot: GraphSnapshot;
+
+      beforeAll(() => {
+        snapshot = write(context, empty, nestedQuery, {
+          listOfLists: [
+            [
+              { foo: { stuff: { bar: 1 } } },
+              { foo: { stuff: { bar: 2 } } },
+            ],
+            [
+              { foo: { stuff: { bar: 3 } } },
+              { foo: { stuff: { bar: 4 } } },
+            ],
+          ],
+        }).snapshot;
+      });
+
+      it(`returns the selected values, overlaid on the underlying data`, () => {
+        const { result } = read(context, nestedQuery, snapshot);
+        jestExpect(result).toEqual({
+          listOfLists: [
+            [
+              { foo: { stuff: { bar: 1 } } },
+              { foo: { stuff: { bar: 2 } } },
+            ],
+            [
+              { foo: { stuff: { bar: 3 } } },
+              { foo: { stuff: { bar: 4 } } },
+            ],
+          ],
+        });
+      });
+    });
+
     describe(`directly nested reference fields`, () => {
 
       const nestedQuery = query(`

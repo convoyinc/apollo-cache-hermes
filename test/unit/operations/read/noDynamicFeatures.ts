@@ -179,4 +179,28 @@ describe(`operations.read`, () => {
 
   });
 
+  describe(`with arrays of arrays of complete values`, () => {
+
+    let snapshot: GraphSnapshot;
+    beforeAll(() => {
+      snapshot = write(context, empty, viewerQuery, {
+        viewer: [
+          [{ id: 1, name: 'Foo' }],
+          [{ id: 2, name: 'Bar' }],
+          [{ id: 3, name: 'Baz' }],
+        ],
+      }).snapshot;
+    });
+
+    it(`returns the selected values.`, () => {
+      const { result } = read(context, viewerQuery, snapshot);
+      jestExpect(result).toEqual({
+        viewer: [
+          [{ id: 1, name: 'Foo' }],
+          [{ id: 2, name: 'Bar' }],
+          [{ id: 3, name: 'Baz' }],
+        ],
+      });
+    });
+  });
 });

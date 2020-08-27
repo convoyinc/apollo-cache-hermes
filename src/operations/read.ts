@@ -1,6 +1,6 @@
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
-import { ParsedQuery } from '../ParsedQueryNode';
+import { ParsedQuery, ParsedQueryNode } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId, OperationInstance, RawOperation, StaticNodeId } from '../schema';
 import { isNil, isObject, walkOperation, deepGet } from '../util';
@@ -113,7 +113,7 @@ export function _walkAndOverlayDynamicValues(
   // each node, rather than walking the result set.  We'd have to store the path
   // on parameterized value nodes to make that happen.
 
-  const newResult = _wrapValue(result, context);
+  const newResult = _wrapValue(result, context) as JsonObject;
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
   // schema.  Can we layer that on in such a way that we can support uses w/ and
   // w/o a schema compilation step?
@@ -172,35 +172,99 @@ export function _walkAndOverlayDynamicValues(
       }
 
       // Have we reached a leaf (either in the query, or in the cache)?
-      if (node.hasParameterizedChildren && node.children && child !== null) {
-        if (Array.isArray(child)) {
-          child = [...child];
-          for (let i = child.length - 1; i >= 0; i--) {
-            if (child[i] === null) continue;
-            child[i] = _wrapValue(child[i], context);
-            queue.push(new OverlayWalkNode(child[i] as JsonObject, nextContainerId, node.children, [...nextPath, i]));
-          }
+      if (_shouldWalkChildren(child, node)) {
+        child = _recursivelyWrapValue(child, context);
+        const allChildValues = _flattenGraphQLObject(child, nextPath);
 
-        } else {
-          child = _wrapValue(child, context);
-          queue.push(new OverlayWalkNode(child as JsonObject, nextContainerId, node.children, nextPath));
+        for (let i = 0; i < allChildValues.length; i++) {
+          const item = allChildValues[i];
+          queue.push(new OverlayWalkNode(item.value, nextContainerId, node.children ?? {}, item.path));
         }
       }
 
       // Because key is already a field alias, result will be written correctly
       // using alias as key.
-      value[key] = child;
+      value[key] = child as JsonValue;
     }
   }
 
   return newResult;
 }
 
-function _wrapValue(value: JsonValue | undefined, context: CacheContext): any {
-  if (value === undefined) return {};
-  if (Array.isArray(value)) return [...value];
+/**
+ *  Private: Represents the possible types of a GraphQL object.
+ *
+ *  Since we are not using the schema when walking through the result and
+ *  overlaying values, we do not know if a field represents an object, an array
+ *  of objects, or a multidimensional array of objects. The query alone is
+ *  ambiguous.
+ */
+type UnknownGraphQLObject = JsonObject | null | UnknownGraphQLObjectArray;
+interface UnknownGraphQLObjectArray extends Array<UnknownGraphQLObject> {}
+
+/**
+ *  Check if `value` is an object and if any of its children are parameterized.
+ *  We can skip this part of the graph if there are no parameterized children
+ *  to resolve.
+ */
+function _shouldWalkChildren(
+  value: JsonValue | undefined,
+  node: ParsedQueryNode
+): value is UnknownGraphQLObject {
+  return !!node.hasParameterizedChildren && !!node.children && value !== null;
+}
+
+/**
+ *  Private: Represents and location and value of objects discovered while
+ *  flattening the value of a graphql object field.
+ */
+type FlattenedGraphQLObject = { value: JsonObject, path: PathPart[] };
+
+/**
+ *  Finds all of the actual objects in `value` which can be a single object, an
+ *  array of objects, or a multidimensional array of objects, and returns them
+ *  as a flat list.
+ */
+function _flattenGraphQLObject(value: UnknownGraphQLObject, path: PathPart[]): FlattenedGraphQLObject[] {
+  if (value === null) return [];
+  if (!Array.isArray(value)) return [{ value, path }];
+
+  const flattened = [];
+
+  for (let i = 0; i < value.length; i++) {
+    const item = value[i];
+    const list = _flattenGraphQLObject(item, [...path, i]);
+
+    flattened.push(...list);
+  }
+
+  return flattened;
+}
+
+function _recursivelyWrapValue<T extends JsonValue>(value: T | undefined, context: CacheContext): T {
+  if (!Array.isArray(value)) {
+    return _wrapValue(value, context);
+  }
+
+  const newValue = [];
+  // Note that we're careful to iterate over all indexes, in case this is a
+  // sparse array.
+  for (let i = 0; i < value.length; i++) {
+    newValue[i] = _recursivelyWrapValue(value[i], context);
+  }
+
+  return newValue as T;
+}
+
+function _wrapValue<T extends JsonValue>(value: T | undefined, context: CacheContext): T {
+  if (value === undefined) {
+    return {} as T;
+  }
+  if (Array.isArray(value)) {
+    return [...value] as T;
+  }
   if (isObject(value)) {
-    const newValue = { ...value };
+    const newValue = { ...(value as any) };
     if (context.entityTransformer && context.entityIdForValue(value)) {
       context.entityTransformer(newValue);
     }
