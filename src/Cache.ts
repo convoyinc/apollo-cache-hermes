@@ -1,4 +1,5 @@
 import { Cache as CacheInterface } from '@apollo/client/core';
+
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheContext } from './context';
@@ -10,7 +11,6 @@ import { JsonObject } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
 import { DocumentNode, setsHaveSomeIntersection } from './util';
-
 
 export { MigrationMap };
 export type TransactionCallback = (transaction: CacheTransaction) => void;

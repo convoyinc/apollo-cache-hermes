@@ -1,12 +1,12 @@
 import { ApolloCache, Cache, DataProxy, makeReference, Reference } from '@apollo/client/core';
 import { removeDirectivesFromDocument } from '@apollo/client/utilities';
+
 import { UnsatisfiedCacheError } from '../errors';
 import { JsonObject } from '../primitive';
 import { Queryable } from '../Queryable';
 import { DocumentNode } from '../util';
+
 import { buildRawOperationFromFragment, buildRawOperationFromQuery } from './util';
-
-
 
 /**
  * Apollo-specific interface to the cache.

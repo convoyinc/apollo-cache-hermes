@@ -1,7 +1,7 @@
 import { Cache as CacheInterface } from '@apollo/client/core';
+
 import { Cache } from '../../../src';
 import { query, strictConfig } from '../../helpers';
-
 
 describe(`Cache#watch`, () => {
 

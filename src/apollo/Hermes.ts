@@ -1,15 +1,15 @@
 import {
-  ApolloCache, Cache as CacheInterface, Transaction
+  ApolloCache, Cache as CacheInterface, Transaction,
 } from '@apollo/client/core';
+
 import { Cache, MigrationMap } from '../Cache';
 import { CacheSnapshot } from '../CacheSnapshot';
 import { CacheContext } from '../context';
 import { GraphSnapshot } from '../GraphSnapshot';
+
 import { ApolloQueryable } from './Queryable';
 import { ApolloTransaction } from './Transaction';
 import { buildRawOperationFromQuery } from './util';
-
-
 
 /**
  * Apollo-specific interface to the cache.

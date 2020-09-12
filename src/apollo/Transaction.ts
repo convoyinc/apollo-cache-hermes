@@ -1,13 +1,13 @@
 import { Cache, Transaction } from '@apollo/client/core';
+import lodashIsEqual = require('lodash.isequal');
+
 import { CacheTransaction } from '../CacheTransaction';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { JsonValue, PathPart } from '../primitive';
 import { NodeId } from '../schema';
 import { deepGet, DocumentNode, verboseTypeof } from '../util';
+
 import { ApolloQueryable } from './Queryable';
-import lodashIsEqual = require('lodash.isequal');
-
-
 
 function getOriginalFieldArguments(id: NodeId): { [argName: string]: string } | undefined {
   // Split `${containerId}❖${JSON.stringify(path)}❖${JSON.stringify(args)}`
