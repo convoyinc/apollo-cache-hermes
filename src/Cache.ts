@@ -1,16 +1,16 @@
-import { Cache as CacheInterface } from '@apollo/client';
-
+import { Cache as CacheInterface } from '@apollo/client/core';
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
-import { extract, MigrationMap, migrate, QueryObserver, prune, read, restore } from './operations';
+import { extract, migrate, MigrationMap, prune, QueryObserver, read, restore } from './operations';
+import { QueryResult } from './operations/read';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
 import { JsonObject } from './primitive';
 import { Queryable } from './Queryable';
 import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
 import { DocumentNode, setsHaveSomeIntersection } from './util';
-import { QueryResult } from './operations/read';
+
 
 export { MigrationMap };
 export type TransactionCallback = (transaction: CacheTransaction) => void;
