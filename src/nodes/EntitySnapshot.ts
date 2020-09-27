@@ -1,4 +1,5 @@
 import { JsonObject, NestedArray, NestedObject } from '../primitive';
+import { NodeId } from '../schema';
 
 import { NodeReference, NodeSnapshot } from './NodeSnapshot';
 
@@ -13,12 +14,29 @@ export { NestedArray, NestedObject };
  * parameterized values that may also have been queried for it.
  */
 export class EntitySnapshot implements NodeSnapshot {
+  inbound?: Map<NodeId, NodeReference>;
+  outbound?: Map<NodeId, NodeReference>;
+
   constructor(
     /** A reference to the entity this snapshot is about. */
     public data?: JsonObject,
     /** Other node snapshots that point to this one. */
-    public inbound?: NodeReference[],
+    inbound?: NodeReference[],
     /** The node snapshots that this one points to. */
-    public outbound?: NodeReference[],
-  ) {}
+    outbound?: NodeReference[],
+  ) {
+    if (inbound) {
+      this.inbound = new Map();
+      for (const reference of inbound) {
+        this.inbound.set(reference.id, reference);
+      }
+    }
+
+    if (outbound) {
+      this.outbound = new Map();
+      for (const reference of outbound) {
+        this.outbound.set(reference.id, reference);
+      }
+    }
+  }
 }

@@ -5,7 +5,7 @@ import { CacheTransaction } from '../CacheTransaction';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { JsonValue, PathPart } from '../primitive';
 import { NodeId } from '../schema';
-import { deepGet, DocumentNode, verboseTypeof } from '../util';
+import { deepGet, DocumentNode, referenceValues, verboseTypeof } from '../util';
 
 import { ApolloQueryable } from './Queryable';
 
@@ -84,7 +84,7 @@ export class ApolloTransaction extends ApolloQueryable<GraphSnapshot> {
       return;
     }
 
-    for (const { id: outboundId, path } of currentContainerNode.outbound) {
+    for (const { id: outboundId, path } of referenceValues(currentContainerNode.outbound)) {
       if (lodashIsEqual(pathToParameterizedField, path)) {
         const fieldArguments = getOriginalFieldArguments(outboundId);
         if (fieldArguments) {

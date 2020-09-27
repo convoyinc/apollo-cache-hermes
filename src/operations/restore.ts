@@ -7,8 +7,8 @@ import { GraphSnapshot, NodeSnapshotMap } from '../GraphSnapshot';
 import { EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { OptimisticUpdateQueue } from '../OptimisticUpdateQueue';
 import { JsonObject, JsonValue, NestedValue, PathPart } from '../primitive';
-import { Serializable, NodeId } from '../schema';
-import { isNumber, isObject, isScalar } from '../util';
+import { NodeId, Serializable } from '../schema';
+import { isNumber, isObject, isScalar, referenceValues } from '../util';
 
 /**
  * Restore GraphSnapshot from serializable representation.
@@ -77,7 +77,7 @@ function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheC
       continue;
     }
 
-    for (const { id: referenceId, path } of outbound) {
+    for (const { id: referenceId, path } of referenceValues(outbound)) {
       const referenceNode = nodesMap[referenceId];
       if (referenceNode instanceof EntitySnapshot && data === null) {
         // data is a reference.

@@ -8,9 +8,9 @@ export interface NodeSnapshot {
   /** A reference to the node this snapshot is about. TODO: Remove? */
   data?: JsonValue;
   /** Other node snapshots that point to this one. */
-  inbound?: NodeReference[];
+  inbound?: Map<NodeId, NodeReference>;
   /** The node snapshots that this one points to. */
-  outbound?: NodeReference[];
+  outbound?: Map<NodeId, NodeReference>;
 }
 
 /**

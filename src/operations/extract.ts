@@ -2,8 +2,8 @@ import { CacheContext } from '../context/CacheContext';
 import { GraphSnapshot } from '../GraphSnapshot';
 import { EntitySnapshot, NodeSnapshot, ParameterizedValueSnapshot } from '../nodes';
 import { JsonValue, NestedValue } from '../primitive';
-import { Serializable, isSerializable } from '../schema';
-import { lazyImmutableDeepSet } from '../util';
+import { isSerializable, Serializable } from '../schema';
+import { lazyImmutableDeepSet, referenceValues } from '../util';
 
 /**
  * Create serializable representation of GraphSnapshot.
@@ -35,11 +35,11 @@ export function extract(graphSnapshot: GraphSnapshot, cacheContext: CacheContext
     const serializedEntity: Serializable.NodeSnapshot = { type };
 
     if (outbound) {
-      serializedEntity.outbound = outbound;
+      serializedEntity.outbound = referenceValues(outbound);
     }
 
     if (inbound) {
-      serializedEntity.inbound = inbound;
+      serializedEntity.inbound = referenceValues(inbound);
     }
 
     // Extract data value
@@ -78,7 +78,7 @@ function extractSerializableData(graphSnapshot: GraphSnapshot, nodeSnapshot: Nod
   let extractedData: JsonValue | null = nodeSnapshot.data;
 
   // Set all the outbound path (e.g reference) to undefined.
-  for (const outbound of nodeSnapshot.outbound) {
+  for (const outbound of referenceValues(nodeSnapshot.outbound)) {
     // Only reference to EntitySnapshot is recorded in the data property
     // So we didn't end up set the value to be 'undefined' in the output
     // in every case

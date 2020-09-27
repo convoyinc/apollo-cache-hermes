@@ -20,15 +20,12 @@ export function removeNodeReference(
   const references = snapshot[direction];
   if (!references) return true;
 
-  const fromIndex = getIndexOfGivenReference(references, id, path);
-  if (fromIndex < 0) return false;
-  references.splice(fromIndex, 1);
-
-  if (!references.length) {
-    snapshot[direction] = undefined;
+  if (!hasNodeReference(snapshot, direction, id, path)) {
+    return false;
   }
 
-  return !references.length;
+  references.delete(id);
+  return !references.size;
 }
 
 /**
@@ -40,16 +37,16 @@ export function addNodeReference(
   id: NodeId,
   path: PathPart[],
 ): boolean {
-  let references = snapshot[direction];
-  if (!references) {
-    references = snapshot[direction] = [];
+  if (!snapshot[direction]) {
+    snapshot[direction] = new Map();
   }
 
-  const idx = getIndexOfGivenReference(references, id, path);
-  if (idx === -1) {
-    references.push({ id, path });
+  const references = snapshot[direction];
+  if (!hasNodeReference(snapshot, direction, id, path)) {
+    (references as Map<NodeId, NodeReference>).set(id, { id, path });
     return true;
   }
+
   return false;
 }
 
@@ -64,18 +61,18 @@ export function hasNodeReference(
   path: PathPart[],
 ): boolean {
   const references = snapshot[type];
-  if (!references || getIndexOfGivenReference(references, id, path) === -1) return false;
-  return true;
+  const reference = references && references.get(id);
+  return !!(reference && isEqual(reference.path, path));
 }
 
 /**
- * Return index of { id, path } reference in references array.
- * Otherwise, return -1.
+ * Return values from reference map
  */
-function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path: PathPart[]): number {
-  return references.findIndex((reference) => {
-    return reference.id === id && isEqual(reference.path, path);
-  });
+export function referenceValues(references: Map<NodeId, NodeReference> | undefined): NodeReference[] {
+  if (!references) {
+    return [];
+  }
+  return Array.from(references.values());
 }
 
 /**
@@ -86,9 +83,5 @@ export function isReferenceField(
   path: PathPart[],
 ): boolean {
   const references = snapshot['outbound'];
-  if (!references) return false;
-  const index = references.findIndex((reference) => {
-    return isEqual(reference.path, path);
-  });
-  return (index >= 0);
+  return referenceValues(references).some(reference => isEqual(reference.path, path));
 }

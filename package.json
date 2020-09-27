@@ -1,11 +1,11 @@
 {
-  "name": "apollo-cache-hermes",
-  "version": "0.8.0",
+  "name": "@charllie/apollo-cache-hermes",
+  "version": "0.8.16",
   "description": "A cache implementation for Apollo Client, tuned for performance",
   "license": "Apache-2.0",
-  "repository": "convoyinc/apollo-cache-hermes",
-  "homepage": "https://github.com/convoyinc/apollo-cache-hermes",
-  "bugs": "https://github.com/convoyinc/apollo-cache-hermes/issues",
+  "repository": "charllie/apollo-cache-hermes",
+  "homepage": "https://github.com/charllie/apollo-cache-hermes",
+  "bugs": "https://github.com/charllie/apollo-cache-hermes/issues",
   "keywords": [
     "apollo",
     "apollo-client",

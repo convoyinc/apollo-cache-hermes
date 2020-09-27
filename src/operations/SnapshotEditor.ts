@@ -15,6 +15,7 @@ import {
   isNil,
   lazyImmutableDeepSet,
   pathBeginsWith,
+  referenceValues,
   removeNodeReference,
 } from '../util';
 
@@ -382,7 +383,7 @@ export class SnapshotEditor {
   private _removeArrayReferences(referenceEdits: ReferenceEdit[], containerId: NodeId, prefix: PathPart[], afterIndex: number) {
     const container = this._getNodeSnapshot(containerId);
     if (!container || !container.outbound) return;
-    for (const reference of container.outbound) {
+    for (const reference of referenceValues(container.outbound)) {
       if (!pathBeginsWith(reference.path, prefix)) continue;
       const index = reference.path[prefix.length];
       if (typeof index !== 'number') continue;
@@ -496,7 +497,7 @@ export class SnapshotEditor {
       if (!(snapshot instanceof EntitySnapshot)) continue;
       if (!snapshot || !snapshot.inbound) continue;
 
-      for (const { id, path } of snapshot.inbound) {
+      for (const { id, path } of referenceValues(snapshot.inbound)) {
         this._setValue(id, path, snapshot.data, false);
         if (this._rebuiltNodeIds.has(id)) continue;
 
@@ -520,7 +521,7 @@ export class SnapshotEditor {
       this._editedNodeIds.add(nodeId);
 
       if (!node.outbound) continue;
-      for (const { id, path } of node.outbound) {
+      for (const { id, path } of referenceValues(node.outbound)) {
         const reference = this._ensureNewSnapshot(id);
         if (removeNodeReference('inbound', reference, nodeId, path)) {
           queue.push(id);
