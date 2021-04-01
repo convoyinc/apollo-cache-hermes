@@ -11,6 +11,7 @@ import { Queryable } from './Queryable';
 import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
 import { DocumentNode, setsHaveSomeIntersection } from './util';
 import { QueryResult } from './operations/read';
+import { UnsatisfiedCacheError } from './errors';
 
 export { MigrationMap };
 export type TransactionCallback = (transaction: CacheTransaction) => void;
@@ -46,7 +47,7 @@ export class Cache implements Queryable {
     const { cacheSnapshot, editedNodeIds } = restore(data, this._context);
     const migrated = migrate(cacheSnapshot, migrationMap);
     if (verifyQuery && !read(this._context, verifyQuery, migrated.baseline, false).complete) {
-      throw new Error(`Restored cache cannot satisfy the verification query`);
+      throw new UnsatisfiedCacheError(`Restored cache cannot satisfy the verification query`);
     }
     this._setSnapshot(migrated, editedNodeIds);
   }
