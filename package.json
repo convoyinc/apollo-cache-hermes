@@ -45,7 +45,7 @@
     "@types/react": "^16.9.44",
     "@typescript-eslint/eslint-plugin": "^3.8.0",
     "@typescript-eslint/parser": "^3.8.0",
-    "audit-ci": "^2.4.0",
+    "audit-ci": "^3.0.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
     "chai-jest-diff": "^1.0.2",
