@@ -1,7 +1,6 @@
 import {
   Transaction,
   Cache as CacheInterface,
-  ApolloCache,
 } from '@apollo/client';
 
 import { CacheContext } from '../context';
@@ -26,7 +25,7 @@ export class Hermes extends ApolloQueryable<GraphSnapshot> {
   }
 
   // TODO (yuisu): data can be typed better with update of ApolloCache API
-  restore(data: any, migrationMap?: MigrationMap, verifyOptions?: CacheInterface.ReadOptions): ApolloCache<GraphSnapshot> {
+  restore(data: any, migrationMap?: MigrationMap, verifyOptions?: CacheInterface.ReadOptions): Hermes {
     const verifyQuery = verifyOptions && buildRawOperationFromQuery(verifyOptions.query, verifyOptions.variables);
     this._queryable.restore(data, migrationMap, verifyQuery);
     return this;
