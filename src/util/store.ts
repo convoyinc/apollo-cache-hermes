@@ -1,6 +1,6 @@
 // We only depend on graphql for its types; nothing at runtime.
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { ValueNode, VariableNode } from 'graphql';
+import { Kind, ValueNode, VariableNode } from 'graphql';
 import { InvariantError } from 'ts-invariant';
 import { VariableValue } from '@apollo/client/utilities';
 
@@ -19,24 +19,29 @@ export function valueFromNode(
   onVariable: VariableValue = defaultValueFromVariable,
 ): any {
   switch (node.kind) {
-    case 'Variable':
+    case Kind.VARIABLE:
       return onVariable(node);
-    case 'NullValue':
+    case Kind.NULL:
       return null;
-    case 'IntValue':
+    case Kind.INT:
       return parseInt(node.value);
-    case 'FloatValue':
+    case Kind.FLOAT:
       return parseFloat(node.value);
-    case 'ListValue':
+    case Kind.LIST:
       return node.values.map(v => valueFromNode(v, onVariable));
-    case 'ObjectValue': {
+    case Kind.OBJECT: {
       const value: { [key: string]: any } = {};
       for (const field of node.fields) {
         value[field.name.value] = valueFromNode(field.value, onVariable);
       }
       return value;
     }
-    default:
+    case Kind.STRING:
       return node.value;
+    case Kind.BOOLEAN:
+      return node.value;
+    case Kind.ENUM:
+      return node.value;
+    default: throw new Error(`Unknown node: ${JSON.stringify(node)}`);
   }
 }

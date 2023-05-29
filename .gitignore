@@ -12,3 +12,6 @@
 
 # TypeScript
 !/typings/**/*.d.ts
+
+# jetbrains
+.idea/
