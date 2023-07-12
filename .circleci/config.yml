@@ -76,7 +76,6 @@ jobs:
     <<: *job_common
     steps:
       - <<: *restore
-      - convoy/setup-registry-credentials
       - run: mkdir -p ~/.ssh
       - run: echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
       - run: yarn config set registry https://packages.convoy.com/artifactory/api/npm/npm/
