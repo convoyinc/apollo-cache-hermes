@@ -69,7 +69,7 @@ jobs:
           artifactory-token: ${ARTIFACTORY_NPM_TOKEN_RW}
       - convoy/configure-git-as-donvoy
       - run: yarn config set registry https://packages.convoy.com/artifactory/api/npm/npm/
-      - run: yarn release
+      - run: yarn publish
 
 workflows:
   version: 2
