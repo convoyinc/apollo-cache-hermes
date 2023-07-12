@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 
 orbs:
   aws-cli-v2: circleci/aws-cli@2.0.3
