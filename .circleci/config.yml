@@ -1,7 +1,23 @@
 version: 2
 
+orbs:
+  aws-cli-v2: circleci/aws-cli@2.0.3
+  slack: circleci/slack@3.4.2
+  convoy: convoy/typescript@2
+
+artifactory-aliases:
+  - &npm-login-rw
+    name: Set NPM RW auth tokens.
+    command: |-
+      grep -Fq "${ARTIFACTORY_NPM_TOKEN_RW}" ~/.npmrc &> /dev/null || cat <<EOF > ~/.npmrc
+      registry=https://packages.convoy.com/artifactory/api/npm/npm/
+      always-auth=true
+      //packages.convoy.com/artifactory/api/npm/npm/:_authToken=${ARTIFACTORY_NPM_TOKEN_RW}
+      //registry.npmjs.org/:_authToken=${NPM_TOKEN}
+      EOF
+
 base_image: &base_image
-  image: circleci/node:12.13.0
+  image: 699536110035.dkr.ecr.us-west-2.amazonaws.com/convoyinc/convoy-alpine-node:10.15.0-5093887f
 
 job_common: &job_common
   docker:
@@ -60,10 +76,11 @@ jobs:
     <<: *job_common
     steps:
       - <<: *restore
+      - convoy/setup-registry-credentials
       - run: mkdir -p ~/.ssh
       - run: echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-      - run: yarn config set registry https://registry.npmjs.org/
-      - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - run: yarn config set registry https://packages.convoy.com/artifactory/api/npm/npm/
+      - run: *npm-login-rw
       - run: git config --global user.email "donvoy@convoy.com"
       - run: git config --global user.name "Don Voy"
       - run: yarn run release
@@ -73,14 +90,18 @@ workflows:
   version: 2
   build-test-release:
     jobs:
-      - build
+      - build:
+          context: org-global
       - test-style:
+          context: org-global
           requires:
             - build
       - test-unit:
+          context: org-global
           requires:
             - build
       - release:
+          context: org-global
           requires:
             - test-style
             - test-unit
