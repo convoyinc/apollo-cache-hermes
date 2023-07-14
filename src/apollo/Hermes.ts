@@ -54,7 +54,7 @@ export class Hermes extends ApolloQueryable<GraphSnapshot> {
   }
 
   watch(options: CacheInterface.WatchOptions): () => void {
-    const query = buildRawOperationFromQuery(options.query, options.variables, options.rootId);
+    const query = buildRawOperationFromQuery(options.query, options.variables);
     return this._queryable.watch(query, options.callback);
   }
 

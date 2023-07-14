@@ -6,7 +6,7 @@ orbs:
   convoy: convoy/typescript@2
 
 base_image: &base_image
-  image: 699536110035.dkr.ecr.us-west-2.amazonaws.com/convoyinc/convoy-alpine-node:10.15.0-5093887f
+  image: 699536110035.dkr.ecr.us-west-2.amazonaws.com/convoyinc/convoy-alpine-node:14.16.0-0899a0d6-2021.03.18
 
 job_common: &job_common
   docker:

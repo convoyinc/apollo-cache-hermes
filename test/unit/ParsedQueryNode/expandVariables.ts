@@ -76,7 +76,7 @@ describe(`ParsedQueryNode.expandVariables`, () => {
     `);
 
     expect(expandVariables(map, { foo: 123, bar: 'ohai' })).to.deep.eq({
-      thing: new ParsedQueryNode(undefined, undefined, { one: { two: 'ohai', three: [1, 2, 123] } }),
+      thing: new ParsedQueryNode(undefined, undefined, { one: { two: 'ohai', three: [1, 2, 123] } } as any),
     });
   });
 

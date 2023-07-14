@@ -52,7 +52,11 @@ export function extract(graphSnapshot: GraphSnapshot, cacheContext: CacheContext
           }
         } catch (error) {
           cacheContext.tracer.warning(`Data at entityID ${id} is unserializable because of stack overflow`);
-          cacheContext.tracer.warning(error);
+          if (error instanceof Error) {
+            cacheContext.tracer.warning(error.toString());
+          } else {
+            cacheContext.tracer.warning('unknown error');
+          }
         }
       }
       serializedEntity.data = extractedData;

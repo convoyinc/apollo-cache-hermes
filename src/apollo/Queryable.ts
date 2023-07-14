@@ -1,4 +1,4 @@
-import { ApolloCache, Cache, DataProxy, Reference, makeReference } from '@apollo/client';
+import { ApolloCache, Cache, Reference, makeReference } from '@apollo/client';
 import { removeDirectivesFromDocument } from '@apollo/client/utilities';
 
 import { UnsatisfiedCacheError } from '../errors';
@@ -37,7 +37,7 @@ export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerializ
     return result;
   }
 
-  readQuery<QueryType, TVariables = any>(options: DataProxy.Query<TVariables>, optimistic?: true): QueryType {
+  readQuery<QueryType, TVariables = any>(options: Cache.ReadQueryOptions<QueryType, TVariables>, optimistic?: true): QueryType {
     return this.read({
       query: options.query,
       variables: options.variables,
@@ -45,7 +45,8 @@ export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerializ
     });
   }
 
-  readFragment<FragmentType, TVariables = any>(options: DataProxy.Fragment<TVariables>, optimistic?: true): FragmentType | null {
+  readFragment<FragmentType, TVariables = any>(options: Cache.ReadFragmentOptions<FragmentType, TVariables>, optimistic?: true):
+    FragmentType | null {
     // TODO: Support nested fragments.
     const rawOperation = buildRawOperationFromFragment(
       options.fragment,

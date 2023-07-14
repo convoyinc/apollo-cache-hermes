@@ -183,7 +183,6 @@ rules:
   # Helpful Warnings
   # TODO: Until it has TypeScript support…
   # import/export: error
-  import/no-named-as-default: error
   import/no-deprecated: error
   import/no-extraneous-dependencies: [error, { devDependencies: false }]
   import/no-mutable-exports: error
