@@ -72,7 +72,7 @@ describe(`operations.read`, () => {
             extraObject: 'WAT!!!',
           },
         ],
-      }).snapshot;
+      }, true).snapshot;
       readResult = read(context, shipmentsQuery, snapshot);
     });
 

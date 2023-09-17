@@ -26,3 +26,5 @@ export function verboseTypeof(value: any): string {
   }
   return typeof value;
 }
+
+export const { hasOwnProperty: hasOwn } = Object.prototype;

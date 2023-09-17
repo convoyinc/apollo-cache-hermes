@@ -1,7 +1,6 @@
 import gql from 'graphql-tag';
 
 import { Hermes } from '../../../../src/apollo/Hermes';
-import { CacheContext } from '../../../../src/context/CacheContext';
 import { EntitySnapshot } from '../../../../src/nodes/EntitySnapshot';
 import { ParameterizedValueSnapshot } from '../../../../src/nodes/ParameterizedValueSnapshot';
 import { nodeIdForParameterizedValue } from '../../../../src/operations/SnapshotEditor';
@@ -14,7 +13,7 @@ describe(`writeFragment with nested paramterized value`, () => {
 
   let hermes: Hermes;
   beforeAll(() => {
-    hermes = new Hermes(new CacheContext(strictConfig));
+    hermes = new Hermes(strictConfig);
     hermes.writeQuery({
       query: gql(`
         query getViewer {

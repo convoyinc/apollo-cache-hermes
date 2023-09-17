@@ -40,6 +40,7 @@ export function lazyImmutableDeepSet<TEntity>(
   original: TEntity | undefined,
   path: PathPart[],
   value: any,
+  deleted?: boolean,
 ): TEntity {
   if (!path.length) return value;
 
@@ -75,8 +76,12 @@ export function lazyImmutableDeepSet<TEntity>(
     originalNode = originalNode && originalNode[key];
   }
 
-  // Finally, set the value in our previously or newly cloned target.
-  parentNode[path[path.length - 1]] = value;
+  if (deleted) {
+    delete parentNode[path[path.length - 1]];
+  } else {
+    // Finally, set the value in our previously or newly cloned target.
+    parentNode[path[path.length - 1]] = value;
+  }
 
   return target as TEntity;
 }

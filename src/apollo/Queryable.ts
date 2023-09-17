@@ -17,24 +17,22 @@ export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerializ
 
   diff<T>(options: Cache.DiffOptions): Cache.DiffResult<T | any> {
     const rawOperation = buildRawOperationFromQuery(options.query, options.variables);
-    const { result, complete } = this._queryable.read(rawOperation, options.optimistic);
+    const { result, complete, missing, fromOptimisticTransaction } = this._queryable.read(rawOperation, options.optimistic);
     if (options.returnPartialData === false && !complete) {
       // TODO: Include more detail with this error.
       throw new UnsatisfiedCacheError(`diffQuery not satisfied by the cache.`);
     }
 
-    return { result, complete };
+    return { result, complete, missing, fromOptimisticTransaction };
   }
 
   read(options: Cache.ReadOptions): any {
     const rawOperation = buildRawOperationFromQuery(options.query, options.variables, options.rootId);
     const { result, complete } = this._queryable.read(rawOperation, options.optimistic);
-    if (!complete) {
-      // TODO: Include more detail with this error.
-      throw new UnsatisfiedCacheError(`read not satisfied by the cache.`);
+    if (complete || options.returnPartialData) {
+      return result;
     }
-
-    return result;
+    return null;
   }
 
   readQuery<QueryType, TVariables = any>(options: Cache.ReadQueryOptions<QueryType, TVariables>, optimistic?: true): QueryType {
@@ -42,10 +40,12 @@ export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerializ
       query: options.query,
       variables: options.variables,
       optimistic: !!optimistic,
+      returnPartialData: options.returnPartialData,
+      rootId: options.id,
     });
   }
 
-  readFragment<FragmentType, TVariables = any>(options: Cache.ReadFragmentOptions<FragmentType, TVariables>, optimistic?: true):
+  readFragment<FragmentType, TVariables = any>(options: Cache.ReadFragmentOptions<FragmentType, TVariables>, optimistic?: boolean):
     FragmentType | null {
     // TODO: Support nested fragments.
     const rawOperation = buildRawOperationFromFragment(
@@ -54,19 +54,27 @@ export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerializ
       options.variables as any,
       options.fragmentName,
     );
-    return this._queryable.read(rawOperation, optimistic).result as any;
+    const { complete, result } = this._queryable.read(rawOperation, optimistic);
+    if (complete || options.returnPartialData) {
+      return result ?? null as any;
+    }
+    return null;
+  }
+
+  modify<Entity extends Record<string, any> = Record<string, any>>(options: Cache.ModifyOptions<Entity>): boolean {
+    return this._queryable.modify(options);
   }
 
   write(options: Cache.WriteOptions): Reference | undefined {
     const rawOperation = buildRawOperationFromQuery(options.query, options.variables as JsonObject, options.dataId);
-    this._queryable.write(rawOperation, options.result);
+    this._queryable.write(rawOperation, options.result, options.broadcast);
 
     return makeReference(rawOperation.rootId);
   }
 
   writeQuery<TData = any, TVariables = any>(options: Cache.WriteQueryOptions<TData, TVariables>): Reference | undefined {
-    const rawOperation = buildRawOperationFromQuery(options.query, options.variables as any);
-    this._queryable.write(rawOperation, options.data as any);
+    const rawOperation = buildRawOperationFromQuery(options.query, options.variables as any, options.id);
+    this._queryable.write(rawOperation, options.data as any, options.broadcast);
 
     return makeReference(rawOperation.rootId);
   }
@@ -79,7 +87,7 @@ export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerializ
       options.variables as any,
       options.fragmentName,
     );
-    this._queryable.write(rawOperation, options.data as any);
+    this._queryable.write(rawOperation, options.data as any, options.broadcast);
 
     return makeReference(rawOperation.rootId);
   }
@@ -96,7 +104,7 @@ export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerializ
     )!;
   }
 
-  evict(_options: Cache.EvictOptions): boolean { // eslint-disable-line class-methods-use-this
-    throw new Error(`evict() is not implemented in Hermes`);
+  evict(options: Cache.EvictOptions): boolean {
+    return this._queryable.evict(options);
   }
 }

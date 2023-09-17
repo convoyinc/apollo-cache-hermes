@@ -50,7 +50,7 @@ describe(`operations.read`, () => {
       expect(complete).to.eq(true);
     });
 
-    it(`follows resolver redirects on the query root`, () => {
+    it(`follows resolver redirects on the query root 2`, () => {
       const { result, complete } = read(context, { ...nestedRedirectQuery, variables: { id: 1 } }, baseSnapshot);
       expect((result as any).nested.thing).to.deep.eq({ __typename: 'Thing', id: 1, name: 'One' });
       expect(complete).to.eq(true);

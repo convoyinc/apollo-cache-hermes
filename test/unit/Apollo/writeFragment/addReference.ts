@@ -1,7 +1,6 @@
 import gql from 'graphql-tag';
 
 import { Hermes } from '../../../../src/apollo/Hermes';
-import { CacheContext } from '../../../../src/context/CacheContext';
 import { EntitySnapshot } from '../../../../src/nodes/EntitySnapshot';
 import { StaticNodeId, Serializable } from '../../../../src/schema';
 import { strictConfig } from '../../../helpers/context';
@@ -13,7 +12,7 @@ describe(`writeFragment`, () => {
   let hermes: Hermes;
 
   beforeAll(() => {
-    hermes = new Hermes(new CacheContext(strictConfig));
+    hermes = new Hermes(strictConfig);
     hermes.restore({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,

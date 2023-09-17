@@ -73,7 +73,7 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`trigger onChange callback when write with transaction`, () => {
-      cache.transaction((transaction) => {
+      cache.transaction(true, (transaction) => {
         transaction.write(
           graphqlQuery,
           {

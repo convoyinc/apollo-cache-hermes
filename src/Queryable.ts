@@ -1,3 +1,5 @@
+import { Cache } from '@apollo/client';
+
 import { JsonObject, JsonValue } from './primitive';
 import { RawOperation } from './schema';
 import { DocumentNode } from './util';
@@ -22,10 +24,14 @@ export interface Queryable {
    * TODO: Can we drop non-optimistic reads?
    * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(query: RawOperation, optimistic?: boolean): { result?: JsonValue, complete: boolean };
+  read(query: RawOperation, optimistic?: boolean): Cache.DiffResult<JsonValue>;
 
   /**
    * Writes values for a selection to the cache.
    */
-  write(query: RawOperation, payload: JsonObject): void;
+  write(query: RawOperation, payload: JsonObject, broadcast: boolean | undefined): void;
+
+  modify<Entity>(options: Cache.ModifyOptions<Entity>): boolean;
+
+  evict(options: Cache.EvictOptions): boolean;
 }

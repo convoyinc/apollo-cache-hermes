@@ -41,7 +41,7 @@ describe(`operations.read`, () => {
       });
 
       it(`returns the nodeIds visited during reading`, () => {
-        const { entityIds, dynamicNodeIds } = read(context, parameterizedQuery, snapshot, true);
+        const { entityIds, dynamicNodeIds } = read(context, parameterizedQuery, snapshot, Object.create(null), true);
         jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([
           QueryRootId,
           '1',
@@ -115,7 +115,7 @@ describe(`operations.read`, () => {
         });
 
         it(`returns the nodeIds visited during reading`, () => {
-          const { entityIds, dynamicNodeIds } = read(context, nestedQuery, snapshot, true);
+          const { entityIds, dynamicNodeIds } = read(context, nestedQuery, snapshot, Object.create(null), true);
           jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([
             QueryRootId,
             '1',

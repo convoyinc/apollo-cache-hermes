@@ -1,20 +1,23 @@
 import { Cache as CacheInterface } from '@apollo/client';
+import { Reference, StoreObject } from '@apollo/client/utilities';
 
 import { CacheSnapshot } from './CacheSnapshot';
 import { CacheTransaction } from './CacheTransaction';
 import { CacheContext } from './context';
-import { GraphSnapshot } from './GraphSnapshot';
-import { extract, MigrationMap, migrate, QueryObserver, prune, read, restore } from './operations';
+import { GraphSnapshot, NodeSnapshotMap } from './GraphSnapshot';
+import { extract, migrate, MigrationMap, prune, QueryObserver, read, restore } from './operations';
 import { OptimisticUpdateQueue } from './OptimisticUpdateQueue';
-import { JsonObject } from './primitive';
+import { JsonObject, JsonValue } from './primitive';
 import { Queryable } from './Queryable';
-import { ChangeId, NodeId, RawOperation, Serializable } from './schema';
-import { DocumentNode, setsHaveSomeIntersection } from './util';
-import { QueryResult } from './operations/read';
+import { ChangeId, NodeId, RawOperation, Serializable, StaticNodeId } from './schema';
+import { addToSet, DocumentNode, hasOwn, setsHaveSomeIntersection } from './util';
 import { UnsatisfiedCacheError } from './errors';
+import { Hermes } from './apollo';
+
+import BatchOptions = CacheInterface.BatchOptions;
 
 export { MigrationMap };
-export type TransactionCallback = (transaction: CacheTransaction) => void;
+export type TransactionCallback = (transaction: CacheTransaction) => any;
 
 /**
  * The Hermes cache.
@@ -32,11 +35,77 @@ export class Cache implements Queryable {
 
   /** All active query observers. */
   private _observers: QueryObserver[] = [];
+  private _cacheInstance: Hermes | undefined;
+  private _transactions: CacheTransaction[] = [];
+  private _editedNodeIds: Set<NodeId> = new Set();
 
-  constructor(config?: CacheContext.Configuration) {
+  constructor(configuration: CacheContext.Configuration | undefined, cacheInstance: Hermes | undefined = undefined) {
     const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
-    this._context = new CacheContext(config);
+    this._context = new CacheContext(configuration);
+    this._cacheInstance = cacheInstance;
+  }
+
+  // Maps root entity IDs to the number of times they have been retained, minus
+  // the number of times they have been released. Retained entities keep other
+  // entities they reference (even indirectly) from being garbage collected.
+  private _rootIds: {
+    [rootId: string]: number,
+  } = Object.create(null);
+
+  public retain(rootId: string): number {
+    return (this._rootIds[rootId] = (this._rootIds[rootId] || 0) + 1);
+  }
+
+  public release(rootId: string): number {
+    if (this._rootIds[rootId] > 0) {
+      const count = --this._rootIds[rootId];
+      if (!count) delete this._rootIds[rootId];
+      return count;
+    }
+    return 0;
+  }
+
+  // Return a Set<string> of all the ID strings that have been retained by
+  // this layer/root *and* any layers/roots beneath it.
+  public getRootIdSet(ids = new Set<string>()) {
+    Object.keys(this._rootIds).forEach(ids.add, ids);
+    ids.add(StaticNodeId.QueryRoot);
+    ids.add(StaticNodeId.MutationRoot);
+    return ids;
+  }
+
+  // The goal of garbage collection is to remove IDs from the Root layer of the
+  // store that are no longer reachable starting from any IDs that have been
+  // explicitly retained (see retain and release, above). Returns an array of
+  // dataId strings that were removed from the store.
+  public gc() {
+    const ids = this.getRootIdSet();
+    const snapshot = { ...this._snapshot.optimistic._values };
+    ids.forEach((id) => {
+      if (hasOwn.call(snapshot, id)) {
+        // Because we are iterating over an ECMAScript Set, the IDs we add here
+        // will be visited in later iterations of the forEach loop only if they
+        // were not previously contained by the Set.
+        const node = snapshot[id];
+        node.outbound?.forEach(ref => ids.add(ref.id));
+        // By removing IDs from the snapshot object here, we protect them from
+        // getting removed from the root store layer below.
+        delete snapshot[id];
+      }
+    });
+    const idsToRemove = Object.keys(snapshot);
+
+    if (idsToRemove.length) {
+      this.transaction(false, (t) => {
+        idsToRemove.forEach(id => t.evict({ id }));
+      });
+    }
+    return idsToRemove;
+  }
+
+  identify(object: StoreObject | Reference): string | undefined {
+    return this._context.entityIdForValue(object);
   }
 
   transformDocument(document: DocumentNode): DocumentNode {
@@ -46,7 +115,7 @@ export class Cache implements Queryable {
   restore(data: Serializable.GraphSnapshot, migrationMap?: MigrationMap, verifyQuery?: RawOperation) {
     const { cacheSnapshot, editedNodeIds } = restore(data, this._context);
     const migrated = migrate(cacheSnapshot, migrationMap);
-    if (verifyQuery && !read(this._context, verifyQuery, migrated.baseline, false).complete) {
+    if (verifyQuery && !read(this._context, verifyQuery, migrated.baseline, Object.create(null), false).complete) {
       throw new UnsatisfiedCacheError(`Restored cache cannot satisfy the verification query`);
     }
     this._setSnapshot(migrated, editedNodeIds);
@@ -66,10 +135,18 @@ export class Cache implements Queryable {
    * TODO: Can we drop non-optimistic reads?
    * https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
    */
-  read(query: RawOperation, optimistic?: boolean): QueryResult {
+  read(query: RawOperation, optimistic?: boolean): CacheInterface.DiffResult<JsonValue> {
     // TODO: Can we drop non-optimistic reads?
     // https://github.com/apollographql/apollo-client/issues/1971#issuecomment-319402170
-    return read(this._context, query, optimistic ? this._snapshot.optimistic : this._snapshot.baseline);
+    const tempStore: NodeSnapshotMap = Object.create(null);
+    const result = read(this._context, query, optimistic ? this._snapshot.optimistic : this._snapshot.baseline, tempStore);
+    const newKeys = Object.keys(tempStore);
+    if (newKeys.length) {
+      this.transaction(true, (t) => {
+        t.merge(tempStore);
+      });
+    }
+    return result;
   }
 
   /**
@@ -83,18 +160,30 @@ export class Cache implements Queryable {
    * Registers a callback that should be triggered any time the nodes selected
    * by a particular query have changed.
    */
-  watch(query: RawOperation, callback: CacheInterface.WatchCallback): () => void {
-    const observer = new QueryObserver(this._context, query, this._snapshot.optimistic, callback);
+  watch(query: RawOperation, options: CacheInterface.WatchOptions | CacheInterface.WatchCallback): () => void {
+    if (typeof options === 'function') {
+      options = {
+        callback: options,
+        immediate: true,
+        optimistic: false,
+        query: query.document,
+      };
+    }
+    const observer = new QueryObserver(this._context, query, this._snapshot.optimistic, options);
     this._observers.push(observer);
 
     return () => this._removeObserver(observer);
   }
 
+  modify<Entity>(options: CacheInterface.ModifyOptions<Entity>): boolean {
+    return this.transaction(options.broadcast ?? true, t => t.modify(options));
+  }
+
   /**
    * Writes values for a selection to the cache.
    */
-  write(query: RawOperation, payload: JsonObject): void {
-    this.transaction(t => t.write(query, payload));
+  write(query: RawOperation, payload: JsonObject, broadcast: boolean | undefined = true): void {
+    this.transaction(broadcast, t => t.write(query, payload));
   }
 
   /**
@@ -106,9 +195,29 @@ export class Cache implements Queryable {
    *
    * Returns whether the transaction was successful.
    */
-  transaction(callback: TransactionCallback): boolean;
-  transaction(changeIdOrCallback: ChangeId, callback: TransactionCallback): boolean;
-  transaction(changeIdOrCallback: ChangeId | TransactionCallback, callback?: TransactionCallback): boolean {
+  transaction(
+    broadcast: boolean | undefined,
+    callback: TransactionCallback
+  ): boolean;
+
+  transaction(
+    broadcast: boolean | undefined,
+    changeIdOrCallback: ChangeId, callback: TransactionCallback
+  ): boolean;
+
+  transaction(
+    broadcast: boolean | undefined,
+    changeIdOrCallback: ChangeId | null | undefined,
+    callback: TransactionCallback,
+    onWatchUpdated?: BatchOptions<Hermes>['onWatchUpdated'],
+  ): boolean;
+
+  transaction(
+    broadcast: boolean | undefined,
+    changeIdOrCallback: ChangeId | TransactionCallback | undefined | null,
+    callback?: TransactionCallback,
+    onWatchUpdated?: CacheInterface.BatchOptions<Hermes>['onWatchUpdated']
+  ): boolean {
     const { tracer } = this._context;
 
     let changeId;
@@ -124,8 +233,10 @@ export class Cache implements Queryable {
     }
 
     const transaction = new CacheTransaction(this._context, this._snapshot, changeId);
+    this._transactions.push(transaction);
+    let result;
     try {
-      callback(transaction);
+      result = callback(transaction);
     } catch (error) {
       if (tracer.transactionEnd) {
         if (error instanceof Error) {
@@ -135,23 +246,31 @@ export class Cache implements Queryable {
         }
       }
       return false;
+    } finally {
+      this._transactions.pop();
     }
 
     const { snapshot, editedNodeIds } = transaction.commit();
-    this._setSnapshot(snapshot, editedNodeIds);
+    this._setSnapshot(snapshot, editedNodeIds, broadcast, onWatchUpdated);
+
+    if (this._transactions.length) {
+      const outer = this._transactions[this._transactions.length - 1];
+      outer.markEditedNodeIds(editedNodeIds);
+      outer.setSnapshot(snapshot);
+    }
 
     if (tracer.transactionEnd) {
       tracer.transactionEnd(undefined, tracerContext);
     }
 
-    return true;
+    return typeof result === 'boolean' ? result : editedNodeIds.size > 0;
   }
 
   /**
    * Roll back a previously enqueued optimistic update.
    */
   rollback(changeId: ChangeId) {
-    this.transaction(t => t.rollback(changeId));
+    this.transaction(true, t => t.rollback(changeId));
   }
 
   getSnapshot(): CacheSnapshot {
@@ -186,7 +305,12 @@ export class Cache implements Queryable {
    * Point the cache to a new snapshot, and let observers know of the change.
    * Call onChange callback if one exist to notify cache users of any change.
    */
-  private _setSnapshot(snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>): void {
+  private _setSnapshot(
+    snapshot: CacheSnapshot,
+    editedNodeIds: Set<NodeId>,
+    broadcast: boolean | undefined = true,
+    onWatchUpdated?: BatchOptions<Hermes>['onWatchUpdated'],
+  ): void {
     const lastSnapshot = this._snapshot;
     this._snapshot = snapshot;
 
@@ -200,22 +324,56 @@ export class Cache implements Queryable {
       }
     }
 
+    if (broadcast === false) {
+      addToSet(this._editedNodeIds, editedNodeIds);
+      return;
+    }
+
+    if (this._transactions.length) {
+      // Only broadcast after last transaction finishes
+      return;
+    }
+
+    this._broadcastWatches(editedNodeIds, onWatchUpdated);
+
+    if (this._context.onChange) {
+      this._context.onChange(this._snapshot, editedNodeIds);
+    }
+  }
+
+  public broadcastWatches(options?: Pick<
+    BatchOptions<Hermes>,
+    'optimistic' | 'onWatchUpdated'
+  >) {
+    this._broadcastWatches(this._editedNodeIds, options?.onWatchUpdated, options?.optimistic);
+  }
+
+  private _broadcastWatches(
+    editedNodeIds: Set<NodeId>,
+    onWatchUpdated?: BatchOptions<Hermes>['onWatchUpdated'],
+    optimistic: string | boolean | undefined = true,
+  ) {
+    const snapshot = this._snapshot;
+
     let tracerContext;
     if (this._context.tracer.broadcastStart) {
       tracerContext = this._context.tracer.broadcastStart({ snapshot, editedNodeIds });
     }
 
+    const graphSnapshot = optimistic ? snapshot.optimistic : snapshot.baseline;
     for (const observer of this._observers) {
-      observer.consumeChanges(snapshot.optimistic, editedNodeIds);
+      observer.consumeChanges(graphSnapshot, editedNodeIds, this._cacheInstance!, onWatchUpdated);
     }
 
-    if (this._context.onChange) {
-      this._context.onChange(this._snapshot, editedNodeIds);
-    }
+    this._context.dirty.clear();
 
     if (this._context.tracer.broadcastEnd) {
       this._context.tracer.broadcastEnd({ snapshot, editedNodeIds }, tracerContext);
     }
+  }
+
+  evict(options: CacheInterface.EvictOptions): boolean {
+    return this.transaction(options.broadcast ?? true, t => t.evict(options));
   }
 
 }

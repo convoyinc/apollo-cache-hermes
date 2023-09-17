@@ -4,6 +4,7 @@ import { JsonObject, JsonValue, PathPart } from '../primitive';
 class OperationWalkNode {
   constructor(
     public readonly parsedOperation: ParsedQueryWithVariables,
+    public readonly path: (string | number)[],
     public readonly parent?: JsonValue,
   ) {}
 }
@@ -11,7 +12,7 @@ class OperationWalkNode {
 /**
  * Returning true indicates that the walk should STOP.
  */
-export type OperationVisitor = (parent: JsonValue | undefined, fields: string[]) => boolean;
+export type OperationVisitor = (parent: JsonValue | undefined, fields: string[], path: (string | number)[]) => boolean;
 
 /**
  * Walk and run on ParsedQueryNode and the result.
@@ -21,18 +22,17 @@ export function walkOperation(rootOperation: ParsedQueryWithVariables, result: J
 
   // Perform the walk as a depth-first traversal; and unlike the payload walk,
   // we don't bother tracking the path.
-  const stack = [new OperationWalkNode(rootOperation, result)];
+  const queue = [new OperationWalkNode(rootOperation, [], result)];
 
-  while (stack.length) {
-    const { parsedOperation, parent } = stack.pop()!;
+  for (let q = 0; q < queue.length; q++) {
+    const { parsedOperation, parent, path } = queue[q]!;
     // We consider null nodes to be skippable (and satisfy the walk).
     if (parent === null) continue;
 
     // Fan-out for arrays.
     if (Array.isArray(parent)) {
-      // Push in reverse purely for ergonomics: they'll be pulled off in order.
-      for (let i = parent.length - 1; i >= 0; i--) {
-        stack.push(new OperationWalkNode(parsedOperation, parent[i]));
+      for (let i = 0, l = parent.length; i < l; i++) {
+        queue.push(new OperationWalkNode(parsedOperation, [...path, i], parent[i]));
       }
       continue;
     }
@@ -43,12 +43,12 @@ export function walkOperation(rootOperation: ParsedQueryWithVariables, result: J
       fields.push(fieldName);
       const nextParsedQuery = parsedOperation[fieldName].children;
       if (nextParsedQuery) {
-        stack.push(new OperationWalkNode(nextParsedQuery, get(parent, fieldName)));
+        queue.push(new OperationWalkNode(nextParsedQuery, [...path, fieldName], get(parent, fieldName)));
       }
     }
 
     if (fields.length) {
-      const shouldStop = visitor(parent, fields);
+      const shouldStop = visitor(parent, fields, path);
       if (shouldStop) return;
     }
   }

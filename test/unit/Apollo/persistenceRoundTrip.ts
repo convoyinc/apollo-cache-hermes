@@ -95,7 +95,7 @@ describe(`extract/restore roundtrip`, () => {
       });
     }).to.not.throw();
 
-    expect(() => {
+    expect(
       hermes.readQuery({
         query: gql(`
           query getViewer {
@@ -105,8 +105,8 @@ describe(`extract/restore roundtrip`, () => {
             }
           }
         `),
-      });
-    }).to.throw(/read not satisfied by the cache/i);
+      })
+    ).to.eq(null);
 
   });
 

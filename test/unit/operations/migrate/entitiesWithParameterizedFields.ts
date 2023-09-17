@@ -253,10 +253,12 @@ describe(`operations.migrate`, () => {
 
     jestExpect(complete).toBeTruthy();
     jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([{
+      '__typename': 'Friend',
       id: 'friend-1',
       first: 'Bob',
       last: 'Breaker',
     }, {
+      '__typename': 'Friend',
       id: 'friend-2',
       first: 'Susan',
       last: 'Fixer',
@@ -299,10 +301,12 @@ describe(`operations.migrate`, () => {
 
     jestExpect(complete).toBeTruthy();
     jestExpect(_.get(result, ['viewer', 'friends'])).toEqual([{
+      '__typename': 'Friend',
       id: 'friend-1',
       first: 'Bob',
       last: 'Breaker',
     }, {
+      '__typename': 'Friend',
       id: 'friend-2',
       first: 'Susan',
       last: 'Fixer',

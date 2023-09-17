@@ -65,6 +65,7 @@ describe(`context.CacheContext`, () => {
 
     it(`triggers updaters when an entity is first seen`, () => {
       cache.transaction(
+        true,
         /** changeIdOrCallBack */ '1',
         transaction => transaction.write(
           { ...getUserQuery, variables: { id: 3 } },
@@ -82,6 +83,7 @@ describe(`context.CacheContext`, () => {
 
     it(`triggers updaters when an entity is orphaned`, () => {
       cache.transaction(
+        true,
         /** changeIdOrCallBack */ '2',
         transaction => transaction.write(
           activeUsersQuery,
@@ -101,6 +103,7 @@ describe(`context.CacheContext`, () => {
 
     it(`respects writes by updaters`, () => {
       cache.transaction(
+        true,
         /** changeIdOrCallBack */ '3',
         transaction => transaction.write(
           { ...getUserQuery, variables: { id: 2 } },
@@ -126,6 +129,7 @@ describe(`context.CacheContext`, () => {
 
     it(`triggers updates to the root node via the Query type`, () => {
       cache.transaction(
+        true,
         /** changeIdOrCallBack */ '4',
         transaction => transaction.write(
           fooQuery,

@@ -1,7 +1,6 @@
 import { CacheContext } from '../../../../../src/context';
 import { GraphSnapshot } from '../../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../../src/nodes/EntitySnapshot';
-import { nodeIdForParameterizedValue } from '../../../../../src/operations/SnapshotEditor';
 import { write } from '../../../../../src/operations/write';
 import { StaticNodeId } from '../../../../../src/schema';
 import { query, strictConfig } from '../../../../helpers';
@@ -35,7 +34,7 @@ describe(`operations.write`, () => {
         },
       }).snapshot;
 
-      parameterizedId = nodeIdForParameterizedValue(QueryRootId, ['user'], { id: 4 });
+      parameterizedId = '0';
     });
 
     it(`only writes fields from the schema on simple query`, () => {
@@ -62,7 +61,7 @@ describe(`operations.write`, () => {
             id: 0,
             name: 'Baz',
           },
-          [{ id: 'ROOT_QUERY', path: ['user'] }],
+          [{ 'id': 'ROOT_QUERY❖["user"]❖{"id":4}', path: [] }],
           /* outbound */ undefined,
         )
       );

@@ -1,11 +1,12 @@
 import { addTypenameToDocument } from '@apollo/client/utilities';
 import isEqual from '@wry/equality';
+import { TypePolicies } from '@apollo/client';
 
 import { ApolloTransaction } from '../apollo/Transaction';
 import { CacheSnapshot } from '../CacheSnapshot';
 import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
-import { EntityId, OperationInstance, RawOperation } from '../schema';
+import { EntityId, NodeId, OperationInstance, RawOperation } from '../schema';
 import { DocumentNode, isObject } from '../util';
 
 import { ConsoleTracer } from './ConsoleTracer';
@@ -60,6 +61,9 @@ export namespace CacheContext {
    * Configuration for a Hermes cache.
    */
   export interface Configuration {
+
+    typePolicies?: TypePolicies;
+
     /** Whether __typename should be injected into nodes in queries. */
     addTypename?: boolean;
 
@@ -188,11 +192,15 @@ export class CacheContext {
   /** All currently known & parsed queries, for identity mapping. */
   private readonly _operationMap = new Map<string, OperationInstance[]>();
 
+  public readonly dirty = new Map<NodeId, Set<string>>();
+
+  public readonly typePolicies: TypePolicies | undefined;
+
   constructor(config: CacheContext.Configuration = {}) {
     // Infer dev mode from NODE_ENV, by convention.
     const nodeEnv = typeof process !== 'undefined' ? process.env.NODE_ENV : 'development';
 
-    this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
+    this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode, config.typePolicies);
     this.entityTransformer = config.entityTransformer;
     this.freezeSnapshots = 'freeze' in config ? !!config.freeze : nodeEnv !== 'production';
 
@@ -203,7 +211,8 @@ export class CacheContext {
     this.entityUpdaters = config.entityUpdaters || {};
     this.tracer = config.tracer || new ConsoleTracer(!!config.verbose, config.logger);
 
-    this.addTypename = config.addTypename || false;
+    this.addTypename = config.addTypename ?? true;
+    this.typePolicies = config.typePolicies;
   }
 
   /**
@@ -250,13 +259,15 @@ export class CacheContext {
       document: this.transformDocument(raw.document),
     };
 
+    const rootHasReadPolicy = Object.keys(this.typePolicies?.Query?.fields ?? {}).length > 0;
+
     const info = this._queryInfo(cacheKey, updateRaw);
     const fullVariables = { ...info.variableDefaults, ...updateRaw.variables } as JsonObject;
     const operation = {
       info,
       rootId: updateRaw.rootId,
       parsedQuery: expandVariables(info.parsed, fullVariables),
-      isStatic: !areChildrenDynamic(info.parsed),
+      isStatic: !areChildrenDynamic(info.parsed) && !rootHasReadPolicy,
       variables: updateRaw.variables,
     };
     operationInstances.push(operation);
@@ -280,8 +291,38 @@ export class CacheContext {
  * Wrap entityIdForNode so that it coerces all values to strings.
  */
 export function _makeEntityIdMapper(
-  mapper: CacheContext.EntityIdMapper = defaultEntityIdMapper,
+  idForNode: CacheContext.EntityIdMapper | undefined,
+  typePolicies: TypePolicies | undefined,
 ): CacheContext.EntityIdForValue {
+  const mapper = idForNode || (
+    !typePolicies ? defaultEntityIdMapper
+      : (node: JsonObject): string | number | undefined => {
+        if (!node) {
+          return undefined;
+        }
+        const { __typename } = node;
+        if (typeof __typename === 'string' && __typename in typePolicies) {
+          const keyFields = typePolicies[__typename].keyFields;
+          if (Array.isArray(keyFields)) {
+            const keys = {};
+            for (const key of keyFields) {
+              const value = node[key];
+              if (value === undefined) {
+                return undefined;
+              }
+              keys[key] = value;
+            }
+            return `${__typename}:${JSON.stringify(keys)}`;
+          }
+        }
+        const { id } = node;
+        const idType = typeof id;
+        if (idType !== 'string' && idType !== 'number') {
+          return undefined;
+        }
+        return __typename ? `${__typename}:${id}` : `${id}`;
+      }
+  );
   return function entityIdForNode(node: JsonObject) {
     if (!isObject(node)) return undefined;
 
@@ -293,8 +334,16 @@ export function _makeEntityIdMapper(
   };
 }
 
-export function defaultEntityIdMapper(node: { id?: any }) {
-  return node.id;
+export function defaultEntityIdMapper({ __typename, _id, id = _id }: { __typename?: any, _id?: any, id?: any }) {
+  if (id == null) {
+    return undefined;
+  }
+  const idType = typeof id;
+  const numberOrString = idType === 'number' || idType === 'string';
+  if (typeof __typename === 'string') {
+    return `${__typename}:${numberOrString ? id : JSON.stringify(id)}`;
+  }
+  return numberOrString ? `${id}` : undefined;
 }
 
 export function operationCacheKey(document: DocumentNode, fragmentName?: string) {

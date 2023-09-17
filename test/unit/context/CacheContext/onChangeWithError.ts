@@ -26,7 +26,7 @@ describe(`context.CacheContext`, () => {
     });
 
     it(`do not trigger onChange callback on error`, () => {
-      cache.transaction((transaction) => {
+      cache.transaction(true, (transaction) => {
         transaction.write(
           graphqlQuery,
           {

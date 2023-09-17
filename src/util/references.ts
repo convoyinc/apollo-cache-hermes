@@ -72,7 +72,7 @@ export function hasNodeReference(
  * Return index of { id, path } reference in references array.
  * Otherwise, return -1.
  */
-function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path: PathPart[]): number {
+export function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path: PathPart[]): number {
   return references.findIndex((reference) => {
     return reference.id === id && isEqual(reference.path, path);
   });

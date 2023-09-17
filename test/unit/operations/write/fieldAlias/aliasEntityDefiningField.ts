@@ -49,7 +49,15 @@ describe(`operations.write`, () => {
             },
           },
           /* inbound */ undefined,
-          /* outbound */ undefined,
+          /* outbound */
+          [
+            {
+              id: '0',
+              path: [
+                'user',
+              ],
+            },
+          ],
         )
       );
     });

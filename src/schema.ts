@@ -68,12 +68,12 @@ export interface OperationInstance {
 }
 
 /**
- * Represents a single query and a set of values that match its selection.
+ * Represents a single change to the cache
  */
-export interface QuerySnapshot {
-  query: RawOperation;
-  payload?: JsonObject;
-}
+export type CacheDelta =
+  | { delete: string }
+  | { query: RawOperation, payload?: JsonObject }
+  | { id: string, payload: JsonObject, deleted: Set<string> }
 
 /**
  * Lists of types which are JSON serializable
