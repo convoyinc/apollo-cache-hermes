@@ -585,7 +585,8 @@ export class SnapshotEditor {
       return;
     }
 
-    const payloadId = this._context.entityIdForValue({ ...previousValue as JsonObject, ...payload });
+    const reference = isReference(payload) ? payload.__ref : null;
+    const payloadId = reference ? reference : this._context.entityIdForValue({ ...previousValue as JsonObject, ...payload });
     const previousId = this._context.entityIdForValue(previousValue);
 
     // Is this an identity change?
@@ -618,7 +619,7 @@ export class SnapshotEditor {
       }
 
       // Nothing more to do here; the reference edit will null out this field.
-      if (!payloadId) return;
+      if (!payloadId || reference) return;
 
     // End of the line for a non-reference.
     } else if (isNil(payload)) {
@@ -710,9 +711,19 @@ export class SnapshotEditor {
         for (const field of parameterizedFields) {
           // The values of a parameterized field are explicit nodes in the graph
           // so we set up a new container & path.
-          this._modifySubgraph(referenceEdits, warnings, field.id, [...prefixPath, ...fieldPath], [], fieldValue, new Set());
+          this._modifySubgraph(
+            referenceEdits,
+            warnings,
+            field.id,
+            [...prefixPath, ...field.path],
+            [],
+            deepGet(fieldValue, field.path.slice(1)),
+            new Set(),
+          );
         }
-        return;
+        if (parameterizedFields.some(field => field.path.length === 1)) {
+          return;
+        }
       }
 
       // Note that we're careful to fetch the value of our new container; not
@@ -830,7 +841,11 @@ export class SnapshotEditor {
         }
       }
 
-      this._modifySubgraph(referenceEdits, warnings, containerId, prefixPath, [...path, i], childPayload, new Set());
+      if (typeof childPayload === 'object') {
+        this._modifySubgraph(referenceEdits, warnings, containerId, prefixPath, [...path, i], childPayload, new Set());
+      } else {
+        this._setValue(containerId, [...path, i], childPayload);
+      }
     }
   }
 
