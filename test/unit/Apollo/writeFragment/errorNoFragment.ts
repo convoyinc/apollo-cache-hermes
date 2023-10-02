@@ -26,7 +26,7 @@ describe(`writeFragment with no fragment`, () => {
           __typename: 'Viewer',
         },
       });
-    }).to.throw(/An error occured! For more details, see the full error text at /i);
+    }).to.throw(/An error occurred! For more details, see the full error text at /i);
   });
 
 });

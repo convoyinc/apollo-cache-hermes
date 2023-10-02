@@ -3,6 +3,7 @@ import { QueryResult } from '../operations/read';
 import { EditedSnapshot } from '../operations/SnapshotEditor';
 import { JsonObject } from '../primitive';
 import { NodeId, OperationInstance, RawOperation } from '../schema';
+import { GraphSnapshot } from '../GraphSnapshot';
 
 export namespace Tracer {
   export interface ReadInfo {
@@ -12,11 +13,11 @@ export namespace Tracer {
     cacheHit: boolean;
   }
 
-  export interface WriteInfo {
+  export interface WriteInfo<TSerialized> {
     /** The payload to be written to the cache. */
     payload: JsonObject;
     /** The new snapshot (and metadata) after the write is complete. */
-    newSnapshot: EditedSnapshot;
+    newSnapshot: EditedSnapshot<TSerialized>;
     /** Any warnings that occurred during the write. */
     warnings?: string[];
   }
@@ -40,7 +41,7 @@ export namespace Tracer {
  * last (context) argument.  Handy for passing timestamps, ids, etc between
  * paired handlers.
  */
-export interface Tracer<TActionContext = any> {
+export interface Tracer<TActionContext = any, TSerialized = GraphSnapshot> {
 
   /**
    * The cache encountered a non-fatal issue.
@@ -55,7 +56,7 @@ export interface Tracer<TActionContext = any> {
   /**
    * Successful end of a request to read from the cache.
    */
-  readEnd?: (operation: OperationInstance, info: Tracer.ReadInfo, context: TActionContext) => void;
+  readEnd?: (operation: OperationInstance<TSerialized>, info: Tracer.ReadInfo, context: TActionContext) => void;
 
   /**
    * Start of a request to write to the cache.
@@ -65,7 +66,7 @@ export interface Tracer<TActionContext = any> {
   /**
    * Successful end of a request to write to the cache.
    */
-  writeEnd?: (operation: OperationInstance, info: Tracer.WriteInfo, context: TActionContext) => void;
+  writeEnd?: (operation: OperationInstance<TSerialized>, info: Tracer.WriteInfo<TSerialized>, context: TActionContext) => void;
 
   /**
    * Start of a transaction within the cache.

@@ -14,7 +14,7 @@ import { lazyImmutableDeepSet } from '../util';
  *
  * @throws Will throw an error if there is no corresponding node type
  */
-export function extract(graphSnapshot: GraphSnapshot, cacheContext: CacheContext): Serializable.GraphSnapshot {
+export function extract<TSerialized>(graphSnapshot: GraphSnapshot, cacheContext: CacheContext<TSerialized>): Serializable.GraphSnapshot {
   const result: Serializable.GraphSnapshot = {};
   const entities = graphSnapshot._values;
   // We don't need to check for hasOwnProperty because data._values is

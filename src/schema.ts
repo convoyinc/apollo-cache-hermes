@@ -54,11 +54,11 @@ export interface RawOperation {
  * A processed query, ready for consumption by the cache, with values for any
  * variables already substituted in.
  */
-export interface OperationInstance {
+export interface OperationInstance<TSerialized> {
   /** The id of the node to begin the query at. */
   readonly rootId: NodeId;
   /** A parsed GraphQL document, declaring an operation to execute. */
-  readonly info: QueryInfo;
+  readonly info: QueryInfo<TSerialized>;
   /** Parsed form of the query, with values substituted for any variables. */
   readonly parsedQuery: ParsedQuery;
   /** Whether the operation contains _no_ parameterized values. */

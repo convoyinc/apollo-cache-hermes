@@ -19,14 +19,14 @@ import BatchOptions = CacheInterface.BatchOptions;
 /**
  * Apollo-specific interface to the cache.
  */
-export class Hermes extends ApolloQueryable<GraphSnapshot> {
+export class Hermes<TSerialized = GraphSnapshot> extends ApolloQueryable<TSerialized> {
   /** The underlying Hermes cache. */
-  protected _queryable: Cache;
+  protected _queryable: Cache<TSerialized>;
   public watches = new Set<CacheInterface.WatchOptions>();
 
-  constructor(configuration?: CacheContext.Configuration) {
+  constructor(configuration?: CacheContext.Configuration<TSerialized>) {
     super();
-    this._queryable = new Cache(configuration, this);
+    this._queryable = new Cache<TSerialized>(configuration, this);
   }
 
   identify(object: StoreObject | Reference): string | undefined {
@@ -34,7 +34,7 @@ export class Hermes extends ApolloQueryable<GraphSnapshot> {
   }
 
   // TODO (yuisu): data can be typed better with update of ApolloCache API
-  restore(data: any, migrationMap?: MigrationMap, verifyOptions?: CacheInterface.ReadOptions): Hermes {
+  restore(data: any, migrationMap?: MigrationMap, verifyOptions?: CacheInterface.ReadOptions): Hermes<TSerialized> {
     const verifyQuery = verifyOptions && buildRawOperationFromQuery(verifyOptions.query, verifyOptions.variables);
     this._queryable.restore(data, migrationMap, verifyQuery);
     return this;
@@ -54,16 +54,24 @@ export class Hermes extends ApolloQueryable<GraphSnapshot> {
     this._queryable.rollback(id);
   }
 
+  performTransaction(transaction: Transaction<TSerialized>, optimisticId?: string | null): void;
   performTransaction(
-    transaction: Transaction<GraphSnapshot>,
+    transaction: Transaction<TSerialized>,
+    optimisticId?: string | null,
+    onWatchUpdated?: BatchOptions<any>['onWatchUpdated'],
+    broadcast?: boolean,
+  ): void;
+
+  performTransaction(
+    transaction: Transaction<TSerialized>,
     optimisticId?: string | null,
     onWatchUpdated?: BatchOptions<any>['onWatchUpdated'],
     broadcast: boolean = true,
   ): void {
-    this._queryable.transaction(broadcast, optimisticId, t => transaction(new ApolloTransaction(t)), onWatchUpdated);
+    this._queryable.transaction(broadcast, optimisticId, t => transaction(new ApolloTransaction<TSerialized>(t)), onWatchUpdated);
   }
 
-  recordOptimisticTransaction(transaction: Transaction<GraphSnapshot>, id: string): void {
+  recordOptimisticTransaction(transaction: Transaction<TSerialized>, id: string): void {
     this._queryable.transaction(true, id, t => transaction(new ApolloTransaction(t)));
   }
 
@@ -84,7 +92,7 @@ export class Hermes extends ApolloQueryable<GraphSnapshot> {
   private _txCount = 0;
 
   public batch<TUpdateResult>(
-    options: CacheInterface.BatchOptions<Hermes, TUpdateResult>
+    options: CacheInterface.BatchOptions<Hermes<TSerialized>, TUpdateResult>
   ): TUpdateResult {
     const {
       update,
@@ -166,7 +174,7 @@ export class Hermes extends ApolloQueryable<GraphSnapshot> {
   }
 
   protected broadcastWatches(options?: Pick<
-    BatchOptions<Hermes>,
+    BatchOptions<Hermes<TSerialized>>,
     'optimistic' | 'onWatchUpdated'
   >) {
     this._queryable.broadcastWatches(options);

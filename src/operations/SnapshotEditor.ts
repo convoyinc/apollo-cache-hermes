@@ -27,10 +27,10 @@ const ensureIdConstistencyMsg = `Ensure id is included (or not included) consist
 /**
  * A newly modified snapshot.
  */
-export interface EditedSnapshot {
+export interface EditedSnapshot<TSerialized = GraphSnapshot> {
   snapshot: GraphSnapshot;
   editedNodeIds: Set<NodeId>;
-  writtenQueries: Set<OperationInstance>;
+  writtenQueries: Set<OperationInstance<TSerialized>>;
 }
 
 /**
@@ -58,7 +58,7 @@ export type NodeSnapshotMap = { [Key in NodeId]?: NodeSnapshot };
  * Performs the minimal set of edits to generate new immutable versions of each
  * node, while preserving immutability of the parent snapshot.
  */
-export class SnapshotEditor {
+export class SnapshotEditor<TSerialized> {
 
   /**
    * Tracks all node snapshots that have changed vs the parent snapshot.
@@ -80,12 +80,12 @@ export class SnapshotEditor {
   private _rebuiltNodeIds = new Set<NodeId>();
 
   /** The queries that were written, and should now be considered complete. */
-  private _writtenQueries = new Set<OperationInstance>();
+  private _writtenQueries = new Set<OperationInstance<TSerialized>>();
   private _pathToId = Object.create(null);
 
   constructor(
     /** The configuration/context to use when editing snapshots. */
-    private _context: CacheContext,
+    private _context: CacheContext<TSerialized>,
     /** The snapshot to base edits off of. */
     private _parent: GraphSnapshot,
   ) {}
@@ -915,7 +915,7 @@ export class SnapshotEditor {
   /**
    * Commits the transaction, returning a new immutable snapshot.
    */
-  commit(): EditedSnapshot {
+  commit(): EditedSnapshot<TSerialized> {
     // At this point, every node that has had any of its properties change now
     // exists in _newNodes.  In order to preserve immutability, we need to walk
     // all nodes that transitively reference an edited node, and update their

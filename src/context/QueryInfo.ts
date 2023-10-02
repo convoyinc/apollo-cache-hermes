@@ -11,6 +11,7 @@ import {
   variableDefaultsInOperation,
   variablesInOperation,
 } from '../util';
+import { GraphSnapshot } from '../GraphSnapshot';
 
 import { CacheContext } from './CacheContext';
 
@@ -20,7 +21,7 @@ import { CacheContext } from './CacheContext';
  * We do a fair bit of pre-processing over them, and these objects hang onto
  * that information.
  */
-export class QueryInfo {
+export class QueryInfo<TSerialized = GraphSnapshot> {
 
   /** The original document (after __typename fields are injected). */
   public readonly document: DocumentNode;
@@ -48,7 +49,7 @@ export class QueryInfo {
    */
   public readonly variableDefaults: { [Key: string]: JsonValue }
 
-  constructor(context: CacheContext, raw: RawOperation) {
+  constructor(context: CacheContext<TSerialized>, raw: RawOperation) {
     this.document = raw.document;
     this.operation = getOperationOrDie(raw.document);
     this.operationType = this.operation.operation;

@@ -15,10 +15,10 @@ import WatchOptions = Cache.WatchOptions;
  *
  * @internal
  */
-export class QueryObserver {
+export class QueryObserver<TSerialized> {
 
   /** Cache configuration/context to use when executing queries. */
-  private _context: CacheContext;
+  private _context: CacheContext<TSerialized>;
   /** The query being observed. */
   private _query: RawOperation;
   /** The most recent result */
@@ -26,7 +26,7 @@ export class QueryObserver {
   /** The callback to trigger when observed nodes have changed. */
   private _options: WatchOptions;
 
-  constructor(context: CacheContext, query: RawOperation, snapshot: GraphSnapshot, options: WatchOptions) {
+  constructor(context: CacheContext<TSerialized>, query: RawOperation, snapshot: GraphSnapshot, options: WatchOptions) {
     this._context = context;
     this._query = query;
     this._options = options;
@@ -41,11 +41,11 @@ export class QueryObserver {
    * We expect the cache to tell us whenever there is a new snapshot, and which
    * nodes have changed.
    */
-  consumeChanges(
+  consumeChanges<TSerialized>(
     snapshot: GraphSnapshot,
     changedNodeIds: Set<NodeId>,
-    cacheInstance: Hermes,
-    onWatchUpdated?: Cache.BatchOptions<Hermes>['onWatchUpdated'],
+    cacheInstance: Hermes<TSerialized>,
+    onWatchUpdated?: Cache.BatchOptions<Hermes<TSerialized>>['onWatchUpdated'],
   ): void {
     const lastDiff = this._options.lastDiff;
     if (lastDiff && !this._hasUpdate(changedNodeIds)) return;

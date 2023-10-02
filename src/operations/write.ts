@@ -11,13 +11,13 @@ import { EditedSnapshot, SnapshotEditor } from './SnapshotEditor';
  * Performs the minimal set of edits to generate new immutable versions of each
  * node, while preserving immutability of the parent snapshot.
  */
-export function write(
-  context: CacheContext,
+export function write<TSerialized>(
+  context: CacheContext<TSerialized>,
   snapshot: GraphSnapshot,
   raw: RawOperation,
   payload: JsonObject,
   prune: boolean = false
-): EditedSnapshot {
+): EditedSnapshot<TSerialized> {
   let tracerContext;
   if (context.tracer.writeStart) {
     tracerContext = context.tracer.writeStart(raw, payload);

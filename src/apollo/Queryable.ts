@@ -15,27 +15,27 @@ export abstract class ApolloQueryable<TSerialized> extends ApolloCache<TSerializ
   /** The underlying Hermes cache. */
   protected abstract _queryable: Queryable;
 
-  diff<T>(options: Cache.DiffOptions): Cache.DiffResult<T | any> {
-    const rawOperation = buildRawOperationFromQuery(options.query, options.variables);
-    const { result, complete, missing, fromOptimisticTransaction } = this._queryable.read(rawOperation, options.optimistic);
-    if (options.returnPartialData === false && !complete) {
+  diff<T>(query: Cache.DiffOptions): Cache.DiffResult<T> {
+    const rawOperation = buildRawOperationFromQuery(query.query, query.variables);
+    const { result, complete, missing, fromOptimisticTransaction } = this._queryable.read(rawOperation, query.optimistic);
+    if (query.returnPartialData === false && !complete) {
       // TODO: Include more detail with this error.
       throw new UnsatisfiedCacheError(`diffQuery not satisfied by the cache.`);
     }
 
-    return { result, complete, missing, fromOptimisticTransaction };
+    return { result: result as unknown as T, complete, missing, fromOptimisticTransaction };
   }
 
-  read(options: Cache.ReadOptions): any {
-    const rawOperation = buildRawOperationFromQuery(options.query, options.variables, options.rootId);
-    const { result, complete } = this._queryable.read(rawOperation, options.optimistic);
-    if (complete || options.returnPartialData) {
-      return result;
+  read<TData = any, TVariables = any>(query: Cache.ReadOptions<TVariables, TData>): TData | null {
+    const rawOperation = buildRawOperationFromQuery(query.query, (query.variables as unknown) as JsonObject, query.rootId);
+    const { result, complete } = this._queryable.read(rawOperation, query.optimistic);
+    if (complete || query.returnPartialData) {
+      return (result ?? null as unknown) as TData | null;
     }
     return null;
   }
 
-  readQuery<QueryType, TVariables = any>(options: Cache.ReadQueryOptions<QueryType, TVariables>, optimistic?: true): QueryType {
+  readQuery<QueryType, TVariables = any>(options: Cache.ReadQueryOptions<QueryType, TVariables>, optimistic?: boolean): QueryType | null {
     return this.read({
       query: options.query,
       variables: options.variables,

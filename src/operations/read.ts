@@ -69,24 +69,24 @@ export interface QueryResultWithNodeIds extends QueryResult {
 /**
  * Get you some data.
  */
-export function read(
-  context: CacheContext,
+export function read<TSerialized>(
+  context: CacheContext<TSerialized>,
   raw: RawOperation,
   snapshot: GraphSnapshot,
   tempStore?: NodeSnapshotMap,
   includeNodeIds?: true,
 ): QueryResultWithNodeIds;
 
-export function read(
-  context: CacheContext,
+export function read<TSerialized>(
+  context: CacheContext<TSerialized>,
   raw: RawOperation,
   snapshot: GraphSnapshot,
   tempStore?: NodeSnapshotMap,
   includeNodeIds?: boolean,
 ): QueryResult;
 
-export function read(
-  context: CacheContext,
+export function read<TSerialized>(
+  context: CacheContext<TSerialized>,
   raw: RawOperation,
   snapshot: GraphSnapshot,
   tempStore: NodeSnapshotMap = Object.create(null),
@@ -168,9 +168,9 @@ class OverlayWalkNode {
  * and new properties pointing to the parameterized values (or objects that
  * contain them).
  */
-export function _walkAndOverlayDynamicValues(
-  query: OperationInstance,
-  context: CacheContext,
+export function _walkAndOverlayDynamicValues<TSerialized>(
+  query: OperationInstance<TSerialized>,
+  context: CacheContext<TSerialized>,
   snapshot: GraphSnapshot,
   result: JsonObject | undefined,
   dynamicNodeIds: Set<NodeId>,
@@ -442,7 +442,7 @@ function _flattenGraphQLObject(value: UnknownGraphQLObject, path: PathPart[]): F
   return flattened;
 }
 
-function _recursivelyWrapValue<T extends JsonValue>(value: T | undefined, context: CacheContext): T {
+function _recursivelyWrapValue<T extends JsonValue, TSerialized>(value: T | undefined, context: CacheContext<TSerialized>): T {
   if (!Array.isArray(value)) {
     return _wrapValue(value, context);
   }
@@ -457,7 +457,7 @@ function _recursivelyWrapValue<T extends JsonValue>(value: T | undefined, contex
   return newValue as T;
 }
 
-function _wrapValue<T extends JsonValue>(value: T | undefined, context: CacheContext): T {
+function _wrapValue<T extends JsonValue, TSerialized>(value: T | undefined, context: CacheContext<TSerialized>): T {
   if (value === undefined) {
     return {} as T;
   }
@@ -478,9 +478,9 @@ function _wrapValue<T extends JsonValue>(value: T | undefined, context: CacheCon
  * Determines whether `result` satisfies the properties requested by
  * `selection`.
  */
-export function _visitSelection(
-  query: OperationInstance,
-  context: CacheContext,
+export function _visitSelection<TSerialized>(
+  query: OperationInstance<TSerialized>,
+  context: CacheContext<TSerialized>,
   result?: JsonObject,
   nodeIds?: Set<NodeId>,
   missing?: MissingFieldError[],

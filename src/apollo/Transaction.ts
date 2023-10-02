@@ -2,7 +2,6 @@ import { Cache, Transaction } from '@apollo/client';
 import lodashIsEqual = require('lodash.isequal');
 
 import { CacheTransaction } from '../CacheTransaction';
-import { GraphSnapshot } from '../GraphSnapshot';
 import { PathPart, JsonValue } from '../primitive';
 import { NodeId } from '../schema';
 import { DocumentNode, verboseTypeof, deepGet } from '../util';
@@ -21,11 +20,11 @@ function getOriginalFieldArguments(id: NodeId): { [argName: string]: string } | 
 /**
  * Apollo-specific transaction interface.
  */
-export class ApolloTransaction extends ApolloQueryable<GraphSnapshot> {
+export class ApolloTransaction<TSerialized> extends ApolloQueryable<TSerialized> {
 
   constructor(
     /** The underlying transaction. */
-    protected _queryable: CacheTransaction,
+    protected _queryable: CacheTransaction<TSerialized>,
   ) {
     super();
   }
@@ -38,11 +37,11 @@ export class ApolloTransaction extends ApolloQueryable<GraphSnapshot> {
     throw new Error(`removeOptimistic() is not allowed within a transaction`);
   }
 
-  performTransaction(transaction: Transaction<GraphSnapshot>): void {
+  performTransaction(transaction: Transaction<TSerialized>): void {
     transaction(this);
   }
 
-  recordOptimisticTransaction(_transaction: Transaction<GraphSnapshot>, _id: string): void { // eslint-disable-line class-methods-use-this
+  recordOptimisticTransaction(_transaction: Transaction<TSerialized>, _id: string): void { // eslint-disable-line class-methods-use-this
     throw new Error(`recordOptimisticTransaction() is not allowed within a transaction`);
   }
 

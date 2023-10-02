@@ -24,7 +24,7 @@ import { nodeIdForParameterizedValue } from './SnapshotEditor';
  *    different sub-class of NodeSnapshot.
  * @throws Will throw an error if there is undefined in sparse array
  */
-export function restore(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext) {
+export function restore<TSerialized>(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext<TSerialized>) {
   const { nodesMap, editedNodeIds } = createGraphSnapshotNodes(serializedState, cacheContext);
   const graphSnapshot = new GraphSnapshot(nodesMap);
 
@@ -34,7 +34,7 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
   };
 }
 
-function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext) {
+function createGraphSnapshotNodes<TSerialized>(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext<TSerialized>) {
   const nodesMap: NodeSnapshotMap = Object.create(null);
   const editedNodeIds = new Set<NodeId>();
 
@@ -104,7 +104,7 @@ function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, c
   return { nodesMap, editedNodeIds };
 }
 
-function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheContext) {
+function restoreEntityReferences<TSerialized>(nodesMap: NodeSnapshotMap, cacheContext: CacheContext<TSerialized>) {
   const { entityTransformer, entityIdForValue } = cacheContext;
 
   for (const nodeId in nodesMap) {

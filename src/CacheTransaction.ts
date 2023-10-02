@@ -36,7 +36,7 @@ function isInvalidateModifier(value: any): value is InvalidateModifier {
  * If a ChangeId is provided, edits will be made on top of the optimistic state
  * (an optimistic update).  Otherwise edits are made against the baseline state.
  */
-export class CacheTransaction implements Queryable {
+export class CacheTransaction<TSerialized> implements Queryable {
 
   /** The set of nodes edited throughout the transaction. */
   private _editedNodeIds = new Set<NodeId>();
@@ -45,13 +45,13 @@ export class CacheTransaction implements Queryable {
   private _deltas: CacheDelta[] = [];
 
   /** All queries written during the transaction. */
-  private _writtenQueries = new Set<OperationInstance>();
+  private _writtenQueries = new Set<OperationInstance<TSerialized>>();
 
   /** The original snapshot before the transaction began. */
   private _parentSnapshot: CacheSnapshot;
 
   constructor(
-    private _context: CacheContext,
+    private _context: CacheContext<TSerialized>,
     private _snapshot: CacheSnapshot,
     private _optimisticChangeId?: ChangeId,
   ) {
@@ -115,7 +115,7 @@ export class CacheTransaction implements Queryable {
    * Complete the transaction, returning the new snapshot and the ids of any
    * nodes that were edited.
    */
-  commit(): { snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>, writtenQueries: Set<OperationInstance> } {
+  commit(): { snapshot: CacheSnapshot, editedNodeIds: Set<NodeId>, writtenQueries: Set<OperationInstance<TSerialized>> } {
     this._triggerEntityUpdaters();
 
     let snapshot = this._snapshot;
@@ -187,7 +187,7 @@ export class CacheTransaction implements Queryable {
 
     // TODO: This is weirdly the only place where we assume an Apollo interface.
     // Can we clean this up? :(
-    const dataProxy = new ApolloTransaction(this);
+    const dataProxy = new ApolloTransaction<TSerialized>(this);
     for (const { updater, node, previous } of nodesToEmit) {
       updater(dataProxy, node, previous);
     }

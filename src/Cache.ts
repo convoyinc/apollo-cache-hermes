@@ -17,7 +17,7 @@ import { Hermes } from './apollo';
 import BatchOptions = CacheInterface.BatchOptions;
 
 export { MigrationMap };
-export type TransactionCallback = (transaction: CacheTransaction) => any;
+export type TransactionCallback<TSerialized> = (transaction: CacheTransaction<TSerialized>) => any;
 
 /**
  * The Hermes cache.
@@ -25,21 +25,24 @@ export type TransactionCallback = (transaction: CacheTransaction) => any;
  * @see https://github.com/apollographql/apollo-client/issues/1971
  * @see https://github.com/apollographql/apollo-client/blob/2.0-alpha/src/data/cache.ts
  */
-export class Cache implements Queryable {
+export class Cache<TSerialized = GraphSnapshot> implements Queryable {
 
   /** The cache-wide configuration. */
-  private _context: CacheContext;
+  private _context: CacheContext<TSerialized>;
 
   /** The current version of the cache. */
   private _snapshot: CacheSnapshot;
 
   /** All active query observers. */
-  private _observers: QueryObserver[] = [];
-  private _cacheInstance: Hermes | undefined;
-  private _transactions: CacheTransaction[] = [];
+  private _observers: QueryObserver<TSerialized>[] = [];
+  private _cacheInstance: Hermes<TSerialized> | undefined;
+  private _transactions: CacheTransaction<TSerialized>[] = [];
   private _editedNodeIds: Set<NodeId> = new Set();
 
-  constructor(configuration: CacheContext.Configuration | undefined, cacheInstance: Hermes | undefined = undefined) {
+  constructor(
+    configuration: CacheContext.Configuration<TSerialized> | undefined,
+    cacheInstance: Hermes<TSerialized> | undefined = undefined
+  ) {
     const initialGraphSnapshot = new GraphSnapshot();
     this._snapshot = new CacheSnapshot(initialGraphSnapshot, initialGraphSnapshot, new OptimisticUpdateQueue());
     this._context = new CacheContext(configuration);
@@ -197,32 +200,32 @@ export class Cache implements Queryable {
    */
   transaction(
     broadcast: boolean | undefined,
-    callback: TransactionCallback
+    callback: TransactionCallback<TSerialized>
   ): boolean;
 
   transaction(
     broadcast: boolean | undefined,
-    changeIdOrCallback: ChangeId, callback: TransactionCallback
+    changeIdOrCallback: ChangeId, callback: TransactionCallback<TSerialized>
   ): boolean;
 
   transaction(
     broadcast: boolean | undefined,
     changeIdOrCallback: ChangeId | null | undefined,
-    callback: TransactionCallback,
-    onWatchUpdated?: BatchOptions<Hermes>['onWatchUpdated'],
+    callback: TransactionCallback<TSerialized>,
+    onWatchUpdated?: BatchOptions<Hermes<TSerialized>>['onWatchUpdated'],
   ): boolean;
 
   transaction(
     broadcast: boolean | undefined,
-    changeIdOrCallback: ChangeId | TransactionCallback | undefined | null,
-    callback?: TransactionCallback,
-    onWatchUpdated?: CacheInterface.BatchOptions<Hermes>['onWatchUpdated']
+    changeIdOrCallback: ChangeId | TransactionCallback<TSerialized> | undefined | null,
+    callback?: TransactionCallback<TSerialized>,
+    onWatchUpdated?: CacheInterface.BatchOptions<Hermes<TSerialized>>['onWatchUpdated']
   ): boolean {
     const { tracer } = this._context;
 
     let changeId;
     if (typeof callback !== 'function') {
-      callback = changeIdOrCallback as TransactionCallback;
+      callback = changeIdOrCallback as TransactionCallback<TSerialized>;
     } else {
       changeId = changeIdOrCallback as ChangeId;
     }
@@ -295,7 +298,7 @@ export class Cache implements Queryable {
   /**
    * Unregister an observer.
    */
-  private _removeObserver(observer: QueryObserver): void {
+  private _removeObserver(observer: QueryObserver<TSerialized>): void {
     const index = this._observers.findIndex(o => o === observer);
     if (index < 0) return;
     this._observers.splice(index, 1);
@@ -309,7 +312,7 @@ export class Cache implements Queryable {
     snapshot: CacheSnapshot,
     editedNodeIds: Set<NodeId>,
     broadcast: boolean | undefined = true,
-    onWatchUpdated?: BatchOptions<Hermes>['onWatchUpdated'],
+    onWatchUpdated?: BatchOptions<Hermes<TSerialized>>['onWatchUpdated'],
   ): void {
     const lastSnapshot = this._snapshot;
     this._snapshot = snapshot;
@@ -342,7 +345,7 @@ export class Cache implements Queryable {
   }
 
   public broadcastWatches(options?: Pick<
-    BatchOptions<Hermes>,
+    BatchOptions<Hermes<TSerialized>>,
     'optimistic' | 'onWatchUpdated'
   >) {
     this._broadcastWatches(this._editedNodeIds, options?.onWatchUpdated, options?.optimistic);
@@ -350,7 +353,7 @@ export class Cache implements Queryable {
 
   private _broadcastWatches(
     editedNodeIds: Set<NodeId>,
-    onWatchUpdated?: BatchOptions<Hermes>['onWatchUpdated'],
+    onWatchUpdated?: BatchOptions<Hermes<TSerialized>>['onWatchUpdated'],
     optimistic: string | boolean | undefined = true,
   ) {
     const snapshot = this._snapshot;
@@ -362,7 +365,7 @@ export class Cache implements Queryable {
 
     const graphSnapshot = optimistic ? snapshot.optimistic : snapshot.baseline;
     for (const observer of this._observers) {
-      observer.consumeChanges(graphSnapshot, editedNodeIds, this._cacheInstance!, onWatchUpdated);
+      observer.consumeChanges<TSerialized>(graphSnapshot, editedNodeIds, this._cacheInstance!, onWatchUpdated);
     }
 
     this._context.dirty.clear();

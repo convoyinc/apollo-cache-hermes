@@ -51,7 +51,7 @@ export class OptimisticUpdateQueue {
   /**
    * Applies the current optimistic updates to a snapshot.
    */
-  apply(context: CacheContext, snapshot: GraphSnapshot): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
+  apply<TSerialized>(context: CacheContext<TSerialized>, snapshot: GraphSnapshot): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
     const editor = new SnapshotEditor(context, snapshot);
     for (const update of this._updates) {
       for (const delta of update.deltas) {
