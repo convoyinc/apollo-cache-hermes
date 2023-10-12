@@ -9,7 +9,7 @@ import { GraphSnapshot, NodeSnapshotMap } from '../GraphSnapshot';
 import { ParsedQuery, ParsedQueryNode } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId, OperationInstance, RawOperation, StaticNodeId } from '../schema';
-import { isNil, isObject, walkOperation, deepGet, lazyImmutableDeepSet } from '../util';
+import { deepGet, isNil, isObject, lazyImmutableDeepSet, walkOperation } from '../util';
 import { cloneNodeSnapshot, EntitySnapshot, NodeSnapshot } from '../nodes';
 
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
@@ -138,8 +138,7 @@ export function read<TSerialized>(
   if (includeNodeIds && !queryResult.entityIds) {
     cacheHit = false;
     const entityIds = new Set<NodeId>();
-    const complete = _visitSelection(operation, context, queryResult.result, entityIds);
-    queryResult.complete = complete;
+    queryResult.complete = _visitSelection(operation, context, queryResult.result, entityIds);
     queryResult.entityIds = entityIds;
   }
 
@@ -516,7 +515,7 @@ export function _visitSelection<TSerialized>(
     for (const field of fields) {
       if (!(field in value) && field !== '__typename') {
         let missingError = missingByFieldName.get(field);
-        const nodeId = context.entityIdForValue(value);
+        const nodeId = context.entityIdForValue(value) ?? (value?.__typename === 'Query' ? 'ROOT_QUERY' : undefined);
         const objOrNodeId = nodeId ? `${nodeId} object` : `object ${JSON.stringify(value, undefined, 2)}`;
         const message = `Can't find field '${field}' on ${objOrNodeId}`;
         if (!missingError) {
