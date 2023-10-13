@@ -9,7 +9,7 @@ import { GraphSnapshot, NodeSnapshotMap } from '../GraphSnapshot';
 import { ParsedQuery, ParsedQueryNode } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId, OperationInstance, RawOperation, StaticNodeId } from '../schema';
-import { deepGet, isNil, isObject, lazyImmutableDeepSet, walkOperation } from '../util';
+import { deepGet, isNil, isObject, lazyImmutableDeepSet, safeStringify, walkOperation } from '../util';
 import { cloneNodeSnapshot, EntitySnapshot, NodeSnapshot } from '../nodes';
 
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
@@ -516,7 +516,7 @@ export function _visitSelection<TSerialized>(
       if (!(field in value) && field !== '__typename') {
         let missingError = missingByFieldName.get(field);
         const nodeId = context.entityIdForValue(value) ?? (value?.__typename === 'Query' ? 'ROOT_QUERY' : undefined);
-        const objOrNodeId = nodeId ? `${nodeId} object` : `object ${JSON.stringify(value, undefined, 2)}`;
+        const objOrNodeId = nodeId ? `${nodeId} object` : `object ${(safeStringify(value))}`;
         const message = `Can't find field '${field}' on ${objOrNodeId}`;
         if (!missingError) {
           const missingTree: MissingTree = {};

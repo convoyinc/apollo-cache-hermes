@@ -17,6 +17,7 @@ import {
   deepGet,
   hasNodeReference,
   hasOwn,
+  ifString,
   isNil,
   lazyImmutableDeepSet,
   pathBeginsWith,
@@ -206,7 +207,11 @@ export class SnapshotEditor<TSerialized> {
       ?? (path.length === 0 && !isRoot ? containerId : undefined);
     const previousId = this._context.entityIdForValue(visiblePrevious)
       ?? this._context.entityIdForValue(previousValue)
-      ?? (path.length === 0 && !isRoot ? containerId : deepGet(this._pathToId[containerId], path));
+      ?? (
+        path.length === 0 && !isRoot
+          ? containerId
+          : ifString(deepGet(this._pathToId[containerId], path))
+      );
 
     // Is this an identity change?
     if (payloadId !== previousId) {

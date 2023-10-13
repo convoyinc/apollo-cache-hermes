@@ -1,7 +1,7 @@
 import isEqual from '@wry/equality';
 
 import { NodeReference, NodeSnapshot } from '../nodes';
-import { PathPart } from '../primitive';
+import { JsonObject, PathPart } from '../primitive';
 import { NodeId } from '../schema';
 
 export type ReferenceDirection = 'inbound' | 'outbound';
@@ -91,4 +91,31 @@ export function isReferenceField(
     return isEqual(reference.path, path);
   });
   return (index >= 0);
+}
+
+function getCircularReplacer() {
+  const ancestors: unknown[] = [];
+  return function replacer(this: unknown, _key: string, value: unknown) {
+    if (typeof value !== 'object' || value === null) {
+      return value;
+    }
+    // `this` is the object that value is contained in,
+    // i.e., its direct parent.
+    while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
+      ancestors.pop();
+    }
+    if (ancestors.includes(value)) {
+      return '[Circular]';
+    }
+    ancestors.push(value);
+    return value;
+  };
+}
+
+export function safeStringify(value: JsonObject) {
+  try {
+    return JSON.stringify(value, undefined, 2);
+  } catch (e) {
+    return JSON.stringify(value, getCircularReplacer(), 2);
+  }
 }
