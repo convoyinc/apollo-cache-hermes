@@ -116,6 +116,21 @@ export function safeStringify(value: JsonObject) {
   try {
     return JSON.stringify(value, undefined, 2);
   } catch (e) {
-    return JSON.stringify(value, getCircularReplacer(), 2);
+    try {
+      return JSON.stringify(value, getCircularReplacer(), 2);
+    } catch (error) {
+      try {
+        if (typeof value === 'object') {
+          const obj = {};
+          Object.entries(value).forEach(([key, val]) => {
+            obj[key] = val == null ? val : Array.isArray(val) ? '[...]' : typeof val === 'object' ? '{...}' : val;
+          });
+          return JSON.stringify(obj, undefined, 2);
+        }
+      } catch (innerError) {
+        return error instanceof Error ? error.message : 'Failed to stringify value';
+      }
+      return error instanceof Error ? error.message : 'Failed to stringify value';
+    }
   }
 }
