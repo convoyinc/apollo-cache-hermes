@@ -380,10 +380,10 @@ export function _walkAndOverlayDynamicValues<TSerialized>(
 
       // Because key is already a field alias, result will be written correctly
       // using alias as key.
-      if (child === undefined && key === '__typename' && typeName) {
+      if (child !== undefined) {
+        value[key] = child;
+      } else if (key === '__typename' && typeName) {
         value.__typename = typeName;
-      } else {
-        value[key] = child ?? null as JsonValue;
       }
     }
   }

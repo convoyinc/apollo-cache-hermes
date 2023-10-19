@@ -143,11 +143,7 @@ describe(`operations.read`, () => {
             },
           },
           {
-            id: null,
-            driver: {
-              id: null,
-              name: null,
-            },
+            driver: {},
           },
         ],
       });
