@@ -727,7 +727,7 @@ export class SnapshotEditor<TSerialized> {
           );
         }
         if (parameterizedFields.some(field => field.path.length === 1)) {
-          return;
+          continue;
         }
       }
 
