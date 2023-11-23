@@ -52,7 +52,7 @@ export function lazyImmutableDeepSet<TEntity>(
   for (let i = 0; i < path.length; i++) {
     const key = path[i];
     // If the target still references the original's objects, we need to diverge
-    if (!targetNode || targetNode === originalNode) {
+    if (!targetNode || targetNode === originalNode || !Object.isExtensible(targetNode)) {
       if (typeof key === 'number') {
         targetNode = originalNode ? [...originalNode] : [];
       } else if (typeof key === 'string') {
