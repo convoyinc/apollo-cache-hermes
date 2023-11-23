@@ -56,7 +56,7 @@ describe(`operations.read`, () => {
       };
       foo['bar'] = bar;
 
-      jestExpect(readResult.result).toEqual({ foo });
+      jestExpect(readResult.result).toEqual({ foo, baz: null });
     });
   });
 

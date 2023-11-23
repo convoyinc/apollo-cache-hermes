@@ -64,7 +64,7 @@ describe(`operations.read`, () => {
       });
 
       it(`includes all related node ids, if requested`, () => {
-        const { entityIds } = read(context, cyclicQuery, snapshot, true);
+        const { entityIds } = read(context, cyclicQuery, snapshot, Object.create(null), true);
         jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '1', '2']));
       });
 
@@ -122,7 +122,7 @@ describe(`operations.read`, () => {
       });
 
       it(`includes all related node ids, if requested`, () => {
-        const { entityIds } = read(context, cyclicQuery, snapshot, true);
+        const { entityIds } = read(context, cyclicQuery, snapshot, Object.create(null), true);
         jestExpect(Array.from(entityIds)).toEqual(jestExpect.arrayContaining([QueryRootId, '1', '2']));
       });
 

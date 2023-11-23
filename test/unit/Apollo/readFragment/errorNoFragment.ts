@@ -1,7 +1,6 @@
 import gql from 'graphql-tag';
 
 import { Hermes } from '../../../../src/apollo/Hermes';
-import { CacheContext } from '../../../../src/context/CacheContext';
 import { StaticNodeId, Serializable } from '../../../../src/schema';
 import { strictConfig } from '../../../helpers/context';
 
@@ -11,7 +10,7 @@ describe(`readFragment when no fragment is provided`, () => {
 
   let hermes: Hermes;
   beforeAll(() => {
-    hermes = new Hermes(new CacheContext(strictConfig));
+    hermes = new Hermes(strictConfig);
     hermes.restore({
       [QueryRootId]: {
         type: Serializable.NodeSnapshotType.EntitySnapshot,
@@ -39,7 +38,7 @@ describe(`readFragment when no fragment is provided`, () => {
           }
         `),
       });
-    }).to.throw(/No operations are allowed when using a fragment as a query/i);
+    }).to.throw(/An error occurred! For more details, see the full error text at /i);
   });
 
 });

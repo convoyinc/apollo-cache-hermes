@@ -11,6 +11,7 @@ import {
   variableDefaultsInOperation,
   variablesInOperation,
 } from '../util';
+import { GraphSnapshot } from '../GraphSnapshot';
 
 import { CacheContext } from './CacheContext';
 
@@ -20,7 +21,7 @@ import { CacheContext } from './CacheContext';
  * We do a fair bit of pre-processing over them, and these objects hang onto
  * that information.
  */
-export class QueryInfo {
+export class QueryInfo<TSerialized = GraphSnapshot> {
 
   /** The original document (after __typename fields are injected). */
   public readonly document: DocumentNode;
@@ -48,7 +49,7 @@ export class QueryInfo {
    */
   public readonly variableDefaults: { [Key: string]: JsonValue }
 
-  constructor(context: CacheContext, raw: RawOperation) {
+  constructor(context: CacheContext<TSerialized>, raw: RawOperation) {
     this.document = raw.document;
     this.operation = getOperationOrDie(raw.document);
     this.operationType = this.operation.operation;
@@ -65,16 +66,18 @@ export class QueryInfo {
     // (e.g readFragment/writeFragment) because fragment will not declare
     // variables. Users will have to know to provide `variables` parameter
     if (!raw.fromFragmentDocument) {
-      this._assertValid();
+      const declaredVariables = variablesInOperation(this.operation);
+      for (const key of Object.keys(raw.variables ?? {})) {
+        declaredVariables.add(key);
+      }
+      this._assertValid(declaredVariables);
     }
   }
 
-  private _assertValid() {
+  private _assertValid(declaredVariables: Set<string>) {
     const messages: string[] = [];
 
-    const declaredVariables = variablesInOperation(this.operation);
     this._assertAllVariablesDeclared(messages, declaredVariables);
-    this._assertAllVariablesUsed(messages, declaredVariables);
 
     if (!messages.length) return;
     const mainMessage = `Validation errors in ${this.operationType} ${this.operationName || '<unknown>'}`;
@@ -85,14 +88,6 @@ export class QueryInfo {
     for (const name of this.variables) {
       if (!declaredVariables.has(name)) {
         messages.push(`Variable $${name} is used, but not declared`);
-      }
-    }
-  }
-
-  private _assertAllVariablesUsed(messages: string[], declaredVariables: Set<string>) {
-    for (const name of declaredVariables) {
-      if (!this.variables.has(name)) {
-        messages.push(`Variable $${name} is unused`);
       }
     }
   }

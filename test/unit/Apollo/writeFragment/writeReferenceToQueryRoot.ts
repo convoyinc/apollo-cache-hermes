@@ -1,7 +1,6 @@
 import gql from 'graphql-tag';
 
 import { Hermes } from '../../../../src/apollo/Hermes';
-import { CacheContext } from '../../../../src/context/CacheContext';
 import { GraphSnapshot } from '../../../../src/GraphSnapshot';
 import { EntitySnapshot } from '../../../../src/nodes/EntitySnapshot';
 import { StaticNodeId } from '../../../../src/schema';
@@ -13,7 +12,7 @@ describe(`writeFragment directly to root query`, () => {
 
   let hermes: Hermes, baseline: GraphSnapshot;
   beforeAll(() => {
-    hermes = new Hermes(new CacheContext(strictConfig));
+    hermes = new Hermes(strictConfig);
     hermes.writeFragment({
       id: QueryRootId,
       fragment: gql(`

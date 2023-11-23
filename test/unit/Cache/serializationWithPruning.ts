@@ -79,7 +79,7 @@ describe(`serialization with pruning`, () => {
     const extractResult = cache.extract(/* optimistic */ false, getAFooQuery);
     const storedExtractResult = JSON.stringify(extractResult);
 
-    const newCache = new Cache();
+    const newCache = new Cache(strictConfig);
     newCache.restore(JSON.parse(storedExtractResult));
 
     // the restored cache should look as if muddyQuery never happens
@@ -128,7 +128,7 @@ describe(`serialization with pruning`, () => {
     const extractResult = cache.extract(/* optimistic */ false, altPruneQuery);
     const storedExtractResult = JSON.stringify(extractResult);
 
-    const newCache = new Cache();
+    const newCache = new Cache(strictConfig);
     newCache.restore(JSON.parse(storedExtractResult));
 
     // the restored cache should look as if it is built up from scrach with

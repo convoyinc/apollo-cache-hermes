@@ -48,13 +48,13 @@ describe(`serialization without optimistic update`, () => {
   });
 
   it(`extract, stringify, and restore cache`, () => {
-    const newCache = new Cache();
+    const newCache = new Cache(strictConfig);
     newCache.restore(JSON.parse(storedExtractResult));
     expect(newCache.getSnapshot()).to.deep.eq(originalCacheSnapshot);
   });
 
   it(`extract and restore cache without JSON.stringify`, () => {
-    const newCache = new Cache();
+    const newCache = new Cache(strictConfig);
     expect(() => {
       newCache.restore(extractResult);
     }).to.throw(/Unexpected 'undefined'/);

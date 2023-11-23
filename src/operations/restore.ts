@@ -1,14 +1,17 @@
 import lodashSet = require('lodash.set');
 import lodashFindIndex = require('lodash.findindex');
+import { isReference } from '@apollo/client';
 
 import { CacheSnapshot } from '../CacheSnapshot';
 import { CacheContext } from '../context';
 import { GraphSnapshot, NodeSnapshotMap } from '../GraphSnapshot';
-import { EntitySnapshot, ParameterizedValueSnapshot } from '../nodes';
+import { EntitySnapshot, NodeReference, ParameterizedValueSnapshot } from '../nodes';
 import { OptimisticUpdateQueue } from '../OptimisticUpdateQueue';
 import { JsonObject, JsonValue, NestedValue, PathPart } from '../primitive';
-import { Serializable, NodeId } from '../schema';
+import { NodeId, Serializable } from '../schema';
 import { isNumber, isObject, isScalar } from '../util';
+
+import { nodeIdForParameterizedValue } from './SnapshotEditor';
 
 /**
  * Restore GraphSnapshot from serializable representation.
@@ -21,7 +24,7 @@ import { isNumber, isObject, isScalar } from '../util';
  *    different sub-class of NodeSnapshot.
  * @throws Will throw an error if there is undefined in sparse array
  */
-export function restore(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext) {
+export function restore<TSerialized>(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext<TSerialized>) {
   const { nodesMap, editedNodeIds } = createGraphSnapshotNodes(serializedState, cacheContext);
   const graphSnapshot = new GraphSnapshot(nodesMap);
 
@@ -31,13 +34,16 @@ export function restore(serializedState: Serializable.GraphSnapshot, cacheContex
   };
 }
 
-function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext) {
+function createGraphSnapshotNodes<TSerialized>(serializedState: Serializable.GraphSnapshot, cacheContext: CacheContext<TSerialized>) {
   const nodesMap: NodeSnapshotMap = Object.create(null);
   const editedNodeIds = new Set<NodeId>();
 
+  const missingPointers = new Map<NodeId, NodeReference[]>();
+
   // Create entity nodes in the GraphSnapshot
   for (const nodeId in serializedState) {
-    const { type, data, inbound, outbound } = serializedState[nodeId];
+    const state = serializedState[nodeId];
+    const { type, data, inbound, outbound } = state;
 
     let nodeSnapshot;
     switch (type) {
@@ -47,6 +53,43 @@ function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, c
       case Serializable.NodeSnapshotType.ParameterizedValueSnapshot:
         nodeSnapshot = new ParameterizedValueSnapshot(data as JsonValue, inbound, outbound);
         break;
+      case undefined: {
+        const parsed: JsonObject = {};
+        const parsedIn: NodeReference[] = missingPointers.get(nodeId) ?? [];
+        const parsedOut: NodeReference[] = [];
+        for (const [key, val] of Object.entries(state)) {
+          const result = /(.+)\((.+)\)/.exec(key);
+          if (result) {
+            const fieldId = nodeIdForParameterizedValue(nodeId, [result[1]], JSON.parse(result[2]));
+            const path = [key];
+            nodesMap[fieldId] = new ParameterizedValueSnapshot(
+              val as JsonValue,
+              [...missingPointers.get(nodeId) ?? [], { id: nodeId, path }],
+              []
+            );
+            editedNodeIds.add(fieldId);
+            parsedOut.push({ id: fieldId, path });
+          } else if (isReference(val)) {
+            const id = val.__ref;
+            const path = [key];
+            parsedOut.push({ id, path });
+            const reverse: NodeReference = { id: nodeId, path };
+            if (id in nodesMap) {
+              nodesMap[id]?.inbound?.push(reverse);
+            } else {
+              const references = missingPointers.get(id) ?? [];
+              if (references.length === 0) {
+                missingPointers.set(id, references);
+              }
+              references.push(reverse);
+            }
+          } else {
+            parsed[key] = val;
+          }
+        }
+        nodeSnapshot = new EntitySnapshot(parsed as JsonObject, parsedIn, parsedOut);
+        break;
+      }
       default:
         throw new Error(`Invalid Serializable.NodeSnapshotType ${type} at ${nodeId}`);
     }
@@ -61,7 +104,7 @@ function createGraphSnapshotNodes(serializedState: Serializable.GraphSnapshot, c
   return { nodesMap, editedNodeIds };
 }
 
-function restoreEntityReferences(nodesMap: NodeSnapshotMap, cacheContext: CacheContext) {
+function restoreEntityReferences<TSerialized>(nodesMap: NodeSnapshotMap, cacheContext: CacheContext<TSerialized>) {
   const { entityTransformer, entityIdForValue } = cacheContext;
 
   for (const nodeId in nodesMap) {

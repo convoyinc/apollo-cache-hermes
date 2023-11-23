@@ -16,8 +16,8 @@ describe(`writeFragment with missing __typename`, () => {
     });
   });
 
-  it(`throws an error`, () => {
-    expect(() => {
+  it(`does not throw an error`, () => {
+    expect(
       hermes.writeFragment({
         id: QueryRootId,
         fragment: gql(`
@@ -30,8 +30,8 @@ describe(`writeFragment with missing __typename`, () => {
           id: 123,
           name: 'Gouda',
         },
-      });
-    }).to.throw(/InvalidPayloadError: Encountered undefined payload value for __typename/i);
+      })
+    ).to.deep.equal({ __ref: 'ROOT_QUERY' });
   });
 
 });

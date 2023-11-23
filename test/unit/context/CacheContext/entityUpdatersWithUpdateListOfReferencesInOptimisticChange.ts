@@ -122,6 +122,7 @@ describe(`context.CacheContext`, () => {
 
     it(`triggers updaters when an entity is added`, () => {
       cache.transaction(
+        true,
         /** changeIdOrCallback */ 'opt0',
         (transaction) => {
           transaction.write(
@@ -156,6 +157,7 @@ describe(`context.CacheContext`, () => {
 
     it(`triggers updaters when an entity is orphaned`, () => {
       cache.transaction(
+        true,
         /** changeIdOrCallback */ 'opt1',
         (transaction) => {
           transaction.write(
@@ -201,6 +203,7 @@ describe(`context.CacheContext`, () => {
 
     it(`respects writes by updaters`, () => {
       cache.transaction(
+        true,
         /** changeIdOrCallback */ 'opt2',
         (transaction) => {
           transaction.write(

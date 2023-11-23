@@ -2,14 +2,14 @@ import { CacheContext } from './context';
 import { GraphSnapshot } from './GraphSnapshot';
 import { SnapshotEditor } from './operations';
 import { JsonObject } from './primitive';
-import { ChangeId, NodeId, QuerySnapshot } from './schema';
+import { ChangeId, NodeId, CacheDelta } from './schema';
 
 /**
  * Tracks an individual optimistic update.
  */
 export interface OptimisticUpdate {
   id: ChangeId;
-  deltas: QuerySnapshot[];
+  deltas: CacheDelta[];
 }
 
 /**
@@ -29,7 +29,7 @@ export class OptimisticUpdateQueue {
   /**
    * Appends a new optimistic update to the queue.
    */
-  enqueue(id: ChangeId, deltas: QuerySnapshot[]): OptimisticUpdateQueue {
+  enqueue(id: ChangeId, deltas: CacheDelta[]): OptimisticUpdateQueue {
     // TODO: Assert unique change ids.
     return new OptimisticUpdateQueue([...this._updates, { id, deltas }]);
   }
@@ -51,11 +51,17 @@ export class OptimisticUpdateQueue {
   /**
    * Applies the current optimistic updates to a snapshot.
    */
-  apply(context: CacheContext, snapshot: GraphSnapshot): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
+  apply<TSerialized>(context: CacheContext<TSerialized>, snapshot: GraphSnapshot): { snapshot: GraphSnapshot, editedNodeIds: Set<NodeId> } {
     const editor = new SnapshotEditor(context, snapshot);
     for (const update of this._updates) {
       for (const delta of update.deltas) {
-        editor.mergePayload(delta.query, delta.payload as JsonObject);
+        if ('query' in delta) {
+          editor.mergePayload(delta.query, delta.payload as JsonObject, false);
+        } else if ('delete' in delta) {
+          editor.delete(delta.delete);
+        } else if ('id' in delta) {
+          editor.modify(delta.id, delta.payload, delta.deleted);
+        }
       }
     }
 

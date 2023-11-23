@@ -40,6 +40,7 @@ export function lazyImmutableDeepSet<TEntity>(
   original: TEntity | undefined,
   path: PathPart[],
   value: any,
+  deleted?: boolean,
 ): TEntity {
   if (!path.length) return value;
 
@@ -51,7 +52,7 @@ export function lazyImmutableDeepSet<TEntity>(
   for (let i = 0; i < path.length; i++) {
     const key = path[i];
     // If the target still references the original's objects, we need to diverge
-    if (!targetNode || targetNode === originalNode) {
+    if (!targetNode || targetNode === originalNode || !Object.isExtensible(targetNode)) {
       if (typeof key === 'number') {
         targetNode = originalNode ? [...originalNode] : [];
       } else if (typeof key === 'string') {
@@ -75,8 +76,12 @@ export function lazyImmutableDeepSet<TEntity>(
     originalNode = originalNode && originalNode[key];
   }
 
-  // Finally, set the value in our previously or newly cloned target.
-  parentNode[path[path.length - 1]] = value;
+  if (deleted) {
+    delete parentNode[path[path.length - 1]];
+  } else {
+    // Finally, set the value in our previously or newly cloned target.
+    parentNode[path[path.length - 1]] = value;
+  }
 
   return target as TEntity;
 }

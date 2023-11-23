@@ -1,17 +1,16 @@
 import gql from 'graphql-tag';
 
 import { Hermes } from '../../../../src/apollo/Hermes';
-import { CacheContext } from '../../../../src/context/CacheContext';
 import { strictConfig } from '../../../helpers/context';
 
 describe(`readFragment with no matching data`, () => {
 
   let hermes: Hermes;
   beforeAll(() => {
-    hermes = new Hermes(new CacheContext(strictConfig));
+    hermes = new Hermes(strictConfig);
   });
 
-  it(`correctly returns undefined`, () => {
+  it(`correctly returns null`, () => {
     expect(hermes.readFragment({
       id: '123',
       fragment: gql(`
@@ -20,7 +19,7 @@ describe(`readFragment with no matching data`, () => {
           name
         }
       `),
-    })).to.be.eq(undefined);
+    })).to.be.eq(null);
   });
 
 });

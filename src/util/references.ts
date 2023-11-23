@@ -1,7 +1,7 @@
 import isEqual from '@wry/equality';
 
 import { NodeReference, NodeSnapshot } from '../nodes';
-import { PathPart } from '../primitive';
+import { JsonObject, PathPart } from '../primitive';
 import { NodeId } from '../schema';
 
 export type ReferenceDirection = 'inbound' | 'outbound';
@@ -72,7 +72,7 @@ export function hasNodeReference(
  * Return index of { id, path } reference in references array.
  * Otherwise, return -1.
  */
-function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path: PathPart[]): number {
+export function getIndexOfGivenReference(references: NodeReference[], id: NodeId, path: PathPart[]): number {
   return references.findIndex((reference) => {
     return reference.id === id && isEqual(reference.path, path);
   });
@@ -91,4 +91,46 @@ export function isReferenceField(
     return isEqual(reference.path, path);
   });
   return (index >= 0);
+}
+
+function getCircularReplacer() {
+  const ancestors: unknown[] = [];
+  return function replacer(this: unknown, _key: string, value: unknown) {
+    if (typeof value !== 'object' || value === null) {
+      return value;
+    }
+    // `this` is the object that value is contained in,
+    // i.e., its direct parent.
+    while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
+      ancestors.pop();
+    }
+    if (ancestors.includes(value)) {
+      return '[Circular]';
+    }
+    ancestors.push(value);
+    return value;
+  };
+}
+
+export function safeStringify(value: JsonObject) {
+  try {
+    return JSON.stringify(value, undefined, 2);
+  } catch (e) {
+    try {
+      return JSON.stringify(value, getCircularReplacer(), 2);
+    } catch (error) {
+      try {
+        if (typeof value === 'object') {
+          const obj = {};
+          Object.entries(value).forEach(([key, val]) => {
+            obj[key] = val == null ? val : Array.isArray(val) ? '[...]' : typeof val === 'object' ? '{...}' : val;
+          });
+          return JSON.stringify(obj, undefined, 2);
+        }
+      } catch (innerError) {
+        return error instanceof Error ? error.message : 'Failed to stringify value';
+      }
+      return error instanceof Error ? error.message : 'Failed to stringify value';
+    }
+  }
 }

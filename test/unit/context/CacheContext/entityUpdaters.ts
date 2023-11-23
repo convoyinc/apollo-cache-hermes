@@ -22,7 +22,7 @@ describe(`context.CacheContext`, () => {
         if (nextActive === prevActive) return;
 
         const userId = user ? user.id : previous.id;
-        const { activeUsers } = dataProxy.readQuery({ query: activeUsersQuery.document });
+        const { activeUsers } = dataProxy.readQuery({ query: activeUsersQuery.document }) ?? {};
         let newActiveUsers: any[];
         if (!nextActive) {
           // Remove users once they're no longer active.

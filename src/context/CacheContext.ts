@@ -1,12 +1,14 @@
 import { addTypenameToDocument } from '@apollo/client/utilities';
 import isEqual from '@wry/equality';
+import { TypePolicies } from '@apollo/client';
 
 import { ApolloTransaction } from '../apollo/Transaction';
 import { CacheSnapshot } from '../CacheSnapshot';
 import { areChildrenDynamic, expandVariables } from '../ParsedQueryNode';
 import { JsonObject } from '../primitive';
-import { EntityId, OperationInstance, RawOperation } from '../schema';
+import { EntityId, NodeId, OperationInstance, RawOperation } from '../schema';
 import { DocumentNode, isObject } from '../util';
+import { GraphSnapshot } from '../GraphSnapshot';
 
 import { ConsoleTracer } from './ConsoleTracer';
 import { QueryInfo } from './QueryInfo';
@@ -45,21 +47,24 @@ export namespace CacheContext {
   /**
    * Callback that is triggered when an entity is edited within the cache.
    */
-  export interface EntityUpdater {
+  export interface EntityUpdater<TSerialized = GraphSnapshot> {
     // TODO: It's a bit odd that this is the _only_ Apollo-specific interface
     // that we're exposing.  Do we want to keep that?  It does mirror a
     // mutation's update callback nicely.
-    (dataProxy: ApolloTransaction, entity: any, previous: any): void;
+    (dataProxy: ApolloTransaction<TSerialized>, entity: any, previous: any): void;
   }
 
-  export interface EntityUpdaters {
-    [typeName: string]: EntityUpdater;
+  export interface EntityUpdaters<TSerialized = GraphSnapshot> {
+    [typeName: string]: EntityUpdater<TSerialized>;
   }
 
   /**
    * Configuration for a Hermes cache.
    */
-  export interface Configuration {
+  export interface Configuration<TSerialized = GraphSnapshot> {
+
+    typePolicies?: TypePolicies;
+
     /** Whether __typename should be injected into nodes in queries. */
     addTypename?: boolean;
 
@@ -105,7 +110,7 @@ export namespace CacheContext {
      * Note that these callbacks are called immediately before a transaction is
      * committed.  You will not see their effect _during_ a transaction.
      */
-    entityUpdaters?: EntityUpdaters;
+    entityUpdaters?: EntityUpdaters<TSerialized>;
 
     /**
      * Callback that is triggered when there is a change in the cache.
@@ -151,7 +156,7 @@ export namespace CacheContext {
 /**
  * Configuration and shared state used throughout the cache's operation.
  */
-export class CacheContext {
+export class CacheContext<TSerialized = GraphSnapshot> {
 
   /** Retrieve the EntityId for a given node, if any. */
   readonly entityIdForValue: CacheContext.EntityIdForValue;
@@ -169,7 +174,7 @@ export class CacheContext {
   readonly resolverRedirects: CacheContext.ResolverRedirects;
 
   /** Configured entity updaters. */
-  readonly entityUpdaters: CacheContext.EntityUpdaters;
+  readonly entityUpdaters: CacheContext.EntityUpdaters<TSerialized>;
 
   /** Configured on-change callback */
   readonly onChange: CacheContext.OnChangeCallback | undefined;
@@ -184,15 +189,19 @@ export class CacheContext {
   readonly addTypename: boolean;
 
   /** All currently known & processed GraphQL documents. */
-  private readonly _queryInfoMap = new Map<string, QueryInfo>();
+  private readonly _queryInfoMap = new Map<string, QueryInfo<TSerialized>>();
   /** All currently known & parsed queries, for identity mapping. */
-  private readonly _operationMap = new Map<string, OperationInstance[]>();
+  private readonly _operationMap = new Map<string, OperationInstance<TSerialized>[]>();
 
-  constructor(config: CacheContext.Configuration = {}) {
+  public readonly dirty = new Map<NodeId, Set<string>>();
+
+  public readonly typePolicies: TypePolicies | undefined;
+
+  constructor(config: CacheContext.Configuration<TSerialized> = {}) {
     // Infer dev mode from NODE_ENV, by convention.
     const nodeEnv = typeof process !== 'undefined' ? process.env.NODE_ENV : 'development';
 
-    this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode);
+    this.entityIdForValue = _makeEntityIdMapper(config.entityIdForNode, config.typePolicies);
     this.entityTransformer = config.entityTransformer;
     this.freezeSnapshots = 'freeze' in config ? !!config.freeze : nodeEnv !== 'production';
 
@@ -203,7 +212,8 @@ export class CacheContext {
     this.entityUpdaters = config.entityUpdaters || {};
     this.tracer = config.tracer || new ConsoleTracer(!!config.verbose, config.logger);
 
-    this.addTypename = config.addTypename || false;
+    this.addTypename = config.addTypename ?? true;
+    this.typePolicies = config.typePolicies;
   }
 
   /**
@@ -227,7 +237,7 @@ export class CacheContext {
    * To aid in various cache lookups, the result is memoized by all of its
    * values, and can be used as an identity for a specific operation.
    */
-  parseOperation(raw: RawOperation): OperationInstance {
+  parseOperation(raw: RawOperation): OperationInstance<TSerialized> {
     // It appears like Apollo or someone upstream is cloning or otherwise
     // modifying the queries that are passed down.  Thus, the operation source
     // is a more reliable cache key…
@@ -250,13 +260,15 @@ export class CacheContext {
       document: this.transformDocument(raw.document),
     };
 
+    const rootHasReadPolicy = Object.keys(this.typePolicies?.Query?.fields ?? {}).length > 0;
+
     const info = this._queryInfo(cacheKey, updateRaw);
     const fullVariables = { ...info.variableDefaults, ...updateRaw.variables } as JsonObject;
     const operation = {
       info,
       rootId: updateRaw.rootId,
       parsedQuery: expandVariables(info.parsed, fullVariables),
-      isStatic: !areChildrenDynamic(info.parsed),
+      isStatic: !areChildrenDynamic(info.parsed) && !rootHasReadPolicy,
       variables: updateRaw.variables,
     };
     operationInstances.push(operation);
@@ -267,7 +279,7 @@ export class CacheContext {
   /**
    * Retrieves a memoized QueryInfo for a given GraphQL document.
    */
-  private _queryInfo(cacheKey: string, raw: RawOperation): QueryInfo {
+  private _queryInfo(cacheKey: string, raw: RawOperation): QueryInfo<TSerialized> {
     if (!this._queryInfoMap.has(cacheKey)) {
       this._queryInfoMap.set(cacheKey, new QueryInfo(this, raw));
     }
@@ -280,8 +292,38 @@ export class CacheContext {
  * Wrap entityIdForNode so that it coerces all values to strings.
  */
 export function _makeEntityIdMapper(
-  mapper: CacheContext.EntityIdMapper = defaultEntityIdMapper,
+  idForNode: CacheContext.EntityIdMapper | undefined,
+  typePolicies: TypePolicies | undefined,
 ): CacheContext.EntityIdForValue {
+  const mapper = idForNode || (
+    !typePolicies ? defaultEntityIdMapper
+      : (node: JsonObject): string | number | undefined => {
+        if (!node) {
+          return undefined;
+        }
+        const { __typename } = node;
+        if (typeof __typename === 'string' && __typename in typePolicies) {
+          const keyFields = typePolicies[__typename].keyFields;
+          if (Array.isArray(keyFields)) {
+            const keys = {};
+            for (const key of keyFields) {
+              const value = node[key];
+              if (value === undefined) {
+                return undefined;
+              }
+              keys[key] = value;
+            }
+            return `${__typename}:${JSON.stringify(keys)}`;
+          }
+        }
+        const { id } = node;
+        const idType = typeof id;
+        if (idType !== 'string' && idType !== 'number') {
+          return undefined;
+        }
+        return __typename ? `${__typename}:${id}` : `${id}`;
+      }
+  );
   return function entityIdForNode(node: JsonObject) {
     if (!isObject(node)) return undefined;
 
@@ -293,8 +335,16 @@ export function _makeEntityIdMapper(
   };
 }
 
-export function defaultEntityIdMapper(node: { id?: any }) {
-  return node.id;
+export function defaultEntityIdMapper({ __typename, _id, id = _id }: { __typename?: any, _id?: any, id?: any }) {
+  if (id == null) {
+    return undefined;
+  }
+  const idType = typeof id;
+  const numberOrString = idType === 'number' || idType === 'string';
+  if (typeof __typename === 'string') {
+    return `${__typename}:${numberOrString ? id : JSON.stringify(id)}`;
+  }
+  return numberOrString ? `${id}` : undefined;
 }
 
 export function operationCacheKey(document: DocumentNode, fragmentName?: string) {

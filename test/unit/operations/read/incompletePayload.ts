@@ -90,8 +90,8 @@ describe(`operations.read`, () => {
       readResult = read(context, shipmentsQuery, snapshot);
     });
 
-    it(`verify that read result is complete`, () => {
-      jestExpect(readResult.complete).toBe(true);
+    it(`verify that read result is incomplete`, () => {
+      jestExpect(readResult.complete).toBe(false);
     });
 
     it(`verify that read result is correct`, () => {
@@ -143,15 +143,7 @@ describe(`operations.read`, () => {
             },
           },
           {
-            id: null,
-            driver: {
-              name: null,
-              id: null,
-              messages: null,
-              seniority: null,
-            },
-            stopEtaSummary: null,
-            vehicle: null,
+            driver: {},
           },
         ],
       });

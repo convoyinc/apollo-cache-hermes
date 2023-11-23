@@ -16,7 +16,7 @@ export type NodeSnapshotMap = { [Key in NodeId]: NodeSnapshot; };
 export class GraphSnapshot {
 
   /** Cached results for queries. */
-  public readonly readCache = new Map<OperationInstance, QueryResult | QueryResultWithNodeIds>();
+  public readonly readCache = new Map<OperationInstance<GraphSnapshot>, QueryResult | QueryResultWithNodeIds>();
 
   /**
    * @internal

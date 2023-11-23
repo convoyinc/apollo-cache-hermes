@@ -1,11 +1,52 @@
+import { FieldFunctionOptions } from '@apollo/client/cache/inmemory/policies';
+import { isReference, makeReference, Reference, StoreValue } from '@apollo/client';
+import { StoreObject } from '@apollo/client/utilities';
+import { ReadFieldOptions } from '@apollo/client/cache/core/types/common';
+import type { DocumentNode } from 'graphql';
+
 import { CacheContext } from '../context';
-import { GraphSnapshot } from '../GraphSnapshot';
+import { GraphSnapshot, NodeSnapshotMap } from '../GraphSnapshot';
 import { ParsedQuery, ParsedQueryNode } from '../ParsedQueryNode';
 import { JsonObject, JsonValue, PathPart } from '../primitive';
 import { NodeId, OperationInstance, RawOperation, StaticNodeId } from '../schema';
-import { isNil, isObject, walkOperation, deepGet } from '../util';
+import { deepGet, isNil, isObject, lazyImmutableDeepSet, safeStringify, walkOperation } from '../util';
+import { cloneNodeSnapshot, EntitySnapshot, NodeSnapshot } from '../nodes';
 
 import { nodeIdForParameterizedValue } from './SnapshotEditor';
+
+export type MissingTree =
+  | string
+  | {
+  readonly [key: string]: MissingTree,
+};
+
+export class MissingFieldError extends Error {
+  constructor(
+    public readonly message: string,
+    public readonly path: MissingTree | Array<string | number>,
+    public readonly query: DocumentNode,
+    public readonly variables?: Record<string, any>
+  ) {
+    // 'Error' breaks prototype chain here
+    super(message);
+
+    if (Array.isArray(this.path)) {
+      this.missing = this.message;
+      for (let i = this.path.length - 1; i >= 0; --i) {
+        this.missing = { [this.path[i]]: this.missing };
+      }
+    } else {
+      this.missing = this.path;
+    }
+
+    // We're not using `Object.setPrototypeOf` here as it isn't fully supported
+    // on Android (see issue #3236).
+    // eslint-disable-next-line no-proto
+    (this as any).__proto__ = MissingFieldError.prototype;
+  }
+
+  public readonly missing: MissingTree;
+}
 
 export interface QueryResult {
   /** The value of the root requested by a query. */
@@ -16,6 +57,8 @@ export interface QueryResult {
   entityIds?: Set<NodeId>;
   /** The ids of nodes overlaid on top of static cache results. */
   dynamicNodeIds?: Set<NodeId>;
+  missing?: MissingFieldError[];
+  fromOptimisticTransaction?: boolean;
 }
 
 export interface QueryResultWithNodeIds extends QueryResult {
@@ -26,9 +69,29 @@ export interface QueryResultWithNodeIds extends QueryResult {
 /**
  * Get you some data.
  */
-export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds: true): QueryResultWithNodeIds;
-export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: boolean): QueryResult;
-export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSnapshot, includeNodeIds?: boolean) {
+export function read<TSerialized>(
+  context: CacheContext<TSerialized>,
+  raw: RawOperation,
+  snapshot: GraphSnapshot,
+  tempStore?: NodeSnapshotMap,
+  includeNodeIds?: true,
+): QueryResultWithNodeIds;
+
+export function read<TSerialized>(
+  context: CacheContext<TSerialized>,
+  raw: RawOperation,
+  snapshot: GraphSnapshot,
+  tempStore?: NodeSnapshotMap,
+  includeNodeIds?: boolean,
+): QueryResult;
+
+export function read<TSerialized>(
+  context: CacheContext<TSerialized>,
+  raw: RawOperation,
+  snapshot: GraphSnapshot,
+  tempStore: NodeSnapshotMap = Object.create(null),
+  includeNodeIds?: boolean,
+) {
   let tracerContext;
   if (context.tracer.readStart) {
     tracerContext = context.tracer.readStart(raw);
@@ -43,11 +106,16 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
   let cacheHit = true;
   if (!queryResult.result) {
     cacheHit = false;
-    queryResult.result = snapshot.getNodeData(operation.rootId);
+    const nodeSnapshot = snapshot.getNodeSnapshot(operation.rootId) ?? {};
+    const { data, outbound } = nodeSnapshot;
+    queryResult.result = data as JsonObject;
 
-    if (!operation.isStatic) {
+    if (
+      (!operation.isStatic && (data || outbound || context.typePolicies)) ||
+      (operation.parsedQuery.__typename && data && !('__typename' in (data as JsonObject)))
+    ) {
       const dynamicNodeIds = new Set<NodeId>();
-      queryResult.result = _walkAndOverlayDynamicValues(operation, context, snapshot, queryResult.result, dynamicNodeIds!);
+      queryResult.result = _walkAndOverlayDynamicValues(operation, context, snapshot, queryResult.result ?? {}, dynamicNodeIds!, tempStore);
       queryResult.dynamicNodeIds = dynamicNodeIds;
     }
 
@@ -56,7 +124,11 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
     // When strict mode is disabled, we carry completeness forward for observed
     // queries.  Once complete, always complete.
     if (typeof queryResult.complete !== 'boolean') {
-      queryResult.complete = _visitSelection(operation, context, queryResult.result, queryResult.entityIds);
+      const missing: MissingFieldError[] = [];
+      queryResult.complete = _visitSelection(operation, context, queryResult.result, queryResult.entityIds, missing);
+      if (missing.length) {
+        queryResult.missing = missing;
+      }
     }
   }
 
@@ -66,8 +138,7 @@ export function read(context: CacheContext, raw: RawOperation, snapshot: GraphSn
   if (includeNodeIds && !queryResult.entityIds) {
     cacheHit = false;
     const entityIds = new Set<NodeId>();
-    const complete = _visitSelection(operation, context, queryResult.result, entityIds);
-    queryResult.complete = complete;
+    queryResult.complete = _visitSelection(operation, context, queryResult.result, entityIds);
     queryResult.entityIds = entityIds;
   }
 
@@ -96,17 +167,24 @@ class OverlayWalkNode {
  * and new properties pointing to the parameterized values (or objects that
  * contain them).
  */
-export function _walkAndOverlayDynamicValues(
-  query: OperationInstance,
-  context: CacheContext,
+export function _walkAndOverlayDynamicValues<TSerialized>(
+  query: OperationInstance<TSerialized>,
+  context: CacheContext<TSerialized>,
   snapshot: GraphSnapshot,
   result: JsonObject | undefined,
   dynamicNodeIds: Set<NodeId>,
+  tempStore: NodeSnapshotMap,
 ): JsonObject | undefined {
   // Corner case: We stop walking once we reach a parameterized field with no
   // snapshot, but we should also preemptively stop walking if there are no
   // dynamic values to be overlaid
-  const rootSnapshot = snapshot.getNodeSnapshot(query.rootId);
+  const id = query.rootId;
+  const isRoot = id === StaticNodeId.QueryRoot;
+  const rootSnapshot: Readonly<NodeSnapshot> | undefined
+    = snapshot.getNodeSnapshot(id)
+      ?? isRoot
+      ? {}
+      : undefined;
   if (isNil(rootSnapshot)) return result;
 
   // TODO: A better approach here might be to walk the outbound references from
@@ -117,7 +195,90 @@ export function _walkAndOverlayDynamicValues(
   // TODO: This logic sucks.  We'd do much better if we had knowledge of the
   // schema.  Can we layer that on in such a way that we can support uses w/ and
   // w/o a schema compilation step?
-  const queue = [new OverlayWalkNode(newResult, query.rootId, query.parsedQuery, [])];
+  const queue = [new OverlayWalkNode(newResult, id, query.parsedQuery, [])];
+
+  function readFromSnapshot(obj: Readonly<NodeSnapshot>, key: string) {
+    const data = obj.data;
+    if (!data || typeof data !== 'object') {
+      return undefined;
+    }
+    if (key in data) {
+      return data[key];
+    }
+    for (const out of obj.outbound ?? []) {
+      if (out.path[0] === key) {
+        return snapshot.getNodeData(out.id);
+      }
+    }
+    if (isRoot && key === '__typename') {
+      return 'Query';
+    }
+    return undefined;
+  }
+
+  const readField = (
+    fieldNameOrOptions: string | ReadFieldOptions,
+    from: StoreObject | Reference = rootSnapshot.data as StoreObject
+  ) => {
+    if (!from) {
+      return undefined;
+    }
+    if (typeof fieldNameOrOptions !== 'string') throw new Error('Not implemented');
+
+    if (isReference(from)) {
+      const ref = from.__ref;
+      const obj = tempStore[ref] ?? snapshot.getNodeSnapshot(ref);
+      if (!obj) {
+        return undefined;
+      }
+      return readFromSnapshot(obj, fieldNameOrOptions);
+    } else {
+      return from[fieldNameOrOptions];
+    }
+  };
+
+  function getSnapshot(nodeId: string) {
+    return tempStore[nodeId] ?? snapshot.getNodeSnapshot(nodeId);
+  }
+
+  const ensureNewSnapshot = (nodeId: NodeId): NodeSnapshot => {
+    const parent = getSnapshot(nodeId);
+
+    // TODO: We're assuming that the only time we call _ensureNewSnapshot when
+    // there is no parent is when the node is an entity.  Can we enforce it, or
+    // pass a type through?
+    const newSnapshot = parent ? cloneNodeSnapshot(parent) : new EntitySnapshot();
+    tempStore[nodeId] = newSnapshot;
+    return newSnapshot;
+  };
+
+  const readOptions: FieldFunctionOptions = {
+    args: {},
+    cache: null as any,
+    canRead(value: StoreValue): boolean {
+      return isReference(value)
+        ? snapshot.has(value.__ref)
+        : typeof value === 'object' && value !== null;
+    },
+    field: null,
+    fieldName: '',
+    isReference,
+    mergeObjects<T>(existing: T, incoming: T): T {
+      return { ...existing, ...incoming };
+    },
+    readField,
+    storage: rootSnapshot,
+    storeFieldName: '',
+    toReference: (value, mergeIntoStore) => {
+      const entityId = context.entityIdForValue(value);
+      if (entityId && mergeIntoStore && !isReference(value) && typeof value !== 'string') {
+        const nodeSnapshot = ensureNewSnapshot(entityId);
+        nodeSnapshot.data = { ...nodeSnapshot.data as {}, ...value };
+      }
+      return entityId ? makeReference(entityId) : undefined;
+    },
+    variables: query.variables,
+  };
 
   while (queue.length) {
     const walkNode = queue.pop()!;
@@ -128,6 +289,12 @@ export function _walkAndOverlayDynamicValues(
       containerId = valueId;
       path = [];
     }
+
+    let typeName = value.__typename as string;
+    if (!typeName && containerId === StaticNodeId.QueryRoot && path.length === 0) {
+      typeName = 'Query'; // Preserve the default cache's behavior.
+    }
+    const typePolicies = context.typePolicies?.[typeName]?.fields;
 
     for (const key in parsedMap) {
       const node = parsedMap[key];
@@ -144,10 +311,6 @@ export function _walkAndOverlayDynamicValues(
         let childId = nodeIdForParameterizedValue(containerId, [...path, fieldName], node.args);
         let childSnapshot = snapshot.getNodeSnapshot(childId);
         if (!childSnapshot) {
-          let typeName = value.__typename as string;
-          if (!typeName && containerId === StaticNodeId.QueryRoot) {
-            typeName = 'Query'; // Preserve the default cache's behavior.
-          }
 
           // Should we fall back to a redirect?
           const redirect: CacheContext.ResolverRedirect | undefined = deepGet(context.resolverRedirects, [typeName, fieldName]) as any;
@@ -156,23 +319,56 @@ export function _walkAndOverlayDynamicValues(
             if (!isNil(childId)) {
               childSnapshot = snapshot.getNodeSnapshot(childId);
             }
+          } else if (typePolicies) {
+            const fieldPolicy = typePolicies[fieldName];
+            const readFn = fieldPolicy && (typeof fieldPolicy === 'object' ? fieldPolicy.read : fieldPolicy);
+            if (readFn) {
+              readOptions.fieldName = fieldName;
+              readOptions.storeFieldName = key;
+              readOptions.args = node.args;
+              const readResult = readFn(undefined, readOptions);
+              if (isReference(readResult)) {
+                const ref = readResult.__ref;
+                childSnapshot = getSnapshot(ref);
+              } else {
+                child = readResult;
+              }
+            }
           }
         }
+        dynamicNodeIds.add(childId);
 
         // Still no snapshot? Ok we're done here.
-        if (!childSnapshot) continue;
+        if (!childSnapshot) {
+          continue;
+        }
 
-        dynamicNodeIds.add(childId);
         nextContainerId = childId;
         nextPath = [];
         child = childSnapshot.data;
       } else {
         nextPath = [...path, fieldName];
         child = value[fieldName];
+        const policy = typePolicies?.[fieldName];
+        const readFn = typeof policy === 'function' ? policy : policy?.read;
+        if (readFn) {
+          readOptions.fieldName = fieldName;
+          readOptions.storeFieldName = key;
+          readOptions.args = node.args ?? null;
+          child = readFn(child, readOptions);
+        }
       }
 
+      let ref;
+      if (isReference(child)) {
+        ref = child.__ref;
+        child = snapshot.getNodeSnapshot(ref)?.data;
+      }
+
+      const hasPolicy = child && context.typePolicies?.[child.__typename]?.fields;
+
       // Have we reached a leaf (either in the query, or in the cache)?
-      if (_shouldWalkChildren(child, node)) {
+      if (hasPolicy || ref || _shouldWalkChildren(child, node)) {
         child = _recursivelyWrapValue(child, context);
         const allChildValues = _flattenGraphQLObject(child, nextPath);
 
@@ -184,7 +380,11 @@ export function _walkAndOverlayDynamicValues(
 
       // Because key is already a field alias, result will be written correctly
       // using alias as key.
-      value[key] = child as JsonValue;
+      if (child !== undefined) {
+        value[key] = child;
+      } else if (key === '__typename' && typeName) {
+        value.__typename = typeName;
+      }
     }
   }
 
@@ -241,7 +441,7 @@ function _flattenGraphQLObject(value: UnknownGraphQLObject, path: PathPart[]): F
   return flattened;
 }
 
-function _recursivelyWrapValue<T extends JsonValue>(value: T | undefined, context: CacheContext): T {
+function _recursivelyWrapValue<T extends JsonValue, TSerialized>(value: T | undefined, context: CacheContext<TSerialized>): T {
   if (!Array.isArray(value)) {
     return _wrapValue(value, context);
   }
@@ -256,7 +456,7 @@ function _recursivelyWrapValue<T extends JsonValue>(value: T | undefined, contex
   return newValue as T;
 }
 
-function _wrapValue<T extends JsonValue>(value: T | undefined, context: CacheContext): T {
+function _wrapValue<T extends JsonValue, TSerialized>(value: T | undefined, context: CacheContext<TSerialized>): T {
   if (value === undefined) {
     return {} as T;
   }
@@ -277,27 +477,33 @@ function _wrapValue<T extends JsonValue>(value: T | undefined, context: CacheCon
  * Determines whether `result` satisfies the properties requested by
  * `selection`.
  */
-export function _visitSelection(
-  query: OperationInstance,
-  context: CacheContext,
+export function _visitSelection<TSerialized>(
+  query: OperationInstance<TSerialized>,
+  context: CacheContext<TSerialized>,
   result?: JsonObject,
   nodeIds?: Set<NodeId>,
+  missing?: MissingFieldError[],
 ): boolean {
   let complete = true;
   if (nodeIds && result !== undefined) {
     nodeIds.add(query.rootId);
   }
+  const missingByFieldName = new Map<string, MissingFieldError>();
 
   // TODO: Memoize per query, and propagate through cache snapshots.
-  walkOperation(query.info.parsed, result, (value, fields) => {
+  walkOperation(query.info.parsed, result, (value, fields, path) => {
     if (value === undefined) {
       complete = false;
     }
 
     // If we're not including node ids, we can stop the walk right here.
-    if (!complete) return !nodeIds;
+    if (!complete && !missing) {
+      return !nodeIds;
+    }
 
-    if (!isObject(value)) return false;
+    if (!isObject(value)) {
+      return false;
+    }
 
     if (nodeIds && isObject(value)) {
       const nodeId = context.entityIdForValue(value);
@@ -307,14 +513,36 @@ export function _visitSelection(
     }
 
     for (const field of fields) {
-      if (!(field in value)) {
+      if (!(field in value) && field !== '__typename') {
+        let missingError = missingByFieldName.get(field);
+        const nodeId = context.entityIdForValue(value) ?? (value?.__typename === 'Query' ? 'ROOT_QUERY' : undefined);
+        const objOrNodeId = nodeId ? `${nodeId} object` : `object ${(safeStringify(value))}`;
+        const message = `Can't find field '${field}' on ${objOrNodeId}`;
+        if (!missingError) {
+          const missingTree: MissingTree = {};
+          lazyImmutableDeepSet(missingTree, undefined, [...path, field], message);
+          missingByFieldName.set(field, missingError = new MissingFieldError(
+            message,
+            missingTree,
+            query.info.document,
+            query.variables ?? {},
+          ));
+        } else {
+          const missingTree = missingError.path as {
+            readonly [key: string]: MissingTree,
+          };
+          lazyImmutableDeepSet(missingTree, undefined, [...path, field], message);
+        }
         complete = false;
-        break;
       }
     }
 
     return false;
   });
+
+  for (const error of missingByFieldName.values()) {
+    missing?.push(error);
+  }
 
   return complete;
 }

@@ -98,7 +98,7 @@ describe(`deserialization with migration`, () => {
   });
 
   it(`migrates the restored cache to v2`, () => {
-    const newCache = new Cache();
+    const newCache = new Cache(strictConfig);
     // set up v1 -> v2 migration map that adds the 'isNew' field to 'THREE'
     newCache.restore(JSON.parse(storedV1ExtractResult), {
       _entities: {
@@ -111,14 +111,14 @@ describe(`deserialization with migration`, () => {
   });
 
   it(`throws if verifyQuery couldn't be satified due to missing migration map`, () => {
-    const newCache = new Cache();
+    const newCache = new Cache(strictConfig);
     expect(() => {
       newCache.restore(JSON.parse(storedV1ExtractResult), undefined, v2Query);
     }).to.throw();
   });
 
   it(`throws if verifyQuery couldn't be satified due to inadequate migration map`, () => {
-    const newCache = new Cache();
+    const newCache = new Cache(strictConfig);
     expect(() => {
       newCache.restore(JSON.parse(storedV1ExtractResult), {
         _entities: {

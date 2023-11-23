@@ -107,7 +107,7 @@ rules:
   func-call-spacing: error
   func-names: [error, as-needed]
   func-style: [error, declaration, { allowArrowFunctions: true }]
-  id-blacklist: [error, e, err, cb, fn]
+  id-blacklist: [error, err, cb, fn]
   indent: [error, 2, { SwitchCase: 1 }]
   jsx-quotes: [error, prefer-single]
   key-spacing: [error, { mode: minimum }]

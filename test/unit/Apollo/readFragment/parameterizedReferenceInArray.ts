@@ -1,14 +1,13 @@
 import gql from 'graphql-tag';
 
 import { Hermes } from '../../../../src/apollo/Hermes';
-import { CacheContext } from '../../../../src/context/CacheContext';
 import { strictConfig } from '../../../helpers/context';
 
 describe(`writeFragment with parameterized references within arrays`, () => {
 
   let hermes: Hermes;
   beforeAll(() => {
-    hermes = new Hermes(new CacheContext(strictConfig));
+    hermes = new Hermes(strictConfig);
     hermes.writeQuery({
       query: gql(`
         query getViewer($city: String!, $area: String!) {

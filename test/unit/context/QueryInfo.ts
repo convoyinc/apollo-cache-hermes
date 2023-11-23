@@ -117,30 +117,6 @@ describe(`context.QueryInfo`, () => {
       }).to.throw(/\$bar(.|\n)*\$baz/);
     });
 
-    it(`asserts that all variables are used`, () => {
-      expect(() => {
-        new QueryInfo(context, buildRawOperationFromQuery(gql`
-          query whoops($foo: Number, $bar: String, $baz: ID) {
-            thing(bar: $bar)
-          }
-        `));
-      }).to.throw(/\$foo(.|\n)*\$baz/);
-    });
-
-    it(`asserts that all variables are used, including fragments`, () => {
-      expect(() => {
-        new QueryInfo(context, buildRawOperationFromQuery(gql`
-          query whoops($foo: Number, $bar: String, $baz: ID) {
-            thing { ...stuff }
-          }
-
-          fragment stuff on Thing {
-            thing(bar: $bar)
-          }
-        `));
-      }).to.throw(/\$foo(.|\n)*\$baz/);
-    });
-
   });
 
 });

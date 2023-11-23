@@ -22,8 +22,8 @@ describe(`context.CacheContext`, () => {
       return names;
     }
 
-    it(`does not inject __typename by default`, () => {
-      const context = new CacheContext(strictConfig);
+    it(`does not inject __typename`, () => {
+      const context = new CacheContext({ ...strictConfig, addTypename: false });
       const parsed = transformDocument(context, `{
         foo {
           bar { a b }
